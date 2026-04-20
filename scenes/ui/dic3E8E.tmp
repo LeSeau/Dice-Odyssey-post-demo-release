@@ -1,0 +1,47 @@
+[gd_scene load_steps=7 format=3 uid="uid://bosv0rjmw4ehl"]
+
+[ext_resource type="Script" path="res://scenes/ui/dice_ui.gd" id="1_85vqi"]
+[ext_resource type="Texture2D" uid="uid://c17qq0sj25epy" path="res://assets/images/blue1.png" id="1_hgivn"]
+[ext_resource type="Script" path="res://scenes/dices/dice_1_texture.gd" id="2_ssd5y"]
+[ext_resource type="Theme" uid="uid://c8cqncsqlplyu" path="res://main_theme.tres" id="3_levu0"]
+[ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="4_0gvkm"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_rgjau"]
+line_spacing = 0.0
+font = ExtResource("4_0gvkm")
+shadow_size = 3
+shadow_color = Color(0, 0, 0, 0.509804)
+
+[node name="DiceUI" type="Control"]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -1258.0
+offset_bottom = -664.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_85vqi")
+
+[node name="DiceTexture" type="TextureRect" parent="."]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+offset_right = 22.0
+offset_bottom = 22.0
+size_flags_vertical = 8
+texture = ExtResource("1_hgivn")
+expand_mode = 4
+script = ExtResource("2_ssd5y")
+
+[node name="DiceLabel" type="Label" parent="."]
+layout_mode = 2
+offset_top = 26.0
+offset_right = 22.0
+offset_bottom = 43.0
+size_flags_vertical = 1
+theme = ExtResource("3_levu0")
+text = "2/2"
+label_settings = SubResource("LabelSettings_rgjau")
+horizontal_alignment = 1
+vertical_alignment = 2

@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3 uid="uid://brf4stv6v8h2p"]
+
+[ext_resource type="PackedScene" uid="uid://d0efyathkfg74" path="res://scenes/enemy/enemy.tscn" id="1_47act"]
+[ext_resource type="Resource" uid="uid://b21r6up06nnxs" path="res://enemies/lich/lich_enemy.tres" id="2_6s1fn"]
+
+[node name="TierEliteLich" type="Node2D"]
+
+[node name="Enemy" parent="." instance=ExtResource("1_47act")]
+position = Vector2(918, 418)
+stats = ExtResource("2_6s1fn")

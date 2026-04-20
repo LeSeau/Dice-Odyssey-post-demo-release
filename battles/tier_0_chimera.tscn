@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3 uid="uid://o4ngjnvg5lqr"]
+
+[ext_resource type="PackedScene" uid="uid://d0efyathkfg74" path="res://scenes/enemy/enemy.tscn" id="1_kplrh"]
+[ext_resource type="Resource" uid="uid://bj84yxx81rlvt" path="res://enemies/chimera/chimera_enemy.tres" id="2_co2ys"]
+
+[node name="Tier0Chimera" type="Node2D"]
+
+[node name="Enemy" parent="." instance=ExtResource("1_kplrh")]
+position = Vector2(888, 388)
+stats = ExtResource("2_co2ys")

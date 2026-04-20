@@ -1,0 +1,26 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://dem7jabiqll4y"]
+
+[ext_resource type="Texture2D" uid="uid://15qdyodgr8l0" path="res://swipe.png" id="1_7au6t"]
+[ext_resource type="Script" path="res://characters/warrior/cards/swipe.gd" id="2_kjta4"]
+[ext_resource type="AudioStream" uid="uid://dixklg6g4jnsq" path="res://art/slash.ogg" id="3_cpdgl"]
+
+[resource]
+script = ExtResource("2_kjta4")
+id = "card_swipe"
+name = "Swipe"
+type = 0
+target = 1
+description = "Deal X damage. Get a Scout 2 Card"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 0
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Scout"
+icon = ExtResource("1_7au6t")
+tooltip_text = ""
+sound = ExtResource("3_cpdgl")

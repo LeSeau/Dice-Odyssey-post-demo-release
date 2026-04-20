@@ -1,0 +1,26 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c8jpug3jevw1o"]
+
+[ext_resource type="Texture2D" uid="uid://bsc0wdsvejuc0" path="res://gptreinforce.jpg" id="1_07mm7"]
+[ext_resource type="Script" path="res://characters/warrior/cards/reinforce.gd" id="1_v6007"]
+[ext_resource type="AudioStream" uid="uid://do0dmgci28247" path="res://sounds/blacksmithsound.wav" id="3_buaeb"]
+
+[resource]
+script = ExtResource("1_v6007")
+id = "card_reinforce"
+name = "Reinforce"
+type = 1
+target = 0
+description = "Add 1 to your Power"
+rarity = 1
+red_only = false
+can_play_without_dice = false
+requirement = 2
+requirement_number = 12
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = ""
+icon = ExtResource("1_07mm7")
+tooltip_text = ""
+sound = ExtResource("3_buaeb")

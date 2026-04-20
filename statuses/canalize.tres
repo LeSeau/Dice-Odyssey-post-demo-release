@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CanalizeStatus" load_steps=3 format=3 uid="uid://dofb5tiahraoc"]
+
+[ext_resource type="Texture2D" uid="uid://datbkxw1n1rm" path="res://gpt_canalize_status.png" id="1_tsjlw"]
+[ext_resource type="Script" path="res://statuses/canalize.gd" id="1_w6pdj"]
+
+[resource]
+script = ExtResource("1_w6pdj")
+id = "canalize"
+type = 2
+stack_type = 0
+can_expire = false
+duration = 0
+stacks = 0
+icon = ExtResource("1_tsjlw")
+tooltip = ""

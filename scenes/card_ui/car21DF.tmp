@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3 uid="uid://de8jlbvihue7m"]
+
+[ext_resource type="Script" path="res://scenes/card_ui/card_particles.gd" id="1_yv12u"]
+
+[node name="GPUParticles2D" type="CPUParticles2D"]
+emitting = false
+amount = 20
+lifetime = 0.8
+one_shot = true
+explosiveness = 0.9
+script = ExtResource("1_yv12u")

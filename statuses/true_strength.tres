@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="TrueStrengthStatus" load_steps=3 format=3 uid="uid://bq6ih4jt6w6x5"]
+
+[ext_resource type="Texture2D" uid="uid://c04ddi4gtse5k" path="res://gptfurystatus.png" id="1_j8lek"]
+[ext_resource type="Script" path="res://statuses/true_strength.gd" id="2_nj0mi"]
+
+[resource]
+script = ExtResource("2_nj0mi")
+id = "true_strength"
+type = 1
+stack_type = 0
+can_expire = false
+duration = 0
+stacks = 0
+icon = ExtResource("1_j8lek")
+tooltip = ""

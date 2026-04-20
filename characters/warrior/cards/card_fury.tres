@@ -1,0 +1,26 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://d0qr2s8yxv3tx"]
+
+[ext_resource type="Script" path="res://characters/warrior/cards/fury.gd" id="1_ojdhx"]
+[ext_resource type="Texture2D" uid="uid://d3yilwnrh1hgo" path="res://gptfury.png" id="1_rmevo"]
+[ext_resource type="AudioStream" uid="uid://74jv0m7l7ten" path="res://roar.mp3" id="3_i63u6"]
+
+[resource]
+script = ExtResource("1_ojdhx")
+id = "card_fury"
+name = "Fury"
+type = 1
+target = 0
+description = "Gain X strength this turn only"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 5
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Strength"
+icon = ExtResource("1_rmevo")
+tooltip_text = ""
+sound = ExtResource("3_i63u6")

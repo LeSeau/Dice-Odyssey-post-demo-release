@@ -1,0 +1,26 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://i3v5wr0xm50r"]
+
+[ext_resource type="Texture2D" uid="uid://dr3fyseyasvsm" path="res://gptoverdrive.png" id="1_reodk"]
+[ext_resource type="Script" path="res://characters/warrior/cards/overdrive.gd" id="2_sggl5"]
+[ext_resource type="AudioStream" uid="uid://bryyjsmk8fak6" path="res://detonationsound.mp3" id="3_ggn5c"]
+
+[resource]
+script = ExtResource("2_sggl5")
+id = "overdrive"
+name = "Overdrive"
+type = 0
+target = 1
+description = "Deal X2 damage. Get Depleted 1"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 2
+requirement_number = 9
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Depleted"
+icon = ExtResource("1_reodk")
+tooltip_text = ""
+sound = ExtResource("3_ggn5c")

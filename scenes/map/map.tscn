@@ -1,0 +1,159 @@
+[gd_scene load_steps=12 format=3 uid="uid://deprxl041o8nn"]
+
+[ext_resource type="Script" path="res://scenes/map/map.gd" id="1_bw6fj"]
+[ext_resource type="Script" path="res://scenes/map/map_generator.gd" id="2_biuuq"]
+[ext_resource type="Resource" uid="uid://byiwraochqvw" path="res://battles/battle_stats_pool.tres" id="3_joenb"]
+[ext_resource type="Texture2D" uid="uid://cixhe0hba0c1" path="res://assets/images/scroll.jpg" id="3_rcyey"]
+[ext_resource type="Resource" uid="uid://dih15xjxqnjvm" path="res://scenes/events/events_stats_pool.tres" id="4_gbdbf"]
+[ext_resource type="Texture2D" uid="uid://bnrcwics06wiy" path="res://normal_fight_icon_v2.png" id="6_fwmwk"]
+[ext_resource type="FontFile" uid="uid://bm3deysyi2y55" path="res://Belwe Bold/Belwe Bold.otf" id="7_0tp22"]
+[ext_resource type="Texture2D" uid="uid://dk5mwssfa4snd" path="res://elite_fight_icon_v2.png" id="8_ft5nu"]
+[ext_resource type="Texture2D" uid="uid://dultdsfjqpq6p" path="res://events_icon_map.png" id="9_6yelc"]
+[ext_resource type="Texture2D" uid="uid://8t5hsrgvdtxg" path="res://treasurenobg.png" id="10_cfghj"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ifwcs"]
+bg_color = Color(0.246036, 0.403102, 0.363782, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 2
+border_color = Color(0, 0, 0, 1)
+shadow_color = Color(0, 0, 0, 1)
+shadow_size = 2
+
+[node name="Map" type="Node2D"]
+script = ExtResource("1_bw6fj")
+
+[node name="Visuals" type="Node2D" parent="."]
+
+[node name="Lines" type="Node2D" parent="Visuals"]
+unique_name_in_owner = true
+
+[node name="Rooms" type="Node2D" parent="Visuals"]
+unique_name_in_owner = true
+
+[node name="Camera2D" type="Camera2D" parent="."]
+offset = Vector2(640, 360)
+
+[node name="MapGenerator" type="Node" parent="."]
+script = ExtResource("2_biuuq")
+battle_stats_pool = ExtResource("3_joenb")
+event_stats_pool = ExtResource("4_gbdbf")
+
+[node name="MapBackground" type="CanvasLayer" parent="."]
+layer = -1
+
+[node name="Background" type="TextureRect" parent="MapBackground"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3_rcyey")
+expand_mode = 1
+
+[node name="MapLegend" type="CanvasLayer" parent="."]
+layer = 5
+
+[node name="Control" type="Control" parent="MapLegend"]
+custom_minimum_size = Vector2(161, 200)
+layout_mode = 3
+anchors_preset = 0
+offset_left = 1112.0
+offset_top = 504.0
+offset_right = 1273.0
+offset_bottom = 714.0
+mouse_filter = 2
+
+[node name="Panel" type="Panel" parent="MapLegend/Control"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_ifwcs")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MapLegend/Control/Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MapLegend/Control/Panel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+
+[node name="TextureRect" type="TextureRect" parent="MapLegend/Control/Panel/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+size_flags_vertical = 3
+texture = ExtResource("6_fwmwk")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="MapLegend/Control/Panel/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("7_0tp22")
+theme_override_font_sizes/font_size = 24
+text = "Fight"
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="MapLegend/Control/Panel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+
+[node name="TextureRect" type="TextureRect" parent="MapLegend/Control/Panel/VBoxContainer/HBoxContainer2"]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+size_flags_vertical = 3
+texture = ExtResource("8_ft5nu")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="MapLegend/Control/Panel/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("7_0tp22")
+theme_override_font_sizes/font_size = 24
+text = "Elite"
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="MapLegend/Control/Panel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+
+[node name="TextureRect" type="TextureRect" parent="MapLegend/Control/Panel/VBoxContainer/HBoxContainer3"]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+size_flags_vertical = 3
+texture = ExtResource("9_6yelc")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="MapLegend/Control/Panel/VBoxContainer/HBoxContainer3"]
+layout_mode = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("7_0tp22")
+theme_override_font_sizes/font_size = 24
+text = "Event"
+
+[node name="HBoxContainer4" type="HBoxContainer" parent="MapLegend/Control/Panel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+
+[node name="TextureRect" type="TextureRect" parent="MapLegend/Control/Panel/VBoxContainer/HBoxContainer4"]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+size_flags_vertical = 3
+texture = ExtResource("10_cfghj")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="MapLegend/Control/Panel/VBoxContainer/HBoxContainer4"]
+layout_mode = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("7_0tp22")
+theme_override_font_sizes/font_size = 24
+text = "Treasure"

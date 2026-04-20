@@ -1,0 +1,12 @@
+[gd_scene load_steps=3 format=3 uid="uid://oxefqhvrw0j0"]
+
+[ext_resource type="PackedScene" uid="uid://d0efyathkfg74" path="res://scenes/enemy/enemy.tscn" id="1_eyblv"]
+[ext_resource type="Resource" uid="uid://cnfm48lkjfj76" path="res://enemies/medusa/medusa_enemy.tres" id="2_xam05"]
+
+[node name="Tier1Medusa" type="Node2D"]
+
+[node name="Medusa" parent="." instance=ExtResource("1_eyblv")]
+position = Vector2(858, 438)
+stats = ExtResource("2_xam05")
+width = 170
+height = 200

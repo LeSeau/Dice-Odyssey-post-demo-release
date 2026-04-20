@@ -1,0 +1,25 @@
+[gd_scene load_steps=3 format=3 uid="uid://de8jlbvihue7m"]
+
+[ext_resource type="Script" path="res://scenes/card_ui/card_particles.gd" id="1_yv12u"]
+
+[sub_resource type="Curve" id="Curve_u3nbd"]
+_data = [Vector2(0.00667557, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[node name="GPUParticles2D" type="CPUParticles2D"]
+z_index = 1000
+emitting = false
+amount = 150
+lifetime = 0.8
+one_shot = true
+speed_scale = 0.66
+explosiveness = 0.9
+randomness = 0.1
+lifetime_randomness = 0.29
+emission_shape = 1
+emission_sphere_radius = 30.97
+direction = Vector2(0, -1)
+spread = 105.46
+gravity = Vector2(0, 500)
+scale_amount_curve = SubResource("Curve_u3nbd")
+script = ExtResource("1_yv12u")

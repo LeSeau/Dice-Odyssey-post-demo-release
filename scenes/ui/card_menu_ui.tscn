@@ -1,0 +1,329 @@
+[gd_scene load_steps=24 format=3 uid="uid://d2vlobkkv27hu"]
+
+[ext_resource type="Script" path="res://scenes/ui/card_menu_ui.gd" id="1_t1hae"]
+[ext_resource type="StyleBox" uid="uid://belt0xy3pi11o" path="res://scenes/card_ui/card_background.tres" id="2_j3nj0"]
+[ext_resource type="StyleBox" uid="uid://boqwwfxsajq1s" path="res://scenes/card_ui/card_banner.tres" id="4_ntvvr"]
+[ext_resource type="LabelSettings" uid="uid://cy482afjc3tjk" path="res://scenes/card_ui/card_title.tres" id="5_mbdvt"]
+[ext_resource type="StyleBox" uid="uid://ba5f3gvin2wmm" path="res://scenes/card_ui/card_panel.tres" id="6_7w181"]
+[ext_resource type="Texture2D" uid="uid://bn1oyc7jrh7sb" path="res://assets/images/duo.jpg" id="7_k7qr8"]
+[ext_resource type="StyleBox" uid="uid://bp11k7kqceuxa" path="res://scenes/card_ui/description_panel.tres" id="8_ggr13"]
+[ext_resource type="StyleBox" uid="uid://dk6xw47oqq1ue" path="res://scenes/card_ui/card_requirement_odd.tres" id="9_hqb71"]
+[ext_resource type="FontFile" uid="uid://c4mfyi0ta8qeq" path="res://fonts/MinionPro-Semibold.otf" id="9_uhj7u"]
+[ext_resource type="StyleBox" uid="uid://cjfl6c345al3o" path="res://scenes/card_ui/card_requirement_even.tres" id="12_e8ivw"]
+[ext_resource type="Texture2D" uid="uid://dxm470owuxqc1" path="res://assets/images/swordicon.png" id="13_4njsp"]
+[ext_resource type="AudioStream" uid="uid://d01ekpfb76q8k" path="res://sounds/removecardsound.mp3" id="13_752k8"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xhpgl"]
+bg_color = Color(0.311214, 0, 0.0696221, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+anti_aliasing = false
+
+[sub_resource type="Theme" id="Theme_fesrv"]
+
+[sub_resource type="Theme" id="Theme_r5rwi"]
+
+[sub_resource type="Theme" id="Theme_87anf"]
+
+[sub_resource type="Theme" id="Theme_4faku"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_4nyx2"]
+line_spacing = -1.0
+font = ExtResource("9_uhj7u")
+font_size = 11
+outline_size = 3
+outline_color = Color(0, 0, 0, 1)
+shadow_color = Color(0, 0, 0, 1)
+
+[sub_resource type="Theme" id="Theme_ws308"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_lwbvt"]
+line_spacing = -1.0
+font = ExtResource("9_uhj7u")
+font_size = 10
+outline_size = 3
+outline_color = Color(0, 0, 0, 1)
+shadow_color = Color(0, 0, 0, 1)
+
+[sub_resource type="Animation" id="Animation_8vgue"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:scale")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(2, 2)]
+}
+
+[sub_resource type="Animation" id="Animation_wqgro"]
+resource_name = "removal"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:scale")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(1, 1), Vector2(1e-05, 1e-05)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_5jjj6"]
+_data = {
+"RESET": SubResource("Animation_8vgue"),
+"removal": SubResource("Animation_wqgro")
+}
+
+[node name="CardMenuAI" type="CenterContainer"]
+z_index = 5
+offset_right = 120.0
+offset_bottom = 180.0
+scale = Vector2(2, 2)
+pivot_offset = Vector2(60, 90)
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 0
+script = ExtResource("1_t1hae")
+
+[node name="Visuals" type="Control" parent="."]
+z_index = 5
+custom_minimum_size = Vector2(120, 180)
+layout_mode = 2
+mouse_filter = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="Glow" type="ColorRect" parent="Visuals"]
+visible = false
+z_index = -4
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -6.0
+offset_top = -8.0
+offset_right = -6.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(1.1, 1.1)
+mouse_filter = 2
+color = Color(0.0470588, 0.960784, 0.901961, 0.352941)
+
+[node name="CardBackground" type="Panel" parent="Visuals"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = ExtResource("2_j3nj0")
+metadata/_edit_use_anchors_ = true
+
+[node name="CardFrame" type="Panel" parent="Visuals/CardBackground"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+theme_override_styles/panel = SubResource("StyleBoxFlat_xhpgl")
+metadata/_edit_use_anchors_ = true
+
+[node name="CardBanner" type="Panel" parent="Visuals/CardBackground/CardFrame"]
+z_index = 3
+custom_minimum_size = Vector2(23, 25)
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 25.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_styles/panel = ExtResource("4_ntvvr")
+metadata/_edit_use_anchors_ = true
+
+[node name="Title" type="Label" parent="Visuals/CardBackground/CardFrame/CardBanner"]
+z_index = 1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Strike"
+label_settings = ExtResource("5_mbdvt")
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+metadata/_edit_use_anchors_ = true
+
+[node name="Panel" type="Panel" parent="Visuals/CardBackground/CardFrame"]
+custom_minimum_size = Vector2(110, 80)
+layout_mode = 0
+offset_top = 25.0
+offset_right = 118.0
+offset_bottom = 110.0
+mouse_filter = 2
+theme = SubResource("Theme_fesrv")
+theme_override_styles/panel = ExtResource("6_7w181")
+metadata/_edit_use_anchors_ = true
+
+[node name="CardArt" type="TextureRect" parent="Visuals/CardBackground/CardFrame/Panel"]
+texture_filter = 4
+custom_minimum_size = Vector2(102, 75)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -55.0
+offset_top = -40.0
+offset_right = 55.0
+offset_bottom = 40.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme = SubResource("Theme_r5rwi")
+texture = ExtResource("7_k7qr8")
+expand_mode = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="RequirementPanel" type="Panel" parent="Visuals/CardBackground/CardFrame"]
+z_index = 2
+custom_minimum_size = Vector2(0, 14)
+layout_mode = 2
+offset_left = 30.0
+offset_top = 113.0
+offset_right = 90.0
+offset_bottom = 125.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = ExtResource("9_hqb71")
+
+[node name="RequirementLabel" type="RichTextLabel" parent="Visuals/CardBackground/CardFrame/RequirementPanel"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -8.0
+offset_bottom = 22.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_font_sizes/normal_font_size = 12
+bbcode_enabled = true
+text = "[center]Max 3 [/center]"
+scroll_active = false
+
+[node name="DescriptionPanel" type="Panel" parent="Visuals/CardBackground/CardFrame"]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -70.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+theme = SubResource("Theme_87anf")
+theme_override_styles/panel = ExtResource("8_ggr13")
+metadata/_edit_use_anchors_ = true
+
+[node name="Description" type="Label" parent="Visuals/CardBackground/CardFrame/DescriptionPanel"]
+custom_minimum_size = Vector2(0, 45)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("Theme_4faku")
+text = "Deals X damage"
+label_settings = SubResource("LabelSettings_4nyx2")
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+metadata/_edit_use_anchors_ = true
+
+[node name="BonusEffect" type="HBoxContainer" parent="Visuals/CardBackground/CardFrame"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 2.0
+offset_top = -18.0
+offset_right = 2.0
+offset_bottom = -2.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/separation = 2
+
+[node name="BonusRequirementPanel" type="Panel" parent="Visuals/CardBackground/CardFrame/BonusEffect"]
+z_index = 2
+custom_minimum_size = Vector2(35, 12)
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = ExtResource("12_e8ivw")
+
+[node name="BonusRequirementLabel" type="RichTextLabel" parent="Visuals/CardBackground/CardFrame/BonusEffect/BonusRequirementPanel"]
+custom_minimum_size = Vector2(0, 7)
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -5.5
+offset_bottom = 10.5
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_font_sizes/normal_font_size = 7
+bbcode_enabled = true
+text = "[center]Even [/center]"
+scroll_active = false
+
+[node name="BonusEffectTexture" type="TextureRect" parent="Visuals/CardBackground/CardFrame/BonusEffect"]
+visible = false
+custom_minimum_size = Vector2(16, 7)
+layout_mode = 2
+texture = ExtResource("13_4njsp")
+expand_mode = 1
+
+[node name="BonusEffectLabel" type="Label" parent="Visuals/CardBackground/CardFrame/BonusEffect"]
+custom_minimum_size = Vector2(82, 16)
+layout_mode = 2
+theme = SubResource("Theme_ws308")
+text = "Draw 2 "
+label_settings = SubResource("LabelSettings_lwbvt")
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+"": SubResource("AnimationLibrary_5jjj6")
+}
+
+[node name="RemovalSoundPlayer" type="AudioStreamPlayer2D" parent="AnimationPlayer"]
+stream = ExtResource("13_752k8")
+volume_db = 4.622
+
+[connection signal="mouse_entered" from="Visuals" to="." method="_on_visuals_mouse_entered"]
+[connection signal="mouse_entered" from="Visuals" to="." method="_on_card_frame_mouse_entered"]
+[connection signal="mouse_exited" from="Visuals" to="." method="_on_visuals_mouse_exited"]
+[connection signal="mouse_exited" from="Visuals" to="." method="_on_card_frame_mouse_exited"]
+[connection signal="gui_input" from="Visuals/CardBackground/CardFrame" to="." method="_on_card_frame_gui_input"]

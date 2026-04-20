@@ -1,0 +1,85 @@
+[gd_scene load_steps=11 format=3 uid="uid://2n4lap6w3pde"]
+
+[ext_resource type="Script" path="res://scenes/player/player.gd" id="1_il1gs"]
+[ext_resource type="PackedScene" uid="uid://ph0oi5od64u5" path="res://scenes/ui/stats_ui.tscn" id="2_wnqqm"]
+[ext_resource type="Texture2D" uid="uid://cydwcr8gro0re" path="res://heronobg.png" id="2_xmex1"]
+[ext_resource type="PackedScene" uid="uid://c6qcxv2m34hwv" path="res://scenes/status_handler/status_handler.tscn" id="4_upllk"]
+[ext_resource type="PackedScene" uid="uid://cj610j1wjtrwi" path="res://scenes/modifier_handler/modifier_handler.tscn" id="5_5u0h2"]
+[ext_resource type="PackedScene" uid="uid://cntarjcc6q8hs" path="res://scenes/modifier_handler/modifier.tscn" id="6_j36u8"]
+[ext_resource type="PackedScene" uid="uid://b6vd4rlg8tfb5" path="res://scenes/modifier_handler/modifier_value.tscn" id="7_i261a"]
+
+[sub_resource type="Animation" id="Animation_op80j"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(0, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_ryhni"]
+resource_name = "idle"
+length = 2.0
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:position")
+tracks/0/interp = 2
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1, 2),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(0, 0), Vector2(0, -5), Vector2(0, 0)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_ho4ub"]
+_data = {
+"RESET": SubResource("Animation_op80j"),
+"idle": SubResource("Animation_ryhni")
+}
+
+[node name="Player" type="Node2D" groups=["player"]]
+script = ExtResource("1_il1gs")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(0.25, 0.25)
+texture = ExtResource("2_xmex1")
+
+[node name="StatsUI" parent="." instance=ExtResource("2_wnqqm")]
+offset_left = -83.0
+offset_top = 123.0
+offset_right = 68.0
+offset_bottom = 149.0
+size_flags_horizontal = 8
+size_flags_vertical = 4
+
+[node name="StatusHandler" parent="." node_paths=PackedStringArray("status_owner") instance=ExtResource("4_upllk")]
+offset_left = -77.0
+offset_top = 145.0
+offset_right = -77.0
+offset_bottom = 145.0
+status_owner = NodePath("..")
+
+[node name="ModifierHandler" parent="." instance=ExtResource("5_5u0h2")]
+
+[node name="DamageDealtModifier" parent="ModifierHandler" instance=ExtResource("6_j36u8")]
+
+[node name="ModifierValue" parent="ModifierHandler/DamageDealtModifier" instance=ExtResource("7_i261a")]
+type = 1
+
+[node name="DamageTakenModifier" parent="ModifierHandler" instance=ExtResource("6_j36u8")]
+type = 1
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+"": SubResource("AnimationLibrary_ho4ub")
+}
+autoplay = "idle"

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="MuscleStatus" load_steps=3 format=3 uid="uid://ekj0l2u6s0np"]
+
+[ext_resource type="Texture2D" uid="uid://dxm470owuxqc1" path="res://assets/images/swordicon.png" id="1_dnals"]
+[ext_resource type="Script" path="res://statuses/muscle.gd" id="2_qe8c8"]
+
+[resource]
+script = ExtResource("2_qe8c8")
+id = "strength"
+type = 2
+stack_type = 1
+can_expire = false
+duration = 0
+stacks = 2
+icon = ExtResource("1_dnals")
+tooltip = "to do"

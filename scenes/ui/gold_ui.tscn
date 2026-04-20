@@ -1,0 +1,22 @@
+[gd_scene load_steps=3 format=3 uid="uid://bdmrt1adkfiii"]
+
+[ext_resource type="Script" path="res://scenes/ui/gold_ui.gd" id="1_rd1f3"]
+[ext_resource type="Texture2D" uid="uid://clibtud31k586" path="res://coin_gold_icon_v2.png" id="2_s2ubk"]
+
+[node name="GoldUI" type="HBoxContainer"]
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("1_rd1f3")
+
+[node name="Icon" type="TextureRect" parent="."]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+texture = ExtResource("2_s2ubk")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 2
+size_flags_vertical = 1
+text = "999"
+vertical_alignment = 1

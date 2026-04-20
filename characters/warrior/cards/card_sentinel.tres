@@ -1,0 +1,22 @@
+[gd_resource type="Resource" load_steps=2 format=3 uid="uid://bkvii2fgwk1en"]
+
+[ext_resource type="Script" path="res://characters/warrior/cards/sentinel.gd" id="1_8lpbm"]
+
+[resource]
+script = ExtResource("1_8lpbm")
+id = "card_sentinel"
+name = "Sentinel"
+type = 0
+target = 1
+description = ""
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 0
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = ""
+tooltip_text = ""

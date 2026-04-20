@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="BattleStats" load_steps=3 format=3 uid="uid://b1sh716puf60y"]
+
+[ext_resource type="PackedScene" uid="uid://md0vigs8xej8" path="res://battles/tier_0_bigger_octopus_2.tscn" id="1_t481r"]
+[ext_resource type="Script" path="res://custom_resources/battle_stats.gd" id="2_7aslj"]
+
+[resource]
+script = ExtResource("2_7aslj")
+battle_tier = 0
+weight = 1.0
+gold_reward_min = 20
+gold_reward_max = 30
+enemies = ExtResource("1_t481r")

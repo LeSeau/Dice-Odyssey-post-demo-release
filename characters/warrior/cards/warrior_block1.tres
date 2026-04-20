@@ -1,0 +1,26 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://bnk761lymhnou"]
+
+[ext_resource type="Texture2D" uid="uid://sogaxxbqynha" path="res://gptblock2.jpg" id="1_6voq5"]
+[ext_resource type="Script" path="res://characters/warrior/cards/warrior_block.gd" id="2_qh5em"]
+[ext_resource type="AudioStream" uid="uid://df64e7qat73gs" path="res://art/block.ogg" id="3_8aal5"]
+
+[resource]
+script = ExtResource("2_qh5em")
+id = "warrior_block"
+name = "Block"
+type = 1
+target = 0
+description = "Block X"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 0
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = ""
+icon = ExtResource("1_6voq5")
+tooltip_text = "[center]Gain [color=\"0044ff\"]5[/color] block.[/center]"
+sound = ExtResource("3_8aal5")

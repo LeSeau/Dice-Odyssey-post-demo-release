@@ -1,0 +1,26 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://dkr0p76atqwcr"]
+
+[ext_resource type="Texture2D" uid="uid://bfr3tr5jin75e" path="res://gptmindfulness.png" id="1_iprht"]
+[ext_resource type="Script" path="res://characters/warrior/cards/mindfulness.gd" id="2_4botb"]
+[ext_resource type="AudioStream" uid="uid://68q2f8fotq13" path="res://sounds/blocksound.mp3" id="3_w8tog"]
+
+[resource]
+script = ExtResource("2_4botb")
+id = "mindfulness"
+name = "Mindfulness"
+type = 1
+target = 0
+description = "Block X"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 0
+requirement_number = 6
+exhausts = false
+bonus_requirement = 1
+bonus_requirement_number = 5
+bonus_description_text = "Get 1 Scout Card"
+tags = "Scout"
+icon = ExtResource("1_iprht")
+tooltip_text = ""
+sound = ExtResource("3_w8tog")

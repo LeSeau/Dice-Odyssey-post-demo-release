@@ -1,0 +1,50 @@
+[gd_scene load_steps=4 format=3 uid="uid://chry0sgk7t0yf"]
+
+[ext_resource type="Theme" uid="uid://c8cqncsqlplyu" path="res://main_theme.tres" id="1_16651"]
+[ext_resource type="Script" path="res://scenes/ui/tooltip.gd" id="2_ifbwr"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xmq44"]
+bg_color = Color(0.311214, 0, 0.0696221, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 22
+corner_radius_top_right = 22
+corner_radius_bottom_right = 22
+corner_radius_bottom_left = 22
+shadow_color = Color(0, 0, 0, 0.917647)
+
+[node name="Tooltip" type="PopupPanel"]
+size = Vector2i(180, 55)
+visible = true
+theme = ExtResource("1_16651")
+theme_override_styles/panel = SubResource("StyleBoxFlat_xmq44")
+script = ExtResource("2_ifbwr")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+offset_left = 2.0
+offset_top = 2.0
+offset_right = 178.0
+offset_bottom = 53.0
+theme_override_constants/margin_left = 3
+theme_override_constants/margin_top = 3
+theme_override_constants/margin_right = 3
+theme_override_constants/margin_bottom = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+
+[node name="TooltipText" type="RichTextLabel" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_y = 0
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_outline_size = 0
+theme_override_constants/line_separation = 2
+theme_override_font_sizes/normal_font_size = 14
+bbcode_enabled = true
+text = "[center]charge X: gain X active dice[/center]"

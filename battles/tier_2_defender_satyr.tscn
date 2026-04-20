@@ -1,0 +1,21 @@
+[gd_scene load_steps=4 format=3 uid="uid://f0lbt3qet4l4"]
+
+[ext_resource type="PackedScene" uid="uid://d0efyathkfg74" path="res://scenes/enemy/enemy.tscn" id="1_xfoi0"]
+[ext_resource type="Resource" uid="uid://bbo24od4aavfj" path="res://enemies/temple_defender/defender_enemy.tres" id="2_tj2vy"]
+[ext_resource type="Resource" uid="uid://sggulmun2aob" path="res://enemies/satyr/bigger_satyr_enemy.tres" id="3_sce5u"]
+
+[node name="Tier2DefenderSatyr" type="Node2D"]
+
+[node name="Defender" parent="." instance=ExtResource("1_xfoi0")]
+position = Vector2(735, 368)
+stats = ExtResource("2_tj2vy")
+
+[node name="Satyr1" parent="." instance=ExtResource("1_xfoi0")]
+position = Vector2(929, 465)
+scale = Vector2(0.75, 0.75)
+stats = ExtResource("3_sce5u")
+
+[node name="Satyr2" parent="." instance=ExtResource("1_xfoi0")]
+position = Vector2(1066, 425)
+scale = Vector2(0.75, 0.75)
+stats = ExtResource("3_sce5u")

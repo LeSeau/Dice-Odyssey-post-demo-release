@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="BattleStats" load_steps=3 format=3 uid="uid://dgxkwvhn1v5mb"]
+
+[ext_resource type="PackedScene" uid="uid://oxefqhvrw0j0" path="res://battles/tier_2_medusa.tscn" id="1_uc71j"]
+[ext_resource type="Script" path="res://custom_resources/battle_stats.gd" id="2_qqt3i"]
+
+[resource]
+script = ExtResource("2_qqt3i")
+battle_tier = 2
+weight = 1.0
+gold_reward_min = 40
+gold_reward_max = 50
+enemies = ExtResource("1_uc71j")

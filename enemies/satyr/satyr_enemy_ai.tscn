@@ -1,0 +1,38 @@
+[gd_scene load_steps=10 format=3 uid="uid://b1a6a4fyfbdu4"]
+
+[ext_resource type="Script" path="res://scenes/enemy/enemy_action_picker.gd" id="1_lswrc"]
+[ext_resource type="Script" path="res://enemies/satyr/satyr_attack_action.gd" id="2_hkvoe"]
+[ext_resource type="Texture2D" uid="uid://b1okfuyrkcby7" path="res://debuff_icon_3.png" id="3_wa1hx"]
+[ext_resource type="Script" path="res://custom_resources/intent.gd" id="4_3c166"]
+[ext_resource type="AudioStream" uid="uid://de2ryat1pxq6" path="res://art/enemy_attack.ogg" id="5_xrfvv"]
+[ext_resource type="Script" path="res://enemies/satyr/satyr_attack_debuff.gd" id="6_pojnm"]
+[ext_resource type="Texture2D" uid="uid://cm56j6ual41dr" path="res://attack_icon_intent.png" id="7_uqbns"]
+
+[sub_resource type="Resource" id="Resource_6503j"]
+script = ExtResource("4_3c166")
+base_text = "%s"
+icon = ExtResource("3_wa1hx")
+
+[sub_resource type="Resource" id="Resource_s5imq"]
+script = ExtResource("4_3c166")
+base_text = "%s"
+icon = ExtResource("7_uqbns")
+
+[node name="SatyrEnemyAi" type="Node"]
+script = ExtResource("1_lswrc")
+
+[node name="SatyrAttackDebuff" type="Node" parent="."]
+script = ExtResource("6_pojnm")
+intent = SubResource("Resource_6503j")
+sound = ExtResource("5_xrfvv")
+type = 1
+chance_weight = 6.0
+action_id = "satyr_debuff"
+
+[node name="SatyrAttack" type="Node" parent="."]
+script = ExtResource("2_hkvoe")
+intent = SubResource("Resource_s5imq")
+sound = ExtResource("5_xrfvv")
+type = 1
+chance_weight = 4.0
+action_id = "satyr_attack"

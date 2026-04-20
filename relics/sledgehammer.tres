@@ -1,0 +1,15 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://bbokk33ecpeq2"]
+
+[ext_resource type="Script" path="res://relics/sledgehammer.gd" id="1_iionh"]
+[ext_resource type="Texture2D" uid="uid://vrlvehii1h1j" path="res://sledgehammer.png" id="1_ypfod"]
+
+[resource]
+script = ExtResource("1_iionh")
+relic_name = "Sledgehammer"
+id = "sledgehammer"
+type = 4
+has_counter = false
+counter = 0
+starter_relic = false
+icon = ExtResource("1_ypfod")
+tooltip = "When your power exceeds 10, gain 1 strength"

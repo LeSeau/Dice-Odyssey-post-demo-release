@@ -1,0 +1,19 @@
+[gd_scene load_steps=6 format=3 uid="uid://hx1rdj1bcmqi"]
+
+[ext_resource type="Script" path="res://scenes/enemy/enemy_action_picker.gd" id="1_l5jc3"]
+[ext_resource type="Script" path="res://enemies/minotaur/minotaur_attack_action.gd" id="2_mqr2x"]
+[ext_resource type="Texture2D" uid="uid://cm56j6ual41dr" path="res://attack_icon_intent.png" id="3_yadnb"]
+[ext_resource type="Script" path="res://custom_resources/intent.gd" id="4_2gxkr"]
+
+[sub_resource type="Resource" id="Resource_jas1i"]
+script = ExtResource("4_2gxkr")
+base_text = "%s"
+icon = ExtResource("3_yadnb")
+
+[node name="MinotaurEnemyAI" type="Node"]
+script = ExtResource("1_l5jc3")
+
+[node name="MinotaurAttackAction" type="Node" parent="."]
+script = ExtResource("2_mqr2x")
+intent = SubResource("Resource_jas1i")
+type = 1

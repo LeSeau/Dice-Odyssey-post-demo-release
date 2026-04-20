@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="EventStats" load_steps=3 format=3 uid="uid://b8r3s5w2b3qbu"]
+
+[ext_resource type="PackedScene" uid="uid://ds7cye5xvb7si" path="res://scenes/events/event_test.tscn" id="1_swk8o"]
+[ext_resource type="Script" path="res://custom_resources/event_stats.gd" id="2_fli4y"]
+
+[resource]
+script = ExtResource("2_fli4y")
+event_tier = 0
+weight = 1.0
+scene = ExtResource("1_swk8o")

@@ -1,0 +1,24 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://bfnkitft4qbwb"]
+
+[ext_resource type="Script" path="res://characters/warrior/cards/low_blow.gd" id="1_d4vao"]
+[ext_resource type="Texture2D" uid="uid://bn1oyc7jrh7sb" path="res://assets/images/duo.jpg" id="1_gy0k4"]
+
+[resource]
+script = ExtResource("1_d4vao")
+id = "warrior_duo"
+name = ""
+type = 0
+target = 1
+description = "Deal X damage + 3"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 0
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = ""
+icon = ExtResource("1_gy0k4")
+tooltip_text = ""

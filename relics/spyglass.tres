@@ -1,0 +1,15 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://dn1kbuqp83m6y"]
+
+[ext_resource type="Texture2D" uid="uid://bp6g71ip7g41g" path="res://spyglass.png" id="1_g2epq"]
+[ext_resource type="Script" path="res://relics/spyglass.gd" id="2_j7u52"]
+
+[resource]
+script = ExtResource("2_j7u52")
+relic_name = "Spyglass"
+id = "spyglass"
+type = 4
+has_counter = false
+counter = 0
+starter_relic = false
+icon = ExtResource("1_g2epq")
+tooltip = "When your power hits exactly 10, gain a Scout card"

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://dpio0aysms7rj"]
+
+[ext_resource type="Texture2D" uid="uid://bh8150qcage1" path="res://magic_sleeve.png" id="1_83nn0"]
+[ext_resource type="Script" path="res://relics/magic_sleeve.gd" id="1_sl7v8"]
+
+[resource]
+script = ExtResource("1_sl7v8")
+relic_name = "Magic Sleeve"
+id = "magic_sleeve"
+type = 0
+starter_relic = false
+icon = ExtResource("1_83nn0")
+tooltip = "Your draw 1 more Card each turn"

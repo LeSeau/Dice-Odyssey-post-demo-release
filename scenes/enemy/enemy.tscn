@@ -1,0 +1,122 @@
+[gd_scene load_steps=15 format=3 uid="uid://d0efyathkfg74"]
+
+[ext_resource type="Script" path="res://scenes/enemy/enemy.gd" id="1_ogp3w"]
+[ext_resource type="Shader" path="res://scenes/enemy/enemy.gdshader" id="2_vgxuv"]
+[ext_resource type="Texture2D" uid="uid://bb3rcs5nqntir" path="res://art/arrow.png" id="2_x2iwj"]
+[ext_resource type="Texture2D" uid="uid://kokyyek4i435" path="res://gptenemy.png" id="3_q5ac1"]
+[ext_resource type="PackedScene" uid="uid://ph0oi5od64u5" path="res://scenes/ui/stats_ui.tscn" id="3_qiomm"]
+[ext_resource type="PackedScene" uid="uid://b6p08ajglydq8" path="res://scenes/ui/intent_ui.tscn" id="5_xytk4"]
+[ext_resource type="PackedScene" uid="uid://c6qcxv2m34hwv" path="res://scenes/status_handler/status_handler.tscn" id="7_jbqlv"]
+[ext_resource type="PackedScene" uid="uid://cj610j1wjtrwi" path="res://scenes/modifier_handler/modifier_handler.tscn" id="8_bcuhr"]
+[ext_resource type="PackedScene" uid="uid://cntarjcc6q8hs" path="res://scenes/modifier_handler/modifier.tscn" id="9_cvvnv"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_0r5a0"]
+shader = ExtResource("2_vgxuv")
+shader_parameter/outline_thickness = 0.0
+shader_parameter/outline_color = Vector4(0, 0, 0, 1)
+shader_parameter/anti_aliasing = 0.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_3gsft"]
+size = Vector2(162, 246)
+
+[sub_resource type="Animation" id="Animation_7w7k2"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(124, 3)]
+}
+
+[sub_resource type="Animation" id="Animation_nyx63"]
+resource_name = "idle"
+length = 3.0
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = false
+tracks/0/path = NodePath("Sprite2D:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0.0333333, 2),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(123, 3), Vector2(123, 13)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_bcxgi"]
+_data = {
+"RESET": SubResource("Animation_7w7k2"),
+"idle": SubResource("Animation_nyx63")
+}
+
+[node name="Enemy" type="Area2D" groups=["enemies"]]
+position = Vector2(-30, 177.77)
+collision_layer = 4
+script = ExtResource("1_ogp3w")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+z_index = 7
+material = SubResource("ShaderMaterial_0r5a0")
+position = Vector2(124, 3)
+scale = Vector2(0.25, 0.25)
+texture = ExtResource("3_q5ac1")
+
+[node name="Arrow" type="Sprite2D" parent="."]
+visible = false
+position = Vector2(239, 6)
+rotation = -1.5708
+scale = Vector2(5, 5)
+texture = ExtResource("2_x2iwj")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+visible = false
+position = Vector2(127, 4)
+shape = SubResource("RectangleShape2D_3gsft")
+
+[node name="StatsUI" parent="." instance=ExtResource("3_qiomm")]
+anchors_preset = 7
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 17.0
+offset_top = 119.0
+offset_right = 223.0
+offset_bottom = 151.0
+grow_vertical = 0
+
+[node name="IntentUI" parent="." instance=ExtResource("5_xytk4")]
+z_index = 10
+offset_left = 67.0
+offset_top = -170.0
+offset_right = 181.0
+offset_bottom = -138.0
+
+[node name="StatusHandler" parent="." node_paths=PackedStringArray("status_owner") instance=ExtResource("7_jbqlv")]
+offset_left = 33.0
+offset_top = 145.0
+offset_right = 33.0
+offset_bottom = 145.0
+theme_override_constants/h_separation = 4
+status_owner = NodePath("..")
+
+[node name="ModifierHandler" parent="." instance=ExtResource("8_bcuhr")]
+
+[node name="DamageDealtModifier" parent="ModifierHandler" instance=ExtResource("9_cvvnv")]
+
+[node name="DamageTakenModifier" parent="ModifierHandler" instance=ExtResource("9_cvvnv")]
+type = 1
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+"": SubResource("AnimationLibrary_bcxgi")
+}
+
+[connection signal="area_entered" from="." to="." method="_on_area_entered"]
+[connection signal="area_exited" from="." to="." method="_on_area_exited"]

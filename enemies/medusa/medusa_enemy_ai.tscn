@@ -1,0 +1,49 @@
+[gd_scene load_steps=12 format=3 uid="uid://d3m8xv3lpd3t7"]
+
+[ext_resource type="Script" path="res://scenes/enemy/enemy_action_picker.gd" id="1_ml0uu"]
+[ext_resource type="Script" path="res://enemies/medusa/medusa_attack_weak.gd" id="2_23nwg"]
+[ext_resource type="Script" path="res://enemies/medusa/medusa_attack_action_2.gd" id="2_tw4ei"]
+[ext_resource type="Texture2D" uid="uid://jkn8vsh3cles" path="res://debuff_icon.png" id="3_1p0h0"]
+[ext_resource type="Texture2D" uid="uid://cm56j6ual41dr" path="res://attack_icon_intent.png" id="3_yjgsv"]
+[ext_resource type="Script" path="res://custom_resources/intent.gd" id="4_6lvhs"]
+[ext_resource type="Script" path="res://enemies/medusa/medusa_block_action.gd" id="4_p5663"]
+[ext_resource type="Texture2D" uid="uid://coa7pi62qv88k" path="res://assets/images/shield.png" id="8_in3ia"]
+
+[sub_resource type="Resource" id="Resource_f0b2u"]
+script = ExtResource("4_6lvhs")
+base_text = "%s"
+icon = ExtResource("3_1p0h0")
+
+[sub_resource type="Resource" id="Resource_b5tb2"]
+script = ExtResource("4_6lvhs")
+base_text = "%s"
+icon = ExtResource("3_yjgsv")
+
+[sub_resource type="Resource" id="Resource_e64n5"]
+script = ExtResource("4_6lvhs")
+base_text = "9"
+icon = ExtResource("8_in3ia")
+
+[node name="MedusaEnemyAI" type="Node"]
+script = ExtResource("1_ml0uu")
+
+[node name="AttackWeakDebuff" type="Node" parent="."]
+script = ExtResource("2_23nwg")
+intent = SubResource("Resource_f0b2u")
+type = 1
+chance_weight = 5.0
+action_id = "medusa_attack_weak"
+
+[node name="AttackAction2" type="Node" parent="."]
+script = ExtResource("2_tw4ei")
+intent = SubResource("Resource_b5tb2")
+type = 1
+chance_weight = 6.0
+action_id = "medusa_attack"
+
+[node name="BlockAction" type="Node" parent="."]
+script = ExtResource("4_p5663")
+intent = SubResource("Resource_e64n5")
+type = 1
+chance_weight = 4.0
+action_id = "medusa_block"

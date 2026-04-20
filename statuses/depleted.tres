@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="DepletedStatus" load_steps=3 format=3 uid="uid://dcf7h23pywhvo"]
+
+[ext_resource type="Script" path="res://statuses/depleted.gd" id="1_lullo"]
+[ext_resource type="Texture2D" uid="uid://dj37xmfgd0m0k" path="res://depleted.png" id="1_r6nlg"]
+
+[resource]
+script = ExtResource("1_lullo")
+id = "depleted"
+type = 0
+stack_type = 2
+can_expire = true
+duration = 1
+stacks = 1
+icon = ExtResource("1_r6nlg")
+tooltip = "Gain one less Blue Dice next turn for each stack"

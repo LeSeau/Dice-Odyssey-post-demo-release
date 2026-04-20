@@ -1,0 +1,17 @@
+[gd_scene load_steps=4 format=3 uid="uid://iyr4cindtsjg"]
+
+[ext_resource type="PackedScene" uid="uid://d0efyathkfg74" path="res://scenes/enemy/enemy.tscn" id="1_np33x"]
+[ext_resource type="Resource" uid="uid://sggulmun2aob" path="res://enemies/satyr/bigger_satyr_enemy.tres" id="2_82fsh"]
+[ext_resource type="Resource" uid="uid://dmlalq6xckyd7" path="res://enemies/octopus/bigger_octopus_enemy.tres" id="3_x0pwp"]
+
+[node name="Tier0BiggerSatyrsOctopus" type="Node2D"]
+
+[node name="BiggerSatyr" parent="." instance=ExtResource("1_np33x")]
+position = Vector2(1043, 462)
+scale = Vector2(0.75, 0.75)
+stats = ExtResource("2_82fsh")
+
+[node name="BiggerOctopus" parent="." instance=ExtResource("1_np33x")]
+position = Vector2(731, 417)
+scale = Vector2(0.75, 0.75)
+stats = ExtResource("3_x0pwp")

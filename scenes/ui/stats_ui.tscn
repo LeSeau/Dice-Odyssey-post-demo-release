@@ -1,0 +1,133 @@
+[gd_scene load_steps=11 format=3 uid="uid://ph0oi5od64u5"]
+
+[ext_resource type="Theme" uid="uid://c8cqncsqlplyu" path="res://main_theme.tres" id="1_6mdvy"]
+[ext_resource type="Script" path="res://scenes/ui/stats_ui.gd" id="2_t62e8"]
+[ext_resource type="Texture2D" uid="uid://coa7pi62qv88k" path="res://assets/images/shield.png" id="3_50kdc"]
+[ext_resource type="Texture2D" uid="uid://d0edy7thj8ce6" path="res://art/heart.png" id="3_vmusl"]
+[ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="4_y2ymi"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_put7y"]
+font = ExtResource("4_y2ymi")
+font_size = 22
+
+[sub_resource type="Theme" id="Theme_3aknn"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_v6swh"]
+bg_color = Color(0.299547, 0.299547, 0.299547, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_f8ywn"]
+bg_color = Color(1, 0, 0, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.06895, 0.282009, 0.282148, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+shadow_color = Color(0, 0, 0, 1)
+shadow_size = 1
+
+[sub_resource type="LabelSettings" id="LabelSettings_of3k2"]
+font = ExtResource("4_y2ymi")
+font_size = 18
+outline_color = Color(0.000127055, 0.000124898, 5.87534e-12, 1)
+shadow_size = 2
+shadow_color = Color(0, 0, 0, 1)
+
+[node name="StatsUI" type="HBoxContainer"]
+custom_minimum_size = Vector2(0, 26)
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -127.0
+offset_top = -12.0
+offset_right = 89.0
+offset_bottom = 14.0
+grow_horizontal = 2
+theme = ExtResource("1_6mdvy")
+theme_override_constants/separation = -25
+alignment = 1
+script = ExtResource("2_t62e8")
+
+[node name="Block" type="HBoxContainer" parent="."]
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_constants/separation = 0
+alignment = 1
+
+[node name="BlockImage" type="TextureRect" parent="Block"]
+z_index = 3
+custom_minimum_size = Vector2(26, 26)
+layout_mode = 2
+size_flags_vertical = 0
+texture = ExtResource("3_50kdc")
+expand_mode = 1
+
+[node name="BlockLabel" type="Label" parent="Block/BlockImage"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -10.5
+offset_top = -15.5
+offset_right = 10.5
+offset_bottom = 15.5
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_vertical = 1
+text = "6"
+label_settings = SubResource("LabelSettings_put7y")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Health" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="HealthImage" type="TextureRect" parent="Health"]
+visible = false
+custom_minimum_size = Vector2(70, 70)
+layout_mode = 2
+texture = ExtResource("3_vmusl")
+
+[node name="HealthBar" type="ProgressBar" parent="Health"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(175, 20)
+layout_mode = 2
+size_flags_vertical = 4
+theme = SubResource("Theme_3aknn")
+theme_override_styles/background = SubResource("StyleBoxFlat_v6swh")
+theme_override_styles/fill = SubResource("StyleBoxFlat_f8ywn")
+show_percentage = false
+
+[node name="HealthLabel" type="Label" parent="Health/HealthBar"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -44.0
+offset_top = -10.0
+offset_right = 44.0
+offset_bottom = 12.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_vertical = 1
+text = "35/35"
+label_settings = SubResource("LabelSettings_of3k2")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 2

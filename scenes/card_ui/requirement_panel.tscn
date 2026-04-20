@@ -1,0 +1,28 @@
+[gd_scene load_steps=2 format=3 uid="uid://b5ap8msdlypwd"]
+
+[ext_resource type="StyleBox" uid="uid://bxyflqo45i4i4" path="res://scenes/card_ui/card_requirement_multiple.tres" id="1_wbbjg"]
+
+[node name="RequirementPanel" type="Panel"]
+z_index = 2
+custom_minimum_size = Vector2(65, 15)
+offset_right = 65.0
+offset_bottom = 16.0
+mouse_filter = 2
+theme_override_styles/panel = ExtResource("1_wbbjg")
+
+[node name="RequirementLabel" type="RichTextLabel" parent="."]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -8.0
+offset_bottom = 22.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_font_sizes/normal_font_size = 12
+bbcode_enabled = true
+text = "[center]Mult 5 [/center]"
+scroll_active = false

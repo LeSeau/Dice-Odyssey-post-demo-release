@@ -1,0 +1,26 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://drwv2s6b66vi2"]
+
+[ext_resource type="Texture2D" uid="uid://che3pkj5xnown" path="res://gptbloodlust.png" id="1_r6qs3"]
+[ext_resource type="Script" path="res://characters/warrior/cards/bloodlust.gd" id="1_x2ipt"]
+[ext_resource type="AudioStream" uid="uid://74jv0m7l7ten" path="res://roar.mp3" id="2_wj3we"]
+
+[resource]
+script = ExtResource("1_x2ipt")
+id = "bloodlust"
+name = "Bloodlust"
+type = 0
+target = 2
+description = "Deal X damage to all enemies. If this kills an enemy, Charge 1"
+rarity = 0
+red_only = true
+can_play_without_dice = false
+requirement = 5
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Charge"
+icon = ExtResource("1_r6qs3")
+tooltip_text = ""
+sound = ExtResource("2_wj3we")

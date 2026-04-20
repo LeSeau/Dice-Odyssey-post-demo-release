@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="EnemyStats" load_steps=4 format=3 uid="uid://dmlalq6xckyd7"]
+
+[ext_resource type="PackedScene" uid="uid://cnfxhrgwhksbi" path="res://enemies/octopus/bigger_octopus_enemy_ai.tscn" id="1_qllcn"]
+[ext_resource type="Texture2D" uid="uid://bkd658mpt5p25" path="res://octopus.png" id="2_qc7eq"]
+[ext_resource type="Script" path="res://custom_resources/enemy_stats.gd" id="3_mym0t"]
+
+[resource]
+script = ExtResource("3_mym0t")
+ai = ExtResource("1_qllcn")
+max_health = 12
+art = ExtResource("2_qc7eq")

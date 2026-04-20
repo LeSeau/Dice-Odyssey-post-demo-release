@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="EventStats" load_steps=3 format=3 uid="uid://cjautetwo4uuo"]
+
+[ext_resource type="Script" path="res://custom_resources/event_stats.gd" id="1_4eg06"]
+[ext_resource type="PackedScene" uid="uid://cn6oumffvf4w8" path="res://scenes/events/event_gold_dice.tscn" id="1_sg0xm"]
+
+[resource]
+script = ExtResource("1_4eg06")
+event_tier = 0
+weight = 1.0
+scene = ExtResource("1_sg0xm")

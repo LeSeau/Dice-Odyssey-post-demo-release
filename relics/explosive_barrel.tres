@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="Relic" load_steps=3 format=3 uid="uid://caeotf22e8s3t"]
+
+[ext_resource type="Script" path="res://custom_resources/relic.gd" id="1_bk66y"]
+[ext_resource type="Texture2D" uid="uid://dcfx0mp1thd8a" path="res://assets/images/relicwizard.jpg" id="1_ubqan"]
+
+[resource]
+script = ExtResource("1_bk66y")
+relic_name = "Explosive barrel"
+id = "explosive_barrel"
+type = 1
+starter_relic = false
+icon = ExtResource("1_ubqan")
+tooltip = "explosive barrel tooltip"

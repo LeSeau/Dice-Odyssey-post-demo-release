@@ -1,0 +1,26 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://ds5j6l3p54oxv"]
+
+[ext_resource type="Texture2D" uid="uid://6jisqhnyw5nd" path="res://gptkamikaze.jpg" id="1_tykmc"]
+[ext_resource type="Script" path="res://characters/warrior/cards/kamikaze.gd" id="1_ybx4e"]
+[ext_resource type="AudioStream" uid="uid://csxs8784ydfwg" path="res://kamikazesound.mp3" id="3_wbbjt"]
+
+[resource]
+script = ExtResource("1_ybx4e")
+id = "card_kamikaze"
+name = "Kamikaze"
+type = 0
+target = 1
+description = "Deal X3 damage. If you roll a 1, lose 6HP instead"
+rarity = 0
+red_only = true
+can_play_without_dice = false
+requirement = 5
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = ""
+icon = ExtResource("1_tykmc")
+tooltip_text = ""
+sound = ExtResource("3_wbbjt")

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="LuckyStatus" load_steps=3 format=3 uid="uid://c7unhiddl6sog"]
+
+[ext_resource type="Texture2D" uid="uid://cs44qnut0hd63" path="res://lucky_status.png" id="1_lovl6"]
+[ext_resource type="Script" path="res://statuses/lucky.gd" id="2_4yn4i"]
+
+[resource]
+script = ExtResource("2_4yn4i")
+id = "lucky"
+type = 2
+stack_type = 2
+can_expire = true
+duration = 0
+stacks = 0
+icon = ExtResource("1_lovl6")
+tooltip = ""

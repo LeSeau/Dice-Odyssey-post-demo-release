@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="EventStats" load_steps=3 format=3 uid="uid://crujh6g6gxcy3"]
+
+[ext_resource type="PackedScene" uid="uid://sa5bvpw5im22" path="res://scenes/events/event_fountain_heal.tscn" id="1_mukry"]
+[ext_resource type="Script" path="res://custom_resources/event_stats.gd" id="2_ixuwb"]
+
+[resource]
+script = ExtResource("2_ixuwb")
+event_tier = 0
+weight = 1.0
+scene = ExtResource("1_mukry")

@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3 uid="uid://ddw8mjpd2i556"]
+
+[ext_resource type="PackedScene" uid="uid://d0efyathkfg74" path="res://scenes/enemy/enemy.tscn" id="1_h50wc"]
+[ext_resource type="Resource" uid="uid://bhuc4182c6n1i" path="res://enemies/machopeur/machopeur_enemy.tres" id="2_gnjt8"]
+
+[node name="Tier0Machopeur" type="Node2D"]
+
+[node name="Machopeur" parent="." instance=ExtResource("1_h50wc")]
+position = Vector2(888, 388)
+stats = ExtResource("2_gnjt8")

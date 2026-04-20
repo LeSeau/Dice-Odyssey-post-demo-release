@@ -1,0 +1,26 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://dvmwn8ln2x4ie"]
+
+[ext_resource type="Texture2D" uid="uid://stpl5kmiptvh" path="res://slash.png" id="1_hmsx3"]
+[ext_resource type="Script" path="res://characters/warrior/cards/slash.gd" id="2_fy3lp"]
+[ext_resource type="AudioStream" uid="uid://dixklg6g4jnsq" path="res://art/slash.ogg" id="3_jm0la"]
+
+[resource]
+script = ExtResource("2_fy3lp")
+id = "card_slash"
+name = "Slash"
+type = 0
+target = 1
+description = "Deal 5 damage"
+rarity = 0
+red_only = false
+can_play_without_dice = true
+requirement = 0
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = ""
+icon = ExtResource("1_hmsx3")
+tooltip_text = ""
+sound = ExtResource("3_jm0la")

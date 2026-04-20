@@ -1,0 +1,7 @@
+[gd_resource type="LabelSettings" load_steps=2 format=3 uid="uid://cy482afjc3tjk"]
+
+[ext_resource type="FontFile" uid="uid://bm3deysyi2y55" path="res://Belwe Bold/Belwe Bold.otf" id="1_ltol2"]
+
+[resource]
+font = ExtResource("1_ltol2")
+font_color = Color(1, 0.843137, 0, 1)

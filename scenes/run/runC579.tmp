@@ -1,0 +1,172 @@
+[gd_scene load_steps=13 format=3 uid="uid://b56wvanf6u6h7"]
+
+[ext_resource type="Script" path="res://scenes/run/run.gd" id="1_sgoer"]
+[ext_resource type="PackedScene" uid="uid://deprxl041o8nn" path="res://scenes/map/map.tscn" id="2_1mcea"]
+[ext_resource type="Resource" uid="uid://dih15xjxqnjvm" path="res://scenes/events/events_stats_pool.tres" id="2_jlqo8"]
+[ext_resource type="PackedScene" uid="uid://nfklwfie3xpy" path="res://scenes/ui/card_pile_opener.tscn" id="3_bglvk"]
+[ext_resource type="PackedScene" uid="uid://bdmrt1adkfiii" path="res://scenes/ui/gold_ui.tscn" id="3_xchug"]
+[ext_resource type="Texture2D" uid="uid://ce73qu6xbuv2j" path="res://assets/images/blue2.png" id="4_32ynl"]
+[ext_resource type="PackedScene" uid="uid://jg7s3ul6gyqj" path="res://scenes/ui/card_pile_view.tscn" id="4_rq0pt"]
+[ext_resource type="PackedScene" uid="uid://bg4qi7p062jtd" path="res://scenes/ui/hp_ui.tscn" id="5_1v36e"]
+[ext_resource type="Texture2D" uid="uid://cdpcpjn0arvjp" path="res://assets/images/red1.png" id="5_14sn0"]
+[ext_resource type="Texture2D" uid="uid://debpwfe3e4476" path="res://assets/images/shop.jpg" id="6_w832n"]
+[ext_resource type="Script" path="res://scenes/run/dice_shop.gd" id="7_oewux"]
+[ext_resource type="AudioStream" uid="uid://6p70t2f0sp0v" path="res://victory_daiso.mp3" id="10_8bgi1"]
+
+[node name="Run" type="Node"]
+script = ExtResource("1_sgoer")
+event_stats_pool = ExtResource("2_jlqo8")
+
+[node name="Map" parent="." instance=ExtResource("2_1mcea")]
+
+[node name="CurrentView" type="Node" parent="."]
+
+[node name="DebugButtons" type="VBoxContainer" parent="."]
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -102.0
+offset_right = 149.0
+offset_bottom = 102.0
+grow_vertical = 2
+
+[node name="MapButton" type="Button" parent="DebugButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Map
+"
+icon_alignment = 1
+
+[node name="BattleButton" type="Button" parent="DebugButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Battle
+"
+icon_alignment = 1
+
+[node name="ShopButton" type="Button" parent="DebugButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Shop
+"
+icon_alignment = 1
+
+[node name="RewardsButton" type="Button" parent="DebugButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Rewards
+"
+icon_alignment = 1
+
+[node name="TopBar" type="CanvasLayer" parent="."]
+layer = 3
+
+[node name="Background" type="ColorRect" parent="TopBar"]
+custom_minimum_size = Vector2(50, 80)
+anchors_preset = 10
+anchor_right = 1.0
+grow_horizontal = 2
+color = Color(0, 0, 0, 0.513726)
+
+[node name="BarItems" type="HBoxContainer" parent="TopBar"]
+custom_minimum_size = Vector2(0, 80)
+anchors_preset = 10
+anchor_right = 1.0
+grow_horizontal = 2
+theme_override_constants/separation = 20
+
+[node name="GoldUI" parent="TopBar/BarItems" instance=ExtResource("3_xchug")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(30, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HPUI" parent="TopBar/BarItems" instance=ExtResource("5_1v36e")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="DiceTopBar" type="GridContainer" parent="TopBar/BarItems"]
+custom_minimum_size = Vector2(130, 20)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = -15
+columns = 2
+
+[node name="BlueDice" type="HBoxContainer" parent="TopBar/BarItems/DiceTopBar"]
+custom_minimum_size = Vector2(130, 0)
+layout_mode = 2
+size_flags_vertical = 6
+theme_override_constants/separation = 4
+
+[node name="BlueDiceTexture" type="TextureRect" parent="TopBar/BarItems/DiceTopBar/BlueDice"]
+custom_minimum_size = Vector2(25, 25)
+layout_mode = 2
+texture = ExtResource("4_32ynl")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="BlueDiceAmount" type="RichTextLabel" parent="TopBar/BarItems/DiceTopBar/BlueDice"]
+custom_minimum_size = Vector2(70, 12)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/normal_font_size = 14
+bbcode_enabled = true
+text = "Blue: 2"
+scroll_active = false
+
+[node name="RedDice" type="HBoxContainer" parent="TopBar/BarItems/DiceTopBar"]
+custom_minimum_size = Vector2(130, 0)
+layout_mode = 2
+size_flags_vertical = 6
+theme_override_constants/separation = 4
+
+[node name="RedDiceTexture" type="TextureRect" parent="TopBar/BarItems/DiceTopBar/RedDice"]
+custom_minimum_size = Vector2(25, 25)
+layout_mode = 2
+texture = ExtResource("5_14sn0")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="RedDiceAmount" type="RichTextLabel" parent="TopBar/BarItems/DiceTopBar/RedDice"]
+custom_minimum_size = Vector2(70, 12)
+layout_mode = 2
+theme_override_font_sizes/normal_font_size = 14
+bbcode_enabled = true
+text = "Blue: 2"
+scroll_active = false
+
+[node name="Placeholder" type="Control" parent="TopBar/BarItems"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="DiceShop" type="TextureButton" parent="TopBar/BarItems"]
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+texture_normal = ExtResource("6_w832n")
+ignore_texture_size = true
+stretch_mode = 0
+script = ExtResource("7_oewux")
+
+[node name="DeckButton" parent="TopBar/BarItems" node_paths=PackedStringArray("counter") instance=ExtResource("3_bglvk")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+counter = NodePath("Counter")
+
+[node name="Counter" type="Label" parent="TopBar/BarItems/DeckButton"]
+layout_mode = 1
+offset_left = -4.0
+offset_top = 47.0
+offset_right = 36.0
+offset_bottom = 79.0
+text = "99"
+
+[node name="DeckView" parent="TopBar" instance=ExtResource("4_rq0pt")]
+unique_name_in_owner = true
+visible = false
+
+[node name="AudioPlayer" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("10_8bgi1")
+
+[connection signal="pressed" from="TopBar/BarItems/DiceShop" to="TopBar/BarItems/DiceShop" method="_on_pressed"]

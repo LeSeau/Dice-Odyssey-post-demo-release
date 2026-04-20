@@ -1,0 +1,53 @@
+[gd_scene load_steps=13 format=3 uid="uid://d3b23v3dpsd60"]
+
+[ext_resource type="Script" path="res://scenes/enemy/enemy_action_picker.gd" id="1_eypsj"]
+[ext_resource type="Script" path="res://enemies/temple_defender/defender_attack_action.gd" id="2_orsd7"]
+[ext_resource type="Texture2D" uid="uid://cm56j6ual41dr" path="res://attack_icon_intent.png" id="3_cadkv"]
+[ext_resource type="Script" path="res://custom_resources/intent.gd" id="4_mn4j4"]
+[ext_resource type="AudioStream" uid="uid://de2ryat1pxq6" path="res://art/enemy_attack.ogg" id="5_w4trm"]
+[ext_resource type="Script" path="res://enemies/temple_defender/defender_block_action.gd" id="6_rmbwb"]
+[ext_resource type="Script" path="res://enemies/temple_defender/defender_attack_action_2.gd" id="6_upuhk"]
+[ext_resource type="Texture2D" uid="uid://coa7pi62qv88k" path="res://assets/images/shield.png" id="7_br2tb"]
+[ext_resource type="AudioStream" uid="uid://k8m4o3hlwm7l" path="res://art/enemy_block.ogg" id="8_0tldl"]
+
+[sub_resource type="Resource" id="Resource_5y0u8"]
+script = ExtResource("4_mn4j4")
+base_text = "%s"
+icon = ExtResource("3_cadkv")
+
+[sub_resource type="Resource" id="Resource_ewrgg"]
+script = ExtResource("4_mn4j4")
+base_text = "2x%s"
+icon = ExtResource("3_cadkv")
+
+[sub_resource type="Resource" id="Resource_1xroc"]
+script = ExtResource("4_mn4j4")
+base_text = "6"
+icon = ExtResource("7_br2tb")
+
+[node name="DefenderEnemyAI" type="Node"]
+script = ExtResource("1_eypsj")
+
+[node name="DefenderAttackAction" type="Node" parent="."]
+script = ExtResource("2_orsd7")
+intent = SubResource("Resource_5y0u8")
+sound = ExtResource("5_w4trm")
+type = 1
+chance_weight = 4.0
+action_id = "defender_single_attack"
+
+[node name="DefenderAttackAction2" type="Node" parent="."]
+script = ExtResource("6_upuhk")
+intent = SubResource("Resource_ewrgg")
+sound = ExtResource("5_w4trm")
+type = 1
+chance_weight = 4.0
+action_id = "defender_double_attack"
+
+[node name="DefenderBlockAction" type="Node" parent="."]
+script = ExtResource("6_rmbwb")
+intent = SubResource("Resource_1xroc")
+sound = ExtResource("8_0tldl")
+type = 1
+chance_weight = 4.0
+action_id = "defender_block"

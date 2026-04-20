@@ -1,0 +1,26 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://b8uiqtmbc7bsy"]
+
+[ext_resource type="Texture2D" uid="uid://ig7h76pid8ac" path="res://gptdoublecut.png" id="1_k5jld"]
+[ext_resource type="Script" path="res://characters/warrior/cards/double_cut.gd" id="1_p75b6"]
+[ext_resource type="AudioStream" uid="uid://cupear06meqp6" path="res://sounds/attacksound.mp3" id="3_fiigv"]
+
+[resource]
+script = ExtResource("1_p75b6")
+id = "card_double_cut"
+name = "Double Cut"
+type = 0
+target = 1
+description = "Deals X3 Damage"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 6
+requirement_number = 6
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = ""
+icon = ExtResource("1_k5jld")
+tooltip_text = ""
+sound = ExtResource("3_fiigv")

@@ -1,0 +1,26 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://bylvtnm8kynej"]
+
+[ext_resource type="Texture2D" uid="uid://b4majvf6t61f0" path="res://gptdynamite.png" id="1_8y81q"]
+[ext_resource type="Script" path="res://characters/warrior/cards/dynamite.gd" id="2_84mh2"]
+[ext_resource type="AudioStream" uid="uid://bryyjsmk8fak6" path="res://detonationsound.mp3" id="3_ycy4u"]
+
+[resource]
+script = ExtResource("2_84mh2")
+id = "card_dynamite"
+name = "Dynamite"
+type = 1
+target = 0
+description = "Boost 3"
+rarity = 1
+red_only = false
+can_play_without_dice = true
+requirement = 0
+requirement_number = 0
+exhausts = false
+bonus_requirement = 5
+bonus_requirement_number = 0
+bonus_description_text = "Boost 5 instead"
+tags = "Boost"
+icon = ExtResource("1_8y81q")
+tooltip_text = ""
+sound = ExtResource("3_ycy4u")

@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="EnemyStats" load_steps=4 format=3 uid="uid://d2j00fsae0a3t"]
+
+[ext_resource type="PackedScene" uid="uid://dcnemw5e1iheh" path="res://enemies/dragonpriest/dragonpriest_enemy_ai.tscn" id="1_pmflu"]
+[ext_resource type="Texture2D" uid="uid://da2ov3lnxq6hj" path="res://gptdragonpriest.png" id="2_qufrq"]
+[ext_resource type="Script" path="res://custom_resources/enemy_stats.gd" id="3_jieoi"]
+
+[resource]
+script = ExtResource("3_jieoi")
+ai = ExtResource("1_pmflu")
+max_health = 60
+art = ExtResource("2_qufrq")

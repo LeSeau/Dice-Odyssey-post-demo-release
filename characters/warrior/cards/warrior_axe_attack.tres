@@ -1,0 +1,25 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://btxc1odh1jmst"]
+
+[ext_resource type="Texture2D" uid="uid://dy68253p31hjo" path="res://assets/images/gptstrike.png" id="1_ar7dv"]
+[ext_resource type="Script" path="res://characters/warrior/cards/warrior_axe_attack.gd" id="2_brwxd"]
+[ext_resource type="AudioStream" uid="uid://cupear06meqp6" path="res://sounds/attacksound.mp3" id="3_xfruu"]
+
+[resource]
+script = ExtResource("2_brwxd")
+id = "warrior_strike"
+name = "Strike"
+type = 0
+target = 1
+description = "Deal X damage"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 0
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+icon = ExtResource("1_ar7dv")
+tooltip_text = ""
+sound = ExtResource("3_xfruu")

@@ -1,0 +1,21 @@
+[gd_scene load_steps=3 format=3 uid="uid://exxx8a81g13j"]
+
+[ext_resource type="PackedScene" uid="uid://d0efyathkfg74" path="res://scenes/enemy/enemy.tscn" id="1_3tpcr"]
+[ext_resource type="Resource" uid="uid://0m1j3lvn7xwr" path="res://enemies/satyr/satyr_enemy.tres" id="2_l8s2u"]
+
+[node name="Tier0Satyrs3" type="Node2D"]
+
+[node name="Satyr1" parent="." instance=ExtResource("1_3tpcr")]
+position = Vector2(1043, 462)
+scale = Vector2(0.75, 0.75)
+stats = ExtResource("2_l8s2u")
+
+[node name="Satyr2" parent="." instance=ExtResource("1_3tpcr")]
+position = Vector2(876, 475)
+scale = Vector2(0.75, 0.75)
+stats = ExtResource("2_l8s2u")
+
+[node name="Satyr3" parent="." instance=ExtResource("1_3tpcr")]
+position = Vector2(731, 417)
+scale = Vector2(0.75, 0.75)
+stats = ExtResource("2_l8s2u")

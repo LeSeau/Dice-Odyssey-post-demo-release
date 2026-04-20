@@ -1,0 +1,26 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://b0hc1d4iiugft"]
+
+[ext_resource type="Texture2D" uid="uid://b00mvbb03eobq" path="res://gptcracking.png" id="1_36wcy"]
+[ext_resource type="Script" path="res://characters/warrior/cards/cracking.gd" id="2_t118a"]
+[ext_resource type="AudioStream" uid="uid://cupear06meqp6" path="res://sounds/attacksound.mp3" id="3_7go8c"]
+
+[resource]
+script = ExtResource("2_t118a")
+id = "card_cracking"
+name = "Cracking"
+type = 0
+target = 1
+description = "Deal damage equal to your Block. Lose all block."
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 0
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = ""
+icon = ExtResource("1_36wcy")
+tooltip_text = ""
+sound = ExtResource("3_7go8c")

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CardPile" load_steps=10 format=3 uid="uid://c3k0t2v570r2n"]
+
+[ext_resource type="Script" path="res://custom_resources/card.gd" id="1_iwow8"]
+[ext_resource type="Resource" uid="uid://dbbhhg2hicv4v" path="res://characters/warrior/cards/card_focus.tres" id="3_v2c43"]
+[ext_resource type="Resource" uid="uid://drveu3gxllgdw" path="res://characters/warrior/cards/card_low_profile.tres" id="6_58gdc"]
+[ext_resource type="Resource" uid="uid://bbyxehf50k4hg" path="res://characters/warrior/cards/card_oracle.tres" id="14_lb6it"]
+[ext_resource type="Resource" uid="uid://bylvtnm8kynej" path="res://characters/warrior/cards/card_dynamite.tres" id="15_lpt5i"]
+[ext_resource type="Resource" uid="uid://ct2bffy1i1nxt" path="res://characters/warrior/cards/card_refinement.tres" id="31_det2j"]
+[ext_resource type="Resource" uid="uid://du6b2im67prqu" path="res://characters/warrior/cards/card_catalyst.tres" id="45_v4jp3"]
+[ext_resource type="Resource" uid="uid://cfeu6ccdvyhr2" path="res://characters/warrior/cards/card_eclipse.tres" id="47_2xeqs"]
+[ext_resource type="Script" path="res://custom_resources/card_pile.gd" id="60_ok5f3"]
+
+[resource]
+script = ExtResource("60_ok5f3")
+cards = Array[ExtResource("1_iwow8")]([ExtResource("3_v2c43"), ExtResource("6_58gdc"), ExtResource("14_lb6it"), ExtResource("15_lpt5i"), ExtResource("31_det2j"), ExtResource("45_v4jp3"), ExtResource("47_2xeqs")])

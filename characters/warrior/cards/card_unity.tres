@@ -1,0 +1,26 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://0sjbcgy0i186"]
+
+[ext_resource type="Script" path="res://characters/warrior/cards/unity.gd" id="1_ald0o"]
+[ext_resource type="Texture2D" uid="uid://biuady2n2vpug" path="res://unity.png" id="1_lo1uy"]
+[ext_resource type="AudioStream" uid="uid://68q2f8fotq13" path="res://sounds/blocksound.mp3" id="3_rjyud"]
+
+[resource]
+script = ExtResource("1_ald0o")
+id = "card_unity"
+name = "Unity"
+type = 1
+target = 0
+description = "Block 12"
+rarity = 0
+red_only = null
+can_play_without_dice = null
+requirement = 7
+requirement_number = 1
+exhausts = null
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = ""
+icon = ExtResource("1_lo1uy")
+tooltip_text = null
+sound = ExtResource("3_rjyud")

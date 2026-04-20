@@ -1,0 +1,26 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://l012m036wygn"]
+
+[ext_resource type="Script" path="res://characters/warrior/cards/slice.gd" id="1_8ycua"]
+[ext_resource type="Texture2D" uid="uid://bgdarh7nip250" path="res://gptslice.png" id="1_wxu8f"]
+[ext_resource type="AudioStream" uid="uid://csxs8784ydfwg" path="res://kamikazesound.mp3" id="3_mgv3p"]
+
+[resource]
+script = ExtResource("1_8ycua")
+id = "card_slice"
+name = "Slice"
+type = 0
+target = 1
+description = "Deal X damage"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 0
+requirement_number = 0
+exhausts = false
+bonus_requirement = 5
+bonus_requirement_number = 0
+bonus_description_text = "+4 damage"
+tags = ""
+icon = ExtResource("1_wxu8f")
+tooltip_text = ""
+sound = ExtResource("3_mgv3p")

@@ -1,0 +1,347 @@
+[gd_scene load_steps=19 format=3 uid="uid://d2f4gl88lkokw"]
+
+[ext_resource type="Theme" path="res://daiso_theme.tres" id="1_8u3o8"]
+[ext_resource type="Script" path="res://scenes/dices/dice_interface.gd" id="1_hbfrn"]
+[ext_resource type="Texture2D" uid="uid://c17qq0sj25epy" path="res://assets/images/blue1.png" id="3_q6max"]
+[ext_resource type="Theme" uid="uid://c8cqncsqlplyu" path="res://main_theme.tres" id="4_vgytt"]
+[ext_resource type="Script" path="res://scenes/dices/dice_1_texture.gd" id="5_cju5n"]
+[ext_resource type="Texture2D" uid="uid://cdpcpjn0arvjp" path="res://assets/images/red1.png" id="5_qecou"]
+[ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="6_w42le"]
+[ext_resource type="Texture2D" uid="uid://bq8i15ehnrypf" path="res://assets/images/evil6.png" id="8_fm7rw"]
+[ext_resource type="Texture2D" uid="uid://q3ok1r0215cq" path="res://giant12.png" id="9_j57h4"]
+[ext_resource type="Texture2D" uid="uid://bm4ljubtmf3vd" path="res://assets/images/magma6.png" id="10_5yi0r"]
+[ext_resource type="Texture2D" uid="uid://ckr0ifje35um6" path="res://assets/images/even8.png" id="11_h0rqu"]
+[ext_resource type="Texture2D" uid="uid://br8qll0nj8dy6" path="res://assets/images/odd7.png" id="12_0guum"]
+[ext_resource type="Texture2D" uid="uid://ffjm2ac2wjyh" path="res://assets/images/green1.png" id="13_y2mvv"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xxwa5"]
+bg_color = Color(1, 1, 1, 0.698039)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.00261779, 0.00261779, 0.00261778, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+expand_margin_top = 2.0
+shadow_size = 1
+
+[sub_resource type="LabelSettings" id="LabelSettings_dsa2r"]
+line_spacing = 0.0
+font = ExtResource("6_w42le")
+shadow_size = 3
+shadow_color = Color(0, 0, 0, 0.509804)
+
+[sub_resource type="Animation" id="Animation_5i4aq"]
+length = 0.001
+tracks/0/type = "bezier"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:material:shader_parameter/radius")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"handle_modes": PackedInt32Array(0),
+"points": PackedFloat32Array(0, -0.25, 0, 0.25, 0),
+"times": PackedFloat32Array(0)
+}
+tracks/1/type = "bezier"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:material:shader_parameter/opacity")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"handle_modes": PackedInt32Array(0),
+"points": PackedFloat32Array(1, -0.25, 0, 0.25, 0),
+"times": PackedFloat32Array(0)
+}
+
+[sub_resource type="Animation" id="Animation_6dmch"]
+resource_name = "charge"
+length = 0.31
+tracks/0/type = "bezier"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:material:shader_parameter/radius")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"handle_modes": PackedInt32Array(0, 0, 0),
+"points": PackedFloat32Array(0, -0.25, 0, 0.25, 0, 1.2, -0.25, 0, 0.25, 0, 0, -0.25, 0, 0.25, 0),
+"times": PackedFloat32Array(0, 0.3, 0.31)
+}
+tracks/1/type = "bezier"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:material:shader_parameter/opacity")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"handle_modes": PackedInt32Array(0, 0, 0),
+"points": PackedFloat32Array(1, -0.25, 0, 0.25, 0, 1, -0.25, 0, 0.25, 0, 0, -0.25, 0, 0.25, 0),
+"times": PackedFloat32Array(0, 0.3, 0.31)
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_5brqs"]
+_data = {
+"RESET": SubResource("Animation_5i4aq"),
+"charge": SubResource("Animation_6dmch")
+}
+
+[node name="DiceInterface" type="Control"]
+layout_mode = 3
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -60.0
+offset_right = 100.0
+offset_bottom = 60.0
+grow_horizontal = 2
+script = ExtResource("1_hbfrn")
+
+[node name="DicePanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -16.0
+offset_right = 24.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_8u3o8")
+theme_override_styles/panel = SubResource("StyleBoxFlat_xxwa5")
+
+[node name="MarginContainer" type="MarginContainer" parent="DicePanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -0.5
+offset_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 0
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 0
+theme_override_constants/margin_bottom = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="DicePanel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="Dice1" type="VBoxContainer" parent="DicePanel/MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(35, 35)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_constants/separation = 3
+alignment = 1
+
+[node name="Dice1Texture" type="TextureRect" parent="DicePanel/MarginContainer/HBoxContainer/Dice1"]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+size_flags_vertical = 8
+texture = ExtResource("3_q6max")
+expand_mode = 4
+script = ExtResource("5_cju5n")
+
+[node name="Dice1Label" type="Label" parent="DicePanel/MarginContainer/HBoxContainer/Dice1"]
+layout_mode = 2
+size_flags_vertical = 1
+theme = ExtResource("4_vgytt")
+text = "2/2"
+label_settings = SubResource("LabelSettings_dsa2r")
+horizontal_alignment = 1
+vertical_alignment = 2
+
+[node name="Dice2" type="VBoxContainer" parent="DicePanel/MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(35, 35)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_constants/separation = 3
+alignment = 1
+
+[node name="Dice2Texture" type="TextureRect" parent="DicePanel/MarginContainer/HBoxContainer/Dice2"]
+custom_minimum_size = Vector2(35, 35)
+layout_mode = 2
+size_flags_vertical = 8
+texture = ExtResource("5_qecou")
+expand_mode = 1
+
+[node name="Dice2Label" type="Label" parent="DicePanel/MarginContainer/HBoxContainer/Dice2"]
+layout_mode = 2
+size_flags_vertical = 1
+theme = ExtResource("4_vgytt")
+text = "1/1"
+label_settings = SubResource("LabelSettings_dsa2r")
+horizontal_alignment = 1
+vertical_alignment = 2
+
+[node name="Dice3" type="VBoxContainer" parent="DicePanel/MarginContainer/HBoxContainer"]
+visible = false
+custom_minimum_size = Vector2(35, 35)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_constants/separation = 3
+alignment = 1
+
+[node name="Dice3Texture" type="TextureRect" parent="DicePanel/MarginContainer/HBoxContainer/Dice3"]
+custom_minimum_size = Vector2(35, 35)
+layout_mode = 2
+size_flags_vertical = 8
+texture = ExtResource("8_fm7rw")
+expand_mode = 1
+
+[node name="Dice3Label" type="Label" parent="DicePanel/MarginContainer/HBoxContainer/Dice3"]
+layout_mode = 2
+size_flags_vertical = 1
+theme = ExtResource("4_vgytt")
+text = "1/1"
+label_settings = SubResource("LabelSettings_dsa2r")
+horizontal_alignment = 1
+vertical_alignment = 2
+
+[node name="Dice4" type="VBoxContainer" parent="DicePanel/MarginContainer/HBoxContainer"]
+visible = false
+custom_minimum_size = Vector2(35, 35)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_constants/separation = 3
+alignment = 1
+
+[node name="Dice4Texture" type="TextureRect" parent="DicePanel/MarginContainer/HBoxContainer/Dice4"]
+custom_minimum_size = Vector2(35, 35)
+layout_mode = 2
+size_flags_vertical = 8
+texture = ExtResource("9_j57h4")
+expand_mode = 1
+
+[node name="Dice4Label" type="Label" parent="DicePanel/MarginContainer/HBoxContainer/Dice4"]
+layout_mode = 2
+size_flags_vertical = 1
+theme = ExtResource("4_vgytt")
+text = "1/1"
+label_settings = SubResource("LabelSettings_dsa2r")
+horizontal_alignment = 1
+vertical_alignment = 2
+
+[node name="Dice5" type="VBoxContainer" parent="DicePanel/MarginContainer/HBoxContainer"]
+visible = false
+custom_minimum_size = Vector2(35, 35)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_constants/separation = 3
+alignment = 1
+
+[node name="Dice5Texture" type="TextureRect" parent="DicePanel/MarginContainer/HBoxContainer/Dice5"]
+custom_minimum_size = Vector2(35, 35)
+layout_mode = 2
+size_flags_vertical = 8
+texture = ExtResource("10_5yi0r")
+expand_mode = 1
+
+[node name="Dice5Label" type="Label" parent="DicePanel/MarginContainer/HBoxContainer/Dice5"]
+layout_mode = 2
+size_flags_vertical = 1
+theme = ExtResource("4_vgytt")
+text = "1/1"
+label_settings = SubResource("LabelSettings_dsa2r")
+horizontal_alignment = 1
+vertical_alignment = 2
+
+[node name="Dice6" type="VBoxContainer" parent="DicePanel/MarginContainer/HBoxContainer"]
+visible = false
+custom_minimum_size = Vector2(35, 35)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_constants/separation = 3
+alignment = 1
+
+[node name="Dice6Texture" type="TextureRect" parent="DicePanel/MarginContainer/HBoxContainer/Dice6"]
+custom_minimum_size = Vector2(35, 35)
+layout_mode = 2
+size_flags_vertical = 8
+texture = ExtResource("11_h0rqu")
+expand_mode = 1
+
+[node name="Dice6Label" type="Label" parent="DicePanel/MarginContainer/HBoxContainer/Dice6"]
+layout_mode = 2
+size_flags_vertical = 1
+theme = ExtResource("4_vgytt")
+text = "1/1"
+label_settings = SubResource("LabelSettings_dsa2r")
+horizontal_alignment = 1
+vertical_alignment = 2
+
+[node name="Dice7" type="VBoxContainer" parent="DicePanel/MarginContainer/HBoxContainer"]
+visible = false
+custom_minimum_size = Vector2(35, 35)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_constants/separation = 3
+alignment = 1
+
+[node name="Dice7Texture" type="TextureRect" parent="DicePanel/MarginContainer/HBoxContainer/Dice7"]
+custom_minimum_size = Vector2(35, 35)
+layout_mode = 2
+size_flags_vertical = 8
+texture = ExtResource("12_0guum")
+expand_mode = 1
+
+[node name="Dice7Label" type="Label" parent="DicePanel/MarginContainer/HBoxContainer/Dice7"]
+layout_mode = 2
+size_flags_vertical = 1
+theme = ExtResource("4_vgytt")
+text = "1/1"
+label_settings = SubResource("LabelSettings_dsa2r")
+horizontal_alignment = 1
+vertical_alignment = 2
+
+[node name="Dice8" type="VBoxContainer" parent="DicePanel/MarginContainer/HBoxContainer"]
+visible = false
+custom_minimum_size = Vector2(35, 35)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_constants/separation = 3
+alignment = 1
+
+[node name="Dice8Texture" type="TextureRect" parent="DicePanel/MarginContainer/HBoxContainer/Dice8"]
+custom_minimum_size = Vector2(35, 35)
+layout_mode = 2
+size_flags_vertical = 8
+texture = ExtResource("13_y2mvv")
+expand_mode = 1
+
+[node name="Dice8Label" type="Label" parent="DicePanel/MarginContainer/HBoxContainer/Dice8"]
+layout_mode = 2
+size_flags_vertical = 1
+theme = ExtResource("4_vgytt")
+text = "1/1"
+label_settings = SubResource("LabelSettings_dsa2r")
+horizontal_alignment = 1
+vertical_alignment = 2
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="DicePanel"]
+libraries = {
+"": SubResource("AnimationLibrary_5brqs")
+}
+
+[connection signal="gui_input" from="DicePanel/MarginContainer/HBoxContainer/Dice1" to="." method="_on_dice_1_gui_input"]
+[connection signal="gui_input" from="DicePanel/MarginContainer/HBoxContainer/Dice2" to="." method="_on_dice_2_gui_input"]
+[connection signal="gui_input" from="DicePanel/MarginContainer/HBoxContainer/Dice3" to="." method="_on_dice_3_gui_input"]
+[connection signal="gui_input" from="DicePanel/MarginContainer/HBoxContainer/Dice4" to="." method="_on_dice_4_gui_input"]
+[connection signal="gui_input" from="DicePanel/MarginContainer/HBoxContainer/Dice5" to="." method="_on_dice_5_gui_input"]
+[connection signal="gui_input" from="DicePanel/MarginContainer/HBoxContainer/Dice6" to="." method="_on_dice_6_gui_input"]
+[connection signal="gui_input" from="DicePanel/MarginContainer/HBoxContainer/Dice7" to="." method="_on_dice_7_gui_input"]
+[connection signal="gui_input" from="DicePanel/MarginContainer/HBoxContainer/Dice8" to="." method="_on_dice_8_gui_input"]

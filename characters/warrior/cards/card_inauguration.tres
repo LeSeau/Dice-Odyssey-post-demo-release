@@ -1,0 +1,26 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c0slcpvycxiym"]
+
+[ext_resource type="Script" path="res://characters/warrior/cards/inauguration.gd" id="1_ihqiq"]
+[ext_resource type="Texture2D" uid="uid://ca5as3msw3id6" path="res://inauguration.png" id="1_pdmxn"]
+[ext_resource type="AudioStream" uid="uid://csxs8784ydfwg" path="res://kamikazesound.mp3" id="2_wewfs"]
+
+[resource]
+script = ExtResource("1_ihqiq")
+id = "card_inauguration"
+name = "Inauguration"
+type = 0
+target = 1
+description = "Deal X damage. If you rolled only 1 Dice this turn, deal X3 instead"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 0
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = ""
+icon = ExtResource("1_pdmxn")
+tooltip_text = ""
+sound = ExtResource("2_wewfs")

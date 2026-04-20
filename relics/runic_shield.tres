@@ -1,0 +1,17 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://b8rykkiou6gu7"]
+
+[ext_resource type="Texture2D" uid="uid://bj6ns320xbinu" path="res://runic_shield_v2.png" id="1_0bggf"]
+[ext_resource type="Script" path="res://relics/runic_shield.gd" id="2_mwhtf"]
+
+[resource]
+script = ExtResource("2_mwhtf")
+relic_name = "Runic Shield"
+id = "runic_shield"
+type = 2
+has_counter = false
+counter = 0
+starter_relic = false
+icon = ExtResource("1_0bggf")
+tooltip = "Gain 2 block per unused Dice at the end of your turn
+
+"

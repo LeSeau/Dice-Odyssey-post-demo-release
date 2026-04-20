@@ -1,0 +1,161 @@
+[gd_scene load_steps=12 format=3 uid="uid://drwjp5bi8wmx6"]
+
+[ext_resource type="Texture2D" uid="uid://c17qq0sj25epy" path="res://assets/images/blue1.png" id="1_hxyyb"]
+[ext_resource type="Script" path="res://scenes/dices/dice.gd" id="1_xhb7n"]
+[ext_resource type="Theme" uid="uid://c5ebdqhhhfy3i" path="res://scenes/button/base_button.tres" id="2_exd4y"]
+[ext_resource type="Theme" uid="uid://c8cqncsqlplyu" path="res://main_theme.tres" id="2_l0ni4"]
+[ext_resource type="Script" path="res://scenes/dices/button.gd" id="3_e4lqf"]
+[ext_resource type="FontFile" uid="uid://b2y60c4274gkj" path="res://fonts/Cinzel-Bold.otf" id="6_18c57"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1n6yb"]
+bg_color = Color(0.780714, 0.550124, 0.158042, 1)
+border_width_left = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.667223, 0.31524, 0.153788, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_mm8wg"]
+line_spacing = -2.0
+font_size = 24
+outline_size = 1
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yii4d"]
+bg_color = Color(0.627677, 0.164105, 0.163154, 0.235294)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.889259, 0.749773, 0.211237, 1)
+shadow_color = Color(0.639888, 0.639888, 0.639888, 0.6)
+shadow_size = 2
+
+[sub_resource type="Theme" id="Theme_al8tb"]
+Panel/styles/panel = SubResource("StyleBoxFlat_yii4d")
+
+[sub_resource type="LabelSettings" id="LabelSettings_si72t"]
+line_spacing = -1.0
+font = ExtResource("6_18c57")
+font_size = 3
+shadow_size = 0
+
+[node name="ActiveDice" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+offset_top = 4.0
+offset_right = 40.0
+offset_bottom = 44.0
+script = ExtResource("1_xhb7n")
+
+[node name="DiceDisplay" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_hxyyb")
+expand_mode = 1
+
+[node name="Button" type="Button" parent="DiceDisplay"]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.2
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_exd4y")
+theme_override_colors/font_hover_pressed_color = Color(0.8, 0, 0, 1)
+theme_override_colors/font_hover_color = Color(0.8, 0, 0, 1)
+theme_override_colors/font_pressed_color = Color(0.827451, 0, 0, 1)
+theme_override_colors/font_focus_color = Color(0.756863, 0, 0, 1)
+theme_override_colors/icon_normal_color = Color(0.784314, 0, 0, 1)
+theme_override_colors/icon_focus_color = Color(0.670588, 0, 0, 1)
+theme_override_constants/outline_size = 0
+theme_override_styles/normal = SubResource("StyleBoxFlat_1n6yb")
+script = ExtResource("3_e4lqf")
+
+[node name="Label" type="Label" parent="DiceDisplay/Button"]
+layout_mode = 1
+anchors_preset = 13
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -8.0
+offset_right = 8.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_l0ni4")
+text = "ROLL"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CurrentPower" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = 3.0
+offset_top = -17.0
+offset_right = 42.0
+offset_bottom = 17.0
+grow_horizontal = 0
+grow_vertical = 2
+text = "0"
+label_settings = SubResource("LabelSettings_mm8wg")
+vertical_alignment = 1
+
+[node name="CardDropArea" type="Control" parent="."]
+custom_minimum_size = Vector2(27, 49)
+anchors_preset = 0
+offset_left = 62.0
+offset_top = -2.0
+offset_right = 89.0
+offset_bottom = 47.0
+
+[node name="Panel" type="Panel" parent="CardDropArea"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -1.0
+offset_right = -1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("Theme_al8tb")
+
+[node name="ChargedCardTexture" type="TextureRect" parent="CardDropArea/Panel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -12.5
+offset_top = -23.5
+offset_right = 12.5
+offset_bottom = 14.5
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+
+[node name="ChargedCardDescription" type="Label" parent="CardDropArea/Panel"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -9.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "test"
+label_settings = SubResource("LabelSettings_si72t")
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="DiceRollPlayer" type="AudioStreamPlayer" parent="."]
+
+[connection signal="pressed" from="DiceDisplay/Button" to="DiceDisplay/Button" method="_on_pressed"]

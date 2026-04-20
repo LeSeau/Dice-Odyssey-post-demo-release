@@ -1,0 +1,24 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://byvfpybxk155c"]
+
+[ext_resource type="Texture2D" uid="uid://cn52epdh4q1f" path="res://gptphotoblast.png" id="1_ees1y"]
+[ext_resource type="Script" path="res://characters/warrior/cards/photoblast.gd" id="2_mabs3"]
+
+[resource]
+script = ExtResource("2_mabs3")
+id = "card_photoblast"
+name = "Photoblast"
+type = 0
+target = 1
+description = "Apply Blue-Sensitive."
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 0
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = ""
+icon = ExtResource("1_ees1y")
+tooltip_text = ""

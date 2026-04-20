@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="RelicPool" load_steps=13 format=3 uid="uid://2if2rhy1aktn"]
+
+[ext_resource type="Script" path="res://custom_resources/relic.gd" id="1_3cua4"]
+[ext_resource type="Resource" uid="uid://d1hg48cey4d5d" path="res://relics/arcane_hat.tres" id="2_fqptj"]
+[ext_resource type="Script" path="res://relics/relic_pool.gd" id="2_tgoc2"]
+[ext_resource type="Resource" uid="uid://cakchay7xwhga" path="res://relics/blood_sword.tres" id="3_nr6f2"]
+[ext_resource type="Resource" uid="uid://dpio0aysms7rj" path="res://relics/magic_sleeve.tres" id="4_yunvh"]
+[ext_resource type="Resource" uid="uid://b8rykkiou6gu7" path="res://relics/runic_shield.tres" id="6_wv4ds"]
+[ext_resource type="Resource" uid="uid://bbokk33ecpeq2" path="res://relics/sledgehammer.tres" id="7_8op50"]
+[ext_resource type="Resource" uid="uid://dn1kbuqp83m6y" path="res://relics/spyglass.tres" id="8_53mm1"]
+[ext_resource type="Resource" uid="uid://1p6lk2kyn3fi" path="res://relics/volcanic_rock.tres" id="9_plo4j"]
+[ext_resource type="Resource" uid="uid://cyenmg61sh2o4" path="res://relics/hunting_bow.tres" id="10_pt110"]
+[ext_resource type="Resource" uid="uid://byjbcudf4rh2q" path="res://relics/clover.tres" id="11_1ld04"]
+[ext_resource type="Resource" uid="uid://dqw5p0yla10kc" path="res://relics/war_horn.tres" id="12_w00ns"]
+
+[resource]
+script = ExtResource("2_tgoc2")
+pool = Array[ExtResource("1_3cua4")]([ExtResource("2_fqptj"), ExtResource("3_nr6f2"), ExtResource("4_yunvh"), ExtResource("6_wv4ds"), ExtResource("7_8op50"), ExtResource("8_53mm1"), ExtResource("9_plo4j"), ExtResource("10_pt110"), ExtResource("11_1ld04"), ExtResource("12_w00ns")])

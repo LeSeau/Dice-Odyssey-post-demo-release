@@ -1,0 +1,24 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://bw85yc0whgnnb"]
+
+[ext_resource type="Texture2D" uid="uid://brl4p4svfvlun" path="res://gptoracle.png" id="1_f17na"]
+[ext_resource type="Script" path="res://characters/warrior/cards/oracle_scout2.gd" id="2_uof2j"]
+
+[resource]
+script = ExtResource("2_uof2j")
+id = "card_oracle2"
+name = "Scout 2"
+type = 1
+target = 0
+description = "Exhaust: Scout 2"
+rarity = 1
+red_only = false
+can_play_without_dice = true
+requirement = 0
+requirement_number = 0
+exhausts = true
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Scout, Exhaust"
+icon = ExtResource("1_f17na")
+tooltip_text = ""

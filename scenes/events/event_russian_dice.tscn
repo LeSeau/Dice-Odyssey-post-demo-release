@@ -1,0 +1,759 @@
+[gd_scene load_steps=21 format=3 uid="uid://ddiw0jjwni4p4"]
+
+[ext_resource type="Script" path="res://scenes/events/event_russian_dice.gd" id="1_utaay"]
+[ext_resource type="Texture2D" uid="uid://c17qq0sj25epy" path="res://assets/images/blue1.png" id="2_0uv5j"]
+[ext_resource type="Theme" uid="uid://c5ebdqhhhfy3i" path="res://scenes/button/base_button.tres" id="3_frtye"]
+[ext_resource type="Texture2D" uid="uid://ckdnehj4txe2o" path="res://gptlaugh.png" id="4_i70j2"]
+[ext_resource type="Texture2D" uid="uid://b6rdm2x0b02eb" path="res://treasure.png" id="5_yualj"]
+[ext_resource type="Texture2D" uid="uid://cixhe0hba0c1" path="res://assets/images/scroll.jpg" id="6_gq51c"]
+[ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="7_0p250"]
+[ext_resource type="Texture2D" uid="uid://2jh7cq027yjs" path="res://russiandice.png" id="7_bog2j"]
+[ext_resource type="FontFile" uid="uid://bfgwr7o37ol1j" path="res://Noto_Sans/static/NotoSans-Regular.ttf" id="8_2rf78"]
+[ext_resource type="AudioStream" uid="uid://bu8uvjhi41uik" path="res://success.mp3" id="8_kr51r"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_kwaja"]
+bg_color = Color(0.246036, 0.403102, 0.363782, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_thl7v"]
+bg_color = Color(0.878468, 0.475935, 0.265035, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_htkly"]
+bg_color = Color(0.311214, 0, 0.0696221, 1)
+border_width_left = 6
+border_width_top = 6
+border_width_right = 6
+border_width_bottom = 6
+border_color = Color(0.957843, 0.774044, 0.321806, 1)
+corner_radius_top_left = 25
+corner_radius_top_right = 25
+corner_radius_bottom_right = 25
+corner_radius_bottom_left = 25
+shadow_size = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_c8xcl"]
+bg_color = Color(0.311214, 0, 0.0696221, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_eyh5d"]
+bg_color = Color(0.095169, 0.177456, 0.157006, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 2
+
+[sub_resource type="Gradient" id="Gradient_n2u7c"]
+colors = PackedColorArray(0.972549, 0.913725, 0.631373, 1, 0.705882, 0.772549, 0.894118, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_fj5ld"]
+gradient = SubResource("Gradient_n2u7c")
+fill_to = Vector2(0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_oau2j"]
+bg_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sbp1t"]
+bg_color = Color(0.63264, 0.534451, 0.857609, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_ajccg"]
+font_size = 28
+font_color = Color(1, 1, 0.160784, 1)
+
+[node name="GoldDice" type="Control"]
+custom_minimum_size = Vector2(1280, 720)
+layout_mode = 3
+anchors_preset = 0
+offset_top = 35.0
+offset_right = 1280.0
+offset_bottom = 755.0
+mouse_filter = 2
+script = ExtResource("1_utaay")
+
+[node name="DicePanel" type="Panel" parent="."]
+visible = false
+z_index = 5
+custom_minimum_size = Vector2(800, 400)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = -200.0
+offset_right = 400.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_kwaja")
+
+[node name="Panel" type="Panel" parent="DicePanel"]
+custom_minimum_size = Vector2(0, 90)
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_thl7v")
+
+[node name="RichTextLabel" type="RichTextLabel" parent="DicePanel/Panel"]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 12.0
+offset_bottom = 12.0
+grow_horizontal = 2
+grow_vertical = 2
+bbcode_enabled = true
+text = "[center]Keep rolling for more rewards.
+Lose all if you roll 1
+"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="DicePanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 35
+alignment = 1
+
+[node name="Dice1" type="VBoxContainer" parent="DicePanel/HBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="Reward1" type="Panel" parent="DicePanel/HBoxContainer/Dice1"]
+custom_minimum_size = Vector2(0, 25)
+layout_mode = 2
+
+[node name="RichTextLabel" type="RichTextLabel" parent="DicePanel/HBoxContainer/Dice1/Reward1"]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+offset_top = 4.0
+offset_right = 120.0
+offset_bottom = 24.0
+theme_override_font_sizes/normal_font_size = 14
+bbcode_enabled = true
+text = "[center]15 Gold[/center]"
+
+[node name="DiceDisplay1" type="TextureRect" parent="DicePanel/HBoxContainer/Dice1"]
+custom_minimum_size = Vector2(120, 120)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("2_0uv5j")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="RollDice1" type="Button" parent="DicePanel/HBoxContainer/Dice1/DiceDisplay1"]
+z_index = 12
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -2.0
+offset_top = 2.0
+offset_right = 1.0
+offset_bottom = 30.0
+grow_horizontal = 2
+grow_vertical = 0
+theme = ExtResource("3_frtye")
+
+[node name="Label" type="Label" parent="DicePanel/HBoxContainer/Dice1/DiceDisplay1/RollDice1"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "ROLL"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Dice2" type="VBoxContainer" parent="DicePanel/HBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="Reward2" type="Panel" parent="DicePanel/HBoxContainer/Dice2"]
+custom_minimum_size = Vector2(0, 25)
+layout_mode = 2
+
+[node name="RichTextLabel" type="RichTextLabel" parent="DicePanel/HBoxContainer/Dice2/Reward2"]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+offset_top = 4.0
+offset_right = 120.0
+offset_bottom = 24.0
+theme_override_font_sizes/normal_font_size = 14
+bbcode_enabled = true
+text = "[center] 5HP[/center]"
+
+[node name="DiceDisplay2" type="TextureRect" parent="DicePanel/HBoxContainer/Dice2"]
+custom_minimum_size = Vector2(120, 120)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("2_0uv5j")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="RollDice2" type="Button" parent="DicePanel/HBoxContainer/Dice2/DiceDisplay2"]
+z_index = 12
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -2.0
+offset_top = 2.0
+offset_right = 1.0
+offset_bottom = 30.0
+grow_horizontal = 2
+grow_vertical = 0
+theme = ExtResource("3_frtye")
+
+[node name="Label" type="Label" parent="DicePanel/HBoxContainer/Dice2/DiceDisplay2/RollDice2"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "ROLL"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Dice3" type="VBoxContainer" parent="DicePanel/HBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="Reward3" type="Panel" parent="DicePanel/HBoxContainer/Dice3"]
+custom_minimum_size = Vector2(0, 25)
+layout_mode = 2
+
+[node name="RichTextLabel" type="RichTextLabel" parent="DicePanel/HBoxContainer/Dice3/Reward3"]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+offset_top = 4.0
+offset_right = 120.0
+offset_bottom = 24.0
+theme_override_font_sizes/normal_font_size = 14
+bbcode_enabled = true
+text = "[center] 30 Gold[/center]"
+
+[node name="DiceDisplay3" type="TextureRect" parent="DicePanel/HBoxContainer/Dice3"]
+custom_minimum_size = Vector2(120, 120)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("2_0uv5j")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="RollDice3" type="Button" parent="DicePanel/HBoxContainer/Dice3/DiceDisplay3"]
+z_index = 12
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -2.0
+offset_top = 2.0
+offset_right = 1.0
+offset_bottom = 30.0
+grow_horizontal = 2
+grow_vertical = 0
+theme = ExtResource("3_frtye")
+
+[node name="Label" type="Label" parent="DicePanel/HBoxContainer/Dice3/DiceDisplay3/RollDice3"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "ROLL"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Dice4" type="VBoxContainer" parent="DicePanel/HBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="Reward4" type="Panel" parent="DicePanel/HBoxContainer/Dice4"]
+custom_minimum_size = Vector2(0, 25)
+layout_mode = 2
+
+[node name="RichTextLabel" type="RichTextLabel" parent="DicePanel/HBoxContainer/Dice4/Reward4"]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+offset_top = 4.0
+offset_right = 120.0
+offset_bottom = 24.0
+theme_override_font_sizes/normal_font_size = 14
+bbcode_enabled = true
+text = "[center] 10HP[/center]"
+
+[node name="DiceDisplay4" type="TextureRect" parent="DicePanel/HBoxContainer/Dice4"]
+custom_minimum_size = Vector2(120, 120)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("2_0uv5j")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="RollDice4" type="Button" parent="DicePanel/HBoxContainer/Dice4/DiceDisplay4"]
+z_index = 12
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -2.0
+offset_top = 2.0
+offset_right = 1.0
+offset_bottom = 30.0
+grow_horizontal = 2
+grow_vertical = 0
+theme = ExtResource("3_frtye")
+
+[node name="Label" type="Label" parent="DicePanel/HBoxContainer/Dice4/DiceDisplay4/RollDice4"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "ROLL"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Dice5" type="VBoxContainer" parent="DicePanel/HBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="Reward5" type="Panel" parent="DicePanel/HBoxContainer/Dice5"]
+custom_minimum_size = Vector2(0, 25)
+layout_mode = 2
+
+[node name="RichTextLabel" type="RichTextLabel" parent="DicePanel/HBoxContainer/Dice5/Reward5"]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+offset_top = 4.0
+offset_right = 120.0
+offset_bottom = 24.0
+theme_override_font_sizes/normal_font_size = 14
+bbcode_enabled = true
+text = "[center] 50 Gold[/center]"
+
+[node name="DiceDisplay5" type="TextureRect" parent="DicePanel/HBoxContainer/Dice5"]
+custom_minimum_size = Vector2(120, 120)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("2_0uv5j")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="RollDice5" type="Button" parent="DicePanel/HBoxContainer/Dice5/DiceDisplay5"]
+z_index = 12
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -2.0
+offset_top = 2.0
+offset_right = 1.0
+offset_bottom = 30.0
+grow_horizontal = 2
+grow_vertical = 0
+theme = ExtResource("3_frtye")
+
+[node name="Label" type="Label" parent="DicePanel/HBoxContainer/Dice5/DiceDisplay5/RollDice5"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "ROLL"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RewardPanel" type="Panel" parent="DicePanel"]
+visible = false
+layout_mode = 0
+offset_left = 376.0
+offset_top = 241.0
+offset_right = 744.0
+offset_bottom = 340.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_htkly")
+
+[node name="RewardLabel" type="RichTextLabel" parent="DicePanel/RewardPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 27.0
+offset_bottom = 27.0
+grow_horizontal = 2
+grow_vertical = 2
+bbcode_enabled = true
+text = "[center]You won [color=yellow] %s Gold[/color]!"
+
+[node name="RewardsRecap" type="Panel" parent="DicePanel"]
+custom_minimum_size = Vector2(350, 0)
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 28.0
+offset_top = -65.0
+offset_right = 228.0
+offset_bottom = -25.0
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_c8xcl")
+
+[node name="RewardsRecapLabel" type="RichTextLabel" parent="DicePanel/RewardsRecap"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+bbcode_enabled = true
+text = "Rewards: "
+
+[node name="StopButton" type="Button" parent="DicePanel"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -108.0
+offset_top = -62.0
+offset_right = -19.0
+offset_bottom = -14.0
+grow_horizontal = 0
+grow_vertical = 0
+text = "Stop"
+
+[node name="LoserPanel" type="Panel" parent="DicePanel"]
+visible = false
+z_index = 15
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -150.0
+offset_right = 250.0
+offset_bottom = 150.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_eyh5d")
+
+[node name="TextureRect" type="TextureRect" parent="DicePanel/LoserPanel"]
+custom_minimum_size = Vector2(250, 150)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("4_i70j2")
+expand_mode = 1
+
+[node name="RichTextLabel" type="RichTextLabel" parent="DicePanel/LoserPanel"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 30.0
+offset_bottom = 80.0
+grow_horizontal = 2
+bbcode_enabled = true
+text = "[center][color=red]You lost![/color][/center]"
+
+[node name="LoserExitButton" type="Button" parent="DicePanel/LoserPanel"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -193.0
+offset_top = -72.0
+offset_right = -23.0
+offset_bottom = -24.0
+grow_horizontal = 0
+grow_vertical = 0
+text = "Continue"
+
+[node name="WinnerPanel" type="Panel" parent="DicePanel"]
+visible = false
+z_index = 15
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -150.0
+offset_right = 250.0
+offset_bottom = 150.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_eyh5d")
+
+[node name="TextureRect" type="TextureRect" parent="DicePanel/WinnerPanel"]
+custom_minimum_size = Vector2(250, 150)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("5_yualj")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="RichTextLabel" type="RichTextLabel" parent="DicePanel/WinnerPanel"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 30.0
+offset_bottom = 80.0
+grow_horizontal = 2
+bbcode_enabled = true
+text = "[center][color=gold]Congrats![/color][/center]"
+
+[node name="WinnerExitButton" type="Button" parent="DicePanel/WinnerPanel"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -193.0
+offset_top = -72.0
+offset_right = -23.0
+offset_bottom = -24.0
+grow_horizontal = 0
+grow_vertical = 0
+text = "Continue"
+
+[node name="TextureRect" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = SubResource("GradientTexture2D_fj5ld")
+
+[node name="MarginContainer" type="MarginContainer" parent="TextureRect"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 50
+theme_override_constants/margin_top = 50
+theme_override_constants/margin_right = 50
+theme_override_constants/margin_bottom = 50
+
+[node name="Panel" type="Panel" parent="TextureRect/MarginContainer"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_oau2j")
+
+[node name="TextureRect" type="TextureRect" parent="TextureRect/MarginContainer/Panel"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("6_gq51c")
+expand_mode = 1
+
+[node name="MarginContainer" type="MarginContainer" parent="TextureRect/MarginContainer/Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="VBoxContainer" type="VBoxContainer" parent="TextureRect/MarginContainer/Panel/MarginContainer"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 15
+
+[node name="Panel" type="Panel" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_sbp1t")
+
+[node name="Label" type="Label" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/Panel"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -570.0
+offset_top = -25.0
+offset_right = 570.0
+offset_bottom = 25.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "a game of \"One is a troll\""
+label_settings = SubResource("LabelSettings_ajccg")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+theme_override_constants/separation = 80
+
+[node name="TextureRect" type="TextureRect" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(500, 500)
+layout_mode = 2
+size_flags_horizontal = 0
+mouse_filter = 2
+texture = ExtResource("7_bog2j")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="VBoxContainer" type="VBoxContainer" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 60
+
+[node name="RichTextLabel" type="RichTextLabel" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer"]
+custom_minimum_size = Vector2(400, 350)
+layout_mode = 2
+mouse_filter = 2
+theme_override_fonts/normal_font = ExtResource("8_2rf78")
+bbcode_enabled = true
+text = "You see these lovely people playing a Dice game. [color=green]The Orc [/color]gently explains you the rules in his words: 
+
+[p] [p] \"Roll. Win rewards. But roll one...  [color=red]YOU A TROLL! TROLL GET NOTHING!\" [/color] 
+
+[p] [p]He seems to particularly hate Trolls."
+fit_content = true
+
+[node name="VBoxContainer" type="VBoxContainer" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer"]
+custom_minimum_size = Vector2(500, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 10
+theme_override_constants/separation = 12
+
+[node name="PlayButton" type="Button" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer"]
+custom_minimum_size = Vector2(300, 40)
+layout_mode = 2
+
+[node name="RichTextLabel" type="RichTextLabel" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/PlayButton"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -10.0
+offset_bottom = 30.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_fonts/normal_font = ExtResource("7_0p250")
+theme_override_font_sizes/normal_font_size = 20
+bbcode_enabled = true
+text = "[center]Pretty sure I'm not a troll! [color=gold] PLAY[/color]  [/center]
+"
+scroll_active = false
+
+[node name="Quit" type="Button" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer"]
+visible = false
+custom_minimum_size = Vector2(300, 40)
+layout_mode = 2
+
+[node name="RichTextLabel" type="RichTextLabel" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/Quit"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -10.0
+offset_bottom = 30.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_fonts/normal_font = ExtResource("7_0p250")
+theme_override_font_sizes/normal_font_size = 20
+bbcode_enabled = true
+text = "[center]That sounds fishy.[color=gray] Leave...[/color][/center]
+"
+scroll_active = false
+
+[node name="AudioListener2D" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("8_kr51r")
+
+[connection signal="pressed" from="DicePanel/HBoxContainer/Dice1/DiceDisplay1/RollDice1" to="." method="_on_roll_dice_1_pressed"]
+[connection signal="pressed" from="DicePanel/HBoxContainer/Dice2/DiceDisplay2/RollDice2" to="." method="_on_roll_dice_2_pressed"]
+[connection signal="pressed" from="DicePanel/HBoxContainer/Dice3/DiceDisplay3/RollDice3" to="." method="_on_roll_dice_3_pressed"]
+[connection signal="pressed" from="DicePanel/HBoxContainer/Dice4/DiceDisplay4/RollDice4" to="." method="_on_roll_dice_4_pressed"]
+[connection signal="pressed" from="DicePanel/HBoxContainer/Dice5/DiceDisplay5/RollDice5" to="." method="_on_roll_dice_5_pressed"]
+[connection signal="pressed" from="DicePanel/StopButton" to="." method="_on_stop_button_pressed"]
+[connection signal="pressed" from="DicePanel/LoserPanel/LoserExitButton" to="." method="_on_loser_exit_button_pressed"]
+[connection signal="pressed" from="DicePanel/WinnerPanel/WinnerExitButton" to="." method="_on_winner_exit_button_pressed"]
+[connection signal="pressed" from="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/PlayButton" to="." method="_on_play_button_pressed"]

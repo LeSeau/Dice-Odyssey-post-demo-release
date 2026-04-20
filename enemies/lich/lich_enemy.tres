@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="EnemyStats" load_steps=4 format=3 uid="uid://b21r6up06nnxs"]
+
+[ext_resource type="PackedScene" uid="uid://68yko678m7so" path="res://enemies/lich/lich_enemy_ai.tscn" id="1_a0owb"]
+[ext_resource type="Texture2D" uid="uid://1da3ayga1dq3" path="res://gptlich.png" id="2_d82ml"]
+[ext_resource type="Script" path="res://custom_resources/enemy_stats.gd" id="3_rv2x7"]
+
+[resource]
+script = ExtResource("3_rv2x7")
+ai = ExtResource("1_a0owb")
+max_health = 60
+art = ExtResource("2_d82ml")

@@ -1,0 +1,58 @@
+[gd_scene load_steps=6 format=3 uid="uid://chry0sgk7t0yf"]
+
+[ext_resource type="StyleBox" uid="uid://ce8r01r8snw2g" path="res://scenes/ui/tooltip.tres" id="2_4gfl8"]
+[ext_resource type="Script" path="res://scenes/ui/tooltip.gd" id="2_ifbwr"]
+[ext_resource type="FontFile" uid="uid://t1kjnid0fq8h" path="res://assets/static/Roboto-Black.ttf" id="3_vvnhr"]
+[ext_resource type="FontFile" uid="uid://bm3deysyi2y55" path="res://Belwe Bold/Belwe Bold.otf" id="5_khjy8"]
+[ext_resource type="FontFile" uid="uid://dq4bmvx1ogtey" path="res://Noto_Sans/static/NotoSans-Medium.ttf" id="6_6k2h1"]
+
+[node name="Tooltip" type="Panel"]
+offset_right = 204.0
+offset_bottom = 108.0
+theme_override_styles/panel = ExtResource("2_4gfl8")
+script = ExtResource("2_ifbwr")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+offset_left = 2.0
+offset_top = 2.0
+offset_right = 202.0
+offset_bottom = 106.0
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+custom_minimum_size = Vector2(180, 64)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
+alignment = 1
+
+[node name="TooltipTitle" type="RichTextLabel" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 20)
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_constants/line_separation = 2
+theme_override_fonts/normal_font = ExtResource("3_vvnhr")
+theme_override_fonts/bold_font = ExtResource("5_khjy8")
+theme_override_font_sizes/normal_font_size = 14
+theme_override_font_sizes/bold_font_size = 16
+bbcode_enabled = true
+text = "[center][color=\"gold\"][b]Max[/b][/color]"
+scroll_active = false
+
+[node name="TooltipText" type="RichTextLabel" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+clip_contents = false
+custom_minimum_size = Vector2(80, 40)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_constants/line_separation = 3
+theme_override_fonts/normal_font = ExtResource("6_6k2h1")
+theme_override_font_sizes/normal_font_size = 12
+theme_override_font_sizes/bold_font_size = 12
+bbcode_enabled = true
+text = "[center]Start each fight with 1 more Blue Dice on the first turn[/center]"
+scroll_active = false

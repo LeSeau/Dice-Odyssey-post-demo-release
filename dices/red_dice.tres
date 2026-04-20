@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="DiceData" load_steps=3 format=3 uid="uid://cimn4iy8vd7bo"]
+
+[ext_resource type="Script" path="res://custom_resources/dice_data.gd" id="1_skrj4"]
+[ext_resource type="Texture2D" uid="uid://bq8i15ehnrypf" path="res://assets/images/evil6.png" id="2_aas32"]
+
+[resource]
+script = ExtResource("1_skrj4")
+name = "Evil Dice"
+texture = ExtResource("2_aas32")
+possible_rolls = [0, 6, 6, 6]
+min_roll = 0
+max_roll = 6
+color = Color(1, 0.301961, 1, 1)
+type = "evil"
+description = ""
+special_effect = ""
+current_amount = 0
+max_amount = 0

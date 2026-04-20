@@ -1,0 +1,16 @@
+[gd_scene load_steps=4 format=3 uid="uid://df3crmmw66apw"]
+
+[ext_resource type="PackedScene" uid="uid://d0efyathkfg74" path="res://scenes/enemy/enemy.tscn" id="1_cff8f"]
+[ext_resource type="Resource" uid="uid://bbo24od4aavfj" path="res://enemies/temple_defender/defender_enemy.tres" id="2_nay6a"]
+[ext_resource type="Resource" uid="uid://bhuc4182c6n1i" path="res://enemies/machopeur/machopeur_enemy.tres" id="3_8jts3"]
+
+[node name="Tier2DefenderMachopeur" type="Node2D"]
+
+[node name="Defender" parent="." instance=ExtResource("1_cff8f")]
+position = Vector2(758, 418)
+stats = ExtResource("2_nay6a")
+
+[node name="Machopeur" parent="." instance=ExtResource("1_cff8f")]
+position = Vector2(1034, 411)
+scale = Vector2(0.75, 0.75)
+stats = ExtResource("3_8jts3")

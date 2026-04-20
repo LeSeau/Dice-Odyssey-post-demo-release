@@ -1,0 +1,34 @@
+[gd_scene load_steps=10 format=3 uid="uid://68yko678m7so"]
+
+[ext_resource type="Script" path="res://scenes/enemy/enemy_action_picker.gd" id="1_omyso"]
+[ext_resource type="Script" path="res://enemies/lich/lich_attack_action.gd" id="2_d25xs"]
+[ext_resource type="Script" path="res://enemies/lich/lich_buff_action.gd" id="3_5dq8e"]
+[ext_resource type="Texture2D" uid="uid://cm56j6ual41dr" path="res://attack_icon_intent.png" id="3_k1k8j"]
+[ext_resource type="Script" path="res://custom_resources/intent.gd" id="4_v2ca1"]
+[ext_resource type="AudioStream" uid="uid://de2ryat1pxq6" path="res://art/enemy_attack.ogg" id="5_f25ur"]
+[ext_resource type="Texture2D" uid="uid://cj3x4kmau3jo7" path="res://buff_icon.png" id="7_p8btj"]
+
+[sub_resource type="Resource" id="Resource_s64n6"]
+script = ExtResource("4_v2ca1")
+base_text = "%s"
+icon = ExtResource("3_k1k8j")
+
+[sub_resource type="Resource" id="Resource_fk287"]
+script = ExtResource("4_v2ca1")
+base_text = ""
+icon = ExtResource("7_p8btj")
+
+[node name="LichEnemyAI" type="Node"]
+script = ExtResource("1_omyso")
+
+[node name="LichAttackAction" type="Node" parent="."]
+script = ExtResource("2_d25xs")
+intent = SubResource("Resource_s64n6")
+sound = ExtResource("5_f25ur")
+type = 1
+chance_weight = 10.0
+
+[node name="LichBuffAction" type="Node" parent="."]
+script = ExtResource("3_5dq8e")
+intent = SubResource("Resource_fk287")
+chance_weight = 10.0

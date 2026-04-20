@@ -1,0 +1,26 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://x1ki45demmme"]
+
+[ext_resource type="Script" path="res://characters/warrior/cards/prosperity.gd" id="1_uv3ok"]
+[ext_resource type="Texture2D" uid="uid://b2dviuvid7me1" path="res://prosperity.png" id="1_xeqdd"]
+[ext_resource type="AudioStream" uid="uid://c8gxpcgy534oh" path="res://sound_high_roll.wav" id="2_irfcd"]
+
+[resource]
+script = ExtResource("1_uv3ok")
+id = "card_prosperity"
+name = "Prosperity"
+type = 1
+target = 0
+description = "Block X. Gain Lucky 1 and Energized 1"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 1
+requirement_number = 12
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Lucky, Energized"
+icon = ExtResource("1_xeqdd")
+tooltip_text = ""
+sound = ExtResource("2_irfcd")

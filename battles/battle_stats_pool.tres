@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="BattleStatsPool" load_steps=22 format=3 uid="uid://byiwraochqvw"]
+
+[ext_resource type="Script" path="res://custom_resources/battle_stats.gd" id="1_wf3rv"]
+[ext_resource type="Script" path="res://custom_resources/battle_stats_pool.gd" id="2_fjg3a"]
+[ext_resource type="Resource" uid="uid://c5rd1m1ogsc8h" path="res://battles/tier_0_crab.tres" id="3_jgii0"]
+[ext_resource type="Resource" uid="uid://8wmrkcqvsqsx" path="res://battles/tier_0_satyrs_3.tres" id="3_qv02c"]
+[ext_resource type="Resource" uid="uid://bd758tfgjcf2o" path="res://battles/tier_1_crab_satyr.tres" id="4_ef60u"]
+[ext_resource type="Resource" uid="uid://ba3d07sn2l40b" path="res://battles/tier_1_defender.tres" id="5_j604f"]
+[ext_resource type="Resource" uid="uid://sy4mqw1me6lx" path="res://battles/tier_1_machopeur_satyr.tres" id="5_o1th7"]
+[ext_resource type="Resource" uid="uid://cb5l0lep243ye" path="res://battles/tier_0_satyrs_octopus_3.tres" id="6_dfdwt"]
+[ext_resource type="Resource" uid="uid://buienc78svwrn" path="res://battles/tier_0_machopeur.tres" id="6_m5dd8"]
+[ext_resource type="Resource" uid="uid://b1sh716puf60y" path="res://battles/tier_0_bigger_octopus_2.tres" id="7_a5eo0"]
+[ext_resource type="Resource" uid="uid://dgxkwvhn1v5mb" path="res://battles/tier_2_medusa.tres" id="8_lfson"]
+[ext_resource type="Resource" uid="uid://bwp1h6l268mpu" path="res://battles/tier_0_bigger_satyrs_octopus.tres" id="8_t1frs"]
+[ext_resource type="Resource" uid="uid://pyw3lm0ken75" path="res://battles/tier_1_machopeur_octopus.tres" id="9_e8c2n"]
+[ext_resource type="Resource" uid="uid://ckldnptukxc8v" path="res://battles/tier_2_defender_satyr.tres" id="9_ej2vj"]
+[ext_resource type="Resource" uid="uid://bi1ctgm3me267" path="res://battles/tier_elite_lich.tres" id="9_lh3kx"]
+[ext_resource type="Resource" uid="uid://bbwrggket7bpn" path="res://battles/tier_2_defender_machopeur.tres" id="10_velkr"]
+[ext_resource type="Resource" uid="uid://bwpgt7y8oxb7m" path="res://battles/tier_2_dragonpriest.tres" id="12_jq3wd"]
+[ext_resource type="Resource" uid="uid://dnwvgja15h8w3" path="res://battles/tier_2_machopeur_octopus.tres" id="13_b4gj7"]
+[ext_resource type="Resource" uid="uid://buksb6uoel1np" path="res://battles/tier_0_octopus_3.tres" id="13_cgkor"]
+[ext_resource type="Resource" uid="uid://cnijlf7tt4p6l" path="res://battles/tier_boss_leviathan.tres" id="15_nru04"]
+[ext_resource type="Resource" uid="uid://dxmicaewek7nx" path="res://battles/tier_0_bigger_satyrs_2.tres" id="18_84mrn"]
+
+[resource]
+script = ExtResource("2_fjg3a")
+pool = Array[ExtResource("1_wf3rv")]([ExtResource("3_jgii0"), ExtResource("6_m5dd8"), ExtResource("13_cgkor"), ExtResource("3_qv02c"), ExtResource("6_dfdwt"), ExtResource("18_84mrn"), ExtResource("7_a5eo0"), ExtResource("8_t1frs"), ExtResource("4_ef60u"), ExtResource("5_j604f"), ExtResource("5_o1th7"), ExtResource("9_e8c2n"), ExtResource("10_velkr"), ExtResource("9_ej2vj"), ExtResource("13_b4gj7"), ExtResource("8_lfson"), ExtResource("12_jq3wd"), ExtResource("9_lh3kx"), ExtResource("15_nru04")])

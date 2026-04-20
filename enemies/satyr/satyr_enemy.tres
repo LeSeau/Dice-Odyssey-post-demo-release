@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="EnemyStats" load_steps=4 format=3 uid="uid://0m1j3lvn7xwr"]
+
+[ext_resource type="PackedScene" uid="uid://b1a6a4fyfbdu4" path="res://enemies/satyr/satyr_enemy_ai.tscn" id="1_e20v7"]
+[ext_resource type="Script" path="res://custom_resources/enemy_stats.gd" id="1_frpr6"]
+[ext_resource type="Texture2D" uid="uid://djmhdcurdi4dg" path="res://gptsatyr.png" id="2_x17ig"]
+
+[resource]
+script = ExtResource("1_frpr6")
+ai = ExtResource("1_e20v7")
+max_health = 8
+art = ExtResource("2_x17ig")

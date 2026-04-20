@@ -1,0 +1,281 @@
+[gd_scene load_steps=14 format=3 uid="uid://chf3urm1jm2wf"]
+
+[ext_resource type="PackedScene" uid="uid://d2vlobkkv27hu" path="res://scenes/ui/card_menu_ui.tscn" id="1_1w0ra"]
+[ext_resource type="Script" path="res://scenes/ui/card_rewards.gd" id="1_s1lqh"]
+[ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="3_d6n2a"]
+[ext_resource type="FontFile" uid="uid://dujsng7qdioan" path="res://assets/static/Roboto_Condensed-SemiBold.ttf" id="5_kq4aa"]
+[ext_resource type="Resource" uid="uid://bt3q81mcy43rc" path="res://characters/warrior/cards/warrior_block2.tres" id="6_0w4ft"]
+[ext_resource type="Texture2D" uid="uid://b0e0uo8ivw2xr" path="res://slice_explanation_bonus.png" id="6_k881s"]
+[ext_resource type="Texture2D" uid="uid://b1my7ua56jx7t" path="res://tutorial_arrow.png" id="6_nflis"]
+[ext_resource type="FontFile" uid="uid://dltntsanjiykq" path="res://fonts/LuckiestGuy-Regular.ttf" id="8_0m1kg"]
+[ext_resource type="Texture2D" uid="uid://c83q27yacmt2w" path="res://slash_explanation_demo_bonus_v3.png" id="9_ywkg3"]
+
+[sub_resource type="Theme" id="Theme_xppm6"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ja6sr"]
+bg_color = Color(0.847059, 0.760784, 0.603922, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="LabelSettings" id="LabelSettings_wsdgn"]
+font = ExtResource("3_d6n2a")
+font_size = 40
+font_color = Color(0.972439, 0.956963, 0.949899, 1)
+shadow_size = 5
+shadow_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ejl2v"]
+bg_color = Color(0.144787, 0.273985, 0.277578, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 1, 0.227451, 1)
+border_blend = true
+shadow_size = 2
+
+[node name="CardRewards" type="ColorRect"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -423.0
+offset_bottom = -240.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(1.5, 1.5)
+size_flags_horizontal = 4
+color = Color(0.133333, 0.133333, 0.133333, 0.52549)
+script = ExtResource("1_s1lqh")
+
+[node name="BackgroundDimmer2" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.00392157, 0, 0, 0.835294)
+
+[node name="Panel" type="Panel" parent="."]
+z_index = 10
+custom_minimum_size = Vector2(350, 50)
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -175.0
+offset_top = 74.6667
+offset_right = 175.0
+offset_bottom = 124.667
+grow_horizontal = 2
+theme = SubResource("Theme_xppm6")
+theme_override_styles/panel = SubResource("StyleBoxFlat_ja6sr")
+
+[node name="Label" type="Label" parent="Panel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -126.0
+offset_top = -20.5
+offset_right = 126.0
+offset_bottom = 20.5
+grow_horizontal = 2
+grow_vertical = 2
+text = "Choose a card  "
+label_settings = SubResource("LabelSettings_wsdgn")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+z_index = 11
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -90.6667
+offset_right = 250.0
+offset_bottom = 237.333
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+theme_override_constants/separation = 50
+
+[node name="Cards" type="HBoxContainer" parent="VBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(500, 10)
+layout_mode = 2
+mouse_filter = 0
+theme_override_constants/separation = -60
+
+[node name="CardMenuAI" parent="VBoxContainer/Cards" instance=ExtResource("1_1w0ra")]
+layout_mode = 2
+card = ExtResource("6_0w4ft")
+
+[node name="CardMenuAI2" parent="VBoxContainer/Cards" instance=ExtResource("1_1w0ra")]
+layout_mode = 2
+
+[node name="CardMenuAI3" parent="VBoxContainer/Cards" instance=ExtResource("1_1w0ra")]
+layout_mode = 2
+
+[node name="SkipCardReward" type="Button" parent="VBoxContainer"]
+custom_minimum_size = Vector2(130, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Skip"
+
+[node name="CanvasLayer" type="CanvasLayer" parent="VBoxContainer"]
+layer = 101
+
+[node name="BonusExplanationBox" type="Panel" parent="VBoxContainer/CanvasLayer"]
+visible = false
+offset_left = 31.0
+offset_top = 134.0
+offset_right = 306.0
+offset_bottom = 588.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_ejl2v")
+
+[node name="RichTextLabel2" type="RichTextLabel" parent="VBoxContainer/CanvasLayer/BonusExplanationBox"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 2.0
+offset_top = 10.6667
+offset_right = -4.0
+offset_bottom = 145.667
+grow_horizontal = 2
+theme_override_fonts/normal_font = ExtResource("5_kq4aa")
+theme_override_font_sizes/normal_font_size = 14
+bbcode_enabled = true
+text = "[center]Some [color=purple]Cards[/color] have conditional [color=green]Bonus effects. [/color]
+
+Unlike requirements below the card image, [color=green]Bonus effects[/color] are not mandatory to play the [color=purple]Card.[/color]
+
+Slice can always be played, and playing it on [color=red]Red Dice[/color] will trigger its [color=green]bonus effect.[/color]"
+fit_content = true
+
+[node name="TextureRect" type="TextureRect" parent="VBoxContainer/CanvasLayer/BonusExplanationBox"]
+layout_mode = 0
+offset_left = 71.0
+offset_top = 166.0
+offset_right = 198.0
+offset_bottom = 373.0
+mouse_filter = 2
+texture = ExtResource("6_k881s")
+expand_mode = 1
+
+[node name="Arrow" type="TextureRect" parent="VBoxContainer/CanvasLayer/BonusExplanationBox"]
+layout_mode = 0
+offset_left = 4.0
+offset_top = 342.0
+offset_right = 73.0
+offset_bottom = 386.0
+mouse_filter = 2
+texture = ExtResource("6_nflis")
+expand_mode = 1
+
+[node name="Ouch" type="RichTextLabel" parent="VBoxContainer/CanvasLayer/BonusExplanationBox"]
+layout_mode = 0
+offset_left = 39.0
+offset_top = 344.0
+offset_right = 79.0
+offset_bottom = 384.0
+rotation = -0.703368
+theme_override_colors/default_color = Color(0.988235, 0, 0, 1)
+theme_override_fonts/normal_font = ExtResource("8_0m1kg")
+theme_override_font_sizes/normal_font_size = 12
+bbcode_enabled = true
+text = "Ouch!"
+
+[node name="Button" type="Button" parent="VBoxContainer/CanvasLayer/BonusExplanationBox"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 13.0
+offset_top = -54.0
+offset_right = -9.0
+offset_bottom = -19.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_fonts/font = ExtResource("5_kq4aa")
+theme_override_font_sizes/font_size = 16
+text = "A nice addition!"
+
+[node name="BonusExplanationBox2" type="Panel" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 642.0
+offset_top = 88.6667
+offset_right = 837.0
+offset_bottom = 406.667
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_ejl2v")
+
+[node name="RichTextLabel2" type="RichTextLabel" parent="BonusExplanationBox2"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 2.0
+offset_top = 10.6667
+offset_right = -4.0
+offset_bottom = 145.667
+grow_horizontal = 2
+theme_override_fonts/normal_font = ExtResource("5_kq4aa")
+theme_override_font_sizes/normal_font_size = 12
+bbcode_enabled = true
+text = "[center]Some [color=purple]Cards[/color] are [color=blue]Transcendent.[/color]
+
+Unlike other [color=purple]Cards[/color], they require no [color=red]Power[/color] to be played and do not reset it after being played.
+
+"
+fit_content = true
+
+[node name="TextureRect" type="TextureRect" parent="BonusExplanationBox2"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -47.5
+offset_top = -59.1666
+offset_right = 47.5
+offset_bottom = 105.833
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("9_ywkg3")
+expand_mode = 1
+
+[node name="Button2" type="Button" parent="BonusExplanationBox2"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 17.3333
+offset_top = -43.3337
+offset_right = -16.6667
+offset_bottom = -8.33368
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_fonts/font = ExtResource("5_kq4aa")
+theme_override_font_sizes/font_size = 16
+text = "Interesting!"
+
+[connection signal="pressed" from="VBoxContainer/CanvasLayer/BonusExplanationBox/Button" to="." method="_on_button_pressed"]
+[connection signal="pressed" from="BonusExplanationBox2/Button2" to="." method="_on_button_2_pressed"]

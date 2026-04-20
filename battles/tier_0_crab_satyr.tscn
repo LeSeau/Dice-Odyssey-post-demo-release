@@ -1,0 +1,15 @@
+[gd_scene load_steps=4 format=3 uid="uid://4y8wq83u1xeg"]
+
+[ext_resource type="PackedScene" uid="uid://d0efyathkfg74" path="res://scenes/enemy/enemy.tscn" id="1_et4yg"]
+[ext_resource type="Resource" uid="uid://0m1j3lvn7xwr" path="res://enemies/satyr/satyr_enemy.tres" id="2_qkxi1"]
+[ext_resource type="Resource" uid="uid://bnmpwl3k8qb8n" path="res://enemies/crab/crab_enemy.tres" id="3_bl17w"]
+
+[node name="Tier0CrabSatyr" type="Node2D"]
+
+[node name="Crab" parent="." instance=ExtResource("1_et4yg")]
+position = Vector2(972, 411)
+stats = ExtResource("3_bl17w")
+
+[node name="Satyr" parent="." instance=ExtResource("1_et4yg")]
+position = Vector2(706, 362)
+stats = ExtResource("2_qkxi1")

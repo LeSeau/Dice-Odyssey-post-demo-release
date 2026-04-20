@@ -1,0 +1,24 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://cumc3xhgl05yl"]
+
+[ext_resource type="Texture2D" uid="uid://cod4ud8em4aab" path="res://sabotage.png" id="1_7nhd4"]
+[ext_resource type="Script" path="res://characters/warrior/cards/sabotage.gd" id="2_f427g"]
+
+[resource]
+script = ExtResource("2_f427g")
+id = "card_sabotage"
+name = "Sabotage"
+type = 0
+target = 1
+description = "Apply Exposed 2"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 2
+requirement_number = 2
+exhausts = false
+bonus_requirement = 4
+bonus_requirement_number = 0
+bonus_description_text = "Deal 3 damage"
+tags = "Exposed"
+icon = ExtResource("1_7nhd4")
+tooltip_text = ""

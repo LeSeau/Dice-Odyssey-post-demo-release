@@ -1,0 +1,15 @@
+[gd_scene load_steps=4 format=3 uid="uid://ot4njsycxeww"]
+
+[ext_resource type="PackedScene" uid="uid://d0efyathkfg74" path="res://scenes/enemy/enemy.tscn" id="1_5t168"]
+[ext_resource type="Resource" uid="uid://bhuc4182c6n1i" path="res://enemies/machopeur/machopeur_enemy.tres" id="2_usjit"]
+[ext_resource type="Resource" uid="uid://0m1j3lvn7xwr" path="res://enemies/satyr/satyr_enemy.tres" id="3_pyy0w"]
+
+[node name="Tier1MachopeurSatyr" type="Node2D"]
+
+[node name="Machopeur" parent="." instance=ExtResource("1_5t168")]
+position = Vector2(944, 429)
+stats = ExtResource("2_usjit")
+
+[node name="Satyr" parent="." instance=ExtResource("1_5t168")]
+position = Vector2(716, 379)
+stats = ExtResource("3_pyy0w")

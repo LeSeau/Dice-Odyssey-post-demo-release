@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3 uid="uid://ddcwtns7x2k7q"]
+
+[ext_resource type="PackedScene" uid="uid://d0efyathkfg74" path="res://scenes/enemy/enemy.tscn" id="1_5yrnd"]
+[ext_resource type="Resource" uid="uid://b8imxfdpc3ktt" path="res://enemies/leviathan/leviathan_enemy.tres" id="2_mpmk8"]
+
+[node name="TierBossLeviathan" type="Node2D"]
+
+[node name="Leviathan" parent="." instance=ExtResource("1_5yrnd")]
+position = Vector2(918, 418)
+stats = ExtResource("2_mpmk8")

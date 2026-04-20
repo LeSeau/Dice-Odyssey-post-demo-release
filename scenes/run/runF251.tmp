@@ -1,0 +1,93 @@
+[gd_scene load_steps=6 format=3 uid="uid://b56wvanf6u6h7"]
+
+[ext_resource type="Script" path="res://scenes/run/run.gd" id="1_sgoer"]
+[ext_resource type="PackedScene" uid="uid://deprxl041o8nn" path="res://scenes/map/map.tscn" id="2_1mcea"]
+[ext_resource type="PackedScene" uid="uid://nfklwfie3xpy" path="res://scenes/ui/card_pile_opener.tscn" id="3_bglvk"]
+[ext_resource type="PackedScene" uid="uid://bdmrt1adkfiii" path="res://scenes/ui/gold_ui.tscn" id="3_xchug"]
+[ext_resource type="PackedScene" uid="uid://jg7s3ul6gyqj" path="res://scenes/ui/card_pile_view.tscn" id="4_rq0pt"]
+
+[node name="Run" type="Node"]
+script = ExtResource("1_sgoer")
+
+[node name="Map" parent="." instance=ExtResource("2_1mcea")]
+
+[node name="CurrentView" type="Node" parent="."]
+
+[node name="DebugButtons" type="VBoxContainer" parent="."]
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -102.0
+offset_right = 149.0
+offset_bottom = 102.0
+grow_vertical = 2
+
+[node name="MapButton" type="Button" parent="DebugButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Map
+"
+icon_alignment = 1
+
+[node name="BattleButton" type="Button" parent="DebugButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Battle
+"
+icon_alignment = 1
+
+[node name="ShopButton" type="Button" parent="DebugButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Shop
+"
+icon_alignment = 1
+
+[node name="RewardsButton" type="Button" parent="DebugButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Rewards
+"
+icon_alignment = 1
+
+[node name="TopBar" type="CanvasLayer" parent="."]
+layer = 3
+
+[node name="Background" type="ColorRect" parent="TopBar"]
+custom_minimum_size = Vector2(50, 80)
+anchors_preset = 10
+anchor_right = 1.0
+grow_horizontal = 2
+color = Color(0, 0, 0, 0.513726)
+
+[node name="BarItems" type="HBoxContainer" parent="TopBar"]
+custom_minimum_size = Vector2(0, 80)
+anchors_preset = 10
+anchor_right = 1.0
+grow_horizontal = 2
+
+[node name="GoldUI" parent="TopBar/BarItems" instance=ExtResource("3_xchug")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Placeholder" type="Control" parent="TopBar/BarItems"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="DeckButton" parent="TopBar/BarItems" node_paths=PackedStringArray("counter") instance=ExtResource("3_bglvk")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+counter = NodePath("Counter")
+
+[node name="Counter" type="Label" parent="TopBar/BarItems/DeckButton"]
+layout_mode = 1
+offset_left = -4.0
+offset_top = 47.0
+offset_right = 36.0
+offset_bottom = 79.0
+text = "99"
+
+[node name="DeckView" parent="TopBar" instance=ExtResource("4_rq0pt")]
+unique_name_in_owner = true
+visible = false

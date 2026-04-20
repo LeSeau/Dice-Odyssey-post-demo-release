@@ -1,0 +1,43 @@
+[gd_scene load_steps=3 format=3 uid="uid://dd7wloic6exbj"]
+
+[ext_resource type="Texture2D" uid="uid://bvvqr7oshb8il" path="res://assets/images/heart.png" id="2_54i1s"]
+
+[sub_resource type="GDScript" id="GDScript_eirso"]
+script/source = "extends HBoxContainer
+
+var character_stats: CharacterStats
+@onready var label: Label = $Label
+
+func setup(character: CharacterStats) -> void:
+    character_stats = character
+    update_hp()
+
+    # Connect signal once
+    if not Events.hp_changed.is_connected(_on_hp_changed):
+        Events.hp_changed.connect(_on_hp_changed)
+
+func update_hp() -> void:
+    label.text = str(character_stats.health)
+
+func _on_hp_changed() -> void:
+    print(\"new health is\", character_stats.health)
+    update_hp()
+"
+
+[node name="HPUI" type="HBoxContainer"]
+offset_right = 40.0
+offset_bottom = 40.0
+script = SubResource("GDScript_eirso")
+
+[node name="Icon" type="TextureRect" parent="."]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+texture = ExtResource("2_54i1s")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 2
+size_flags_vertical = 1
+text = "999"
+vertical_alignment = 1

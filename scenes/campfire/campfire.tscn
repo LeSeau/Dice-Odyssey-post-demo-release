@@ -1,0 +1,165 @@
+[gd_scene load_steps=9 format=3 uid="uid://di2ac0a4bs8c0"]
+
+[ext_resource type="Script" path="res://scenes/campfire/campfire.gd" id="1_k0oop"]
+[ext_resource type="FontFile" uid="uid://b1es4i7nr43mv" path="res://fonts/CinzelDecorative-Bold.otf" id="2_eiajw"]
+[ext_resource type="Texture2D" uid="uid://cjl8f526yke17" path="res://campfire_bg.png" id="2_uy3w3"]
+[ext_resource type="Texture2D" uid="uid://hul1oyyrpbed" path="res://assets/images/heal.jpg" id="3_s87pa"]
+[ext_resource type="Texture2D" uid="uid://bt5p4dg8vbqav" path="res://assets/images/blacksmith.jpg" id="4_sevll"]
+[ext_resource type="Theme" uid="uid://c8cqncsqlplyu" path="res://main_theme.tres" id="5_2wawc"]
+[ext_resource type="FontFile" uid="uid://dq4bmvx1ogtey" path="res://Noto_Sans/static/NotoSans-Medium.ttf" id="7_vmtd8"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_2svc2"]
+font = ExtResource("2_eiajw")
+font_size = 30
+
+[node name="Campfire" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_k0oop")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_uy3w3")
+expand_mode = 3
+stretch_mode = 6
+
+[node name="BackgroundDimmer" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.00392157, 0, 0, 0.239216)
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -72.0
+offset_top = -170.0
+offset_right = 94.0
+offset_bottom = -134.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+text = "Campfire
+"
+label_settings = SubResource("LabelSettings_2svc2")
+
+[node name="HealZone" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -100.0
+offset_top = -118.0
+offset_right = 100.0
+offset_bottom = 118.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HealTextureButton" type="TextureButton" parent="HealZone"]
+visible = false
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.383
+anchor_top = 0.485
+anchor_right = 0.383
+anchor_bottom = 0.485
+offset_left = -76.6
+offset_top = -114.46
+offset_right = 123.4
+offset_bottom = 85.54
+mouse_filter = 1
+texture_normal = ExtResource("3_s87pa")
+ignore_texture_size = true
+stretch_mode = 0
+
+[node name="HealButton" type="Button" parent="HealZone"]
+custom_minimum_size = Vector2(24, 36)
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 9.0
+offset_top = 30.0
+offset_right = 9.0
+offset_bottom = 66.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 1
+theme = ExtResource("5_2wawc")
+
+[node name="RichTextLabel" type="RichTextLabel" parent="HealZone/HealButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+bbcode_enabled = true
+text = "[center]REST[/center]"
+scroll_active = false
+
+[node name="UpgradeTextureButton" type="TextureButton" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 690.0
+offset_top = 235.0
+offset_right = 890.0
+offset_bottom = 435.0
+texture_normal = ExtResource("4_sevll")
+ignore_texture_size = true
+stretch_mode = 0
+
+[node name="UpgradeButton" type="Button" parent="UpgradeTextureButton"]
+custom_minimum_size = Vector2(24, 36)
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -1.0
+offset_bottom = 35.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 1
+theme = ExtResource("5_2wawc")
+
+[node name="RichTextLabel" type="RichTextLabel" parent="UpgradeTextureButton/UpgradeButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 1.0
+offset_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_fonts/normal_font = ExtResource("7_vmtd8")
+theme_override_font_sizes/normal_font_size = 24
+bbcode_enabled = true
+text = "[center]Coming soon![/center]"
+scroll_active = false
+
+[connection signal="mouse_entered" from="HealZone/HealButton" to="." method="_on_heal_button_mouse_entered"]
+[connection signal="mouse_exited" from="HealZone/HealButton" to="." method="_on_heal_button_mouse_exited"]
+[connection signal="pressed" from="HealZone/HealButton" to="." method="_on_heal_button_pressed"]

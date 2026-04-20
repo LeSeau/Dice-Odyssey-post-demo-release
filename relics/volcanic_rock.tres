@@ -1,0 +1,15 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://1p6lk2kyn3fi"]
+
+[ext_resource type="Texture2D" uid="uid://d0ylyy8dgjpdt" path="res://volcanic_rock (2).png" id="1_rhe3d"]
+[ext_resource type="Script" path="res://relics/volcanic_rock.gd" id="2_gkenv"]
+
+[resource]
+script = ExtResource("2_gkenv")
+relic_name = "Volcanic Rock"
+id = "volcanic_rock"
+type = 0
+has_counter = false
+counter = 0
+starter_relic = false
+icon = ExtResource("1_rhe3d")
+tooltip = "On the third turn of a fight, charge 3 Magma Dice"

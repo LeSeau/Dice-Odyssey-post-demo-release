@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ChaosStatus" load_steps=3 format=3 uid="uid://86ovfcqmvvds"]
+
+[ext_resource type="Script" path="res://statuses/chaos.gd" id="1_2lehf"]
+[ext_resource type="Texture2D" uid="uid://clgy8a7cknr8i" path="res://gptchaos.png" id="1_ki886"]
+
+[resource]
+script = ExtResource("1_2lehf")
+id = "chaos"
+type = 1
+stack_type = 2
+can_expire = true
+duration = 1
+stacks = 1
+icon = ExtResource("1_ki886")
+tooltip = ""

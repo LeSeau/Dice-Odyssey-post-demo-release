@@ -1,0 +1,26 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://kyqkpr7wv5ar"]
+
+[ext_resource type="Texture2D" uid="uid://dvnk3a441kvoj" path="res://Transcendance.png" id="1_wci24"]
+[ext_resource type="Script" path="res://characters/warrior/cards/transcendance.gd" id="2_r7mfs"]
+[ext_resource type="AudioStream" uid="uid://bryyjsmk8fak6" path="res://detonationsound.mp3" id="3_h5e5g"]
+
+[resource]
+script = ExtResource("2_r7mfs")
+id = "transcendence"
+name = "Transcendence"
+type = 1
+target = 0
+description = "Gain 2 strength. Exhaust"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 1
+requirement_number = 6
+exhausts = true
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Strength, Exhaust"
+icon = ExtResource("1_wci24")
+tooltip_text = ""
+sound = ExtResource("3_h5e5g")

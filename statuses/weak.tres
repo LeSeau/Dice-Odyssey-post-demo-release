@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="WeakStatus" load_steps=3 format=3 uid="uid://05ew7ams85a3"]
+
+[ext_resource type="Texture2D" uid="uid://d1e465wi6dhxa" path="res://gpt_weak_icon_2.png" id="1_nil5l"]
+[ext_resource type="Script" path="res://statuses/weak.gd" id="1_uh48v"]
+
+[resource]
+script = ExtResource("1_uh48v")
+id = "weak"
+type = 0
+stack_type = 2
+can_expire = true
+duration = 0
+stacks = 0
+icon = ExtResource("1_nil5l")
+tooltip = ""

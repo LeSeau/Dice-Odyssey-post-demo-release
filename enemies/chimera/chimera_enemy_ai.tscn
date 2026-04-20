@@ -1,0 +1,36 @@
+[gd_scene load_steps=10 format=3 uid="uid://dbriaifv0qgp"]
+
+[ext_resource type="Script" path="res://enemies/crab/crab_attack_action.gd" id="1_ndlev"]
+[ext_resource type="Script" path="res://scenes/enemy/enemy_action_picker.gd" id="1_rsrto"]
+[ext_resource type="Script" path="res://enemies/crab/crab_block_action.gd" id="2_8e3pa"]
+[ext_resource type="Texture2D" uid="uid://cm56j6ual41dr" path="res://attack_icon_intent.png" id="3_38p6p"]
+[ext_resource type="Script" path="res://custom_resources/intent.gd" id="4_teq8l"]
+[ext_resource type="AudioStream" uid="uid://de2ryat1pxq6" path="res://art/enemy_attack.ogg" id="5_3mwf4"]
+[ext_resource type="Texture2D" uid="uid://coa7pi62qv88k" path="res://assets/images/shield.png" id="7_y8g3f"]
+
+[sub_resource type="Resource" id="Resource_mwybp"]
+script = ExtResource("4_teq8l")
+base_text = "%s"
+icon = ExtResource("3_38p6p")
+
+[sub_resource type="Resource" id="Resource_xwcdt"]
+script = ExtResource("4_teq8l")
+base_text = ""
+icon = ExtResource("7_y8g3f")
+
+[node name="TODO" type="Node"]
+script = ExtResource("1_rsrto")
+
+[node name="ChimeraAttackAction" type="Node" parent="."]
+script = ExtResource("1_ndlev")
+damage = 12
+intent = SubResource("Resource_mwybp")
+sound = ExtResource("5_3mwf4")
+type = 1
+chance_weight = 5.0
+
+[node name="ChimeraBlockAction" type="Node" parent="."]
+script = ExtResource("2_8e3pa")
+intent = SubResource("Resource_xwcdt")
+type = 1
+chance_weight = 5.0

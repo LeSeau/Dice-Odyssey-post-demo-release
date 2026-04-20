@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="BowRelic" load_steps=3 format=3 uid="uid://cyenmg61sh2o4"]
+
+[ext_resource type="Script" path="res://relics/hunting_bow.gd" id="1_f0t73"]
+[ext_resource type="Texture2D" uid="uid://bbjgdntemvluu" path="res://hunting_bow.png" id="1_uc41c"]
+
+[resource]
+script = ExtResource("1_f0t73")
+relic_name = "Hunting Bow"
+id = "hunting_bow"
+type = 4
+has_counter = false
+counter = 0
+starter_relic = false
+icon = ExtResource("1_uc41c")
+tooltip = "Everytime you roll a 6, deal 2 damage to a random enemy"

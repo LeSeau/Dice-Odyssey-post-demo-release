@@ -1,0 +1,41 @@
+[gd_scene load_steps=2 format=3 uid="uid://bfcppeij4jcg5"]
+
+[ext_resource type="PackedScene" uid="uid://b60egpxyditoc" path="res://scenes/card_ui/card_ui.tscn" id="1_4parf"]
+
+[node name="Node2D" type="Node2D"]
+
+[node name="CardUI" parent="." instance=ExtResource("1_4parf")]
+offset_left = 91.0
+offset_top = 314.0
+offset_right = 211.0
+offset_bottom = 494.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="CardUI4" parent="." instance=ExtResource("1_4parf")]
+offset_left = 228.0
+offset_top = 251.0
+offset_right = 348.0
+offset_bottom = 431.0
+rotation = -0.234097
+
+[node name="CardUI2" parent="." instance=ExtResource("1_4parf")]
+offset_left = 389.0
+offset_top = 230.0
+offset_right = 509.0
+offset_bottom = 410.0
+rotation = 0.0226412
+
+[node name="CardUI3" parent="." instance=ExtResource("1_4parf")]
+offset_left = 530.0
+offset_top = 244.0
+offset_right = 650.0
+offset_bottom = 424.0
+rotation = 0.26435
+
+[node name="CardUI5" parent="." instance=ExtResource("1_4parf")]
+offset_left = 700.0
+offset_top = 290.0
+offset_right = 820.0
+offset_bottom = 470.0
+rotation = 0.618194

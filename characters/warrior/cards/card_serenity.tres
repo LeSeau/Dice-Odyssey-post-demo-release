@@ -1,0 +1,26 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://b7ei7g7p0nkfm"]
+
+[ext_resource type="Texture2D" uid="uid://bjgn3jvmyuj0x" path="res://gptserenity.png" id="1_474dx"]
+[ext_resource type="Script" path="res://characters/warrior/cards/serenity.gd" id="1_lbjoj"]
+[ext_resource type="AudioStream" uid="uid://cy6owtfbf8sfv" path="res://sounds/fountainheal.wav" id="3_fjh5u"]
+
+[resource]
+script = ExtResource("1_lbjoj")
+id = "serenity"
+name = "Serenity"
+type = 1
+target = 0
+description = "Draw 1 more card each turn. Exhaust"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 1
+requirement_number = 6
+exhausts = true
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Exhaust"
+icon = ExtResource("1_474dx")
+tooltip_text = ""
+sound = ExtResource("3_fjh5u")

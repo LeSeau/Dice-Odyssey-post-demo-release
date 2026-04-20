@@ -1,0 +1,16 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://3ajqt4x42i82"]
+
+[ext_resource type="Texture2D" uid="uid://5wmopmdd2d5t" path="res://philosopher_stone.png" id="1_j7018"]
+[ext_resource type="Script" path="res://relics/philosopher_stone.gd" id="2_j03h1"]
+
+[resource]
+script = ExtResource("2_j03h1")
+relic_name = "Philosopher's Stone"
+id = "philosopher_stone"
+type = 4
+has_counter = true
+starter_relic = false
+icon = ExtResource("1_j7018")
+tooltip = "When you play your third card of the turn, Charge 1
+
+"

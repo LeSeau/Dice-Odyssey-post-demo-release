@@ -1,0 +1,1220 @@
+[gd_scene load_steps=46 format=3 uid="uid://cahno8aso5net"]
+
+[ext_resource type="Script" path="res://scenes/battle/battle.gd" id="1_4s751"]
+[ext_resource type="PackedScene" uid="uid://d0efyathkfg74" path="res://scenes/enemy/enemy.tscn" id="2_02s5s"]
+[ext_resource type="Script" path="res://scenes/ui/hand.gd" id="2_uaw60"]
+[ext_resource type="AudioStream" uid="uid://bk71e7uje8mca" path="res://fight_music.ogg" id="3_7d1uf"]
+[ext_resource type="PackedScene" uid="uid://2n4lap6w3pde" path="res://scenes/player/player.tscn" id="3_dpj45"]
+[ext_resource type="PackedScene" uid="uid://dwt63vvppukag" path="res://scenes/card_target_selector/card_target_selector.tscn" id="3_vyv1n"]
+[ext_resource type="Script" path="res://scenes/enemy/enemy_handler.gd" id="4_41vpn"]
+[ext_resource type="Resource" uid="uid://sbkc4o401k4l" path="res://characters/warrior/warrior.tres" id="4_fwb8a"]
+[ext_resource type="Texture2D" uid="uid://b6n22vtc7dr20" path="res://assets/backgrounds/20-2.jpg" id="4_gbmov"]
+[ext_resource type="Resource" uid="uid://bnmpwl3k8qb8n" path="res://enemies/crab/crab_enemy.tres" id="5_5flmk"]
+[ext_resource type="Script" path="res://scenes/ui/battle_ui.gd" id="7_18vit"]
+[ext_resource type="Script" path="res://scenes/player/player_handler.gd" id="8_3di7i"]
+[ext_resource type="PackedScene" uid="uid://bnbwu7pkbrwox" path="res://scenes/ui/mana_ui.tscn" id="11_2vu01"]
+[ext_resource type="FontFile" uid="uid://bm3deysyi2y55" path="res://Belwe Bold/Belwe Bold.otf" id="12_e36uc"]
+[ext_resource type="Theme" uid="uid://c8cqncsqlplyu" path="res://main_theme.tres" id="13_523u4"]
+[ext_resource type="Texture2D" uid="uid://bkksjmgjxoenr" path="res://no_dice_animation.png" id="13_ahsa6"]
+[ext_resource type="Texture2D" uid="uid://d1fsp2asfp6ue" path="res://no_dice_animation_on.png" id="14_p4lwq"]
+[ext_resource type="PackedScene" uid="uid://nfklwfie3xpy" path="res://scenes/ui/card_pile_opener.tscn" id="15_b2kgl"]
+[ext_resource type="Script" path="res://scenes/ui/red_flash.gd" id="15_qvh8t"]
+[ext_resource type="Texture2D" uid="uid://ck7h1mmpvdha0" path="res://draw.png" id="16_xu5rp"]
+[ext_resource type="Texture2D" uid="uid://wvscmsq6vxpb" path="res://discard.png" id="17_ke8nc"]
+[ext_resource type="PackedScene" uid="uid://dfig8d63ggof1" path="res://scenes/ui/battle_over_panel.tscn" id="17_xrby7"]
+[ext_resource type="PackedScene" uid="uid://drwjp5bi8wmx6" path="res://scenes/dices/dice.tscn" id="19_iy8lh"]
+[ext_resource type="PackedScene" uid="uid://d2f4gl88lkokw" path="res://scenes/dices/dice_interface.tscn" id="19_lfnme"]
+[ext_resource type="Texture2D" uid="uid://c6w3p47gbm7w4" path="res://discordlogo.png" id="21_834tm"]
+[ext_resource type="PackedScene" uid="uid://jg7s3ul6gyqj" path="res://scenes/ui/card_pile_view.tscn" id="21_dky1i"]
+[ext_resource type="AudioStream" uid="uid://cgusw3wyairdh" path="res://drawcardsound.wav" id="22_vh17h"]
+[ext_resource type="Script" path="res://scenes/battle/scout.gd" id="23_2rbv5"]
+[ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="23_a6w84"]
+[ext_resource type="Texture2D" uid="uid://c17qq0sj25epy" path="res://assets/images/blue1.png" id="24_bxf3j"]
+[ext_resource type="PackedScene" uid="uid://chry0sgk7t0yf" path="res://scenes/ui/tooltip.tscn" id="26_orwrd"]
+[ext_resource type="FontFile" uid="uid://dujsng7qdioan" path="res://assets/static/Roboto_Condensed-SemiBold.ttf" id="28_gfxxc"]
+[ext_resource type="Texture2D" uid="uid://b1my7ua56jx7t" path="res://tutorial_arrow.png" id="29_0band"]
+[ext_resource type="Texture2D" uid="uid://babawuw4jquuw" path="res://tutorial_arrow_down.png" id="30_rkd0t"]
+[ext_resource type="Texture2D" uid="uid://bsod70jcw5ate" path="res://power_reset_image.png" id="31_tnut7"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_xyg5u"]
+size = Vector2(1288, 718)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1e0ic"]
+bg_color = Color(0.246036, 0.403102, 0.363782, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_iu3xk"]
+bg_color = Color(0.246036, 0.403102, 0.363782, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_no85p"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 1, 0.227451, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fxs3c"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ufd1f"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_q7ine"]
+bg_color = Color(0.694986, 0.589328, 0.299179, 1)
+corner_radius_top_left = 40
+corner_radius_top_right = 40
+corner_radius_bottom_right = 40
+corner_radius_bottom_left = 40
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_upauj"]
+bg_color = Color(0.144787, 0.273985, 0.277578, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 1, 0.227451, 1)
+border_blend = true
+shadow_size = 2
+
+[sub_resource type="Theme" id="Theme_l8oq4"]
+
+[sub_resource type="Theme" id="Theme_t77qr"]
+default_font_size = 11
+
+[node name="Battle" type="Node2D"]
+script = ExtResource("1_4s751")
+char_stats = ExtResource("4_fwb8a")
+music = ExtResource("3_7d1uf")
+
+[node name="Background" type="Sprite2D" parent="."]
+modulate = Color(0.662452, 0.662452, 0.662452, 1)
+position = Vector2(0, 1)
+texture = ExtResource("4_gbmov")
+centered = false
+
+[node name="CardDropArea" type="Area2D" parent="."]
+collision_layer = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CardDropArea"]
+position = Vector2(644, 359)
+shape = SubResource("RectangleShape2D_xyg5u")
+debug_color = Color(0, 0.6, 0.701961, 0.117647)
+
+[node name="EnemyHandler" type="Node2D" parent="."]
+script = ExtResource("4_41vpn")
+
+[node name="CrabEnemy" parent="EnemyHandler" instance=ExtResource("2_02s5s")]
+texture_filter = 3
+position = Vector2(881, 399)
+stats = ExtResource("5_5flmk")
+
+[node name="Player" parent="." instance=ExtResource("3_dpj45")]
+position = Vector2(207, 426)
+stats = ExtResource("4_fwb8a")
+
+[node name="PlayerNAh" parent="." instance=ExtResource("3_dpj45")]
+visible = false
+position = Vector2(29, 65)
+stats = ExtResource("4_fwb8a")
+
+[node name="CardTargetSelector" parent="." instance=ExtResource("3_vyv1n")]
+
+[node name="PlayerHandler" type="Node" parent="." node_paths=PackedStringArray("player")]
+script = ExtResource("8_3di7i")
+player = NodePath("../Player")
+
+[node name="BattleUI" type="CanvasLayer" parent="." groups=["ui_layer"]]
+script = ExtResource("7_18vit")
+
+[node name="DiceAnimationControl" type="Control" parent="BattleUI"]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 12.0
+offset_top = 97.0
+offset_right = 196.0
+offset_bottom = 128.0
+size_flags_horizontal = 8
+size_flags_vertical = 0
+
+[node name="DiceAnimationOption" type="Panel" parent="BattleUI/DiceAnimationControl"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_1e0ic")
+
+[node name="DiceAnimationLabel" type="Label" parent="BattleUI/DiceAnimationControl/DiceAnimationOption"]
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = 8.0
+offset_top = -10.0
+offset_right = 8.0
+offset_bottom = 10.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("12_e36uc")
+theme_override_font_sizes/font_size = 16
+text = "Dice animation"
+
+[node name="DiceAnimationCheck" type="TextureButton" parent="BattleUI/DiceAnimationControl/DiceAnimationOption"]
+custom_minimum_size = Vector2(26, 26)
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -56.0
+offset_top = -16.5
+offset_right = -18.0
+offset_bottom = 18.5
+grow_horizontal = 0
+grow_vertical = 2
+toggle_mode = true
+texture_normal = ExtResource("14_p4lwq")
+texture_pressed = ExtResource("13_ahsa6")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="Hand" type="HBoxContainer" parent="BattleUI" node_paths=PackedStringArray("player")]
+custom_minimum_size = Vector2(700, 150)
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -350.0
+offset_top = -107.0
+offset_right = 350.0
+offset_bottom = 43.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/separation = -35
+alignment = 1
+script = ExtResource("2_uaw60")
+char_stats = ExtResource("4_fwb8a")
+player = NodePath("../../Player")
+fan_degrees = 20.0
+hover_lift = -100.0
+hover_time = 0.1
+
+[node name="ManaUI" parent="BattleUI" instance=ExtResource("11_2vu01")]
+visible = false
+
+[node name="EndTurnButton" type="Button" parent="BattleUI"]
+unique_name_in_owner = true
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -200.0
+offset_top = -128.0
+offset_right = -26.0
+offset_bottom = -94.0
+grow_horizontal = 0
+grow_vertical = 0
+theme = ExtResource("13_523u4")
+disabled = true
+text = "End Turn"
+
+[node name="DrawPileButton" parent="BattleUI" node_paths=PackedStringArray("counter") instance=ExtResource("15_b2kgl")]
+unique_name_in_owner = true
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 43.0
+offset_top = -78.0
+offset_right = 103.0
+offset_bottom = -18.0
+grow_vertical = 0
+texture_normal = ExtResource("16_xu5rp")
+counter = NodePath("Counter")
+
+[node name="Counter" type="Label" parent="BattleUI/DrawPileButton"]
+layout_mode = 0
+offset_left = 39.0
+offset_top = 32.0
+offset_right = 72.0
+offset_bottom = 64.0
+text = "10
+"
+horizontal_alignment = 1
+
+[node name="DiscardPileButton" parent="BattleUI" node_paths=PackedStringArray("counter") instance=ExtResource("15_b2kgl")]
+unique_name_in_owner = true
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -80.0
+offset_top = -78.0
+offset_right = -20.0
+offset_bottom = -18.0
+grow_horizontal = 0
+grow_vertical = 0
+texture_normal = ExtResource("17_ke8nc")
+counter = NodePath("Counter")
+
+[node name="Counter" type="Label" parent="BattleUI/DiscardPileButton"]
+layout_mode = 0
+offset_left = 39.0
+offset_top = 32.0
+offset_right = 72.0
+offset_bottom = 64.0
+text = "10
+"
+horizontal_alignment = 1
+
+[node name="DeckPileButton" parent="BattleUI" node_paths=PackedStringArray("counter") instance=ExtResource("15_b2kgl")]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -91.0
+offset_top = -694.0
+offset_right = -31.0
+offset_bottom = -634.0
+grow_horizontal = 0
+grow_vertical = 0
+counter = NodePath("Counter")
+
+[node name="Counter" type="Label" parent="BattleUI/DeckPileButton"]
+layout_mode = 0
+offset_left = 39.0
+offset_top = 32.0
+offset_right = 72.0
+offset_bottom = 64.0
+text = "99
+"
+horizontal_alignment = 1
+
+[node name="JoinDiscordControl" type="Control" parent="BattleUI"]
+visible = false
+layout_mode = 3
+anchors_preset = 0
+offset_left = 12.0
+offset_top = 132.0
+offset_right = 196.0
+offset_bottom = 163.0
+size_flags_horizontal = 8
+size_flags_vertical = 0
+
+[node name="JoinDiscordOption" type="Panel" parent="BattleUI/JoinDiscordControl"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_iu3xk")
+
+[node name="JoinDiscordLabel" type="Label" parent="BattleUI/JoinDiscordControl/JoinDiscordOption"]
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = 8.0
+offset_top = -10.0
+offset_right = 8.0
+offset_bottom = 10.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("12_e36uc")
+theme_override_font_sizes/font_size = 16
+text = "Join Discord!"
+
+[node name="DiscordLogo" type="TextureRect" parent="BattleUI/JoinDiscordControl/JoinDiscordOption"]
+custom_minimum_size = Vector2(26, 26)
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -52.0
+offset_top = -12.5
+offset_right = -24.0
+offset_bottom = 13.5
+grow_horizontal = 0
+grow_vertical = 2
+texture = ExtResource("21_834tm")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="JoinDiscordButton" type="Button" parent="BattleUI/JoinDiscordControl"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/hover = SubResource("StyleBoxFlat_no85p")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_fxs3c")
+theme_override_styles/normal = SubResource("StyleBoxFlat_ufd1f")
+
+[node name="RedFlash" type="CanvasLayer" parent="."]
+layer = 2
+script = ExtResource("15_qvh8t")
+
+[node name="ColorRect" type="ColorRect" parent="RedFlash"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 0.443137, 0.443137, 0)
+
+[node name="Timer" type="Timer" parent="RedFlash"]
+wait_time = 0.1
+one_shot = true
+
+[node name="BattleOverLayer" type="CanvasLayer" parent="."]
+layer = 2
+
+[node name="BattleOverPanel" parent="BattleOverLayer" instance=ExtResource("17_xrby7")]
+visible = false
+
+[node name="DiceInterface" parent="." instance=ExtResource("19_lfnme")]
+offset_left = 514.0
+offset_top = 226.0
+offset_right = 674.0
+offset_bottom = 286.0
+
+[node name="ActiveDice" parent="." instance=ExtResource("19_iy8lh")]
+offset_left = 521.0
+offset_top = 294.0
+offset_right = 665.0
+offset_bottom = 438.0
+
+[node name="CardPileViews" type="CanvasLayer" parent="."]
+layer = 3
+
+[node name="DrawPileView" parent="CardPileViews" instance=ExtResource("21_dky1i")]
+unique_name_in_owner = true
+visible = false
+
+[node name="DiscardPileView" parent="CardPileViews" instance=ExtResource("21_dky1i")]
+unique_name_in_owner = true
+visible = false
+
+[node name="DeckPileView" parent="CardPileViews" instance=ExtResource("21_dky1i")]
+unique_name_in_owner = true
+visible = false
+
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("22_vh17h")
+volume_db = 5.0
+
+[node name="ScoutPanel" type="Panel" parent="."]
+visible = false
+custom_minimum_size = Vector2(250, 50)
+offset_left = 437.0
+offset_top = 63.0
+offset_right = 773.0
+offset_bottom = 183.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_q7ine")
+script = ExtResource("23_2rbv5")
+
+[node name="RichTextLabel" type="RichTextLabel" parent="ScoutPanel"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 15.0
+offset_bottom = 45.0
+grow_horizontal = 2
+theme_override_fonts/normal_font = ExtResource("23_a6w84")
+bbcode_enabled = true
+text = "[center]Choose next roll[/center]"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="ScoutPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -90.0
+offset_top = -10.5
+offset_right = 90.0
+offset_bottom = 39.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 15
+
+[node name="ScoutDice1" type="TextureRect" parent="ScoutPanel/HBoxContainer"]
+custom_minimum_size = Vector2(50, 50)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture = ExtResource("24_bxf3j")
+expand_mode = 1
+
+[node name="ScoutDice2" type="TextureRect" parent="ScoutPanel/HBoxContainer"]
+custom_minimum_size = Vector2(50, 50)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture = ExtResource("24_bxf3j")
+expand_mode = 1
+
+[node name="ScoutDice3" type="TextureRect" parent="ScoutPanel/HBoxContainer"]
+custom_minimum_size = Vector2(50, 50)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture = ExtResource("24_bxf3j")
+expand_mode = 1
+
+[node name="ScoutDice4" type="TextureRect" parent="ScoutPanel/HBoxContainer"]
+custom_minimum_size = Vector2(50, 50)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture = ExtResource("24_bxf3j")
+expand_mode = 1
+
+[node name="ScoutDice5" type="TextureRect" parent="ScoutPanel/HBoxContainer"]
+custom_minimum_size = Vector2(50, 50)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture = ExtResource("24_bxf3j")
+expand_mode = 1
+
+[node name="Tooltip" parent="." instance=ExtResource("26_orwrd")]
+visible = false
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="TutorialDimmer" type="ColorRect" parent="CanvasLayer"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.666667)
+
+[node name="Tutorial" type="Node2D" parent="CanvasLayer"]
+z_index = 18
+
+[node name="Tutorial1" type="Panel" parent="CanvasLayer/Tutorial"]
+visible = false
+offset_left = 326.0
+offset_top = 114.0
+offset_right = 917.0
+offset_bottom = 209.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_upauj")
+
+[node name="RichTextLabel" type="RichTextLabel" parent="CanvasLayer/Tutorial/Tutorial1"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 5.0
+offset_bottom = 37.0
+grow_horizontal = 2
+theme_override_font_sizes/normal_font_size = 20
+bbcode_enabled = true
+text = "[center][color=yellow]Welcome to Dice Odyssey combat!"
+fit_content = true
+
+[node name="RichTextLabel2" type="RichTextLabel" parent="CanvasLayer/Tutorial/Tutorial1"]
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -13.0
+offset_bottom = 31.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/normal_font = ExtResource("28_gfxxc")
+theme_override_font_sizes/normal_font_size = 16
+bbcode_enabled = true
+text = "  Combat revolves around 2 main resources: [color=gold]Dice[/color] and [color=purple]Cards.[/color] 
+  Ready to throw your first [color=gold]Dice[/color]?"
+fit_content = true
+
+[node name="Tutorial1Button" type="Button" parent="CanvasLayer/Tutorial/Tutorial1"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -119.0
+offset_top = -41.0
+offset_right = -7.0
+offset_bottom = -5.0
+grow_horizontal = 0
+grow_vertical = 0
+theme = SubResource("Theme_l8oq4")
+theme_override_font_sizes/font_size = 16
+text = "Continue"
+
+[node name="Tutorial2" type="Panel" parent="CanvasLayer/Tutorial"]
+visible = false
+offset_left = 294.0
+offset_top = 381.0
+offset_right = 520.0
+offset_bottom = 432.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_upauj")
+
+[node name="RichTextLabel2" type="RichTextLabel" parent="CanvasLayer/Tutorial/Tutorial2"]
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -13.0
+offset_bottom = 31.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/normal_font = ExtResource("28_gfxxc")
+theme_override_font_sizes/normal_font_size = 16
+bbcode_enabled = true
+text = "[center]This is a Blue Dice. Try rolling it!"
+fit_content = true
+
+[node name="TextureRect" type="TextureRect" parent="CanvasLayer/Tutorial/Tutorial2"]
+layout_mode = 0
+offset_left = 81.0
+offset_top = 26.0
+offset_right = 247.0
+offset_bottom = 138.0
+texture = ExtResource("29_0band")
+expand_mode = 1
+
+[node name="Tutorial3" type="Panel" parent="CanvasLayer/Tutorial"]
+visible = false
+offset_left = 737.0
+offset_top = 271.0
+offset_right = 1005.0
+offset_bottom = 366.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_upauj")
+
+[node name="RichTextLabel2" type="RichTextLabel" parent="CanvasLayer/Tutorial/Tutorial3"]
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -28.5
+offset_bottom = 28.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/normal_font = ExtResource("28_gfxxc")
+theme_override_font_sizes/normal_font_size = 16
+bbcode_enabled = true
+text = "[center][color=gold]Nice one! [/color]Your rolls give you [color=red]Power[/color], shown here. You can play [color=purple]Cards[/color] with your [color=red]Power[/color]"
+fit_content = true
+
+[node name="TextureRect" type="TextureRect" parent="CanvasLayer/Tutorial/Tutorial3"]
+layout_mode = 0
+offset_left = -13.0
+offset_top = 57.0
+offset_right = 153.0
+offset_bottom = 169.0
+texture = ExtResource("29_0band")
+expand_mode = 1
+flip_h = true
+
+[node name="Tutorial3Button" type="Button" parent="CanvasLayer/Tutorial/Tutorial3"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -89.0
+offset_top = -34.0
+offset_right = -7.0
+offset_bottom = -3.0
+grow_horizontal = 0
+grow_vertical = 0
+theme = SubResource("Theme_t77qr")
+text = "Continue"
+
+[node name="Tutorial4" type="Panel" parent="CanvasLayer/Tutorial"]
+visible = false
+offset_left = 401.0
+offset_top = 394.0
+offset_right = 691.0
+offset_bottom = 482.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_upauj")
+
+[node name="RichTextLabel2" type="RichTextLabel" parent="CanvasLayer/Tutorial/Tutorial4"]
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -19.0
+offset_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/normal_font = ExtResource("28_gfxxc")
+theme_override_font_sizes/normal_font_size = 16
+bbcode_enabled = true
+text = "[center]Drag and drop a [color=purple]Block Card[/color] to play it. It will use your [color=red]Power[/color], so you will block 6 damage."
+fit_content = true
+
+[node name="TextureRect" type="TextureRect" parent="CanvasLayer/Tutorial/Tutorial4"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -46.0
+offset_top = 23.0
+offset_right = 47.0
+offset_bottom = 142.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("30_rkd0t")
+expand_mode = 1
+
+[node name="Tutorial5" type="Panel" parent="CanvasLayer/Tutorial"]
+visible = false
+offset_left = 576.0
+offset_top = 230.0
+offset_right = 900.0
+offset_bottom = 315.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_upauj")
+
+[node name="RichTextLabel2" type="RichTextLabel" parent="CanvasLayer/Tutorial/Tutorial5"]
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -30.5
+offset_bottom = 26.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/normal_font = ExtResource("28_gfxxc")
+theme_override_font_sizes/normal_font_size = 16
+bbcode_enabled = true
+text = "[center]You can see the enemy's next move here: it will attack you for 6 damage. You have enough block, let's attack him now! "
+fit_content = true
+
+[node name="TextureRect" type="TextureRect" parent="CanvasLayer/Tutorial/Tutorial5"]
+layout_mode = 0
+offset_left = 312.0
+offset_top = 13.0
+offset_right = 420.0
+offset_bottom = 83.0
+texture = ExtResource("29_0band")
+expand_mode = 1
+
+[node name="Tutorial5Button" type="Button" parent="CanvasLayer/Tutorial/Tutorial5"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -82.0
+offset_top = -31.0
+grow_horizontal = 0
+grow_vertical = 0
+theme = SubResource("Theme_t77qr")
+text = "Continue"
+
+[node name="Tutorial6" type="Panel" parent="CanvasLayer/Tutorial"]
+visible = false
+offset_left = 294.0
+offset_top = 381.0
+offset_right = 520.0
+offset_bottom = 432.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_upauj")
+
+[node name="RichTextLabel2" type="RichTextLabel" parent="CanvasLayer/Tutorial/Tutorial6"]
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -13.0
+offset_bottom = 31.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/normal_font = ExtResource("28_gfxxc")
+theme_override_font_sizes/normal_font_size = 16
+bbcode_enabled = true
+text = "[center]Roll your second [color=blue]Blue Dice![/color]"
+fit_content = true
+
+[node name="TextureRect" type="TextureRect" parent="CanvasLayer/Tutorial/Tutorial6"]
+layout_mode = 0
+offset_left = 81.0
+offset_top = 26.0
+offset_right = 247.0
+offset_bottom = 138.0
+texture = ExtResource("29_0band")
+expand_mode = 1
+
+[node name="Tutorial7" type="Panel" parent="CanvasLayer/Tutorial"]
+visible = false
+offset_left = 398.0
+offset_top = 436.0
+offset_right = 775.0
+offset_bottom = 513.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_upauj")
+
+[node name="RichTextLabel2" type="RichTextLabel" parent="CanvasLayer/Tutorial/Tutorial7"]
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -19.0
+offset_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/normal_font = ExtResource("28_gfxxc")
+theme_override_font_sizes/normal_font_size = 16
+bbcode_enabled = true
+text = "[center]That's not a high roll, but some [color=purple]Cards[/color] actually work great with lower rolls! [color=gold]Play Low Blow to deal 9 damage![/color]"
+fit_content = true
+
+[node name="TextureRect" type="TextureRect" parent="CanvasLayer/Tutorial/Tutorial7"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -35.0
+offset_top = 18.5
+offset_right = 35.0
+offset_bottom = 103.5
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("30_rkd0t")
+expand_mode = 1
+
+[node name="Tutorial8" type="Panel" parent="CanvasLayer/Tutorial"]
+visible = false
+offset_left = 649.0
+offset_top = 166.0
+offset_right = 885.0
+offset_bottom = 234.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_upauj")
+
+[node name="RichTextLabel2" type="RichTextLabel" parent="CanvasLayer/Tutorial/Tutorial8"]
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -19.0
+offset_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/normal_font = ExtResource("28_gfxxc")
+theme_override_font_sizes/normal_font_size = 16
+bbcode_enabled = true
+text = "[center]Red Dice work differently. First, select it by clicking on it"
+fit_content = true
+
+[node name="TextureRect" type="TextureRect" parent="CanvasLayer/Tutorial/Tutorial8"]
+layout_mode = 0
+offset_left = -23.0
+offset_top = 25.0
+offset_right = 143.0
+offset_bottom = 137.0
+mouse_filter = 2
+texture = ExtResource("29_0band")
+expand_mode = 1
+flip_h = true
+
+[node name="Tutorial9" type="Panel" parent="CanvasLayer/Tutorial"]
+visible = false
+offset_left = 61.0
+offset_top = 234.0
+offset_right = 341.0
+offset_bottom = 347.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_upauj")
+
+[node name="RichTextLabel2" type="RichTextLabel" parent="CanvasLayer/Tutorial/Tutorial9"]
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -28.5
+offset_bottom = 28.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/normal_font = ExtResource("28_gfxxc")
+theme_override_font_sizes/normal_font_size = 16
+bbcode_enabled = true
+text = "[center][color=red]Red Dice[/color] require you to choose the [color=purple]Card[/color] you want to play, and then roll the [color=red]Dice.[/color]
+ [color=gold]Drag and drop a Strike in there![/color]
+"
+fit_content = true
+
+[node name="TextureRect" type="TextureRect" parent="CanvasLayer/Tutorial/Tutorial9"]
+layout_mode = 0
+offset_left = 147.0
+offset_top = 75.0
+offset_right = 313.0
+offset_bottom = 187.0
+texture = ExtResource("29_0band")
+expand_mode = 1
+
+[node name="Tutorial10" type="Panel" parent="CanvasLayer/Tutorial"]
+visible = false
+offset_left = 294.0
+offset_top = 381.0
+offset_right = 520.0
+offset_bottom = 432.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_upauj")
+
+[node name="RichTextLabel2" type="RichTextLabel" parent="CanvasLayer/Tutorial/Tutorial10"]
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -19.0
+offset_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/normal_font = ExtResource("28_gfxxc")
+theme_override_font_sizes/normal_font_size = 16
+bbcode_enabled = true
+text = "[center]Like a champ! Now roll your [color=red]Red Dice![/color]"
+fit_content = true
+
+[node name="TextureRect" type="TextureRect" parent="CanvasLayer/Tutorial/Tutorial10"]
+layout_mode = 0
+offset_left = 81.0
+offset_top = 26.0
+offset_right = 247.0
+offset_bottom = 138.0
+texture = ExtResource("29_0band")
+expand_mode = 1
+
+[node name="Tutorial11" type="Panel" parent="CanvasLayer/Tutorial"]
+visible = false
+offset_left = 778.0
+offset_top = 462.0
+offset_right = 1053.0
+offset_bottom = 576.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_upauj")
+
+[node name="RichTextLabel2" type="RichTextLabel" parent="CanvasLayer/Tutorial/Tutorial11"]
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -38.0
+offset_bottom = 38.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/normal_font = ExtResource("28_gfxxc")
+theme_override_font_sizes/normal_font_size = 16
+bbcode_enabled = true
+text = "[center]Awesome! Now that you've used all your [color=gold]Dice[/color], it's time to [color=pink]End your turn.[/color] After the enemy's turn, you will get all your [color=gold]Dice[/color] back."
+fit_content = true
+
+[node name="TextureRect" type="TextureRect" parent="CanvasLayer/Tutorial/Tutorial11"]
+layout_mode = 0
+offset_left = 154.0
+offset_top = 91.0
+offset_right = 320.0
+offset_bottom = 203.0
+texture = ExtResource("29_0band")
+expand_mode = 1
+
+[node name="Tutorial12" type="Panel" parent="CanvasLayer/Tutorial"]
+visible = false
+offset_left = 410.0
+offset_top = 159.0
+offset_right = 646.0
+offset_bottom = 227.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_upauj")
+
+[node name="RichTextLabel2" type="RichTextLabel" parent="CanvasLayer/Tutorial/Tutorial12"]
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -19.0
+offset_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/normal_font = ExtResource("28_gfxxc")
+theme_override_font_sizes/normal_font_size = 16
+bbcode_enabled = true
+text = "[center]One last thing you should know. Select your [color=blue]Blue Dice.[/color]"
+fit_content = true
+
+[node name="TextureRect" type="TextureRect" parent="CanvasLayer/Tutorial/Tutorial12"]
+layout_mode = 0
+offset_left = -3.0
+offset_top = 32.0
+offset_right = 163.0
+offset_bottom = 144.0
+mouse_filter = 2
+texture = ExtResource("29_0band")
+expand_mode = 1
+
+[node name="Tutorial13" type="Panel" parent="CanvasLayer/Tutorial"]
+visible = false
+offset_left = 231.0
+offset_top = 275.0
+offset_right = 520.0
+offset_bottom = 432.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_upauj")
+
+[node name="RichTextLabel2" type="RichTextLabel" parent="CanvasLayer/Tutorial/Tutorial13"]
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -38.0
+offset_bottom = 38.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/normal_font = ExtResource("28_gfxxc")
+theme_override_font_sizes/normal_font_size = 16
+bbcode_enabled = true
+text = "[center]You don’t always have to play a [color=purple]Card[/color] right after rolling.
+Having multiple same-color [color=gold]Dice[/color] lets you roll them one after another
+
+Try rolling your [color=blue]2 Blue Dice[/color] in a row!"
+fit_content = true
+
+[node name="TextureRect" type="TextureRect" parent="CanvasLayer/Tutorial/Tutorial13"]
+layout_mode = 0
+offset_left = 133.0
+offset_top = 132.0
+offset_right = 299.0
+offset_bottom = 244.0
+texture = ExtResource("29_0band")
+expand_mode = 1
+
+[node name="Tutorial14" type="Panel" parent="CanvasLayer/Tutorial"]
+visible = false
+offset_left = 348.0
+offset_top = 434.0
+offset_right = 725.0
+offset_bottom = 511.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_upauj")
+
+[node name="RichTextLabel2" type="RichTextLabel" parent="CanvasLayer/Tutorial/Tutorial14"]
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -19.0
+offset_bottom = 19.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/normal_font = ExtResource("28_gfxxc")
+theme_override_font_sizes/normal_font_size = 16
+bbcode_enabled = true
+text = "[center]What happened to your rolling skills?! Don't worry, some [color=purple]Cards[/color] are able to [color=pink]manipulate the odds.[/color]
+[color=gold]Play Recombobulate to gain your Dice back![/color]"
+fit_content = true
+
+[node name="TextureRect" type="TextureRect" parent="CanvasLayer/Tutorial/Tutorial14"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -35.0
+offset_top = 18.5
+offset_right = 35.0
+offset_bottom = 103.5
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("30_rkd0t")
+expand_mode = 1
+
+[node name="Tutorial15" type="Panel" parent="CanvasLayer/Tutorial"]
+visible = false
+offset_left = 326.0
+offset_top = 114.0
+offset_right = 917.0
+offset_bottom = 209.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_upauj")
+
+[node name="RichTextLabel2" type="RichTextLabel" parent="CanvasLayer/Tutorial/Tutorial15"]
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -38.0
+offset_bottom = 38.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/normal_font = ExtResource("28_gfxxc")
+theme_override_font_sizes/normal_font_size = 16
+bbcode_enabled = true
+text = "[center]You're on your own now! During your run, you will acquire new [color=gold]Dice[/color] and [color=purple]Cards.[/color] 
+
+ [color=gold]Make sure they work well together![/color]
+
+"
+fit_content = true
+
+[node name="Tutorial15Button" type="Button" parent="CanvasLayer/Tutorial/Tutorial15"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -119.0
+offset_top = -41.0
+offset_right = -7.0
+offset_bottom = -5.0
+grow_horizontal = 0
+grow_vertical = 0
+theme = SubResource("Theme_l8oq4")
+theme_override_font_sizes/font_size = 16
+text = "Continue"
+
+[node name="WarningPowerReset" type="Panel" parent="CanvasLayer/Tutorial"]
+visible = false
+offset_left = 315.0
+offset_top = 112.0
+offset_right = 863.0
+offset_bottom = 374.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_upauj")
+
+[node name="RichTextLabel" type="RichTextLabel" parent="CanvasLayer/Tutorial/WarningPowerReset"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 5.0
+offset_bottom = 37.0
+grow_horizontal = 2
+theme_override_font_sizes/normal_font_size = 20
+bbcode_enabled = true
+text = "[center][color=yellow]This will reset your power"
+fit_content = true
+
+[node name="RichTextLabel2" type="RichTextLabel" parent="CanvasLayer/Tutorial/WarningPowerReset"]
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = 10.0
+offset_top = -77.0
+offset_right = -217.0
+offset_bottom = 67.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/normal_font = ExtResource("28_gfxxc")
+theme_override_font_sizes/normal_font_size = 16
+bbcode_enabled = true
+text = "[center]Changing your Dice type sets your Power to 0, and you still have some Power left. Are you sure you want to do that? 
+
+[color=gold]Note: In some cases, this is a smart play if you can roll for a better outcome! "
+fit_content = true
+
+[node name="TextureRect" type="TextureRect" parent="CanvasLayer/Tutorial/WarningPowerReset"]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -216.0
+offset_top = -82.0
+offset_right = -4.0
+offset_bottom = 75.0
+grow_horizontal = 0
+grow_vertical = 2
+texture = ExtResource("31_tnut7")
+expand_mode = 1
+
+[node name="WarningButton" type="Button" parent="CanvasLayer/Tutorial/WarningPowerReset"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -56.0
+offset_top = -45.0
+offset_right = 56.0
+offset_bottom = -9.0
+grow_horizontal = 2
+grow_vertical = 0
+theme = SubResource("Theme_l8oq4")
+theme_override_font_sizes/font_size = 16
+text = "Got it!"
+
+[node name="SkipTutorialButton" type="Button" parent="CanvasLayer/Tutorial"]
+visible = false
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = 925.0
+offset_top = 138.0
+offset_right = 1152.0
+offset_bottom = 186.0
+grow_horizontal = 0
+text = "Skip tutorial"
+
+[connection signal="toggled" from="BattleUI/DiceAnimationControl/DiceAnimationOption/DiceAnimationCheck" to="." method="_on_dice_animation_check_toggled"]
+[connection signal="mouse_entered" from="BattleUI/DrawPileButton" to="." method="_on_draw_pile_button_mouse_entered"]
+[connection signal="mouse_exited" from="BattleUI/DrawPileButton" to="." method="_on_draw_pile_button_mouse_exited"]
+[connection signal="pressed" from="CanvasLayer/Tutorial/Tutorial1/Tutorial1Button" to="." method="_on_tutorial_1_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/Tutorial/Tutorial3/Tutorial3Button" to="." method="_on_tutorial_3_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/Tutorial/Tutorial5/Tutorial5Button" to="." method="_on_tutorial_5_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/Tutorial/Tutorial15/Tutorial15Button" to="." method="_on_tutorial_15_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/Tutorial/WarningPowerReset/WarningButton" to="." method="_on_warning_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/Tutorial/SkipTutorialButton" to="." method="_on_skip_tutorial_button_pressed"]

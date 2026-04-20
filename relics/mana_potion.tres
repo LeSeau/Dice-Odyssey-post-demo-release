@@ -1,0 +1,13 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://cnid2oi24wowk"]
+
+[ext_resource type="Script" path="res://relics/mana_potion.gd" id="1_258qm"]
+[ext_resource type="Texture2D" uid="uid://dpfqok8tuy4r7" path="res://art/tile_0084.png" id="1_gqfc4"]
+
+[resource]
+script = ExtResource("1_258qm")
+relic_name = "mana potion"
+id = "mana_potion"
+type = 0
+starter_relic = false
+icon = ExtResource("1_gqfc4")
+tooltip = ""

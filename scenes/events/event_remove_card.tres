@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="EventStats" load_steps=3 format=3 uid="uid://dsqo0nv34ia4y"]
+
+[ext_resource type="PackedScene" uid="uid://b8l5qfe48331e" path="res://scenes/events/event_remove_card.tscn" id="1_cl0ii"]
+[ext_resource type="Script" path="res://custom_resources/event_stats.gd" id="2_rmpae"]
+
+[resource]
+script = ExtResource("2_rmpae")
+event_tier = 0
+weight = 1.0
+scene = ExtResource("1_cl0ii")

@@ -1,0 +1,26 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://nkni6kx516x3"]
+
+[ext_resource type="Texture2D" uid="uid://bwwj7l1jpuj3j" path="res://assets/images/equilibrium.jpg" id="1_2e7cs"]
+[ext_resource type="Script" path="res://characters/warrior/cards/equilibrium.gd" id="2_kv56s"]
+[ext_resource type="AudioStream" uid="uid://bryyjsmk8fak6" path="res://detonationsound.mp3" id="3_h1dqe"]
+
+[resource]
+script = ExtResource("2_kv56s")
+id = "card_equilibrium"
+name = "Equilibrium"
+type = 0
+target = 2
+description = "Deal X2 damage to ALL enemies"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 6
+requirement_number = 4
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = ""
+icon = ExtResource("1_2e7cs")
+tooltip_text = ""
+sound = ExtResource("3_h1dqe")

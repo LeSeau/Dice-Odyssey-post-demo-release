@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="EnergizedStatus" load_steps=3 format=3 uid="uid://d34588by800pd"]
+
+[ext_resource type="Texture2D" uid="uid://hgcxewndumet" path="res://emanationv2.png" id="1_n5vib"]
+[ext_resource type="Script" path="res://statuses/status_emanation.gd" id="2_irqlu"]
+
+[resource]
+script = ExtResource("2_irqlu")
+id = "emanation"
+type = 0
+stack_type = 2
+can_expire = false
+duration = 1
+stacks = 1
+icon = ExtResource("1_n5vib")
+tooltip = "Gain one more Blue Dice each turn for the rest of the fight"

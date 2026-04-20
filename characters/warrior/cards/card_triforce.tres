@@ -1,0 +1,26 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://jgoygx3afbt3"]
+
+[ext_resource type="Texture2D" uid="uid://bfge851jq44yx" path="res://gpttriforce.png" id="1_dmcs2"]
+[ext_resource type="Script" path="res://characters/warrior/cards/triforce.gd" id="1_ewxmq"]
+[ext_resource type="AudioStream" uid="uid://cy6owtfbf8sfv" path="res://sounds/fountainheal.wav" id="3_njf3b"]
+
+[resource]
+script = ExtResource("1_ewxmq")
+id = "card_triforce"
+name = "Triforce"
+type = 1
+target = 0
+description = "Set your Power at 3, Draw 3 cards, Gain 3 block"
+rarity = 1
+red_only = false
+can_play_without_dice = false
+requirement = 6
+requirement_number = 3
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = ""
+icon = ExtResource("1_dmcs2")
+tooltip_text = ""
+sound = ExtResource("3_njf3b")

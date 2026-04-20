@@ -1,0 +1,26 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://dk6mgciqktyrh"]
+
+[ext_resource type="Script" path="res://characters/warrior/cards/blood_drop.gd" id="1_5yey2"]
+[ext_resource type="Texture2D" uid="uid://bt14mk0tg15b" path="res://blood_drop.png" id="1_ytu4o"]
+[ext_resource type="AudioStream" uid="uid://74jv0m7l7ten" path="res://roar.mp3" id="2_ftnnl"]
+
+[resource]
+script = ExtResource("1_5yey2")
+id = "card_blood_drop"
+name = "Blood Drop"
+type = 1
+target = 0
+description = "Charge 1 Red Dice"
+rarity = 1
+red_only = false
+can_play_without_dice = true
+requirement = 0
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Charge"
+icon = ExtResource("1_ytu4o")
+tooltip_text = ""
+sound = ExtResource("2_ftnnl")

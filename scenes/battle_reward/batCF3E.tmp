@@ -1,0 +1,102 @@
+[gd_scene load_steps=9 format=3 uid="uid://c8jey0cxdu81o"]
+
+[ext_resource type="Script" path="res://scenes/battle_reward/battle_reward.gd" id="1_a043u"]
+[ext_resource type="Texture2D" uid="uid://b6n22vtc7dr20" path="res://assets/backgrounds/20-2.jpg" id="2_deyfh"]
+[ext_resource type="FontFile" uid="uid://b1es4i7nr43mv" path="res://fonts/CinzelDecorative-Bold.otf" id="3_otbk4"]
+[ext_resource type="PackedScene" uid="uid://cx5xkggna3b7" path="res://scenes/ui/reward_button.tscn" id="4_64d8x"]
+[ext_resource type="Texture2D" uid="uid://dkru2p65j706x" path="res://assets/images/gold.png" id="5_y3r08"]
+[ext_resource type="Texture2D" uid="uid://gmmxmk13p3b6" path="res://assets/images/drawpile.jpg" id="6_bbdnc"]
+[ext_resource type="AudioStream" uid="uid://bu8uvjhi41uik" path="res://success.mp3" id="7_62kpv"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_l7wgc"]
+font = ExtResource("3_otbk4")
+font_size = 30
+
+[node name="BattleReward" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_a043u")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_deyfh")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="BackgroundDimmer" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.00392157, 0, 0, 0.701961)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -275.0
+offset_top = -214.0
+offset_right = 275.0
+offset_bottom = 278.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Rewards
+"
+label_settings = SubResource("LabelSettings_l7wgc")
+
+[node name="RewardContainer" type="PanelContainer" parent="VBoxContainer"]
+custom_minimum_size = Vector2(550, 400)
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/RewardContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 25
+theme_override_constants/margin_top = 25
+theme_override_constants/margin_right = 25
+theme_override_constants/margin_bottom = 25
+
+[node name="Rewards" type="VBoxContainer" parent="VBoxContainer/RewardContainer/MarginContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="GoldRewardButton" parent="VBoxContainer/RewardContainer/MarginContainer/Rewards" instance=ExtResource("4_64d8x")]
+layout_mode = 2
+reward_icon = ExtResource("5_y3r08")
+reward_text = "127"
+
+[node name="CardRewardButton2" parent="VBoxContainer/RewardContainer/MarginContainer/Rewards" instance=ExtResource("4_64d8x")]
+layout_mode = 2
+reward_icon = ExtResource("6_bbdnc")
+reward_text = "Add New Card"
+
+[node name="BackButton" type="Button" parent="VBoxContainer"]
+custom_minimum_size = Vector2(60, 15)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Continue"
+
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("7_62kpv")
+
+[connection signal="pressed" from="VBoxContainer/BackButton" to="." method="_on_back_button_pressed"]

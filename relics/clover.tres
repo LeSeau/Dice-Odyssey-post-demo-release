@@ -1,0 +1,15 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://byjbcudf4rh2q"]
+
+[ext_resource type="Texture2D" uid="uid://cs44qnut0hd63" path="res://lucky_status.png" id="1_50t5r"]
+[ext_resource type="Script" path="res://relics/clover.gd" id="2_spho0"]
+
+[resource]
+script = ExtResource("2_spho0")
+relic_name = "Clover"
+id = "clover"
+type = 1
+has_counter = false
+counter = 0
+starter_relic = false
+icon = ExtResource("1_50t5r")
+tooltip = "Start each fight with Lucky 1"

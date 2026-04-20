@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="EmanationStatus" load_steps=3 format=3 uid="uid://cowe0qpndpqh"]
+
+[ext_resource type="Script" path="res://statuses/energized.gd" id="1_db1y8"]
+[ext_resource type="Texture2D" uid="uid://dd24vxj6pnclw" path="res://gptenergized.png" id="1_kdcj2"]
+
+[resource]
+script = ExtResource("1_db1y8")
+id = "energized"
+type = 0
+stack_type = 2
+can_expire = true
+duration = 1
+stacks = 1
+icon = ExtResource("1_kdcj2")
+tooltip = "Gain one more Blue Dice next turn"

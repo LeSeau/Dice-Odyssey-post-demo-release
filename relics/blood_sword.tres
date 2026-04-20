@@ -1,0 +1,13 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://cakchay7xwhga"]
+
+[ext_resource type="Texture2D" uid="uid://d06i6pk6en3l5" path="res://blood_sword.png" id="1_aml6q"]
+[ext_resource type="Script" path="res://relics/blood_sword.gd" id="2_0a7xg"]
+
+[resource]
+script = ExtResource("2_0a7xg")
+relic_name = "Blood Sword"
+id = "blood_sword"
+type = 4
+starter_relic = false
+icon = ExtResource("1_aml6q")
+tooltip = "Your red Dice rolls gain 2 bonus Power"

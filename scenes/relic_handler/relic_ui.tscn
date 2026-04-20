@@ -1,0 +1,115 @@
+[gd_scene load_steps=10 format=3 uid="uid://djrenoyp58mtl"]
+
+[ext_resource type="Script" path="res://scenes/relic_handler/relic_ui.gd" id="1_88a14"]
+[ext_resource type="Texture2D" uid="uid://cjjvnifpm1fb" path="res://assets/images/frenzyfigurine.jpg" id="1_kgfs5"]
+[ext_resource type="Material" uid="uid://d30aqi80c1nrc" path="res://art/white_sprite_material.tres" id="2_36xc6"]
+[ext_resource type="Resource" uid="uid://3ajqt4x42i82" path="res://relics/philosopher_stone.tres" id="2_anovp"]
+[ext_resource type="FontFile" uid="uid://t1kjnid0fq8h" path="res://assets/static/Roboto-Black.ttf" id="5_yxl41"]
+
+[sub_resource type="Animation" id="Animation_7soui"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Icon:scale")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(1, 1)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Icon:material")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [null]
+}
+
+[sub_resource type="Animation" id="Animation_74q3e"]
+resource_name = "flash"
+length = 0.3
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Icon:scale")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.133333, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(1, 1), Vector2(1.2, 1.2), Vector2(1, 1)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Icon:material")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.133333, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [null, ExtResource("2_36xc6"), null]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_7alo5"]
+_data = {
+"RESET": SubResource("Animation_7soui"),
+"flash": SubResource("Animation_74q3e")
+}
+
+[sub_resource type="LabelSettings" id="LabelSettings_udwlh"]
+font = ExtResource("5_yxl41")
+font_size = 22
+shadow_color = Color(0, 0, 0, 0.619608)
+
+[node name="RelicUI" type="Control"]
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 56.0
+offset_bottom = 56.0
+script = ExtResource("1_88a14")
+relic = ExtResource("2_anovp")
+
+[node name="Icon" type="TextureRect" parent="."]
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 0
+offset_right = 32.0
+offset_bottom = 32.0
+pivot_offset = Vector2(16, 16)
+texture = ExtResource("1_kgfs5")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+"": SubResource("AnimationLibrary_7alo5")
+}
+
+[node name="Counter" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -14.0
+offset_top = -26.0
+offset_right = 2.0
+offset_bottom = 8.0
+grow_horizontal = 0
+grow_vertical = 0
+text = "2"
+label_settings = SubResource("LabelSettings_udwlh")
+
+[connection signal="mouse_entered" from="." to="." method="_on_mouse_entered"]

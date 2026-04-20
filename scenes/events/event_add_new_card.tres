@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="EventStats" load_steps=3 format=3 uid="uid://dcw1xrmomcaom"]
+
+[ext_resource type="PackedScene" uid="uid://c7vw4sf2xy26" path="res://scenes/events/event_add_new_card.tscn" id="1_llnsk"]
+[ext_resource type="Script" path="res://custom_resources/event_stats.gd" id="1_rukvc"]
+
+[resource]
+script = ExtResource("1_rukvc")
+event_tier = 0
+weight = 1.0
+scene = ExtResource("1_llnsk")

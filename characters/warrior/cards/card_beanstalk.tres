@@ -1,0 +1,26 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://cv2mk3sf6ub6n"]
+
+[ext_resource type="Texture2D" uid="uid://cvgugx6m5ov3u" path="res://beanstalk.jpg" id="1_o4q67"]
+[ext_resource type="Script" path="res://characters/warrior/cards/beanstalk.gd" id="2_es2o1"]
+[ext_resource type="AudioStream" uid="uid://cy6owtfbf8sfv" path="res://sounds/fountainheal.wav" id="3_5v3nr"]
+
+[resource]
+script = ExtResource("2_es2o1")
+id = "beanstalk"
+name = "Beanstalk"
+type = 1
+target = 0
+description = "Charge 1 Giant Dice. Get Lucky 1. Exhaust"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 7
+requirement_number = 6
+exhausts = true
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Charge, Giant Dice, Lucky, Exhaust"
+icon = ExtResource("1_o4q67")
+tooltip_text = ""
+sound = ExtResource("3_5v3nr")

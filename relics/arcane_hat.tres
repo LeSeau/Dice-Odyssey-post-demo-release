@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://d1hg48cey4d5d"]
+
+[ext_resource type="Texture2D" uid="uid://bw50n0eawn7il" path="res://arcane_hat (2).png" id="1_1r2ge"]
+[ext_resource type="Script" path="res://relics/arcane_hat.gd" id="1_q51o4"]
+
+[resource]
+script = ExtResource("1_q51o4")
+relic_name = "Arcane Hat"
+id = "arcane_hat"
+type = 4
+starter_relic = false
+icon = ExtResource("1_1r2ge")
+tooltip = "When you play an Exact card, draw 1 Card
+"

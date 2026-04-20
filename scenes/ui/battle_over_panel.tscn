@@ -1,0 +1,235 @@
+[gd_scene load_steps=16 format=3 uid="uid://dfig8d63ggof1"]
+
+[ext_resource type="Script" path="res://scenes/ui/battle_over_panel.gd" id="1_msgmm"]
+[ext_resource type="Script" path="res://scenes/ui/continue_button.gd" id="2_liiol"]
+[ext_resource type="AudioStream" uid="uid://bu8uvjhi41uik" path="res://success.mp3" id="3_4jgu0"]
+[ext_resource type="Texture2D" uid="uid://bsyxep800b5tf" path="res://gameover.png" id="4_nwuo5"]
+[ext_resource type="FontFile" uid="uid://bfgwr7o37ol1j" path="res://Noto_Sans/static/NotoSans-Regular.ttf" id="5_pe1oi"]
+[ext_resource type="FontFile" uid="uid://bm3deysyi2y55" path="res://Belwe Bold/Belwe Bold.otf" id="6_f3kgd"]
+[ext_resource type="Texture2D" uid="uid://c6w3p47gbm7w4" path="res://discordlogo.png" id="7_fgrpp"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dhly6"]
+bg_color = Color(0, 0, 0, 0.34902)
+
+[sub_resource type="LabelSettings" id="LabelSettings_bijyl"]
+font_size = 24
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_11wms"]
+bg_color = Color(0.144787, 0.273985, 0.277578, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_x1svp"]
+bg_color = Color(0.311214, 0, 0.0696221, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_elckq"]
+bg_color = Color(0.246036, 0.403102, 0.363782, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ymoyn"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 1, 0.227451, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7bkcs"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_805a1"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
+[node name="BattleOverPanel" type="Panel"]
+process_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_dhly6")
+script = ExtResource("1_msgmm")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Victorious!"
+label_settings = SubResource("LabelSettings_bijyl")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ContinueButton" type="Button" parent="VBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(50, 16)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Awesome!"
+script = ExtResource("2_liiol")
+
+[node name="RestartButton" type="Button" parent="VBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(50, 16)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Restart"
+
+[node name="AudioPlayer" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("3_4jgu0")
+
+[node name="LostPanel" type="Panel" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 230.0
+offset_top = 111.0
+offset_right = 1085.0
+offset_bottom = 625.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_11wms")
+
+[node name="LostTexture" type="TextureRect" parent="LostPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -397.5
+offset_top = -177.0
+offset_right = -127.5
+offset_bottom = 178.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("4_nwuo5")
+expand_mode = 1
+
+[node name="LostLabelTitle" type="Label" parent="LostPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 22.0
+offset_bottom = 54.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(1, 1, 0.227451, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_x1svp")
+text = "Game over"
+horizontal_alignment = 1
+
+[node name="LostLabelText" type="RichTextLabel" parent="LostPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -115.5
+offset_top = -182.0
+offset_right = 395.5
+offset_bottom = 223.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/normal_font = ExtResource("5_pe1oi")
+bbcode_enabled = true
+text = "[color=pink]Luck was not with you today.[/color] Thanks for playing Dice Odyssey! 
+
+Want to ask a question, share your opinion, or insult the dev? 
+
+[color=gold]We'd love to see you on our Discord![/color]
+"
+
+[node name="JoinDiscordControl" type="Control" parent="LostPanel"]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 333.0
+offset_top = 348.0
+offset_right = 757.0
+offset_bottom = 451.0
+size_flags_horizontal = 8
+size_flags_vertical = 0
+
+[node name="JoinDiscordOption" type="Panel" parent="LostPanel/JoinDiscordControl"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_elckq")
+
+[node name="JoinDiscordLabel" type="Label" parent="LostPanel/JoinDiscordControl/JoinDiscordOption"]
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = 23.0
+offset_top = -28.0
+offset_right = 23.0
+offset_bottom = 28.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("6_f3kgd")
+theme_override_font_sizes/font_size = 46
+text = "Join Discord!"
+
+[node name="DiscordLogo" type="TextureRect" parent="LostPanel/JoinDiscordControl/JoinDiscordOption"]
+custom_minimum_size = Vector2(26, 26)
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -98.0
+offset_top = -35.5
+offset_right = -19.0
+offset_bottom = 40.5
+grow_horizontal = 0
+grow_vertical = 2
+texture = ExtResource("7_fgrpp")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="JoinDiscordButton" type="Button" parent="LostPanel/JoinDiscordControl"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/hover = SubResource("StyleBoxFlat_ymoyn")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_7bkcs")
+theme_override_styles/normal = SubResource("StyleBoxFlat_805a1")
+
+[connection signal="pressed" from="VBoxContainer/ContinueButton" to="." method="_on_continue_button_pressed"]
+[connection signal="pressed" from="LostPanel/JoinDiscordControl/JoinDiscordButton" to="." method="_on_join_discord_button_pressed"]

@@ -1,0 +1,335 @@
+[gd_scene load_steps=22 format=3 uid="uid://c8jey0cxdu81o"]
+
+[ext_resource type="Script" path="res://scenes/battle_reward/battle_reward.gd" id="1_a043u"]
+[ext_resource type="Theme" uid="uid://c8cqncsqlplyu" path="res://main_theme.tres" id="1_q6qpk"]
+[ext_resource type="Texture2D" uid="uid://b6n22vtc7dr20" path="res://assets/backgrounds/20-2.jpg" id="2_deyfh"]
+[ext_resource type="FontFile" uid="uid://b1es4i7nr43mv" path="res://fonts/CinzelDecorative-Bold.otf" id="3_otbk4"]
+[ext_resource type="PackedScene" uid="uid://cx5xkggna3b7" path="res://scenes/ui/reward_button.tscn" id="4_64d8x"]
+[ext_resource type="Texture2D" uid="uid://dkru2p65j706x" path="res://assets/images/gold.png" id="5_y3r08"]
+[ext_resource type="Texture2D" uid="uid://gmmxmk13p3b6" path="res://assets/images/drawpile.jpg" id="6_bbdnc"]
+[ext_resource type="AudioStream" uid="uid://bu8uvjhi41uik" path="res://success.mp3" id="7_62kpv"]
+[ext_resource type="Texture2D" uid="uid://b8ieeidou3ip7" path="res://stupid_adventurer.png" id="8_l0o1a"]
+[ext_resource type="FontFile" uid="uid://bfgwr7o37ol1j" path="res://Noto_Sans/static/NotoSans-Regular.ttf" id="9_4s5dy"]
+[ext_resource type="Texture2D" uid="uid://dq5o7hv31n0h7" path="res://gg.png" id="9_7bn3q"]
+[ext_resource type="FontFile" uid="uid://bm3deysyi2y55" path="res://Belwe Bold/Belwe Bold.otf" id="11_nmt2g"]
+[ext_resource type="Texture2D" uid="uid://c6w3p47gbm7w4" path="res://discordlogo.png" id="12_gb0mm"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_l7wgc"]
+font = ExtResource("3_otbk4")
+font_size = 30
+
+[sub_resource type="Theme" id="Theme_chlki"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8ubid"]
+bg_color = Color(0.144787, 0.273985, 0.277578, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8m67b"]
+bg_color = Color(0, 0.705882, 0.105882, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_socmn"]
+bg_color = Color(0.246036, 0.403102, 0.363782, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_82g21"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 1, 0.227451, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sgx8g"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_j1kkp"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
+[node name="BattleReward" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme = ExtResource("1_q6qpk")
+script = ExtResource("1_a043u")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_deyfh")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="BackgroundDimmer" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.00392157, 0, 0, 0.701961)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -275.0
+offset_top = -214.0
+offset_right = 275.0
+offset_bottom = 278.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Rewards
+"
+label_settings = SubResource("LabelSettings_l7wgc")
+
+[node name="RewardContainer" type="PanelContainer" parent="VBoxContainer"]
+custom_minimum_size = Vector2(550, 300)
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/RewardContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 25
+theme_override_constants/margin_top = 25
+theme_override_constants/margin_right = 25
+theme_override_constants/margin_bottom = 25
+
+[node name="Rewards" type="VBoxContainer" parent="VBoxContainer/RewardContainer/MarginContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="GoldRewardButton" parent="VBoxContainer/RewardContainer/MarginContainer/Rewards" instance=ExtResource("4_64d8x")]
+layout_mode = 2
+theme = SubResource("Theme_chlki")
+reward_icon = ExtResource("5_y3r08")
+reward_text = "127"
+
+[node name="CardRewardButton2" parent="VBoxContainer/RewardContainer/MarginContainer/Rewards" instance=ExtResource("4_64d8x")]
+layout_mode = 2
+reward_icon = ExtResource("6_bbdnc")
+reward_text = "Add New Card"
+
+[node name="BackButton" type="Button" parent="VBoxContainer"]
+custom_minimum_size = Vector2(60, 15)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Continue"
+
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("7_62kpv")
+
+[node name="WarningPanel" type="Panel" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 313.0
+offset_top = 140.0
+offset_right = 998.0
+offset_bottom = 557.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_8ubid")
+
+[node name="TextureRect" type="TextureRect" parent="WarningPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -273.0
+offset_top = -148.0
+offset_right = 273.0
+offset_bottom = 122.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("8_l0o1a")
+expand_mode = 1
+
+[node name="WarningLabel" type="Label" parent="WarningPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -2.0
+offset_top = 17.0
+offset_right = 2.0
+offset_bottom = 17.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "You still have rewards to claim! "
+horizontal_alignment = 1
+
+[node name="ConfirmButton" type="Button" parent="WarningPanel"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -181.0
+offset_top = -69.0
+offset_right = 181.0
+offset_bottom = -21.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "I know what I'm doing"
+
+[node name="GGPanel" type="Panel" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 230.0
+offset_top = 111.0
+offset_right = 1085.0
+offset_bottom = 625.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_8ubid")
+
+[node name="GGTexture" type="TextureRect" parent="GGPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -360.5
+offset_top = -180.0
+offset_right = -127.5
+offset_bottom = 125.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("9_7bn3q")
+expand_mode = 1
+
+[node name="GGLabelTitle" type="Label" parent="GGPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 22.0
+offset_bottom = 54.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(1, 1, 0.227451, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_8m67b")
+text = "Congratulations!"
+horizontal_alignment = 1
+
+[node name="GGLabelText" type="RichTextLabel" parent="GGPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -115.5
+offset_top = -182.0
+offset_right = 395.5
+offset_bottom = 223.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/normal_font = ExtResource("9_4s5dy")
+bbcode_enabled = true
+text = "[color=pink]Looks like you know how to roll Dice![/color] Thanks for playing Dice Odyssey! 
+
+We're super excited to hear your opinion and keep on improving the game. 
+
+[color=gold]We'd love to see you on our Discord![/color]
+"
+
+[node name="JoinDiscordControl" type="Control" parent="GGPanel"]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 333.0
+offset_top = 348.0
+offset_right = 757.0
+offset_bottom = 451.0
+size_flags_horizontal = 8
+size_flags_vertical = 0
+
+[node name="JoinDiscordOption" type="Panel" parent="GGPanel/JoinDiscordControl"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_socmn")
+
+[node name="JoinDiscordLabel" type="Label" parent="GGPanel/JoinDiscordControl/JoinDiscordOption"]
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = 23.0
+offset_top = -28.0
+offset_right = 23.0
+offset_bottom = 28.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("11_nmt2g")
+theme_override_font_sizes/font_size = 46
+text = "Join Discord!"
+
+[node name="DiscordLogo" type="TextureRect" parent="GGPanel/JoinDiscordControl/JoinDiscordOption"]
+custom_minimum_size = Vector2(26, 26)
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -98.0
+offset_top = -35.5
+offset_right = -19.0
+offset_bottom = 40.5
+grow_horizontal = 0
+grow_vertical = 2
+texture = ExtResource("12_gb0mm")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="JoinDiscordButton" type="Button" parent="GGPanel/JoinDiscordControl"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/hover = SubResource("StyleBoxFlat_82g21")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_sgx8g")
+theme_override_styles/normal = SubResource("StyleBoxFlat_j1kkp")
+
+[connection signal="pressed" from="VBoxContainer/BackButton" to="." method="_on_back_button_pressed"]
+[connection signal="pressed" from="WarningPanel/ConfirmButton" to="." method="_on_confirm_button_pressed"]
+[connection signal="pressed" from="GGPanel/JoinDiscordControl/JoinDiscordButton" to="." method="_on_join_discord_button_pressed"]

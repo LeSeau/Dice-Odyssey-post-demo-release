@@ -1,0 +1,26 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://dfvhe3ewp0bp6"]
+
+[ext_resource type="Texture2D" uid="uid://8r5j25a03clr" path="res://gptenrage.png" id="1_ncrbl"]
+[ext_resource type="Script" path="res://characters/warrior/cards/enrage.gd" id="2_mqpba"]
+[ext_resource type="AudioStream" uid="uid://74jv0m7l7ten" path="res://roar.mp3" id="3_d0w27"]
+
+[resource]
+script = ExtResource("2_mqpba")
+id = "card_enrage"
+name = "Enrage"
+type = 1
+target = 0
+description = "Refuel your active Dice into red Dice"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 0
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Refuel"
+icon = ExtResource("1_ncrbl")
+tooltip_text = ""
+sound = ExtResource("3_d0w27")

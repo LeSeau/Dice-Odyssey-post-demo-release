@@ -1,0 +1,15 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://dqw5p0yla10kc"]
+
+[ext_resource type="Texture2D" uid="uid://crpk14e26j5rr" path="res://war_horn.png" id="1_8g7tv"]
+[ext_resource type="Script" path="res://relics/war_horn.gd" id="2_trlmw"]
+
+[resource]
+script = ExtResource("2_trlmw")
+relic_name = "War Horn"
+id = "war_horn"
+type = 1
+has_counter = false
+counter = 0
+starter_relic = false
+icon = ExtResource("1_8g7tv")
+tooltip = "Start each fight with 1 Scout card"

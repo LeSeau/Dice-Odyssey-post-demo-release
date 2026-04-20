@@ -1,0 +1,935 @@
+[gd_scene load_steps=54 format=3 uid="uid://drwjp5bi8wmx6"]
+
+[ext_resource type="Texture2D" uid="uid://c17qq0sj25epy" path="res://assets/images/blue1.png" id="1_hxyyb"]
+[ext_resource type="Script" path="res://scenes/dices/dice.gd" id="1_xhb7n"]
+[ext_resource type="Theme" uid="uid://c5ebdqhhhfy3i" path="res://scenes/button/base_button.tres" id="2_exd4y"]
+[ext_resource type="Theme" uid="uid://c8cqncsqlplyu" path="res://main_theme.tres" id="2_l0ni4"]
+[ext_resource type="Script" path="res://scenes/dices/button.gd" id="3_e4lqf"]
+[ext_resource type="Material" uid="uid://bcdb8cbop4w8o" path="res://scenes/dices/blue_dice_shader.tres" id="3_ixasa"]
+[ext_resource type="StyleBox" uid="uid://belt0xy3pi11o" path="res://scenes/card_ui/card_background.tres" id="3_molar"]
+[ext_resource type="Texture2D" uid="uid://dh1akl0w2wb7w" path="res://ink_on_dice.png" id="3_xja36"]
+[ext_resource type="Shader" path="res://card_socket_shader.gdshader" id="5_7lpos"]
+[ext_resource type="StyleBox" uid="uid://boqwwfxsajq1s" path="res://scenes/card_ui/card_banner.tres" id="5_u45bp"]
+[ext_resource type="LabelSettings" uid="uid://cy482afjc3tjk" path="res://scenes/card_ui/card_title.tres" id="6_mpv3d"]
+[ext_resource type="StyleBox" uid="uid://ba5f3gvin2wmm" path="res://scenes/card_ui/card_panel.tres" id="7_23bka"]
+[ext_resource type="FontFile" uid="uid://b1es4i7nr43mv" path="res://fonts/CinzelDecorative-Bold.otf" id="7_vre42"]
+[ext_resource type="StyleBox" uid="uid://bp11k7kqceuxa" path="res://scenes/card_ui/description_panel.tres" id="8_cu5xy"]
+[ext_resource type="StyleBox" uid="uid://bxyflqo45i4i4" path="res://scenes/card_ui/card_requirement_multiple.tres" id="12_dwjae"]
+[ext_resource type="StyleBox" uid="uid://djfmi1eok7bdc" path="res://scenes/dices/roll_button_style.tres" id="13_6hovg"]
+[ext_resource type="Texture2D" uid="uid://0utduvjaqe4u" path="res://undo_icon_v2 (2).png" id="13_fusbo"]
+[ext_resource type="StyleBox" uid="uid://cjfl6c345al3o" path="res://scenes/card_ui/card_requirement_even.tres" id="13_v0wm3"]
+[ext_resource type="Texture2D" uid="uid://sxiw6df36trq" path="res://assets/images/blue6.png" id="14_rmmpa"]
+[ext_resource type="FontFile" uid="uid://c4mfyi0ta8qeq" path="res://fonts/MinionPro-Semibold.otf" id="15_xf8ja"]
+[ext_resource type="FontFile" uid="uid://dltntsanjiykq" path="res://fonts/LuckiestGuy-Regular.ttf" id="17_vnl2x"]
+
+[sub_resource type="Theme" id="Theme_co3io"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tlawf"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+bg_color = Color(0.6, 0.6, 0.6, 0)
+border_color = Color(0.8, 0.8, 0.8, 0)
+corner_detail = 1
+
+[sub_resource type="Animation" id="Animation_x4dpk"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("../../../CurrentPower/PowerInk:modulate")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_34tc2"]
+resource_name = "ink_fade"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:modulate")
+tracks/0/interp = 2
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("../../../CurrentPower/PowerInk:modulate")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_kctis"]
+resource_name = "ink_spray"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:modulate")
+tracks/0/interp = 2
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("../../../CurrentPower/PowerInk:modulate")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_3td0s"]
+_data = {
+"RESET": SubResource("Animation_x4dpk"),
+"ink_fade": SubResource("Animation_34tc2"),
+"ink_spray": SubResource("Animation_kctis")
+}
+
+[sub_resource type="Animation" id="Animation_i6l5b"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../DiceDisplay:scale")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(1, 1)]
+}
+tracks/1/type = "bezier"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:material:shader_parameter/accent_color:r")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"handle_modes": PackedInt32Array(0),
+"points": PackedFloat32Array(0.368627, -0.25, 0, 0.25, 0),
+"times": PackedFloat32Array(0)
+}
+tracks/2/type = "bezier"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath(".:material:shader_parameter/accent_color:g")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"handle_modes": PackedInt32Array(0),
+"points": PackedFloat32Array(0.054902, -0.25, 0, 0.25, 0),
+"times": PackedFloat32Array(0)
+}
+tracks/3/type = "bezier"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath(".:material:shader_parameter/accent_color:b")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"handle_modes": PackedInt32Array(0),
+"points": PackedFloat32Array(0.85098, -0.25, 0, 0.25, 0),
+"times": PackedFloat32Array(0)
+}
+tracks/4/type = "bezier"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath(".:material:shader_parameter/accent_color:a")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"handle_modes": PackedInt32Array(0),
+"points": PackedFloat32Array(0.831373, -0.25, 0, 0.25, 0),
+"times": PackedFloat32Array(0)
+}
+tracks/5/type = "value"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath(".:material")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("3_ixasa")]
+}
+tracks/6/type = "value"
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/path = NodePath(".:scale")
+tracks/6/interp = 1
+tracks/6/loop_wrap = true
+tracks/6/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(1, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_xho68"]
+resource_name = "charge"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = false
+tracks/0/path = NodePath("../DiceDisplay:scale")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.3, 1),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(1, 1), Vector2(1.5, 1.5), Vector2(1, 1)]
+}
+tracks/1/type = "bezier"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:material:shader_parameter/accent_color:r")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"handle_modes": PackedInt32Array(0, 0, 0),
+"points": PackedFloat32Array(0.368627, -0.25, 0, 0.25, 0, 0.917647, -0.25, 0, 0.25, 0, 0.368627, -0.25, 0, 0.25, 0),
+"times": PackedFloat32Array(0, 0.5, 1)
+}
+tracks/2/type = "bezier"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath(".:material:shader_parameter/accent_color:g")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"handle_modes": PackedInt32Array(0, 0, 0),
+"points": PackedFloat32Array(0.054902, -0.25, 0, 0.25, 0, 0.956863, -0.25, 0, 0.25, 0, 0.054902, -0.25, 0, 0.25, 0),
+"times": PackedFloat32Array(0, 0.5, 1)
+}
+tracks/3/type = "bezier"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath(".:material:shader_parameter/accent_color:b")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"handle_modes": PackedInt32Array(0, 0, 0),
+"points": PackedFloat32Array(0.85098, -0.25, 0, 0.25, 0, 0.0980392, -0.25, 0, 0.25, 0, 0.85098, -0.25, 0, 0.25, 0),
+"times": PackedFloat32Array(0, 0.5, 0.7)
+}
+tracks/4/type = "bezier"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath(".:material:shader_parameter/accent_color:a")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"handle_modes": PackedInt32Array(0, 0, 0),
+"points": PackedFloat32Array(0.831373, -0.25, 0, 0.25, 0, 0.831373, -0.25, 0, 0.25, 0, 0.831373, -0.25, 0, 0.25, 0),
+"times": PackedFloat32Array(0, 0.5, 0.7)
+}
+tracks/5/type = "value"
+tracks/5/imported = false
+tracks/5/enabled = false
+tracks/5/path = NodePath(".:material")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/keys = {
+"times": PackedFloat32Array(0.0333333),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("3_ixasa")]
+}
+tracks/6/type = "value"
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/path = NodePath(".:scale")
+tracks/6/interp = 1
+tracks/6/loop_wrap = true
+tracks/6/keys = {
+"times": PackedFloat32Array(0, 0.3, 0.5, 0.7),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 0,
+"values": [Vector2(1, 1), Vector2(1.07, 1.07), Vector2(1.2, 1.2), Vector2(1, 1)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_60qr2"]
+_data = {
+"RESET": SubResource("Animation_i6l5b"),
+"charge": SubResource("Animation_xho68")
+}
+
+[sub_resource type="Curve" id="Curve_75fr5"]
+_data = [Vector2(0.0394737, 0.020052), 0.0, 0.0, 0, 0, Vector2(0.188596, 0.987932), 0.0, 0.0, 0, 0, Vector2(0.842105, 0.987932), 0.0, 0.0, 0, 0, Vector2(1, 0.0393614), 0.0, 0.0, 0, 0]
+point_count = 4
+
+[sub_resource type="CurveTexture" id="CurveTexture_od2rw"]
+curve = SubResource("Curve_75fr5")
+
+[sub_resource type="Curve" id="Curve_xe88t"]
+max_value = 200.0
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(0.109649, 200), 0.0, 0.0, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="CurveTexture_hiixt"]
+curve = SubResource("Curve_xe88t")
+
+[sub_resource type="Curve" id="Curve_t8ahb"]
+_data = [Vector2(0.00438597, 0.17694), 0.0, 0.0, 0, 0, Vector2(0.313596, 0.92759), 0.0, 0.0, 0, 0, Vector2(0.782895, 0.254177), 0.0, 0.0, 0, 0, Vector2(0.97807, 0.041775), 0.0, 0.0, 0, 0]
+point_count = 4
+
+[sub_resource type="CurveTexture" id="CurveTexture_ig0to"]
+curve = SubResource("Curve_t8ahb")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_c1lyy"]
+lifetime_randomness = 1.0
+particle_flag_disable_z = true
+emission_shape = 3
+emission_box_extents = Vector3(70, 70, 70)
+direction = Vector3(0, -1, 0)
+spread = 20.0
+initial_velocity_min = 80.0
+initial_velocity_max = 100.0
+gravity = Vector3(0, 98, 0)
+scale_min = 2.0
+scale_max = 9.0
+scale_curve = SubResource("CurveTexture_ig0to")
+color = Color(1, 1, 0.227451, 1)
+alpha_curve = SubResource("CurveTexture_od2rw")
+anim_speed_curve = SubResource("CurveTexture_hiixt")
+
+[sub_resource type="LabelSettings" id="LabelSettings_mm8wg"]
+line_spacing = -2.0
+font_size = 80
+outline_size = 5
+outline_color = Color(0.313726, 0.0823529, 0, 1)
+shadow_size = 16
+shadow_color = Color(0, 0, 0, 0.866667)
+shadow_offset = Vector2(3, 3)
+
+[sub_resource type="Animation" id="Animation_cb54k"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:scale")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(1, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_5023x"]
+resource_name = "power_change"
+length = 0.4
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:scale")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.2, 0.4),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(1, 1), Vector2(1.2, 1.2), Vector2(1, 1)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_a4m0k"]
+_data = {
+"RESET": SubResource("Animation_cb54k"),
+"power_change": SubResource("Animation_5023x")
+}
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_2hvj0"]
+shader = ExtResource("5_7lpos")
+shader_parameter/magic_color = Color(0.960784, 0.501961, 0.14902, 1)
+shader_parameter/accent_color = Color(0.960784, 0.94902, 0.0470588, 1)
+shader_parameter/glow_strength = 0.698
+shader_parameter/border_size = 0.147
+shader_parameter/border_softness = 0.062
+shader_parameter/wave_speed = 0.1
+shader_parameter/noise_scale = 1.0
+shader_parameter/square_roundness = 0.054
+shader_parameter/use_mask_alpha = false
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xhpgl"]
+bg_color = Color(0.311214, 0, 0.0696221, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+anti_aliasing = false
+
+[sub_resource type="Theme" id="Theme_4dg35"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_si72t"]
+line_spacing = 0.0
+font = ExtResource("15_xf8ja")
+font_size = 12
+shadow_size = 0
+
+[sub_resource type="Theme" id="Theme_dyepk"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_rc3mj"]
+line_spacing = -1.0
+font = ExtResource("15_xf8ja")
+font_size = 10
+outline_size = 2
+outline_color = Color(0, 0, 0, 1)
+shadow_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_218vb"]
+bg_color = Color(0.311214, 0, 0.0696221, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_x0x7m"]
+bg_color = Color(0.827451, 0.639216, 0.054902, 1)
+border_width_left = 2
+border_width_top = 1
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 1, 0.227451, 1)
+corner_radius_top_left = 7
+corner_radius_top_right = 7
+corner_radius_bottom_right = 7
+corner_radius_bottom_left = 7
+shadow_color = Color(0.749461, 0.315833, 0.04451, 1)
+shadow_size = 1
+shadow_offset = Vector2(1, 2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_aoef4"]
+bg_color = Color(0.827451, 0.639216, 0.054902, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 0.227451, 1)
+corner_radius_top_left = 7
+corner_radius_top_right = 7
+corner_radius_bottom_right = 7
+corner_radius_bottom_left = 7
+shadow_color = Color(0.749461, 0.315833, 0.04451, 1)
+shadow_size = 1
+shadow_offset = Vector2(1, 2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dxu5e"]
+bg_color = Color(0.827451, 0.639216, 0.054902, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 1, 0.227451, 1)
+corner_radius_top_left = 7
+corner_radius_top_right = 7
+corner_radius_bottom_right = 7
+corner_radius_bottom_left = 7
+shadow_color = Color(0.749461, 0.315833, 0.04451, 1)
+shadow_size = 1
+shadow_offset = Vector2(1, 2)
+
+[sub_resource type="LabelSettings" id="LabelSettings_7fdwi"]
+font = ExtResource("7_vre42")
+font_size = 22
+shadow_size = 0
+shadow_color = Color(0, 0, 0, 1)
+shadow_offset = Vector2(0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_w36f5"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
+[node name="ActiveDice" type="Control"]
+custom_minimum_size = Vector2(120, 120)
+layout_mode = 3
+anchors_preset = 0
+offset_top = 4.0
+offset_right = 144.0
+offset_bottom = 148.0
+script = ExtResource("1_xhb7n")
+
+[node name="Panel" type="Panel" parent="."]
+custom_minimum_size = Vector2(144, 144)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 10.0
+offset_bottom = 10.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("Theme_co3io")
+theme_override_styles/panel = SubResource("StyleBoxFlat_tlawf")
+
+[node name="DiceDisplay" type="TextureRect" parent="Panel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -70.0
+offset_top = -70.0
+offset_right = 70.0
+offset_bottom = 70.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(70, 70)
+texture = ExtResource("1_hxyyb")
+expand_mode = 1
+
+[node name="DiceInk" type="TextureRect" parent="Panel/DiceDisplay"]
+modulate = Color(1, 1, 1, 0)
+z_index = 4
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -40.0
+offset_top = -45.0
+offset_right = 58.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3_xja36")
+expand_mode = 1
+
+[node name="InkAnimation" type="AnimationPlayer" parent="Panel/DiceDisplay/DiceInk"]
+libraries = {
+"": SubResource("AnimationLibrary_3td0s")
+}
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Panel/DiceDisplay"]
+root_node = NodePath("../../Aura")
+libraries = {
+"": SubResource("AnimationLibrary_60qr2")
+}
+
+[node name="GPUParticles2D" type="GPUParticles2D" parent="Panel/DiceDisplay"]
+position = Vector2(70, 70)
+emitting = false
+amount = 120
+process_material = SubResource("ParticleProcessMaterial_c1lyy")
+lifetime = 1.5
+one_shot = true
+explosiveness = 0.9
+
+[node name="Aura" type="ColorRect" parent="Panel"]
+z_as_relative = false
+material = ExtResource("3_ixasa")
+custom_minimum_size = Vector2(180, 180)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -90.0
+offset_top = -90.0
+offset_right = 90.0
+offset_bottom = 90.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(90, 90)
+color = Color(0.470117, 0.167668, 0.324535, 1)
+
+[node name="CurrentPower" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = 21.0
+offset_top = -34.0
+offset_right = 83.0
+offset_bottom = 62.0
+grow_horizontal = 0
+grow_vertical = 2
+pivot_offset = Vector2(30, 45)
+text = "0"
+label_settings = SubResource("LabelSettings_mm8wg")
+vertical_alignment = 1
+
+[node name="AnimationPlayerPower" type="AnimationPlayer" parent="CurrentPower"]
+libraries = {
+"": SubResource("AnimationLibrary_a4m0k")
+}
+
+[node name="PowerInk" type="TextureRect" parent="CurrentPower"]
+modulate = Color(1, 1, 1, 0)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -25.0
+offset_top = -25.0
+offset_right = 59.0
+offset_bottom = 22.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3_xja36")
+expand_mode = 1
+
+[node name="CardDropArea" type="Control" parent="."]
+visible = false
+custom_minimum_size = Vector2(80, 120)
+anchors_preset = 0
+offset_left = -163.0
+offset_top = -3.0
+offset_right = -43.0
+offset_bottom = 177.0
+
+[node name="CardSocketGlow" type="ColorRect" parent="CardDropArea"]
+material = SubResource("ShaderMaterial_2hvj0")
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -86.0
+offset_top = -122.0
+offset_right = 86.0
+offset_bottom = 122.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="CardBackground" type="Panel" parent="CardDropArea"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = ExtResource("3_molar")
+
+[node name="CardFrame" type="Panel" parent="CardDropArea/CardBackground"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_xhpgl")
+
+[node name="CardBanner" type="Panel" parent="CardDropArea/CardBackground/CardFrame"]
+custom_minimum_size = Vector2(120, 25)
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+grow_horizontal = 2
+theme = SubResource("Theme_4dg35")
+theme_override_styles/panel = ExtResource("5_u45bp")
+
+[node name="Title" type="Label" parent="CardDropArea/CardBackground/CardFrame/CardBanner"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 32.0
+grow_horizontal = 2
+text = "Card"
+label_settings = ExtResource("6_mpv3d")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Panel" type="Panel" parent="CardDropArea/CardBackground/CardFrame"]
+custom_minimum_size = Vector2(120, 85)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -60.0
+offset_top = -64.0
+offset_right = 60.0
+offset_bottom = 21.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = ExtResource("7_23bka")
+
+[node name="ChargedCardTexture" type="TextureRect" parent="CardDropArea/CardBackground/CardFrame/Panel"]
+custom_minimum_size = Vector2(110, 80)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -55.0
+offset_top = -40.0
+offset_right = 55.0
+offset_bottom = 40.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+
+[node name="DescriptionPanel" type="Panel" parent="CardDropArea/CardBackground/CardFrame"]
+custom_minimum_size = Vector2(110, 70)
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = ExtResource("8_cu5xy")
+
+[node name="ChargedCardDescription" type="Label" parent="CardDropArea/CardBackground/CardFrame/DescriptionPanel"]
+z_index = 8
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Place a card here"
+label_settings = SubResource("LabelSettings_si72t")
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="RequirementPanel" type="Panel" parent="CardDropArea/CardBackground/CardFrame"]
+visible = false
+z_index = 2
+custom_minimum_size = Vector2(65, 12)
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -32.5
+offset_top = -67.0
+offset_right = 32.5
+offset_bottom = -53.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+theme_override_styles/panel = ExtResource("12_dwjae")
+
+[node name="RequirementLabel" type="RichTextLabel" parent="CardDropArea/CardBackground/CardFrame/RequirementPanel"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -8.0
+offset_bottom = 22.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_font_sizes/normal_font_size = 12
+bbcode_enabled = true
+text = "[center]Mult 5 [/center]"
+scroll_active = false
+
+[node name="BonusEffect" type="HBoxContainer" parent="CardDropArea/CardBackground/CardFrame"]
+visible = false
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 2.0
+offset_top = -18.0
+offset_right = 2.0
+offset_bottom = -2.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/separation = 3
+
+[node name="BonusRequirementPanel" type="Panel" parent="CardDropArea/CardBackground/CardFrame/BonusEffect"]
+z_index = 2
+custom_minimum_size = Vector2(35, 12)
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = ExtResource("13_v0wm3")
+
+[node name="BonusRequirementLabel" type="RichTextLabel" parent="CardDropArea/CardBackground/CardFrame/BonusEffect/BonusRequirementPanel"]
+custom_minimum_size = Vector2(0, 7)
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -5.5
+offset_bottom = 10.5
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_font_sizes/normal_font_size = 7
+bbcode_enabled = true
+text = "[center]Exact [/center]"
+scroll_active = false
+
+[node name="BonusEffectLabel" type="Label" parent="CardDropArea/CardBackground/CardFrame/BonusEffect"]
+custom_minimum_size = Vector2(82, 16)
+layout_mode = 2
+size_flags_horizontal = 4
+theme = SubResource("Theme_dyepk")
+text = "Draw 2 "
+label_settings = SubResource("LabelSettings_rc3mj")
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="CancelRedCardPanel" type="Panel" parent="CardDropArea"]
+visible = false
+layout_mode = 0
+offset_left = 58.0
+offset_top = 181.0
+offset_right = 120.0
+offset_bottom = 212.0
+theme = ExtResource("2_l0ni4")
+theme_override_styles/panel = SubResource("StyleBoxFlat_218vb")
+
+[node name="CancelRedCard" type="TextureButton" parent="CardDropArea/CancelRedCardPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture_normal = ExtResource("13_fusbo")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="DiceRollPlayer" type="AudioStreamPlayer" parent="."]
+
+[node name="Button" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.2
+offset_left = 1.0
+offset_top = 9.0
+offset_right = 7.0
+offset_bottom = 9.0
+grow_horizontal = 2
+grow_vertical = 0
+theme = ExtResource("2_exd4y")
+theme_override_colors/font_focus_color = Color(0.756863, 0, 0, 1)
+theme_override_colors/icon_normal_color = Color(0.784314, 0, 0, 1)
+theme_override_colors/icon_focus_color = Color(0.670588, 0, 0, 1)
+theme_override_constants/outline_size = 0
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_x0x7m")
+theme_override_styles/hover = SubResource("StyleBoxFlat_aoef4")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_dxu5e")
+theme_override_styles/normal = ExtResource("13_6hovg")
+script = ExtResource("3_e4lqf")
+
+[node name="Label" type="Label" parent="Button"]
+layout_mode = 1
+anchors_preset = 13
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -8.0
+offset_right = 8.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_l0ni4")
+text = "ROLL"
+label_settings = SubResource("LabelSettings_7fdwi")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="NextRollPanel" type="Panel" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 161.0
+offset_top = 129.0
+offset_right = 216.0
+offset_bottom = 182.0
+
+[node name="NextRollTexture" type="TextureRect" parent="NextRollPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("14_rmmpa")
+expand_mode = 1
+
+[node name="NextRollBonusPanel" type="Panel" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 161.0
+offset_top = 5.0
+offset_right = 251.0
+offset_bottom = 55.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_w36f5")
+
+[node name="NextRollBonusLabel" type="RichTextLabel" parent="NextRollBonusPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/table_border = Color(0, 0.662745, 0, 1)
+theme_override_colors/default_color = Color(0.898039, 0.894118, 0, 1)
+theme_override_colors/selection_color = Color(0, 0.368627, 0, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 5
+theme_override_constants/shadow_offset_y = 5
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_outline_size = 5
+theme_override_fonts/normal_font = ExtResource("17_vnl2x")
+theme_override_font_sizes/normal_font_size = 44
+bbcode_enabled = true
+text = "+4"
+
+[node name="RollHistory" type="RichTextLabel" parent="."]
+layout_mode = 0
+offset_left = 161.0
+offset_top = 3.0
+offset_right = 261.0
+offset_bottom = 43.0
+theme_override_font_sizes/normal_font_size = 12
+
+[connection signal="pressed" from="CardDropArea/CancelRedCardPanel/CancelRedCard" to="." method="_on_cancel_red_card_pressed"]
+[connection signal="pressed" from="Button" to="Button" method="_on_pressed"]

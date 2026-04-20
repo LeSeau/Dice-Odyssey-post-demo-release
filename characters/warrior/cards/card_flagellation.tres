@@ -1,0 +1,24 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://qbat686n703j"]
+
+[ext_resource type="Texture2D" uid="uid://dnty42isr0bie" path="res://flagellation.png" id="1_jxljq"]
+[ext_resource type="Script" path="res://characters/warrior/cards/flagellation.gd" id="1_mwmgu"]
+
+[resource]
+script = ExtResource("1_mwmgu")
+id = "card_flagellation"
+name = "Flagellation"
+type = 1
+target = 0
+description = "Set your Power to 6. Lose 3HP"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 0
+requirement_number = 0
+exhausts = false
+bonus_requirement = 7
+bonus_requirement_number = 1
+bonus_description_text = "Gain 2 Strength"
+tags = "Strength"
+icon = ExtResource("1_jxljq")
+tooltip_text = ""

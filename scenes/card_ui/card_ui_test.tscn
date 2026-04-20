@@ -1,0 +1,186 @@
+[gd_scene load_steps=16 format=3 uid="uid://ckbyyrnoiiec3"]
+
+[ext_resource type="Theme" uid="uid://c8cqncsqlplyu" path="res://main_theme.tres" id="1_8i0kw"]
+[ext_resource type="Script" path="res://scenes/card_ui/card_ui.gd" id="2_dm7cq"]
+[ext_resource type="FontFile" uid="uid://b2y60c4274gkj" path="res://fonts/Cinzel-Bold.otf" id="3_kfm4k"]
+[ext_resource type="Texture2D" uid="uid://bn1oyc7jrh7sb" path="res://assets/images/duo.jpg" id="5_u4aa4"]
+[ext_resource type="Script" path="res://scenes/card_ui/card_state_machine.gd" id="6_pd367"]
+[ext_resource type="Script" path="res://scenes/card_ui/card_states/card_base_state.gd" id="7_t7w4a"]
+[ext_resource type="Script" path="res://scenes/card_ui/card_states/card_clicked_state.gd" id="8_to3wn"]
+[ext_resource type="Script" path="res://scenes/card_ui/card_states/card_dragging_state.gd" id="9_twoqq"]
+[ext_resource type="Script" path="res://scenes/card_ui/card_states/card_released_state.gd" id="10_5krqx"]
+[ext_resource type="Script" path="res://scenes/card_ui/card_states/card_aiming_state.gd" id="11_q04yj"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_i6mt8"]
+content_margin_left = 1.0
+content_margin_top = 1.0
+content_margin_right = 1.0
+content_margin_bottom = 1.0
+bg_color = Color(0.264753, 0.264753, 0.264753, 1)
+corner_radius_top_left = 1
+corner_radius_top_right = 1
+corner_radius_bottom_right = 1
+corner_radius_bottom_left = 1
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_alrd1"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.658824, 0.196078, 0.196078, 1)
+corner_radius_top_left = 1
+corner_radius_top_right = 1
+corner_radius_bottom_right = 1
+corner_radius_bottom_left = 1
+shadow_color = Color(0, 0, 0, 0.501961)
+shadow_size = 1
+shadow_offset = Vector2(1, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_341nf"]
+bg_color = Color(0.658824, 0.196078, 0.196078, 1)
+border_width_top = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 1
+corner_radius_top_right = 1
+corner_radius_bottom_right = 1
+corner_radius_bottom_left = 1
+
+[sub_resource type="LabelSettings" id="LabelSettings_e5ht3"]
+line_spacing = -1.0
+font = ExtResource("3_kfm4k")
+font_size = 3
+outline_size = 1
+shadow_size = 0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ly5x7"]
+size = Vector2(25, 30)
+
+[node name="CardUI" type="Control"]
+custom_minimum_size = Vector2(25, 35)
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -231.0
+offset_bottom = -114.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_8i0kw")
+script = ExtResource("2_dm7cq")
+
+[node name="CardBackground" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_i6mt8")
+
+[node name="CardFrame" type="Panel" parent="CardBackground"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_alrd1")
+
+[node name="CardBanner" type="Panel" parent="CardBackground/CardFrame"]
+custom_minimum_size = Vector2(23, 3)
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -12.5
+offset_top = 1.0
+offset_right = 10.5
+offset_bottom = 4.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_341nf")
+
+[node name="Title" type="Label" parent="CardBackground/CardFrame/CardBanner"]
+z_index = 1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Strike"
+label_settings = SubResource("LabelSettings_e5ht3")
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="CardArt" type="TextureRect" parent="CardBackground/CardFrame"]
+custom_minimum_size = Vector2(20, 14)
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -10.0
+offset_top = 5.0
+offset_right = 10.0
+offset_bottom = 19.0
+grow_horizontal = 2
+mouse_filter = 2
+texture = ExtResource("5_u4aa4")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Description" type="Label" parent="CardBackground/CardFrame"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -10.5
+offset_top = 20.0
+offset_right = 10.5
+offset_bottom = 33.0
+grow_horizontal = 2
+text = "test"
+label_settings = SubResource("LabelSettings_e5ht3")
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="DropPointDetector" type="Area2D" parent="."]
+collision_mask = 2
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DropPointDetector"]
+position = Vector2(12.5, 15)
+shape = SubResource("RectangleShape2D_ly5x7")
+
+[node name="CardStateMachine" type="Node" parent="." node_paths=PackedStringArray("initial_state")]
+script = ExtResource("6_pd367")
+initial_state = NodePath("CardBaseState")
+
+[node name="CardBaseState" type="Node" parent="CardStateMachine"]
+script = ExtResource("7_t7w4a")
+
+[node name="CardClickedState" type="Node" parent="CardStateMachine"]
+script = ExtResource("8_to3wn")
+state = 1
+
+[node name="CardDraggingState" type="Node" parent="CardStateMachine"]
+script = ExtResource("9_twoqq")
+state = 2
+
+[node name="CardReleasedState" type="Node" parent="CardStateMachine"]
+script = ExtResource("10_5krqx")
+state = 4
+
+[node name="CardAimingState" type="Node" parent="CardStateMachine"]
+script = ExtResource("11_q04yj")
+state = 3
+
+[connection signal="gui_input" from="." to="." method="_on_gui_input"]
+[connection signal="mouse_entered" from="." to="." method="_on_mouse_entered"]
+[connection signal="mouse_exited" from="." to="." method="_on_mouse_exited"]
+[connection signal="area_entered" from="DropPointDetector" to="." method="_on_drop_point_detector_area_entered"]
+[connection signal="area_exited" from="DropPointDetector" to="." method="_on_drop_point_detector_area_exited"]

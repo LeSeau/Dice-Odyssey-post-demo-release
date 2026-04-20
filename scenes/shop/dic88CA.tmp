@@ -1,0 +1,279 @@
+[gd_scene load_steps=5 format=3 uid="uid://cib6v5vr2rvqj"]
+
+[ext_resource type="Script" path="res://scenes/shop/shop.gd" id="1_4fjq1"]
+[ext_resource type="Texture2D" uid="uid://bc7ex1r6orvji" path="res://assets/images/shopbackground.jpg" id="2_meook"]
+[ext_resource type="Texture2D" uid="uid://bq8i15ehnrypf" path="res://assets/images/purple6.png" id="3_xrjxn"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fty16"]
+bg_color = Color(0, 0.143815, 0, 1)
+
+[node name="DiceShop" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_4fjq1")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 100
+theme_override_constants/margin_top = 100
+theme_override_constants/margin_right = 100
+theme_override_constants/margin_bottom = 100
+
+[node name="TextureRect" type="TextureRect" parent="MarginContainer"]
+modulate = Color(0.605274, 0.605274, 0.605274, 1)
+layout_mode = 2
+texture = ExtResource("2_meook")
+expand_mode = 1
+
+[node name="ColorRect" type="ColorRect" parent="MarginContainer"]
+layout_mode = 2
+mouse_filter = 2
+color = Color(0.507819, 0.397965, 0.106424, 1)
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/ColorRect"]
+custom_minimum_size = Vector2(400, 200)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -500.0
+offset_top = -201.0
+offset_right = 500.0
+offset_bottom = 201.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 50
+alignment = 1
+
+[node name="Dice1" type="VBoxContainer" parent="MarginContainer/ColorRect/HBoxContainer"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="DiceTitle1" type="Panel" parent="MarginContainer/ColorRect/HBoxContainer/Dice1"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_fty16")
+
+[node name="DiceTitleLabel1" type="Label" parent="MarginContainer/ColorRect/HBoxContainer/Dice1/DiceTitle1"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -91.0
+offset_top = -16.0
+offset_right = 91.0
+offset_bottom = 16.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Evil Dice
+"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Dice1Texture" type="TextureRect" parent="MarginContainer/ColorRect/HBoxContainer/Dice1"]
+custom_minimum_size = Vector2(200, 200)
+layout_mode = 2
+size_flags_horizontal = 4
+texture = ExtResource("3_xrjxn")
+expand_mode = 1
+
+[node name="BuyDice1" type="Button" parent="MarginContainer/ColorRect/HBoxContainer/Dice1"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_vertical = 8
+
+[node name="BuyDice1Label" type="RichTextLabel" parent="MarginContainer/ColorRect/HBoxContainer/Dice1/BuyDice1"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 6.0
+offset_bottom = 6.0
+grow_horizontal = 2
+grow_vertical = 2
+bbcode_enabled = true
+text = "[center]Buy ([color=#FFD700]250G[/color])[/center]
+"
+
+[node name="Dice2" type="VBoxContainer" parent="MarginContainer/ColorRect/HBoxContainer"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="DiceTitle1" type="Panel" parent="MarginContainer/ColorRect/HBoxContainer/Dice2"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_fty16")
+
+[node name="DiceTitleLabel1" type="Label" parent="MarginContainer/ColorRect/HBoxContainer/Dice2/DiceTitle1"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -91.0
+offset_top = -16.0
+offset_right = 91.0
+offset_bottom = 16.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Evil Dice
+"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Dice1Texture" type="TextureRect" parent="MarginContainer/ColorRect/HBoxContainer/Dice2"]
+custom_minimum_size = Vector2(200, 200)
+layout_mode = 2
+size_flags_horizontal = 4
+texture = ExtResource("3_xrjxn")
+expand_mode = 1
+
+[node name="BuyDice1" type="Button" parent="MarginContainer/ColorRect/HBoxContainer/Dice2"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_vertical = 8
+
+[node name="BuyDice1Label" type="RichTextLabel" parent="MarginContainer/ColorRect/HBoxContainer/Dice2/BuyDice1"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 6.0
+offset_bottom = 6.0
+grow_horizontal = 2
+grow_vertical = 2
+bbcode_enabled = true
+text = "[center]Buy ([color=#FFD700]250G[/color])[/center]
+"
+
+[node name="Dice3" type="VBoxContainer" parent="MarginContainer/ColorRect/HBoxContainer"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="DiceTitle1" type="Panel" parent="MarginContainer/ColorRect/HBoxContainer/Dice3"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_fty16")
+
+[node name="DiceTitleLabel1" type="Label" parent="MarginContainer/ColorRect/HBoxContainer/Dice3/DiceTitle1"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -91.0
+offset_top = -16.0
+offset_right = 91.0
+offset_bottom = 16.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Evil Dice
+"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Dice1Texture" type="TextureRect" parent="MarginContainer/ColorRect/HBoxContainer/Dice3"]
+custom_minimum_size = Vector2(200, 200)
+layout_mode = 2
+size_flags_horizontal = 4
+texture = ExtResource("3_xrjxn")
+expand_mode = 1
+
+[node name="BuyDice1" type="Button" parent="MarginContainer/ColorRect/HBoxContainer/Dice3"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_vertical = 8
+
+[node name="BuyDice1Label" type="RichTextLabel" parent="MarginContainer/ColorRect/HBoxContainer/Dice3/BuyDice1"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 6.0
+offset_bottom = 6.0
+grow_horizontal = 2
+grow_vertical = 2
+bbcode_enabled = true
+text = "[center]Buy ([color=#FFD700]250G[/color])[/center]
+"
+
+[node name="TextureRect" type="TextureRect" parent="MarginContainer/ColorRect"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="RerollButton" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -150.0
+offset_top = -205.0
+offset_right = 150.0
+offset_bottom = -157.0
+grow_horizontal = 2
+grow_vertical = 0
+size_flags_vertical = 8
+
+[node name="RichTextLabel" type="RichTextLabel" parent="RerollButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 5.0
+offset_bottom = 5.0
+grow_horizontal = 2
+grow_vertical = 2
+bbcode_enabled = true
+text = "[center]Reroll ([color=#FFD700]100G[/color])[/center]
+"
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -231.0
+offset_top = -121.0
+offset_right = 231.0
+offset_bottom = 121.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Shop
+
+"
+
+[node name="Button" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+text = "Go back"
+
+[connection signal="pressed" from="MarginContainer/ColorRect/HBoxContainer/Dice1/BuyDice1" to="." method="_on_buy_dice_1_pressed"]
+[connection signal="pressed" from="VBoxContainer/Button" to="." method="_on_button_pressed"]

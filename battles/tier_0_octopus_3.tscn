@@ -1,0 +1,21 @@
+[gd_scene load_steps=3 format=3 uid="uid://uo7rrgpmskp"]
+
+[ext_resource type="PackedScene" uid="uid://d0efyathkfg74" path="res://scenes/enemy/enemy.tscn" id="1_4is44"]
+[ext_resource type="Resource" uid="uid://cmn22x523lfj" path="res://enemies/octopus/octopus_enemy.tres" id="2_qedg0"]
+
+[node name="Tier0Octopus3" type="Node2D"]
+
+[node name="Octopus1" parent="." instance=ExtResource("1_4is44")]
+position = Vector2(731, 417)
+scale = Vector2(0.75, 0.75)
+stats = ExtResource("2_qedg0")
+
+[node name="Octopus2" parent="." instance=ExtResource("1_4is44")]
+position = Vector2(876, 475)
+scale = Vector2(0.75, 0.75)
+stats = ExtResource("2_qedg0")
+
+[node name="Octopus3" parent="." instance=ExtResource("1_4is44")]
+position = Vector2(1043, 462)
+scale = Vector2(0.75, 0.75)
+stats = ExtResource("2_qedg0")

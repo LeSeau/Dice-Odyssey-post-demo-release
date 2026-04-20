@@ -1,0 +1,15 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://btc858hfa53mu"]
+
+[ext_resource type="Texture2D" uid="uid://b5o8r5kgvr7d7" path="res://deserved_drink.png" id="1_beepf"]
+[ext_resource type="Script" path="res://relics/deserved_drink.gd" id="2_6sqdl"]
+
+[resource]
+script = ExtResource("2_6sqdl")
+relic_name = "Deserved Drink"
+id = "deserved_drink"
+type = 3
+has_counter = false
+counter = 0
+starter_relic = false
+icon = ExtResource("1_beepf")
+tooltip = "Heal 6 HP after each fight"

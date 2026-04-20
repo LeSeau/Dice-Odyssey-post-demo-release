@@ -1,0 +1,232 @@
+[gd_scene load_steps=18 format=3 uid="uid://jwm5c3a7rrrw"]
+
+[ext_resource type="Script" path="res://scenes/treasure/treasure.gd" id="1_45xhq"]
+[ext_resource type="Texture2D" uid="uid://b6n22vtc7dr20" path="res://assets/backgrounds/20-2.jpg" id="1_deftd"]
+[ext_resource type="Resource" uid="uid://2if2rhy1aktn" path="res://treasure_relic_pool.tres" id="2_fgk5d"]
+[ext_resource type="FontFile" uid="uid://b1es4i7nr43mv" path="res://fonts/CinzelDecorative-Bold.otf" id="2_ix7dd"]
+[ext_resource type="Texture2D" uid="uid://8t5hsrgvdtxg" path="res://treasurenobg.png" id="3_vpkir"]
+[ext_resource type="Texture2D" uid="uid://sxiw6df36trq" path="res://assets/images/blue6.png" id="4_p2fux"]
+[ext_resource type="Texture2D" uid="uid://ci3qr76edhe1v" path="res://opentreasurenobg.png" id="8_k27yi"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_diwp1"]
+font = ExtResource("2_ix7dd")
+font_size = 30
+
+[sub_resource type="Animation" id="Animation_3wngg"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:scale")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(1, 1)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("GPUParticles2D:emitting")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath(".:texture")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("3_vpkir")]
+}
+
+[sub_resource type="Animation" id="Animation_317o1"]
+resource_name = "highlight"
+length = 2.0
+loop_mode = 1
+step = 0.05
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:scale")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.15, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(1, 1), Vector2(1.05, 1.05), Vector2(1, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_ke025"]
+resource_name = "open"
+length = 2.0
+step = 0.05
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("GPUParticles2D:emitting")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0.2),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/1/type = "method"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("..")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(2),
+"transitions": PackedFloat32Array(1),
+"values": [{
+"args": [],
+"method": &"_on_treasure_opened"
+}]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath(".:texture")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.2),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [ExtResource("3_vpkir"), ExtResource("8_k27yi")]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_4yxye"]
+_data = {
+"RESET": SubResource("Animation_3wngg"),
+"highlight": SubResource("Animation_317o1"),
+"open": SubResource("Animation_ke025")
+}
+
+[sub_resource type="Curve" id="Curve_jpufi"]
+_data = [Vector2(0.0394737, 0.020052), 0.0, 0.0, 0, 0, Vector2(0.188596, 0.987932), 0.0, 0.0, 0, 0, Vector2(0.842105, 0.987932), 0.0, 0.0, 0, 0, Vector2(1, 0.0393614), 0.0, 0.0, 0, 0]
+point_count = 4
+
+[sub_resource type="CurveTexture" id="CurveTexture_86omq"]
+curve = SubResource("Curve_jpufi")
+
+[sub_resource type="Curve" id="Curve_5ufpy"]
+_data = [Vector2(0.00438597, 0.17694), 0.0, 0.0, 0, 0, Vector2(0.313596, 0.92759), 0.0, 0.0, 0, 0, Vector2(0.782895, 0.254177), 0.0, 0.0, 0, 0, Vector2(0.97807, 0.041775), 0.0, 0.0, 0, 0]
+point_count = 4
+
+[sub_resource type="CurveTexture" id="CurveTexture_j7agg"]
+curve = SubResource("Curve_5ufpy")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_tm4c4"]
+particle_flag_disable_z = true
+direction = Vector3(0, -1, 0)
+spread = 75.0
+initial_velocity_min = 80.0
+initial_velocity_max = 100.0
+gravity = Vector3(0, 98, 0)
+scale_min = 0.2
+scale_max = 0.2
+scale_curve = SubResource("CurveTexture_j7agg")
+alpha_curve = SubResource("CurveTexture_86omq")
+
+[node name="Treasure" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_45xhq")
+treasure_relic_pool = ExtResource("2_fgk5d")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_deftd")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="BackgroundDimmer" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.00392157, 0, 0, 0.701961)
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -72.0
+offset_top = -177.0
+offset_right = 94.0
+offset_bottom = -141.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+text = "Treasure"
+label_settings = SubResource("LabelSettings_diwp1")
+
+[node name="TreasureChest" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -134.0
+offset_top = -124.0
+offset_right = 166.0
+offset_bottom = 176.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(150, 150)
+mouse_filter = 0
+texture = ExtResource("3_vpkir")
+expand_mode = 1
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="TreasureChest"]
+unique_name_in_owner = true
+libraries = {
+"": SubResource("AnimationLibrary_4yxye")
+}
+autoplay = "highlight"
+
+[node name="GPUParticles2D" type="GPUParticles2D" parent="TreasureChest"]
+position = Vector2(153, 157)
+emitting = false
+amount = 25
+process_material = SubResource("ParticleProcessMaterial_tm4c4")
+texture = ExtResource("4_p2fux")
+lifetime = 1.5
+one_shot = true
+explosiveness = 0.9
+
+[connection signal="gui_input" from="TreasureChest" to="." method="_on_treasure_chest_gui_input"]

@@ -1,0 +1,54 @@
+[gd_scene load_steps=6 format=3 uid="uid://chf3urm1jm2wf"]
+
+[ext_resource type="PackedScene" uid="uid://d2vlobkkv27hu" path="res://scenes/ui/card_menu_ui.tscn" id="1_1w0ra"]
+[ext_resource type="Script" path="res://scenes/ui/card_rewards.gd" id="1_s1lqh"]
+[ext_resource type="Resource" uid="uid://n3va254ct6b3" path="res://characters/warrior/cards/warrior_slash.tres" id="2_oxvcr"]
+[ext_resource type="Resource" uid="uid://bfnkitft4qbwb" path="res://characters/warrior/cards/warrior_duo.tres" id="3_dvhef"]
+[ext_resource type="Resource" uid="uid://dgsjxv0qa77jk" path="res://characters/warrior/cards/warrior_block3.tres" id="4_5m0mw"]
+
+[node name="CardRewards" type="ColorRect"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.133333, 0.133333, 0.133333, 0.52549)
+script = ExtResource("1_s1lqh")
+rewards = Array[Object]([ExtResource("2_oxvcr"), ExtResource("3_dvhef"), ExtResource("4_5m0mw")])
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -184.0
+offset_top = -100.0
+offset_right = 184.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 23
+
+[node name="Cards" type="HBoxContainer" parent="VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 50
+
+[node name="CardMenuAI" parent="VBoxContainer/Cards" instance=ExtResource("1_1w0ra")]
+layout_mode = 2
+
+[node name="CardMenuAI2" parent="VBoxContainer/Cards" instance=ExtResource("1_1w0ra")]
+layout_mode = 2
+
+[node name="CardMenuAI3" parent="VBoxContainer/Cards" instance=ExtResource("1_1w0ra")]
+layout_mode = 2
+
+[node name="SkipCardReward" type="Button" parent="VBoxContainer"]
+custom_minimum_size = Vector2(250, 70)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Skip"
+
+[connection signal="gui_input" from="VBoxContainer/Cards/CardMenuAI" to="." method="_on_card_menu_ai_gui_input"]
