@@ -1,0 +1,26 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://ckn063ycj788w"]
+
+[ext_resource type="Texture2D" uid="uid://cgss55q36af3c" path="res://dice_slap.png" id="1_5dgai"]
+[ext_resource type="Script" path="res://characters/warrior/cards/diceslap.gd" id="2_8bl5h"]
+[ext_resource type="AudioStream" uid="uid://b2l4kmoq5ivyx" path="res://whipsound.mp3" id="3_rcgec"]
+
+[resource]
+script = ExtResource("2_8bl5h")
+id = "card_diceslap"
+name = "Dice Slap"
+type = 0
+target = 1
+description = "Deal X damage + 2 for each consecutive Dice roll"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 0
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = ""
+icon = ExtResource("1_5dgai")
+tooltip_text = ""
+sound = ExtResource("3_rcgec")

@@ -38,7 +38,7 @@ func get_tooltip_content(status: Status) -> void:
         "true_strength":
             text = "Gain Strength each turn."
         "weak":
-            text = "Your dice rolls lose 1 power."
+            text = "Your next roll loses 1 power per stack."
         "lucky":
             text = "Your next roll will be the highest possible outcome."
         "depleted":

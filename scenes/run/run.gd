@@ -9,7 +9,7 @@ const CAMPFIRE_SCENE := preload ("res://scenes/campfire/campfire.tscn")
 const EVENT_SCENE := preload("res://scenes/events/event_add_new_card.tscn")
 const DICE_SHOP_SCENE = preload("res://scenes/shop/dice_shop.tscn")
 
-const SHOP_SCENE := preload ("res://scenes/shop/shop.tscn")
+const SHOP_SCENE := preload ("res://scenes/shop/card_shop.tscn")
 
 @onready var current_view: Node = $CurrentView
 @onready var map_button: Button = %MapButton
@@ -263,6 +263,13 @@ func _on_campfire_room_entered() -> Node:
     var campfire_scene := _change_view(CAMPFIRE_SCENE)
     return campfire_scene 
 
+func _on_shop_entered() -> void:
+    var shop := _change_view(SHOP_SCENE) as Shop
+    shop.char_stats = character
+    shop.run_stats = stats
+    shop.relic_handler = relic_handler
+    shop.populate_shop()
+
 
 # Helper function to determine battle tier based on room position
 func _get_tier_for_room(room: Room) -> int:
@@ -320,8 +327,11 @@ func _get_unique_battle_for_tier(tier: int) -> BattleStats:
     for battle in unused_battles:
         current_weight += battle.weight
         if current_weight >= roll:
-            # Add to used battles
             used_battles.append(battle)
+            if battle.group != "":
+                for other in battle_stats_pool.pool:
+                    if other.group == battle.group and not used_battles.has(other):
+                        used_battles.append(other)
             return battle
     
     # Fallback
@@ -361,6 +371,7 @@ func _generate_elite_relic() -> Relic:
 func _on_battle_won() -> void:
     print("battle won!")
     Global.cards_played_this_turn = 0
+    Global.next_roll_modifier = 0
     var reward_scene := _change_view(BATTLE_REWARD_SCENE) as BattleReward
     reward_scene.run_stats = stats           
     reward_scene.character_stats = character 
@@ -393,7 +404,7 @@ func _on_map_exited(room: Room) -> void:
         Room.Type.TREASURE:
             _on_treasure_room_entered()
         Room.Type.SHOP:
-            _change_view(SHOP_SCENE)
+            _on_shop_entered()
         Room.Type.EVENT:
             # Check if we have events available
             if event_stats_pool.pool.size() > 0:
@@ -433,12 +444,13 @@ func _on_map_exited(room: Room) -> void:
 
 
 
-
 func _on_show_reward():
     var reward_scene := _change_view(BATTLE_REWARD_SCENE) as BattleReward
     reward_scene.run_stats = stats
     reward_scene.character_stats = character
-    reward_scene.add_card_reward()
+    for i in Global.pending_card_rewards:
+        reward_scene.add_card_reward()
+    Global.pending_card_rewards = 1
 
 func _on_dice_shop_pressed() -> void:
     SFXPlayer.play(sfx_click)

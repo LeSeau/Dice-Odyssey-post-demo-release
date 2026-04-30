@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="EventStats" load_steps=3 format=3 uid="uid://khcn03j3k3o4"]
+
+[ext_resource type="PackedScene" uid="uid://spr2muqoh0jk" path="res://scenes/events/event_relic_or_heal.tscn" id="1_sqhmr"]
+[ext_resource type="Script" path="res://custom_resources/event_stats.gd" id="2_70dni"]
+
+[resource]
+script = ExtResource("2_70dni")
+event_tier = 0
+weight = 1.0
+scene = ExtResource("1_sqhmr")

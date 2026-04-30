@@ -6,9 +6,9 @@
 [resource]
 script = ExtResource("1_uh48v")
 id = "weak"
-type = 0
-stack_type = 2
-can_expire = true
+type = 2
+stack_type = 1
+can_expire = false
 duration = 0
 stacks = 0
 icon = ExtResource("1_nil5l")

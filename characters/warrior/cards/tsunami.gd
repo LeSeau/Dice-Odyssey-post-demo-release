@@ -12,3 +12,6 @@ func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
 
 func _on_dice_rolled():
     print("adding dice to damage")
+
+func get_dynamic_description() -> String:
+    return "Deal X damage + 1 for each Dice rolled this turn\n(%d Dice rolled this turn)" % Global.dice_amount_rolled_this_turn

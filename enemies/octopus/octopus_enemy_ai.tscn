@@ -10,6 +10,11 @@
 [ext_resource type="Texture2D" uid="uid://cm56j6ual41dr" path="res://attack_icon_intent.png" id="8_xdabt"]
 [ext_resource type="AudioStream" uid="uid://de2ryat1pxq6" path="res://art/enemy_attack.ogg" id="9_q1hgs"]
 
+[sub_resource type="Resource" id="Resource_5f2gy"]
+script = ExtResource("4_8fr82")
+base_text = "%s"
+icon = ExtResource("8_xdabt")
+
 [sub_resource type="Resource" id="Resource_xhih8"]
 script = ExtResource("4_8fr82")
 base_text = "%s"
@@ -20,29 +25,25 @@ script = ExtResource("4_8fr82")
 base_text = "%s"
 icon = ExtResource("5_8051p")
 
-[sub_resource type="Resource" id="Resource_5f2gy"]
-script = ExtResource("4_8fr82")
-base_text = "%s"
-icon = ExtResource("8_xdabt")
-
 [node name="OctopusEnemyAi" type="Node"]
 script = ExtResource("1_15lug")
+
+[node name="OctopusAttack" type="Node" parent="."]
+script = ExtResource("3_r8tod")
+intent = SubResource("Resource_5f2gy")
+sound = ExtResource("9_q1hgs")
+type = 1
+chance_weight = 5.0
+action_id = "octopus_attack"
 
 [node name="OctopusAttackDebuff" type="Node" parent="."]
 script = ExtResource("2_eou4d")
 intent = SubResource("Resource_xhih8")
 type = 1
-chance_weight = 6.0
+chance_weight = 5.0
+action_id = "octopus_debuff_attack"
 
-[node name="OctopusAttackDebuff2" type="Node" parent="."]
+[node name="NOT USED" type="Node" parent="."]
 script = ExtResource("5_6urfw")
 intent = SubResource("Resource_h318u")
 chance_weight = 10.0
-
-[node name="OctopusAttack" type="Node" parent="."]
-script = ExtResource("3_r8tod")
-damage = 5
-intent = SubResource("Resource_5f2gy")
-sound = ExtResource("9_q1hgs")
-type = 1
-chance_weight = 4.0

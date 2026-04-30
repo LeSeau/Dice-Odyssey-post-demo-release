@@ -1,0 +1,17 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://bmibvwv5u41l6"]
+
+[ext_resource type="Texture2D" uid="uid://uwanwn0k5dbi" path="res://runic_bones.png" id="1_y576x"]
+[ext_resource type="Script" path="res://relics/runic_bones.gd" id="2_sjshm"]
+
+[resource]
+script = ExtResource("2_sjshm")
+relic_name = "Runic Bones"
+id = "runic_bones"
+type = 4
+has_counter = false
+counter = 0
+starter_relic = false
+icon = ExtResource("1_y576x")
+tooltip = "The first time you charge a Dice each turn, gain 4 block
+
+"

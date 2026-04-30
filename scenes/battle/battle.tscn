@@ -1,4 +1,4 @@
-[gd_scene load_steps=46 format=3 uid="uid://cahno8aso5net"]
+[gd_scene load_steps=47 format=3 uid="uid://cahno8aso5net"]
 
 [ext_resource type="Script" path="res://scenes/battle/battle.gd" id="1_4s751"]
 [ext_resource type="PackedScene" uid="uid://d0efyathkfg74" path="res://scenes/enemy/enemy.tscn" id="2_02s5s"]
@@ -35,6 +35,7 @@
 [ext_resource type="Texture2D" uid="uid://b1my7ua56jx7t" path="res://tutorial_arrow.png" id="29_0band"]
 [ext_resource type="Texture2D" uid="uid://babawuw4jquuw" path="res://tutorial_arrow_down.png" id="30_rkd0t"]
 [ext_resource type="Texture2D" uid="uid://bsod70jcw5ate" path="res://power_reset_image.png" id="31_tnut7"]
+[ext_resource type="Script" path="res://scenes/battle/camera_2d.gd" id="36_g4ffy"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_xyg5u"]
 size = Vector2(1288, 718)
@@ -1208,6 +1209,10 @@ offset_right = 1152.0
 offset_bottom = 186.0
 grow_horizontal = 0
 text = "Skip tutorial"
+
+[node name="Camera2D" type="Camera2D" parent="." groups=["camera"]]
+position = Vector2(639, 361)
+script = ExtResource("36_g4ffy")
 
 [connection signal="toggled" from="BattleUI/DiceAnimationControl/DiceAnimationOption/DiceAnimationCheck" to="." method="_on_dice_animation_check_toggled"]
 [connection signal="mouse_entered" from="BattleUI/DrawPileButton" to="." method="_on_draw_pile_button_mouse_entered"]

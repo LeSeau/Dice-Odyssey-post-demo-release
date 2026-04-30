@@ -6,6 +6,7 @@ extends Resource
 @export var gold_reward_min: int
 @export var gold_reward_max: int
 @export var enemies: PackedScene
+@export var group: String = ""
 
 var accumulated_weight: float = 0.0
 

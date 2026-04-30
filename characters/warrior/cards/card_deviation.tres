@@ -1,0 +1,26 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c0eolwm6d6siu"]
+
+[ext_resource type="Texture2D" uid="uid://cqglhw575i2b2" path="res://deviation.png" id="1_2u33o"]
+[ext_resource type="Script" path="res://characters/warrior/cards/deviation.gd" id="1_u5mnk"]
+[ext_resource type="AudioStream" uid="uid://bxiu5qeksdpg7" path="res://impact_power.ogg" id="2_2m0wi"]
+
+[resource]
+script = ExtResource("1_u5mnk")
+id = "card_deviation"
+name = "Deviation"
+type = 1
+target = 0
+description = "Block X damage. Charge a random Dice"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 6
+requirement_number = 6
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Charge"
+icon = ExtResource("1_2u33o")
+tooltip_text = ""
+sound = ExtResource("2_2m0wi")

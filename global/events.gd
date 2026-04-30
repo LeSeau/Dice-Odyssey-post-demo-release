@@ -51,6 +51,9 @@ signal battle_reward_exited
 signal treasure_room_exited(found_relic: Relic)
 signal event_exited
 
+signal shop_relic_bought (relic: Relic, gold_cost: int)
+signal shop_card_bought(card: Card, gold_cost: int)
+
 #Dice-related events
 signal dice_rolled(active_dice, roll_value)
 signal active_dice_changed(active_dice)

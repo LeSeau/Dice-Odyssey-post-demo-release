@@ -13,5 +13,5 @@ cards_per_turn = 5
 max_mana = 10
 draftable_cards = ExtResource("2_unq6o")
 starting_relic = ExtResource("5_mn1ko")
-max_health = 50
+max_health = 66
 art = ExtResource("1_87tve")

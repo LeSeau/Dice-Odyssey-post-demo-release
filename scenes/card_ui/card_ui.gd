@@ -82,6 +82,8 @@ func _ready() -> void:
     Events.card_aim_ended.connect(_on_card_drag_or_aim_ended)
     card_state_machine.init(self)
     Events.red_dice_rolled.connect(_on_red_dice_rolled)
+    Events.dice_rolled.connect(_on_dice_rolled_update_description)
+    Events.dice_roll_reset.connect(_on_dice_rolled_update_description)
     if card:
         card_instance_id = card.instance_id
     
@@ -421,3 +423,7 @@ func is_mouse_over_card() -> bool:
 func set_playable_visual(is_playable: bool) -> void:
     var target_opacity = PLAYABLE_OPACITY if is_playable else UNPLAYABLE_OPACITY
     modulate.a = target_opacity
+
+func _on_dice_rolled_update_description(_a = null, _b = null) -> void:
+    if card and card.has_method("get_dynamic_description"):
+        description.text = card.get_dynamic_description()

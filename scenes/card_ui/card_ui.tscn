@@ -1,6 +1,7 @@
-[gd_scene load_steps=29 format=3 uid="uid://b60egpxyditoc"]
+[gd_scene load_steps=30 format=3 uid="uid://b60egpxyditoc"]
 
 [ext_resource type="Material" uid="uid://bcdb8cbop4w8o" path="res://scenes/dices/blue_dice_shader.tres" id="1_n3kmb"]
+[ext_resource type="Resource" uid="uid://c6ajgy734n5my" path="res://characters/warrior/cards/low_blow.tres" id="2_e6g0u"]
 [ext_resource type="Script" path="res://scenes/card_ui/card_ui.gd" id="2_uam7p"]
 [ext_resource type="StyleBox" uid="uid://belt0xy3pi11o" path="res://scenes/card_ui/card_background.tres" id="2_uqn26"]
 [ext_resource type="Script" path="res://scenes/card_ui/card_state_machine.gd" id="3_tqtyy"]
@@ -66,6 +67,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme = SubResource("Theme_pln6u")
 script = ExtResource("2_uam7p")
+card = ExtResource("2_e6g0u")
 metadata/_edit_use_anchors_ = true
 
 [node name="Aura" type="ColorRect" parent="."]

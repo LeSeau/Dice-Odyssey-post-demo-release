@@ -2,7 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://dy68253p31hjo" path="res://assets/images/gptstrike.png" id="1_k5ct5"]
 [ext_resource type="Script" path="res://characters/warrior/cards/warrior_axe_attack.gd" id="2_1h6te"]
-[ext_resource type="AudioStream" uid="uid://cupear06meqp6" path="res://sounds/attacksound.mp3" id="3_abtky"]
+[ext_resource type="AudioStream" uid="uid://bnoudyk1my2eh" path="res://impact1ok.mp3" id="3_8n27v"]
 
 [resource]
 script = ExtResource("2_1h6te")
@@ -23,4 +23,4 @@ bonus_description_text = ""
 tags = ""
 icon = ExtResource("1_k5ct5")
 tooltip_text = ""
-sound = ExtResource("3_abtky")
+sound = ExtResource("3_8n27v")

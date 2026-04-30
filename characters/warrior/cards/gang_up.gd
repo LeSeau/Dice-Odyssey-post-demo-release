@@ -9,6 +9,7 @@ func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
         support_effect.sound = sound
         support_effect.execute(targets)
         Events.dice_roll_reset.emit()
+        Events.reset_charged_card.emit()
         Events.dice_amount_changed.emit()
         Events.charge_dice_animation.emit()
         Events.card_type_played.emit("exact")

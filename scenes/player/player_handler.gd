@@ -23,7 +23,7 @@ func _ready() -> void:
 
 
 func start_battle(char_stats: CharacterStats) -> void:
-    Global.next_roll_modifier = 0
+
     Global.fight_turn = 0
     character = char_stats
     character.draw_pile = character.deck.duplicate(true)
@@ -60,6 +60,7 @@ func start_turn() -> void:
     Events.check_if_losing_strength.emit()
     character.block = 0
     Global.player.stats.block = 0
+    Global.has_rolled_6_this_turn = false
     Global.cards_played_this_turn = 0
     Global.fight_dice_rolled = 0
     character.reset_mana()

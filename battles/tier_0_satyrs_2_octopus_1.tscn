@@ -1,0 +1,23 @@
+[gd_scene load_steps=5 format=3 uid="uid://dogxetst1ti87"]
+
+[ext_resource type="PackedScene" uid="uid://d0efyathkfg74" path="res://scenes/enemy/enemy.tscn" id="1_djehr"]
+[ext_resource type="Resource" uid="uid://0m1j3lvn7xwr" path="res://enemies/satyr/satyr_enemy.tres" id="2_kvyiw"]
+[ext_resource type="Resource" uid="uid://cmn22x523lfj" path="res://enemies/octopus/octopus_enemy.tres" id="3_0hod2"]
+[ext_resource type="Resource" uid="uid://sggulmun2aob" path="res://enemies/satyr/bigger_satyr_enemy.tres" id="3_84u55"]
+
+[node name="Tier0Satyrs2Octopus1" type="Node2D"]
+
+[node name="S Satyr" parent="." instance=ExtResource("1_djehr")]
+position = Vector2(1043, 462)
+scale = Vector2(0.75, 0.75)
+stats = ExtResource("2_kvyiw")
+
+[node name="B Satyr" parent="." instance=ExtResource("1_djehr")]
+position = Vector2(876, 475)
+scale = Vector2(0.75, 0.75)
+stats = ExtResource("3_84u55")
+
+[node name="S Octopus" parent="." instance=ExtResource("1_djehr")]
+position = Vector2(731, 417)
+scale = Vector2(0.75, 0.75)
+stats = ExtResource("3_0hod2")

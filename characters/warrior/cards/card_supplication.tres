@@ -1,0 +1,26 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://cmfkht5nsktxu"]
+
+[ext_resource type="Texture2D" uid="uid://bvr4vbfb304nb" path="res://supplication.png" id="1_5r87j"]
+[ext_resource type="Script" path="res://characters/warrior/cards/supplication.gd" id="2_gd65b"]
+[ext_resource type="AudioStream" uid="uid://bxiu5qeksdpg7" path="res://impact_power.ogg" id="3_a4fha"]
+
+[resource]
+script = ExtResource("2_gd65b")
+id = "card_supplication"
+name = "Supplication"
+type = 1
+target = 0
+description = "If you have no Dice left, Charge 2 Green Dice"
+rarity = 1
+red_only = false
+can_play_without_dice = true
+requirement = 0
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Charge, Green Dice"
+icon = ExtResource("1_5r87j")
+tooltip_text = ""
+sound = ExtResource("3_a4fha")

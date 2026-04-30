@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="BattleStats" load_steps=3 format=3 uid="uid://bocb8awiw5vod"]
+
+[ext_resource type="PackedScene" uid="uid://dr644olnteg65" path="res://battles/tier_2_hound.tscn" id="1_mukf5"]
+[ext_resource type="Script" path="res://custom_resources/battle_stats.gd" id="2_okayq"]
+
+[resource]
+script = ExtResource("2_okayq")
+battle_tier = 2
+weight = 1.0
+gold_reward_min = 40
+gold_reward_max = 50
+enemies = ExtResource("1_mukf5")
+group = ""

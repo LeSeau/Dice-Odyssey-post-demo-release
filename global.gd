@@ -13,19 +13,27 @@ var blue_dice_bonus_amount = 0
 var blue_dice_bonus_amount_fight = 0
 var red_dice_current_amount = 1
 var red_dice_max_amount = 1
+var red_dice_bonus_amount = 0
 var evil_dice_current_amount = 0
 var evil_dice_max_amount = 0
+var evil_dice_bonus_amount = 0
 var green_dice_current_amount = 0
 var green_dice_max_amount = 0
+var green_dice_bonus_amount = 0
 var giant_dice_current_amount = 0
 var giant_dice_max_amount = 0
+var giant_dice_bonus_amount = 0
 var magma_dice_current_amount = 0
 var magma_dice_max_amount = 0
+var magma_dice_bonus_amount = 0
 var even_dice_current_amount = 0
 var even_dice_max_amount = 0
+var even_dice_bonus_amount = 0
 var odd_dice_current_amount = 0
 var odd_dice_max_amount = 0
+var odd_dice_bonus_amount = 0
 
+var charged_dice_this_turn := false
 var dice_amount_rolled_this_turn
 var dice_type = "blue"
 var current_card = null
@@ -47,8 +55,8 @@ var roll_history = []
 var shop_initialized = false  # Whether the shop has been initialized
 var shop_dice_selection = []  # Stores which dice are shown
 var gold = 25
-var player_hp = 50
-var player_max_hp = 50
+var player_hp = 66
+var player_max_hp = 66
 var lose_strength_next_turn = 0
 var has_blocked_last_turn = false
 var starting_power_next_turn = 0
@@ -90,3 +98,7 @@ var is_final_boss_fight = false
 var game_over_state = false
 
 var no_reset: bool = false
+
+var pending_card_rewards = 1
+var hound_debuff_attack_done = false
+var has_rolled_6_this_turn = false

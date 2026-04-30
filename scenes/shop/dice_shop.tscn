@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://cib6v5vr2rvqj"]
+[gd_scene load_steps=15 format=3 uid="uid://cib6v5vr2rvqj"]
 
 [ext_resource type="Script" path="res://scenes/shop/shop.gd" id="1_4fjq1"]
 [ext_resource type="Texture2D" uid="uid://bc7ex1r6orvji" path="res://assets/images/shopbackground.jpg" id="2_meook"]
@@ -26,6 +26,9 @@ corner_radius_bottom_left = 50
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fty16"]
 bg_color = Color(0, 0.143815, 0, 1)
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_o5hgo"]
+bg_color = Color(0.247059, 0.403922, 0.364706, 0.92549)
+
 [node name="DiceShop" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -43,10 +46,10 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 100
-theme_override_constants/margin_top = 100
-theme_override_constants/margin_right = 100
-theme_override_constants/margin_bottom = 100
+theme_override_constants/margin_left = 180
+theme_override_constants/margin_top = 110
+theme_override_constants/margin_right = 180
+theme_override_constants/margin_bottom = 110
 
 [node name="TextureRect" type="TextureRect" parent="MarginContainer"]
 visible = false
@@ -60,6 +63,22 @@ layout_mode = 2
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_3s3aq")
 
+[node name="Title" type="Label" parent="MarginContainer/Panel"]
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -208.0
+offset_bottom = -160.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 0.227451, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 40
+text = "Dice shop"
+horizontal_alignment = 1
+
 [node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/Panel"]
 custom_minimum_size = Vector2(400, 200)
 layout_mode = 1
@@ -69,9 +88,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -500.0
-offset_top = -201.0
+offset_top = -141.0
 offset_right = 500.0
-offset_bottom = 201.0
+offset_bottom = 279.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 50
@@ -525,13 +544,15 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -134.0
-offset_top = 14.0
-offset_right = -17.0
-offset_bottom = 138.0
+offset_left = -94.0
+offset_top = 23.0
+offset_right = -34.0
+offset_bottom = 112.0
 grow_horizontal = 0
+theme_override_colors/font_color = Color(0.144787, 0.273985, 0.277578, 1)
 theme_override_fonts/font = ExtResource("10_p37ri")
 theme_override_font_sizes/font_size = 75
+theme_override_styles/normal = SubResource("StyleBoxFlat_o5hgo")
 text = "X"
 
 [node name="RerollButton" type="Button" parent="."]
@@ -542,9 +563,9 @@ anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
 offset_left = -150.0
-offset_top = -205.0
+offset_top = -185.0
 offset_right = 150.0
-offset_bottom = -157.0
+offset_bottom = -137.0
 grow_horizontal = 2
 grow_vertical = 0
 size_flags_vertical = 8

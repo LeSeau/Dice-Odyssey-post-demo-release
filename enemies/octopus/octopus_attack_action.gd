@@ -2,11 +2,11 @@ extends EnemyAction
 
 
 
-@export var damage := 4
+@export var damage := 3
 var base_damage = damage
 
 func is_performable() -> bool:
-    return true
+    return enemy.last_action != "octopus_attack"  # or whatever the action name is
 
 func perform_action() -> void:
     if not enemy or not target:

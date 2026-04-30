@@ -1,0 +1,26 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://duqwda37eif0i"]
+
+[ext_resource type="Texture2D" uid="uid://8xq7r5gtmk6b" path="res://carnage.png" id="1_pw4jq"]
+[ext_resource type="Script" path="res://characters/warrior/cards/carnage.gd" id="2_badbj"]
+[ext_resource type="AudioStream" uid="uid://bxiu5qeksdpg7" path="res://impact_power.ogg" id="3_6pdjv"]
+
+[resource]
+script = ExtResource("2_badbj")
+id = "card_carnage"
+name = "Carnage"
+type = 1
+target = 0
+description = "Double your Boost"
+rarity = 1
+red_only = false
+can_play_without_dice = true
+requirement = 0
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Boost"
+icon = ExtResource("1_pw4jq")
+tooltip_text = ""
+sound = ExtResource("3_6pdjv")

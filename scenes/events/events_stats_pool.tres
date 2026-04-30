@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="EventStatsPool" load_steps=12 format=3 uid="uid://dih15xjxqnjvm"]
+[gd_resource type="Resource" script_class="EventStatsPool" load_steps=13 format=3 uid="uid://dih15xjxqnjvm"]
 
 [ext_resource type="Script" path="res://custom_resources/event_stats.gd" id="1_1o3oj"]
 [ext_resource type="Resource" uid="uid://dcw1xrmomcaom" path="res://scenes/events/event_add_new_card.tres" id="2_fe2a0"]
@@ -11,7 +11,8 @@
 [ext_resource type="Resource" uid="uid://dsqo0nv34ia4y" path="res://scenes/events/event_remove_card.tres" id="8_6dtv5"]
 [ext_resource type="Resource" uid="uid://nkuh0owxh72e" path="res://scenes/events/event_remove_card_hp.tres" id="8_aoccr"]
 [ext_resource type="Resource" uid="uid://bujmj7agvpg2y" path="res://scenes/events/event_buy_relic.tres" id="10_r2ghg"]
+[ext_resource type="Resource" uid="uid://bv4n67mfwn7ya" path="res://scenes/events/event_relic_or_cards.tres" id="11_ed1fw"]
 
 [resource]
 script = ExtResource("2_ry2tl")
-pool = Array[ExtResource("1_1o3oj")]([ExtResource("2_fe2a0"), ExtResource("4_37for"), ExtResource("5_5uosp"), ExtResource("3_vdhyb"), ExtResource("6_yfmgm"), ExtResource("7_deatg"), ExtResource("8_aoccr"), ExtResource("8_6dtv5"), ExtResource("10_r2ghg")])
+pool = Array[ExtResource("1_1o3oj")]([ExtResource("2_fe2a0"), ExtResource("4_37for"), ExtResource("5_5uosp"), ExtResource("3_vdhyb"), ExtResource("6_yfmgm"), ExtResource("7_deatg"), ExtResource("8_aoccr"), ExtResource("8_6dtv5"), ExtResource("10_r2ghg"), ExtResource("11_ed1fw")])

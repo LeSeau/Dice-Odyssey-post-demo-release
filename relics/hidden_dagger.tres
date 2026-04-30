@@ -1,0 +1,16 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://dn2ygkdslg7x2"]
+
+[ext_resource type="Texture2D" uid="uid://b7t6bi63e0pn2" path="res://hidden_dagger.png" id="1_6kfa3"]
+[ext_resource type="Script" path="res://relics/hidden_dagger.gd" id="2_c3uu0"]
+
+[resource]
+script = ExtResource("2_c3uu0")
+relic_name = "Hidden Dagger"
+id = "hidden_dagger"
+type = 1
+has_counter = false
+counter = 0
+starter_relic = false
+icon = ExtResource("1_6kfa3")
+tooltip = "Start each fight with Boost 3
+"

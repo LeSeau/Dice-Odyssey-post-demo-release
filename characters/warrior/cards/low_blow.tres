@@ -1,6 +1,6 @@
 [gd_resource type="Resource" load_steps=4 format=3 uid="uid://c6ajgy734n5my"]
 
-[ext_resource type="Texture2D" uid="uid://duup4pono8vur" path="res://gptlowblow.png" id="1_ogkv7"]
+[ext_resource type="Texture2D" uid="uid://cv72ceuh17gln" path="res://nano_low_blow_ok.png" id="1_s3xu2"]
 [ext_resource type="Script" path="res://characters/warrior/cards/low_blow.gd" id="2_62k0g"]
 [ext_resource type="AudioStream" uid="uid://benx6kt8eskgi" path="res://sounds/kamikazefail.mp3" id="3_p8l2t"]
 
@@ -21,6 +21,6 @@ bonus_requirement = 0
 bonus_requirement_number = 0
 bonus_description_text = ""
 tags = ""
-icon = ExtResource("1_ogkv7")
+icon = ExtResource("1_s3xu2")
 tooltip_text = ""
 sound = ExtResource("3_p8l2t")

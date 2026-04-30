@@ -33,14 +33,16 @@ script = ExtResource("2_1nnci")
 intent = SubResource("Resource_wcil7")
 sound = ExtResource("9_5qfxd")
 type = 1
-chance_weight = 6.0
+chance_weight = 5.0
+action_id = "bigger_octopus_attack_debuff"
 
 [node name="OctopusAttack" type="Node" parent="."]
 script = ExtResource("6_ymya2")
 intent = SubResource("Resource_b21m6")
 sound = ExtResource("9_5qfxd")
 type = 1
-chance_weight = 4.5
+chance_weight = 5.0
+action_id = "bigger_octopus_attack"
 
 [node name="OctopusAttackDebuff2" type="Node" parent="."]
 script = ExtResource("5_01f3t")

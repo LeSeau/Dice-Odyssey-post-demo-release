@@ -11,7 +11,7 @@ const PATHS := 6
 const MONSTER_ROOM_WEIGHT := 5.5
 const ELITE_ROOM_WEIGHT := 1.6
 const CAMPFIRE_ROOM_WEIGHT := 1.2
-const SHOP_ROOM_WEIGHT := 0.0
+const SHOP_ROOM_WEIGHT := 1.0
 const BOSS_ROOM_WEIGHT := 0.0
 const TREASURE_ROOM_WEIGHT := 0.0
 const EVENT_ROOM_WEIGHT := 3.0
@@ -24,8 +24,8 @@ var random_room_type_weights = {
     Room.Type.ELITE: 0.0,
     Room.Type.CAMPFIRE: 0.0,
     Room.Type.TREASURE: 0.0,
-    Room.Type.BOSS: 0.0,
     Room.Type.SHOP: 0.0,
+    Room.Type.BOSS: 0.0,
     Room.Type.EVENT: 0.0
 }
 

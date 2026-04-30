@@ -1,21 +1,22 @@
-[gd_scene load_steps=3 format=3 uid="uid://uo7rrgpmskp"]
+[gd_scene load_steps=4 format=3 uid="uid://uo7rrgpmskp"]
 
 [ext_resource type="PackedScene" uid="uid://d0efyathkfg74" path="res://scenes/enemy/enemy.tscn" id="1_4is44"]
 [ext_resource type="Resource" uid="uid://cmn22x523lfj" path="res://enemies/octopus/octopus_enemy.tres" id="2_qedg0"]
+[ext_resource type="Resource" uid="uid://dmlalq6xckyd7" path="res://enemies/octopus/bigger_octopus_enemy.tres" id="3_okv4s"]
 
 [node name="Tier0Octopus3" type="Node2D"]
 
-[node name="Octopus1" parent="." instance=ExtResource("1_4is44")]
+[node name="S Octopus" parent="." instance=ExtResource("1_4is44")]
 position = Vector2(731, 417)
 scale = Vector2(0.75, 0.75)
 stats = ExtResource("2_qedg0")
 
-[node name="Octopus2" parent="." instance=ExtResource("1_4is44")]
+[node name="B Octopus" parent="." instance=ExtResource("1_4is44")]
 position = Vector2(876, 475)
 scale = Vector2(0.75, 0.75)
-stats = ExtResource("2_qedg0")
+stats = ExtResource("3_okv4s")
 
-[node name="Octopus3" parent="." instance=ExtResource("1_4is44")]
+[node name="S Octopus2" parent="." instance=ExtResource("1_4is44")]
 position = Vector2(1043, 462)
 scale = Vector2(0.75, 0.75)
 stats = ExtResource("2_qedg0")

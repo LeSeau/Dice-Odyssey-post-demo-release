@@ -7,11 +7,11 @@ const WEAK_STATUS = preload("res://statuses/weak.tres")
 var exposed_duration := 2
 var ink_duration := 1
 
-@export var damage := 3
+@export var damage := 2
 var base_damage = damage
 
 func is_performable() -> bool:
-    return true
+    return enemy.last_action != "octopus_debuff_attack"  # or whatever the action name is
 
 func perform_action() -> void:
     if not enemy or not target:

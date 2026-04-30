@@ -6,7 +6,7 @@ extends EnemyAction
 var base_damage = damage
 
 func is_performable() -> bool:
-    return true
+    return enemy.last_action == "bigger_octopus_attack_debuff"
 
 func perform_action() -> void:
     if not enemy or not target:

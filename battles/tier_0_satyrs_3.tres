@@ -10,3 +10,4 @@ weight = 1.0
 gold_reward_min = 20
 gold_reward_max = 30
 enemies = ExtResource("1_jc51t")
+group = "slimes"

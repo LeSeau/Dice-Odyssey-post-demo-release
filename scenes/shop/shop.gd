@@ -27,14 +27,14 @@ const TooltipScene = preload("res://scenes/ui/dice_tooltip.tscn")
 
 @export var run_stats: RunStats
 
-var evil_dice_base_price = 150
-var giant_dice_base_price = 135
-var magma_dice_base_price = 160
-var even_dice_base_price = 130
-var odd_dice_base_price = 130
-var blue_dice_base_price = 100
-var red_dice_base_price = 100
-var green_dice_base_price = 75
+var evil_dice_base_price = 200
+var giant_dice_base_price = 180
+var magma_dice_base_price = 210
+var even_dice_base_price = 180
+var odd_dice_base_price = 180
+var blue_dice_base_price = 150
+var red_dice_base_price = 150
+var green_dice_base_price = 120
 
 var reroll_price = 20
 

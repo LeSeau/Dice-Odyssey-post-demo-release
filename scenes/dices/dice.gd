@@ -168,7 +168,8 @@ func roll_dice():
         return
 
     play_dice_roll_sound()
-
+    Global.fight_dice_rolled+=1
+    Global.dice_amount_rolled_this_turn+=1
     # Setup dice faces and values (unified for both modes)
     var faces = []
     var values = []
@@ -291,6 +292,7 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
     # High roll sound
     if Global.last_roll == 6:
         play_high_roll_sound()
+        Global.has_rolled_6_this_turn = true
 
     # Status checks
     Events.check_canalize_status.emit()
@@ -334,8 +336,7 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
         Events.dice_rolled.emit(Global.dice_type, Global.roll_value)
     else:
         Events.red_dice_rolled.emit()
-    Global.fight_dice_rolled+=1
-    Global.dice_amount_rolled_this_turn+=1
+
     Events.hover_playable_cards.emit()
 
 func _on_active_dice_changed(new_dice_type):
@@ -635,8 +636,9 @@ func _on_remove_ink_from_dice():
     ink_is_on = false
     
 func _on_display_next_roll_modifier():
-    next_roll_bonus_panel.show()
-    next_roll_bonus_label.text = "+" + str(Global.next_roll_modifier)
+    if Global.next_roll_modifier > 0:
+        next_roll_bonus_panel.show()
+        next_roll_bonus_label.text = "+" + str(Global.next_roll_modifier)
 
     
 

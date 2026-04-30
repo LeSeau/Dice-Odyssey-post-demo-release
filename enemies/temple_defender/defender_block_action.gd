@@ -2,13 +2,11 @@ extends EnemyAction
 
 const MUSCLE_STATUS = preload("res://statuses/muscle.tres")
 
-@export var block := 6
+@export var block := 7
 
 func is_performable() -> bool:
-    # Prevent blocking twice
-    if enemy.last_action == "defender_block":
-        return false
-    return true
+    return enemy.last_action == "defender_double_attack"
+
 
 func perform_action() -> void:
     if not enemy or not target:
@@ -21,7 +19,7 @@ func perform_action() -> void:
     var target_array: Array[Node] = [target]
     var status_effect := StatusEffect.new()
     var muscle := MUSCLE_STATUS.duplicate()
-    muscle.stacks = 2
+    muscle.stacks = 1
     status_effect.status = muscle
     status_effect.execute([enemy])
     Global.has_blocked_last_turn = true

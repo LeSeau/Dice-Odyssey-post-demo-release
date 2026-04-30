@@ -1,0 +1,29 @@
+[gd_scene load_steps=6 format=3 uid="uid://d1sglyt4m6vkw"]
+
+[ext_resource type="PackedScene" uid="uid://d0efyathkfg74" path="res://scenes/enemy/enemy.tscn" id="1_je4jl"]
+[ext_resource type="Resource" uid="uid://cmn22x523lfj" path="res://enemies/octopus/octopus_enemy.tres" id="2_hefhg"]
+[ext_resource type="Resource" uid="uid://dmlalq6xckyd7" path="res://enemies/octopus/bigger_octopus_enemy.tres" id="3_mle2b"]
+[ext_resource type="Resource" uid="uid://sggulmun2aob" path="res://enemies/satyr/bigger_satyr_enemy.tres" id="4_ihe7o"]
+[ext_resource type="Resource" uid="uid://0m1j3lvn7xwr" path="res://enemies/satyr/satyr_enemy.tres" id="5_fqky4"]
+
+[node name="Tier1Octopus2Satyrs2" type="Node2D"]
+
+[node name="S Octopus" parent="." instance=ExtResource("1_je4jl")]
+position = Vector2(727, 395)
+scale = Vector2(0.75, 0.75)
+stats = ExtResource("2_hefhg")
+
+[node name="B Octopus" parent="." instance=ExtResource("1_je4jl")]
+position = Vector2(853, 445)
+scale = Vector2(0.75, 0.75)
+stats = ExtResource("3_mle2b")
+
+[node name="B Satyr" parent="." instance=ExtResource("1_je4jl")]
+position = Vector2(999, 462)
+scale = Vector2(0.75, 0.75)
+stats = ExtResource("4_ihe7o")
+
+[node name="S Satyr" parent="." instance=ExtResource("1_je4jl")]
+position = Vector2(1104, 417)
+scale = Vector2(0.75, 0.75)
+stats = ExtResource("5_fqky4")

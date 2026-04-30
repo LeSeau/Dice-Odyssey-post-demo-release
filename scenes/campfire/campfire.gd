@@ -11,7 +11,7 @@ func setup(character: CharacterStats, stats: RunStats) -> void:
 
 func _on_heal_button_pressed() -> void:
     print("healing")
-    var campfire_heal = 15
+    var campfire_heal = 22
     character_stats.health += campfire_heal
     var campfire_heal_sound = preload("res://sounds/fountainheal.wav")
     SFXPlayer.play(campfire_heal_sound)

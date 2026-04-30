@@ -195,14 +195,15 @@ func _on_dice_8_gui_input(event: InputEvent) -> void:
         Events.update_roll_history_ui.emit()
         
 func _on_player_turn_started() -> void:
-    Global.red_dice_current_amount = Global.red_dice_max_amount
     Global.blue_dice_current_amount = Global.blue_dice_max_amount + Global.blue_dice_bonus_amount + Global.blue_dice_bonus_amount_fight
-    Global.evil_dice_current_amount = Global.evil_dice_max_amount
-    Global.giant_dice_current_amount = Global.giant_dice_max_amount
-    Global.magma_dice_current_amount = Global.magma_dice_max_amount
-    Global.even_dice_current_amount = Global.even_dice_max_amount
-    Global.odd_dice_current_amount = Global.odd_dice_max_amount
-    Global.green_dice_current_amount = Global.green_dice_max_amount
+    Global.red_dice_current_amount = Global.red_dice_max_amount + Global.red_dice_bonus_amount
+    Global.evil_dice_current_amount = Global.evil_dice_max_amount + Global.evil_dice_bonus_amount
+    Global.green_dice_current_amount = Global.green_dice_max_amount + Global.green_dice_bonus_amount
+    Global.giant_dice_current_amount = Global.giant_dice_max_amount + Global.giant_dice_bonus_amount
+    Global.magma_dice_current_amount = Global.magma_dice_max_amount + Global.magma_dice_bonus_amount
+    Global.even_dice_current_amount = Global.even_dice_max_amount + Global.even_dice_bonus_amount
+    Global.odd_dice_current_amount = Global.odd_dice_max_amount + Global.odd_dice_bonus_amount
+
     dice_1_label.text = str(Global.blue_dice_current_amount, "/", Global.blue_dice_max_amount)
     dice_2_label.text = str(Global.red_dice_current_amount, "/", Global.red_dice_max_amount)
     dice_3_label.text = str(Global.evil_dice_current_amount, "/", Global.evil_dice_max_amount)
@@ -212,10 +213,18 @@ func _on_player_turn_started() -> void:
     dice_7_label.text = str(Global.odd_dice_current_amount, "/", Global.odd_dice_max_amount)
     dice_8_label.text = str(Global.green_dice_current_amount, "/", Global.green_dice_max_amount)
 
-    
     Global.roll_history = []
     Events.update_roll_history_ui.emit()
+
     Global.blue_dice_bonus_amount = 0
+    Global.red_dice_bonus_amount = 0
+    Global.evil_dice_bonus_amount = 0
+    Global.green_dice_bonus_amount = 0
+    Global.giant_dice_bonus_amount = 0
+    Global.magma_dice_bonus_amount = 0
+    Global.even_dice_bonus_amount = 0
+    Global.odd_dice_bonus_amount = 0
+    Global.charged_dice_this_turn = false
    
 func _on_dice_amount_changed():
     dice_1_label.text = str(Global.blue_dice_current_amount, "/", Global.blue_dice_max_amount)
@@ -228,43 +237,41 @@ func _on_dice_amount_changed():
     dice_8_label.text = str(Global.green_dice_current_amount, "/", Global.green_dice_max_amount)
 
 func initialize_dices():
-
-    if Global.evil_dice_max_amount > 0 or Global.evil_dice_current_amount > 0:
+    if Global.evil_dice_max_amount > 0 or Global.evil_dice_current_amount > 0 or Global.evil_dice_bonus_amount > 0:
         print("evil dice appearing")
         dice_3_texture.texture = load("res://assets/images/evil6.png")
         dice_3_label.text = str(Global.evil_dice_current_amount, "/", Global.evil_dice_max_amount)
         dice_3.show()
 
-    if Global.giant_dice_max_amount > 0 or Global.giant_dice_current_amount > 0:
+    if Global.giant_dice_max_amount > 0 or Global.giant_dice_current_amount > 0 or Global.giant_dice_bonus_amount > 0:
         print("giant dice appearing")
         dice_4_texture.texture = load("res://assets/images/giant12.png")
         dice_4_label.text = str(Global.giant_dice_current_amount, "/", Global.giant_dice_max_amount)
         dice_4.show()
 
-    if Global.magma_dice_max_amount > 0 or Global.magma_dice_current_amount > 0:
+    if Global.magma_dice_max_amount > 0 or Global.magma_dice_current_amount > 0 or Global.magma_dice_bonus_amount > 0:
         print("magma dice appearing")
         dice_5_texture.texture = load("res://assets/images/magma6.png")
         dice_5_label.text = str(Global.magma_dice_current_amount, "/", Global.magma_dice_max_amount)
         dice_5.show()
 
-    if Global.even_dice_max_amount > 0 or Global.even_dice_current_amount > 0:
+    if Global.even_dice_max_amount > 0 or Global.even_dice_current_amount > 0 or Global.even_dice_bonus_amount > 0:
         print("even dice appearing")
         dice_6_texture.texture = load("res://assets/images/even8.png")
         dice_6_label.text = str(Global.even_dice_current_amount, "/", Global.even_dice_max_amount)
         dice_6.show()
 
-    if Global.odd_dice_max_amount > 0 or Global.odd_dice_current_amount > 0:
+    if Global.odd_dice_max_amount > 0 or Global.odd_dice_current_amount > 0 or Global.odd_dice_bonus_amount > 0:
         print("odd dice appearing")
         dice_7_texture.texture = load("res://assets/images/odd7.png")
         dice_7_label.text = str(Global.odd_dice_current_amount, "/", Global.odd_dice_max_amount)
         dice_7.show()
 
-    if Global.green_dice_max_amount > 0 or Global.green_dice_current_amount > 0:
+    if Global.green_dice_max_amount > 0 or Global.green_dice_current_amount > 0 or Global.green_dice_bonus_amount > 0:
         print("green dice appearing")
         dice_8_texture.texture = load("res://assets/images/green1.png")
         dice_8_label.text = str(Global.green_dice_current_amount, "/", Global.green_dice_max_amount)
         dice_8.show()
-
         
 func add_dice_slot(dice_type: String) -> int:
     var textures = [dice_1_texture, dice_2_texture, dice_3_texture, dice_4_texture, dice_5_texture, dice_6_texture, dice_7_texture,dice_8_texture]

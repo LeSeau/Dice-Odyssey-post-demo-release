@@ -1,3 +1,4 @@
+res://scenes/shop
 C:/Users/julie/Desktop/daiso august copy/build/web
 res://scenes/card_ui
 res://scenes/dices
@@ -19,5 +20,3 @@ res://scenes/modifier_handler
 res://scenes/status_handler
 res://scenes/run
 res://enemies/satyr
-res://enemies/chimera
-res://scenes/map

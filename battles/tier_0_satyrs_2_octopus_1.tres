@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="BattleStats" load_steps=3 format=3 uid="uid://bprr5qikt7at3"]
+
+[ext_resource type="PackedScene" uid="uid://dogxetst1ti87" path="res://battles/tier_0_satyrs_2_octopus_1.tscn" id="1_r8rdi"]
+[ext_resource type="Script" path="res://custom_resources/battle_stats.gd" id="2_amsuw"]
+
+[resource]
+script = ExtResource("2_amsuw")
+battle_tier = 0
+weight = 1.0
+gold_reward_min = 20
+gold_reward_max = 30
+enemies = ExtResource("1_r8rdi")
+group = "slimes"

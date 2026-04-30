@@ -1,0 +1,15 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://yvb6jjxqdc32"]
+
+[ext_resource type="Script" path="res://relics/dice_chip.gd" id="1_enpgh"]
+[ext_resource type="Texture2D" uid="uid://dcjfbiufulcpf" path="res://dice_chip.png" id="1_hlfb2"]
+
+[resource]
+script = ExtResource("1_enpgh")
+relic_name = "Dice Chip"
+id = "dice_chip"
+type = 1
+has_counter = false
+counter = 0
+starter_relic = false
+icon = ExtResource("1_hlfb2")
+tooltip = "Start each fight with 1 more random Dice on the first turn"

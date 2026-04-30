@@ -4,7 +4,7 @@ extends Resource
 
 
 const STARTING_GOLD := 25
-const STARTING_HP := 50
+const STARTING_HP := 66
 const BASE_CARD_REWARDS := 3
 const BASE_NORMAL_WEIGHT := 8.0
 const BASE_SUPPORT_WEIGHT := 2.0

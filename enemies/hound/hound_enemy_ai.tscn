@@ -1,0 +1,62 @@
+[gd_scene load_steps=14 format=3 uid="uid://pjw2cfcstja6"]
+
+[ext_resource type="Script" path="res://scenes/enemy/enemy_action_picker.gd" id="1_m86bk"]
+[ext_resource type="Script" path="res://enemies/hound/hound_attack_action_fight_start.gd" id="2_b0wun"]
+[ext_resource type="Script" path="res://enemies/hound/hound_attack_action.gd" id="2_cc1pb"]
+[ext_resource type="Texture2D" uid="uid://cm56j6ual41dr" path="res://attack_icon_intent.png" id="3_i5061"]
+[ext_resource type="Script" path="res://enemies/hound/hound_block_action.gd" id="3_tbpq8"]
+[ext_resource type="Script" path="res://custom_resources/intent.gd" id="4_3dyvs"]
+[ext_resource type="Script" path="res://enemies/hound/hound_attack_action_2.gd" id="4_cb3bk"]
+[ext_resource type="AudioStream" uid="uid://de2ryat1pxq6" path="res://art/enemy_attack.ogg" id="5_i0jb2"]
+[ext_resource type="Texture2D" uid="uid://ckf4qt26na5g7" path="res://debuff_intent.png" id="7_33q2o"]
+
+[sub_resource type="Resource" id="Resource_rx4yt"]
+script = ExtResource("4_3dyvs")
+base_text = "2x%s"
+icon = ExtResource("3_i5061")
+
+[sub_resource type="Resource" id="Resource_aid2n"]
+script = ExtResource("4_3dyvs")
+base_text = "%s"
+icon = ExtResource("3_i5061")
+
+[sub_resource type="Resource" id="Resource_gu5gg"]
+script = ExtResource("4_3dyvs")
+base_text = ""
+icon = ExtResource("7_33q2o")
+
+[sub_resource type="Resource" id="Resource_rs4nu"]
+script = ExtResource("4_3dyvs")
+base_text = "2x%s"
+icon = ExtResource("3_i5061")
+
+[node name="HoundEnemyAI" type="Node"]
+script = ExtResource("1_m86bk")
+
+[node name="HoundAttackActionFightStart" type="Node" parent="."]
+script = ExtResource("2_b0wun")
+intent = SubResource("Resource_rx4yt")
+sound = ExtResource("5_i0jb2")
+
+[node name="HoundAttackAction" type="Node" parent="."]
+script = ExtResource("2_cc1pb")
+intent = SubResource("Resource_aid2n")
+sound = ExtResource("5_i0jb2")
+type = 1
+chance_weight = 3.3
+action_id = "hound_attack"
+
+[node name="HoundDebuffAction" type="Node" parent="."]
+script = ExtResource("3_tbpq8")
+intent = SubResource("Resource_gu5gg")
+type = 1
+chance_weight = 3.3
+action_id = "hound_debuff"
+
+[node name="HoundDoubleAttackAction" type="Node" parent="."]
+script = ExtResource("4_cb3bk")
+intent = SubResource("Resource_rs4nu")
+sound = ExtResource("5_i0jb2")
+type = 1
+chance_weight = 3.3
+action_id = "hound_double_attack"

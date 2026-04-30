@@ -1,0 +1,111 @@
+[gd_scene load_steps=18 format=3 uid="uid://bgkue8tsbpylp"]
+
+[ext_resource type="Script" path="res://scenes/shop/card_shop.gd" id="1_sj8q3"]
+[ext_resource type="Script" path="res://custom_resources/relic.gd" id="2_hlcxd"]
+[ext_resource type="Texture2D" uid="uid://cjl8f526yke17" path="res://campfire_bg.png" id="2_up4lr"]
+[ext_resource type="Resource" uid="uid://d1hg48cey4d5d" path="res://relics/arcane_hat.tres" id="3_gxbgt"]
+[ext_resource type="PackedScene" uid="uid://bel25lww6qcw4" path="res://scenes/shop/shop_card.tscn" id="3_h1sm7"]
+[ext_resource type="Resource" uid="uid://cakchay7xwhga" path="res://relics/blood_sword.tres" id="4_6fpu7"]
+[ext_resource type="PackedScene" uid="uid://by8dt1onfbykt" path="res://scenes/shop/shop_relic.tscn" id="4_wjtdx"]
+[ext_resource type="Resource" uid="uid://byjbcudf4rh2q" path="res://relics/clover.tres" id="5_y406q"]
+[ext_resource type="Resource" uid="uid://cyenmg61sh2o4" path="res://relics/hunting_bow.tres" id="6_ncno0"]
+[ext_resource type="Resource" uid="uid://dpio0aysms7rj" path="res://relics/magic_sleeve.tres" id="7_lw1ag"]
+[ext_resource type="Resource" uid="uid://b8rykkiou6gu7" path="res://relics/runic_shield.tres" id="8_87y4j"]
+[ext_resource type="Resource" uid="uid://bbokk33ecpeq2" path="res://relics/sledgehammer.tres" id="9_h7t8v"]
+[ext_resource type="Resource" uid="uid://dn1kbuqp83m6y" path="res://relics/spyglass.tres" id="10_7i4pi"]
+[ext_resource type="Resource" uid="uid://1p6lk2kyn3fi" path="res://relics/volcanic_rock.tres" id="11_cs10h"]
+[ext_resource type="Resource" uid="uid://dqw5p0yla10kc" path="res://relics/war_horn.tres" id="12_m5yxb"]
+[ext_resource type="Resource" uid="uid://dn2ygkdslg7x2" path="res://relics/hidden_dagger.tres" id="13_lq166"]
+[ext_resource type="Resource" uid="uid://bmibvwv5u41l6" path="res://relics/runic_bones.tres" id="14_bal2l"]
+
+[node name="CardShop" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_sj8q3")
+shop_relics = Array[ExtResource("2_hlcxd")]([ExtResource("3_gxbgt"), ExtResource("4_6fpu7"), ExtResource("5_y406q"), ExtResource("6_ncno0"), ExtResource("7_lw1ag"), ExtResource("8_87y4j"), ExtResource("9_h7t8v"), ExtResource("10_7i4pi"), ExtResource("11_cs10h"), ExtResource("12_m5yxb"), ExtResource("13_lq166"), ExtResource("14_bal2l")])
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_up4lr")
+expand_mode = 3
+stretch_mode = 6
+
+[node name="BackgroundDimmer" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.00392157, 0, 0, 0.443137)
+
+[node name="Button" type="Button" parent="."]
+layout_mode = 0
+offset_left = 1024.0
+offset_top = 587.0
+offset_right = 1236.0
+offset_bottom = 645.0
+text = "Leave"
+
+[node name="ShopContent" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -184.0
+offset_top = -132.5
+offset_right = 184.0
+offset_bottom = 132.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Cards" type="HBoxContainer" parent="ShopContent"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_constants/separation = 20
+
+[node name="ShopCard" parent="ShopContent/Cards" instance=ExtResource("3_h1sm7")]
+layout_mode = 2
+
+[node name="ShopCard2" parent="ShopContent/Cards" instance=ExtResource("3_h1sm7")]
+layout_mode = 2
+
+[node name="ShopCard3" parent="ShopContent/Cards" instance=ExtResource("3_h1sm7")]
+layout_mode = 2
+
+[node name="ShopCard4" parent="ShopContent/Cards" instance=ExtResource("3_h1sm7")]
+layout_mode = 2
+
+[node name="ShopCard5" parent="ShopContent/Cards" instance=ExtResource("3_h1sm7")]
+layout_mode = 2
+
+[node name="Relics" type="HBoxContainer" parent="ShopContent"]
+unique_name_in_owner = true
+layout_mode = 2
+alignment = 2
+
+[node name="ShopRelic" parent="ShopContent/Relics" instance=ExtResource("4_wjtdx")]
+layout_mode = 2
+
+[node name="ShopRelic2" parent="ShopContent/Relics" instance=ExtResource("4_wjtdx")]
+layout_mode = 2
+
+[node name="ShopRelic3" parent="ShopContent/Relics" instance=ExtResource("4_wjtdx")]
+layout_mode = 2
+
+[connection signal="pressed" from="Button" to="." method="_on_button_pressed"]

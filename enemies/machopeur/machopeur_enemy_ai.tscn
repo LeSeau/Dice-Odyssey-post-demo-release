@@ -26,9 +26,10 @@ script = ExtResource("2_r4w2v")
 intent = SubResource("Resource_ceydt")
 sound = ExtResource("5_xo232")
 type = 1
-chance_weight = 10.0
+chance_weight = 1.0
 
 [node name="MachopeurBuffAction" type="Node" parent="."]
 script = ExtResource("3_1o7ju")
 intent = SubResource("Resource_lxlm7")
 sound = ExtResource("5_xo232")
+chance_weight = 10.0

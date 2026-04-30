@@ -5,12 +5,14 @@ const EXPOSED_STATUS = preload("res://statuses/exposed.tres")
 const WEAK_STATUS = preload("res://statuses/weak.tres")
 
 var exposed_duration := 2
-var weak_duration := 2
+var weak_stacks := 2
 
-@export var damage := 4
+@export var damage := 3
 var base_damage = damage
 
 func is_performable() -> bool:
+    if enemy.last_action == "bigger_satyr_attack_debuff" and enemy.last_action_count >= 2:
+        return false
     return true
 
 
@@ -28,7 +30,7 @@ func perform_action() -> void:
     
     var status_effect := StatusEffect.new()
     var weak := WEAK_STATUS.duplicate()
-    weak.duration = weak_duration
+    weak.stacks = weak_stacks
     status_effect.status = weak
     status_effect.execute([target])
     
