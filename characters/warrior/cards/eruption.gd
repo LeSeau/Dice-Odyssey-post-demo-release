@@ -3,7 +3,7 @@ extends Card
 
 func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void: 
     Events.reset_charged_card.emit()
-    if Global.roll_value >= 6:
+    if Global.roll_value == 6:
         Global.magma_dice_current_amount+=2
         Events.change_current_power.emit()
         var support_effect := SupportEffect.new()

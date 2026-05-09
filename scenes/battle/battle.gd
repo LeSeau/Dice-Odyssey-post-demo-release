@@ -371,3 +371,7 @@ func _any_tutorial_panel_visible() -> bool:
         if child.visible:
             return true
     return false
+
+
+func _on_exit_button_pressed() -> void:
+    scout_panel.hide()

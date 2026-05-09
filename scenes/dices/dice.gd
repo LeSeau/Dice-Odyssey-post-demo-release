@@ -134,7 +134,12 @@ func _ready():
 func roll_dice():
     var can_roll = false
     dice_type = Global.dice_type
-
+    # Flux check
+    if not Global.roll_history.is_empty():
+        for enemy in get_tree().get_nodes_in_group("enemies"):
+            if enemy.status_handler._has_status("flux"):
+                play_error_sound()
+                return
     # Check if we can roll this type
     match dice_type:
         "blue":
@@ -206,7 +211,9 @@ func roll_dice():
 
     # Determine the roll result index
     var roll_index = randi() % values.size()
+    Events.check_unlucky_status.emit()
     Events.check_lucky_status.emit()
+
     # Handle guaranteed rolls
     if Global.next_guaranteed_roll != 0:
         var target_value = Global.next_guaranteed_roll
@@ -279,6 +286,9 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
 
     Global.roll_value += Global.last_roll
     current_power.text = str(Global.roll_value)
+    var power_tween = create_tween()
+    power_tween.tween_property(current_power, "scale", Vector2(1.4, 1.4), 0.07)
+    power_tween.tween_property(current_power, "scale", Vector2(1.0, 1.0), 0.12).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
     
     # Magma dice special effect
     if dice_type == "magma": 
@@ -305,6 +315,7 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
     current_power.text = str(Global.roll_value + Global.next_roll_modifier)
     if Global.next_roll_modifier != 0:
         Global.roll_value += Global.next_roll_modifier
+        Global.roll_value = max(0, Global.roll_value)
         if Global.next_roll_modifier < 0:
             play_weak_dice_sound()
         else:
@@ -312,6 +323,8 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
         Global.next_roll_modifier = 0
         animation_player_power.play("power_change")
         next_roll_bonus_panel.hide()
+
+    current_power.text = str(Global.roll_value)
 
     # Update roll history
     Global.roll_history.append(Global.last_roll)
@@ -338,6 +351,7 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
         Events.red_dice_rolled.emit()
 
     Events.hover_playable_cards.emit()
+
 
 func _on_active_dice_changed(new_dice_type):
     SFXPlayer.play(Global.sfx_click)

@@ -40,7 +40,7 @@ const SHOP_SCENE := preload ("res://scenes/shop/card_shop.tscn")
 
 @export var event_stats_pool: EventStatsPool
 @export var battle_stats_pool: BattleStatsPool 
-@export var elite_relic_pool: Array[Relic]
+@export var elite_relic_pool: RelicPool
 
 var stats: RunStats
 var character: CharacterStats
@@ -352,21 +352,10 @@ func _on_event_room_entered(room: Room) ->  void:
     
 # Helper function to generate a relic for elite rewards
 func _generate_elite_relic() -> Relic:
-
-    var available_relics := elite_relic_pool
-    
-    # Filter relics similar to treasure room
-    available_relics = available_relics.filter(
-        func(relic: Relic):
-            var can_appear := relic.can_appear_as_reward(character)
-            var already_have := relic_handler.has_relic(relic.id)
-            return can_appear and not already_have
-    )
-    
-    if available_relics.is_empty():
+    if not elite_relic_pool:
+        push_error("No elite relic pool assigned!")
         return null
-        
-    return available_relics.pick_random()
+    return elite_relic_pool.get_random_relic(character, relic_handler)
 
 func _on_battle_won() -> void:
     print("battle won!")

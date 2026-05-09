@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://deprxl041o8nn"]
+[gd_scene load_steps=13 format=3 uid="uid://deprxl041o8nn"]
 
 [ext_resource type="Script" path="res://scenes/map/map.gd" id="1_bw6fj"]
 [ext_resource type="Script" path="res://scenes/map/map_generator.gd" id="2_biuuq"]
@@ -10,6 +10,7 @@
 [ext_resource type="Texture2D" uid="uid://dk5mwssfa4snd" path="res://elite_fight_icon_v2.png" id="8_ft5nu"]
 [ext_resource type="Texture2D" uid="uid://dultdsfjqpq6p" path="res://events_icon_map.png" id="9_6yelc"]
 [ext_resource type="Texture2D" uid="uid://8t5hsrgvdtxg" path="res://treasurenobg.png" id="10_cfghj"]
+[ext_resource type="Texture2D" uid="uid://ds5q0r5yw8u82" path="res://shop_icon_nano3.png" id="10_xuouu"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ifwcs"]
 bg_color = Color(0.246036, 0.403102, 0.363782, 1)
@@ -70,6 +71,10 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = -4.0
+offset_top = -62.0
+offset_right = -4.0
+offset_bottom = -2.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_ifwcs")
@@ -139,12 +144,31 @@ theme_override_fonts/font = ExtResource("7_0tp22")
 theme_override_font_sizes/font_size = 24
 text = "Event"
 
+[node name="HBoxContainer5" type="HBoxContainer" parent="MapLegend/Control/Panel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+
+[node name="TextureRect" type="TextureRect" parent="MapLegend/Control/Panel/VBoxContainer/HBoxContainer5"]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+size_flags_vertical = 3
+texture = ExtResource("10_xuouu")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="MapLegend/Control/Panel/VBoxContainer/HBoxContainer5"]
+layout_mode = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("7_0tp22")
+theme_override_font_sizes/font_size = 24
+text = "Shop"
+
 [node name="HBoxContainer4" type="HBoxContainer" parent="MapLegend/Control/Panel/VBoxContainer"]
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 
 [node name="TextureRect" type="TextureRect" parent="MapLegend/Control/Panel/VBoxContainer/HBoxContainer4"]
-custom_minimum_size = Vector2(48, 48)
+custom_minimum_size = Vector2(44, 44)
 layout_mode = 2
 size_flags_vertical = 3
 texture = ExtResource("10_cfghj")

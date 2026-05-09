@@ -7,7 +7,7 @@ const WEAK_STATUS = preload("res://statuses/weak.tres")
 var exposed_duration := 2
 var chaos_duration := 1
 
-@export var damage := 3
+@export var damage := 4
 var base_damage = damage
 
 

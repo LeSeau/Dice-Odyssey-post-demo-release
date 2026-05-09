@@ -242,36 +242,48 @@ func initialize_dices():
         dice_3_texture.texture = load("res://assets/images/evil6.png")
         dice_3_label.text = str(Global.evil_dice_current_amount, "/", Global.evil_dice_max_amount)
         dice_3.show()
+    else:
+        dice_3.hide()
 
     if Global.giant_dice_max_amount > 0 or Global.giant_dice_current_amount > 0 or Global.giant_dice_bonus_amount > 0:
         print("giant dice appearing")
         dice_4_texture.texture = load("res://assets/images/giant12.png")
         dice_4_label.text = str(Global.giant_dice_current_amount, "/", Global.giant_dice_max_amount)
         dice_4.show()
+    else:
+        dice_4.hide()
 
     if Global.magma_dice_max_amount > 0 or Global.magma_dice_current_amount > 0 or Global.magma_dice_bonus_amount > 0:
         print("magma dice appearing")
         dice_5_texture.texture = load("res://assets/images/magma6.png")
         dice_5_label.text = str(Global.magma_dice_current_amount, "/", Global.magma_dice_max_amount)
         dice_5.show()
+    else:
+        dice_5.hide()
 
     if Global.even_dice_max_amount > 0 or Global.even_dice_current_amount > 0 or Global.even_dice_bonus_amount > 0:
         print("even dice appearing")
         dice_6_texture.texture = load("res://assets/images/even8.png")
         dice_6_label.text = str(Global.even_dice_current_amount, "/", Global.even_dice_max_amount)
         dice_6.show()
+    else:
+        dice_6.hide()
 
     if Global.odd_dice_max_amount > 0 or Global.odd_dice_current_amount > 0 or Global.odd_dice_bonus_amount > 0:
         print("odd dice appearing")
         dice_7_texture.texture = load("res://assets/images/odd7.png")
         dice_7_label.text = str(Global.odd_dice_current_amount, "/", Global.odd_dice_max_amount)
         dice_7.show()
+    else:
+        dice_7.hide()
 
     if Global.green_dice_max_amount > 0 or Global.green_dice_current_amount > 0 or Global.green_dice_bonus_amount > 0:
         print("green dice appearing")
         dice_8_texture.texture = load("res://assets/images/green1.png")
         dice_8_label.text = str(Global.green_dice_current_amount, "/", Global.green_dice_max_amount)
         dice_8.show()
+    else:
+        dice_8.hide()
         
 func add_dice_slot(dice_type: String) -> int:
     var textures = [dice_1_texture, dice_2_texture, dice_3_texture, dice_4_texture, dice_5_texture, dice_6_texture, dice_7_texture,dice_8_texture]

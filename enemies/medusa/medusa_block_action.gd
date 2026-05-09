@@ -23,7 +23,7 @@ func perform_action() -> void:
     block_effect.execute([enemy])
     var status_effect := StatusEffect.new()
     var muscle := MUSCLE_STATUS.duplicate()
-    muscle.stacks = 2
+    muscle.stacks = 3
     status_effect.status = muscle
     status_effect.execute([enemy])
     Global.has_blocked_last_turn = true

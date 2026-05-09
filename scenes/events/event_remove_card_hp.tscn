@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scenes/events/event_remove_card_hp.gd" id="1_j8jte"]
 [ext_resource type="Texture2D" uid="uid://cixhe0hba0c1" path="res://assets/images/scroll.jpg" id="2_08ams"]
 [ext_resource type="FontFile" uid="uid://b2y60c4274gkj" path="res://fonts/Cinzel-Bold.otf" id="3_6uf20"]
-[ext_resource type="Texture2D" uid="uid://cqahreqvevdrs" path="res://event_remove_card.png" id="4_efl16"]
+[ext_resource type="Texture2D" uid="uid://ccrp7y1wgpdi6" path="res://oswald.png" id="4_jtibg"]
 [ext_resource type="Script" path="res://scenes/events/gain_new_card_button.gd" id="5_5lcxf"]
 [ext_resource type="FontFile" uid="uid://bfgwr7o37ol1j" path="res://Noto_Sans/static/NotoSans-Regular.ttf" id="5_fb7ji"]
 [ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="6_agd3u"]
@@ -130,9 +130,9 @@ theme_override_constants/separation = 80
 custom_minimum_size = Vector2(500, 500)
 layout_mode = 2
 size_flags_horizontal = 0
-texture = ExtResource("4_efl16")
+texture = ExtResource("4_jtibg")
 expand_mode = 1
-stretch_mode = 5
+stretch_mode = 6
 
 [node name="VBoxContainer" type="VBoxContainer" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2

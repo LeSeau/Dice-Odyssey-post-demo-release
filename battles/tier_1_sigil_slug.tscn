@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3 uid="uid://ejaty3n1bbjs"]
+
+[ext_resource type="PackedScene" uid="uid://d0efyathkfg74" path="res://scenes/enemy/enemy.tscn" id="1_4xs5g"]
+[ext_resource type="Resource" uid="uid://s7h67jgygum1" path="res://enemies/sigil_slug/sigil_enemy.tres" id="2_qvf1j"]
+
+[node name="Tier1SigilSlug" type="Node2D"]
+
+[node name="SigilSlug" parent="." instance=ExtResource("1_4xs5g")]
+position = Vector2(892, 416)
+stats = ExtResource("2_qvf1j")

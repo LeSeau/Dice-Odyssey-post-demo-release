@@ -547,7 +547,6 @@ grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("5_yualj")
 expand_mode = 1
-stretch_mode = 6
 
 [node name="RichTextLabel" type="RichTextLabel" parent="DicePanel/WinnerPanel"]
 custom_minimum_size = Vector2(0, 50)

@@ -7,8 +7,9 @@ const WHITE_SPRITE_MATERIAL := preload("res://art/white_sprite_material.tres")
 @export var stats: EnemyStats : set = set_enemy_stats
 @export var width: int 
 @export var height: int
+@onready var sprite_2d: Sprite2D = $SpriteRoot/Sprite2D
 
-@onready var sprite_2d: Sprite2D = $Sprite2D
+
 @onready var arrow: Sprite2D = $Arrow
 @onready var stats_ui: StatsUI = $StatsUI
 @onready var intent_ui: IntentUI = $IntentUI
@@ -97,7 +98,6 @@ func update_enemy() -> void:
     setup_ai()
     update_stats()
 
-
 func update_intent() -> void:
     if current_action: 
         current_action.update_intent_text()
@@ -138,7 +138,9 @@ func take_damage(damage: int, which_modifier: Modifier.Type) -> void:
             
             if stats.health <= 0:
                 Events.enemy_died.emit(self)
-                queue_free()
+                var death_tween := create_tween()
+                death_tween.tween_property(self, "modulate:a", 0.0, 0.4)
+                death_tween.tween_callback(queue_free)
     )
 
 

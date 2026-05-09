@@ -1,0 +1,50 @@
+[gd_scene load_steps=14 format=3 uid="uid://btp36eutchomm"]
+
+[ext_resource type="Script" path="res://scenes/enemy/enemy_action_picker.gd" id="1_2y3ny"]
+[ext_resource type="Script" path="res://enemies/vortex/vortex_attack_debuff_chaos.gd" id="2_qb5af"]
+[ext_resource type="Script" path="res://enemies/vortex/vortex_attack_action.gd" id="2_v8qc0"]
+[ext_resource type="Texture2D" uid="uid://bq5udms3e2sq4" path="res://debuff_icon_purple.png" id="3_4j7xa"]
+[ext_resource type="Texture2D" uid="uid://cm56j6ual41dr" path="res://attack_icon_intent.png" id="3_4ubyf"]
+[ext_resource type="Script" path="res://custom_resources/intent.gd" id="4_c4he8"]
+[ext_resource type="AudioStream" uid="uid://de2ryat1pxq6" path="res://art/enemy_attack.ogg" id="5_qabut"]
+[ext_resource type="Script" path="res://enemies/vortex/vortex_buff.gd" id="6_hpext"]
+[ext_resource type="Texture2D" uid="uid://coa7pi62qv88k" path="res://assets/images/shield.png" id="9_4x4hy"]
+[ext_resource type="AudioStream" uid="uid://df64e7qat73gs" path="res://art/block.ogg" id="10_baxgj"]
+
+[sub_resource type="Resource" id="Resource_a4lrc"]
+script = ExtResource("4_c4he8")
+base_text = ""
+icon = ExtResource("3_4j7xa")
+
+[sub_resource type="Resource" id="Resource_rl7c7"]
+script = ExtResource("4_c4he8")
+base_text = "%s"
+icon = ExtResource("3_4ubyf")
+
+[sub_resource type="Resource" id="Resource_e865r"]
+script = ExtResource("4_c4he8")
+base_text = ""
+icon = ExtResource("9_4x4hy")
+
+[node name="VortexEnemyAi" type="Node"]
+script = ExtResource("1_2y3ny")
+
+[node name="VortexAttackChaos" type="Node" parent="."]
+script = ExtResource("2_qb5af")
+intent = SubResource("Resource_a4lrc")
+sound = ExtResource("5_qabut")
+chance_weight = 10.0
+
+[node name="VortexAttack" type="Node" parent="."]
+script = ExtResource("2_v8qc0")
+intent = SubResource("Resource_rl7c7")
+sound = ExtResource("5_qabut")
+type = 1
+action_id = "vortex_attack"
+
+[node name="VortexBuff" type="Node" parent="."]
+script = ExtResource("6_hpext")
+intent = SubResource("Resource_e865r")
+sound = ExtResource("10_baxgj")
+type = 1
+action_id = "vortex_buff"

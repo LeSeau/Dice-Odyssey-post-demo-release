@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="BattleStats" load_steps=3 format=3 uid="uid://cggwv0oy81tfh"]
+
+[ext_resource type="PackedScene" uid="uid://b8caeyc768sbs" path="res://battles/tier_1_lurker.tscn" id="1_182iw"]
+[ext_resource type="Script" path="res://custom_resources/battle_stats.gd" id="2_n3p34"]
+
+[resource]
+script = ExtResource("2_n3p34")
+battle_tier = 0
+weight = 10.0
+gold_reward_min = 30
+gold_reward_max = 40
+enemies = ExtResource("1_182iw")
+group = ""

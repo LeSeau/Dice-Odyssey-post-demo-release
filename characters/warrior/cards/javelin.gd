@@ -9,3 +9,5 @@ func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
         damage_effect.amount = modifiers.get_modified_value(base_damage, Modifier.Type.DMG_DEALT)
         damage_effect.sound = sound
         damage_effect.execute(targets)
+        #return
+    #Events.dice_roll_reset.emit()

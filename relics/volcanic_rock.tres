@@ -12,4 +12,4 @@ has_counter = false
 counter = 0
 starter_relic = false
 icon = ExtResource("1_rhe3d")
-tooltip = "On the third turn of a fight, charge 3 Magma Dice"
+tooltip = "On the third turn of a fight, charge 2 Magma Dice"

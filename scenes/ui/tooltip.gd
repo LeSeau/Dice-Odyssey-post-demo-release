@@ -50,6 +50,8 @@ func get_tooltip_content(requirement):
         text += "Evil Dice can roll 6, 6, 6 and 0"
     elif requirement == "Lucky":
         text += "Your next roll will be the highest possible outcome."
+    elif requirement == "Unlucky":
+        text += "Your next roll will be the lowest possible outcome."
     elif requirement == "Depleted":
         text += "You have X less Blue Dice next turn for each stack."
     elif requirement == "Energized":

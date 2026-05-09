@@ -3,10 +3,9 @@ extends Status
 
 
 func initialize_status(target: Node) -> void:
-    status_changed.connect(_on_status_changed.bind(target))
-    _on_status_changed(target)
-    
     Events.check_if_losing_strength.connect(_on_check_if_losing_strength)
+    status_changed.connect(_on_status_changed.bind(target))
+    status_changed.emit()  # ← fires once cleanly with correct stacks
     
 func _on_status_changed(target: Node) -> void:
     assert(target.get("modifier_handler"), "No modifiers on %s" % target)

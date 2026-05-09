@@ -34,3 +34,19 @@ func _on_buy_relic_blood_pressed() -> void:
 
 func _on_quit_pressed() -> void:
     Events.event_exited.emit()
+
+
+func _on_get_relic_pressed() -> void:
+    generate_relic()
+    if found_relic :
+        character_stats.health-=8
+        Events.hp_changed.emit()
+        Events.show_reward_with_relic.emit(found_relic)
+
+
+func _on_get_heal_pressed() -> void:
+        character_stats.health+=16
+        Events.hp_changed.emit()
+        var campfire_heal_sound = preload("res://sounds/fountainheal.wav")
+        SFXPlayer.play(campfire_heal_sound)
+        Events.event_exited.emit()

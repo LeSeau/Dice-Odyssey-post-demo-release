@@ -41,6 +41,12 @@ func get_tooltip_content(status: Status) -> void:
             text = "Your next roll loses 1 power per stack."
         "lucky":
             text = "Your next roll will be the highest possible outcome."
+        "unlucky":
+            text = "Your next roll will be the lowest possible outcome."
+        "flux":
+            text = "This enemy prevents you from rolling the same Dice type twice in a row."
+        "berserk":
+            text = "You deal 50% more damage with Red Dice"
         "depleted":
             text = "You have 1 less Blue Dice next turn for each stack."
         "energized":

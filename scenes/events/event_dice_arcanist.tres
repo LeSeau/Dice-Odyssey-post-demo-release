@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="EventStats" load_steps=3 format=3 uid="uid://c330m1b4rpra2"]
+
+[ext_resource type="PackedScene" uid="uid://cq3diuj4ujedn" path="res://scenes/events/event_dice_arcanist.tscn" id="1_6yfa7"]
+[ext_resource type="Script" path="res://custom_resources/event_stats.gd" id="2_redju"]
+
+[resource]
+script = ExtResource("2_redju")
+event_tier = 0
+weight = 1.0
+scene = ExtResource("1_6yfa7")

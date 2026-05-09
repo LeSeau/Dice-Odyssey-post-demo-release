@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scenes/events/event_relic_or_heal.gd" id="1_bhdq1"]
 [ext_resource type="Resource" uid="uid://2if2rhy1aktn" path="res://treasure_relic_pool.tres" id="2_6xrpw"]
 [ext_resource type="Texture2D" uid="uid://cixhe0hba0c1" path="res://assets/images/scroll.jpg" id="3_gg5t2"]
-[ext_resource type="Texture2D" uid="uid://citurtbh7spvs" path="res://buy_relic_event.png" id="4_0r337"]
+[ext_resource type="Texture2D" uid="uid://no0in668prxd" path="res://relic_or_heal.png" id="4_k3e02"]
 [ext_resource type="FontFile" uid="uid://bfgwr7o37ol1j" path="res://Noto_Sans/static/NotoSans-Regular.ttf" id="5_f1ve2"]
 [ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="6_wr10k"]
 
@@ -109,8 +109,7 @@ offset_right = 570.0
 offset_bottom = 25.0
 grow_horizontal = 2
 grow_vertical = 2
-text = "Relic or Heal
-"
+text = "Wave of energy"
 label_settings = SubResource("LabelSettings_ajccg")
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -124,9 +123,9 @@ theme_override_constants/separation = 80
 custom_minimum_size = Vector2(500, 500)
 layout_mode = 2
 size_flags_horizontal = 0
-texture = ExtResource("4_0r337")
+texture = ExtResource("4_k3e02")
 expand_mode = 1
-stretch_mode = 5
+stretch_mode = 6
 
 [node name="VBoxContainer" type="VBoxContainer" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
@@ -138,10 +137,10 @@ layout_mode = 2
 mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("5_f1ve2")
 bbcode_enabled = true
-text = "You encounter Germondo the relic collector.
-[p] [p]\"Welcome to my shop! How would you like to pay? [color=yellow]Relic[/color] or [color=green]Heal[/color]?\"
+text = "As you sit down to rest, you feel a [color=purple]sudden wave of energy.[/color]
+[p] [p]You can [color=green]use this energy to heal[/color], or dive much deeper into your mind and [color=yellow]discover something[/color], which might cost your sanity. [color=yellow]
 [p] 
-[color=pink]Creepy guy.[/color]"
+[color=pink]The energy you feel starts to reach uncomfortable levels.[/color]"
 fit_content = true
 
 [node name="VBoxContainer" type="VBoxContainer" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer"]
@@ -170,7 +169,7 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("6_wr10k")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[center]Get a Relic![color=gold] Gain a Relic.[/color]  [/center]
+text = "[center]Dive deeper.[color=gold] Gain a Relic.[/color] [color=red] Lose 8 HP[/color] [/center]
 "
 scroll_active = false
 
@@ -193,7 +192,7 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("6_wr10k")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[center]Heal [color=green]Heal 19 HP.[/color]  [/center]
+text = "[center]Absorb the Energy. [color=green]Heal 16 HP.[/color]  [/center]
 "
 scroll_active = false
 
@@ -220,3 +219,6 @@ bbcode_enabled = true
 text = "[center]No thanks.[color=gray] Leave...[/color][/center]
 "
 scroll_active = false
+
+[connection signal="pressed" from="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/GetRelic" to="." method="_on_get_relic_pressed"]
+[connection signal="pressed" from="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/GetHeal" to="." method="_on_get_heal_pressed"]

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="BattleStats" load_steps=3 format=3 uid="uid://djisx67h35yw2"]
+
+[ext_resource type="PackedScene" uid="uid://drwyqnwgrqj08" path="res://battles/tier_2_vortex.tscn" id="1_geb6x"]
+[ext_resource type="Script" path="res://custom_resources/battle_stats.gd" id="2_cxkrg"]
+
+[resource]
+script = ExtResource("2_cxkrg")
+battle_tier = 2
+weight = 1.0
+gold_reward_min = 40
+gold_reward_max = 50
+enemies = ExtResource("1_geb6x")
+group = ""

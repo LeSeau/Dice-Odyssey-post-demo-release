@@ -1,0 +1,12 @@
+[gd_scene load_steps=3 format=3 uid="uid://drwyqnwgrqj08"]
+
+[ext_resource type="PackedScene" uid="uid://d0efyathkfg74" path="res://scenes/enemy/enemy.tscn" id="1_hrbe0"]
+[ext_resource type="Resource" uid="uid://b66s0x2qura8o" path="res://enemies/vortex/vortex_enemy.tres" id="2_n8nm5"]
+
+[node name="Tier2Vortex" type="Node2D"]
+
+[node name="Vortex" parent="." instance=ExtResource("1_hrbe0")]
+position = Vector2(858, 438)
+stats = ExtResource("2_n8nm5")
+width = 300
+height = 350

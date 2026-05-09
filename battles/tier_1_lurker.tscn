@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3 uid="uid://b8caeyc768sbs"]
+
+[ext_resource type="PackedScene" uid="uid://d0efyathkfg74" path="res://scenes/enemy/enemy.tscn" id="1_2n56x"]
+[ext_resource type="Resource" uid="uid://c7qhuk5xx6jry" path="res://enemies/lurker/lurker_enemy.tres" id="2_6t68l"]
+
+[node name="Tier1Lurker" type="Node2D"]
+
+[node name="Lurker" parent="." instance=ExtResource("1_2n56x")]
+position = Vector2(892, 416)
+stats = ExtResource("2_6t68l")

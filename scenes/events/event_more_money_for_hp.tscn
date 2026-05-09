@@ -1,0 +1,224 @@
+[gd_scene load_steps=11 format=3 uid="uid://covy30hpkxrnu"]
+
+[ext_resource type="Script" path="res://scenes/events/event_test.gd" id="1_ypyg3"]
+[ext_resource type="Texture2D" uid="uid://cixhe0hba0c1" path="res://assets/images/scroll.jpg" id="2_debul"]
+[ext_resource type="Texture2D" uid="uid://bblvcj7djg1rp" path="res://dark_chest_ok.png" id="3_6t1lg"]
+[ext_resource type="FontFile" uid="uid://bfgwr7o37ol1j" path="res://Noto_Sans/static/NotoSans-Regular.ttf" id="4_yuyqi"]
+[ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="5_h12v7"]
+
+[sub_resource type="Gradient" id="Gradient_n2u7c"]
+colors = PackedColorArray(0.972549, 0.913725, 0.631373, 1, 0.705882, 0.772549, 0.894118, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_fj5ld"]
+gradient = SubResource("Gradient_n2u7c")
+fill_to = Vector2(0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_oau2j"]
+bg_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sbp1t"]
+bg_color = Color(0.63264, 0.534451, 0.857609, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_ajccg"]
+font_size = 28
+font_color = Color(1, 1, 0.160784, 1)
+
+[node name="MoreMoneyForHP" type="Control"]
+custom_minimum_size = Vector2(1280, 720)
+layout_mode = 3
+anchors_preset = 0
+offset_top = 35.0
+offset_right = 1280.0
+offset_bottom = 755.0
+script = ExtResource("1_ypyg3")
+
+[node name="TextureRect" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = SubResource("GradientTexture2D_fj5ld")
+
+[node name="MarginContainer" type="MarginContainer" parent="TextureRect"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 50
+theme_override_constants/margin_top = 50
+theme_override_constants/margin_right = 50
+theme_override_constants/margin_bottom = 50
+
+[node name="Panel" type="Panel" parent="TextureRect/MarginContainer"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_oau2j")
+
+[node name="TextureRect" type="TextureRect" parent="TextureRect/MarginContainer/Panel"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_debul")
+expand_mode = 1
+
+[node name="MarginContainer" type="MarginContainer" parent="TextureRect/MarginContainer/Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="VBoxContainer" type="VBoxContainer" parent="TextureRect/MarginContainer/Panel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="Panel" type="Panel" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_sbp1t")
+
+[node name="Label" type="Label" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/Panel"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -570.0
+offset_top = -25.0
+offset_right = 570.0
+offset_bottom = 25.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Dark chest"
+label_settings = SubResource("LabelSettings_ajccg")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 80
+
+[node name="TextureRect" type="TextureRect" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(500, 500)
+layout_mode = 2
+size_flags_horizontal = 0
+texture = ExtResource("3_6t1lg")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="VBoxContainer" type="VBoxContainer" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 60
+
+[node name="RichTextLabel" type="RichTextLabel" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer"]
+custom_minimum_size = Vector2(400, 350)
+layout_mode = 2
+theme_override_fonts/normal_font = ExtResource("4_yuyqi")
+bbcode_enabled = true
+text = "You find a chest with a dark, glowing aura.
+
+There is an impressive amount of [color=gold]Gold[/color] on the ground but... much more inside that chest.
+
+The aura makes it clear it will have [color=red]painful consequences[/color] to touch the chest.
+
+"
+fit_content = true
+
+[node name="VBoxContainer" type="VBoxContainer" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer"]
+custom_minimum_size = Vector2(500, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 10
+theme_override_constants/separation = 12
+
+[node name="AcceptButton" type="Button" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer"]
+custom_minimum_size = Vector2(300, 40)
+layout_mode = 2
+
+[node name="RichTextLabel" type="RichTextLabel" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/AcceptButton"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -10.0
+offset_bottom = 30.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_fonts/normal_font = ExtResource("5_h12v7")
+theme_override_font_sizes/normal_font_size = 20
+bbcode_enabled = true
+text = "[center] Only take the coins on the ground. [color=green]Gain 45 Gold.[/color][/center]
+"
+scroll_active = false
+
+[node name="MoreMoneyButton" type="Button" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer"]
+custom_minimum_size = Vector2(300, 40)
+layout_mode = 2
+
+[node name="RichTextLabel" type="RichTextLabel" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/MoreMoneyButton"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -10.0
+offset_bottom = 30.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_fonts/normal_font = ExtResource("5_h12v7")
+theme_override_font_sizes/normal_font_size = 20
+bbcode_enabled = true
+text = "[center] Go for the whole thing. [color=green]Gain 110 Gold.[/color]   [color=red]Lose 10 HP.[/color][/center]
+"
+scroll_active = false
+
+[node name="LeaveButton" type="Button" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer"]
+visible = false
+custom_minimum_size = Vector2(300, 40)
+layout_mode = 2
+
+[node name="RichTextLabel" type="RichTextLabel" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/LeaveButton"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -10.0
+offset_bottom = 30.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_fonts/normal_font = ExtResource("5_h12v7")
+theme_override_font_sizes/normal_font_size = 20
+bbcode_enabled = true
+text = "[center]Who is this freak? [color=gray]Quietly leave...[/color][/center]
+"
+scroll_active = false
+
+[connection signal="pressed" from="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/AcceptButton" to="." method="_on_accept_button_pressed"]
+[connection signal="pressed" from="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/MoreMoneyButton" to="." method="_on_more_money_button_pressed"]

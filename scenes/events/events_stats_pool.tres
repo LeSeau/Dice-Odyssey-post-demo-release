@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="EventStatsPool" load_steps=13 format=3 uid="uid://dih15xjxqnjvm"]
+[gd_resource type="Resource" script_class="EventStatsPool" load_steps=16 format=3 uid="uid://dih15xjxqnjvm"]
 
 [ext_resource type="Script" path="res://custom_resources/event_stats.gd" id="1_1o3oj"]
 [ext_resource type="Resource" uid="uid://dcw1xrmomcaom" path="res://scenes/events/event_add_new_card.tres" id="2_fe2a0"]
@@ -12,7 +12,10 @@
 [ext_resource type="Resource" uid="uid://nkuh0owxh72e" path="res://scenes/events/event_remove_card_hp.tres" id="8_aoccr"]
 [ext_resource type="Resource" uid="uid://bujmj7agvpg2y" path="res://scenes/events/event_buy_relic.tres" id="10_r2ghg"]
 [ext_resource type="Resource" uid="uid://bv4n67mfwn7ya" path="res://scenes/events/event_relic_or_cards.tres" id="11_ed1fw"]
+[ext_resource type="Resource" uid="uid://khcn03j3k3o4" path="res://scenes/events/event_relic_or_heal.tres" id="12_e17ra"]
+[ext_resource type="Resource" uid="uid://c330m1b4rpra2" path="res://scenes/events/event_dice_arcanist.tres" id="13_ol1td"]
+[ext_resource type="Resource" uid="uid://bj2ou20igy0rd" path="res://scenes/events/event_more_money_for_hp.tres" id="14_cgcno"]
 
 [resource]
 script = ExtResource("2_ry2tl")
-pool = Array[ExtResource("1_1o3oj")]([ExtResource("2_fe2a0"), ExtResource("4_37for"), ExtResource("5_5uosp"), ExtResource("3_vdhyb"), ExtResource("6_yfmgm"), ExtResource("7_deatg"), ExtResource("8_aoccr"), ExtResource("8_6dtv5"), ExtResource("10_r2ghg"), ExtResource("11_ed1fw")])
+pool = Array[ExtResource("1_1o3oj")]([ExtResource("2_fe2a0"), ExtResource("4_37for"), ExtResource("5_5uosp"), ExtResource("3_vdhyb"), ExtResource("6_yfmgm"), ExtResource("7_deatg"), ExtResource("8_aoccr"), ExtResource("8_6dtv5"), ExtResource("10_r2ghg"), ExtResource("11_ed1fw"), ExtResource("12_e17ra"), ExtResource("13_ol1td"), ExtResource("14_cgcno")])

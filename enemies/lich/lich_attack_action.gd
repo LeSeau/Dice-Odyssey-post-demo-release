@@ -1,6 +1,6 @@
 extends EnemyAction
 
-@export var damage := 6
+@export var damage := 8
 @onready var modifier_handler: ModifierHandler = $"../ModifierHandler"
 
 

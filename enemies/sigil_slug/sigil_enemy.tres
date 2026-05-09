@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="EnemyStats" load_steps=4 format=3 uid="uid://s7h67jgygum1"]
+
+[ext_resource type="PackedScene" uid="uid://dylibuut0hlr7" path="res://enemies/sigil_slug/sigil_enemy_ai.tscn" id="1_p58ir"]
+[ext_resource type="Texture2D" uid="uid://rb2tac0rnxag" path="res://sigil_slug.png" id="2_66hyw"]
+[ext_resource type="Script" path="res://custom_resources/enemy_stats.gd" id="3_455va"]
+
+[resource]
+script = ExtResource("3_455va")
+ai = ExtResource("1_p58ir")
+max_health = 27
+art = ExtResource("2_66hyw")

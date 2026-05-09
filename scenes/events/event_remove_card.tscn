@@ -2,9 +2,9 @@
 
 [ext_resource type="Script" path="res://scenes/events/event_remove_card.gd" id="1_1tejn"]
 [ext_resource type="Texture2D" uid="uid://cixhe0hba0c1" path="res://assets/images/scroll.jpg" id="2_o4dls"]
-[ext_resource type="Texture2D" uid="uid://jfcbsy1fyhy0" path="res://gptbirlupax.png" id="3_8una0"]
+[ext_resource type="Texture2D" uid="uid://8tp8ltwxf6gb" path="res://birlupaxv2.png" id="3_s21r2"]
 [ext_resource type="Script" path="res://scenes/events/gain_new_card_button.gd" id="4_qsked"]
-[ext_resource type="FontFile" uid="uid://bfgwr7o37ol1j" path="res://fonts/NotoSans-Regular.ttf" id="4_yvlaf"]
+[ext_resource type="FontFile" uid="uid://bfgwr7o37ol1j" path="res://Noto_Sans/static/NotoSans-Regular.ttf" id="4_yvlaf"]
 [ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="5_b08q5"]
 
 [sub_resource type="Gradient" id="Gradient_n2u7c"]
@@ -128,9 +128,9 @@ theme_override_constants/separation = 80
 custom_minimum_size = Vector2(500, 500)
 layout_mode = 2
 size_flags_horizontal = 0
-texture = ExtResource("3_8una0")
+texture = ExtResource("3_s21r2")
 expand_mode = 1
-stretch_mode = 5
+stretch_mode = 6
 
 [node name="VBoxContainer" type="VBoxContainer" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2

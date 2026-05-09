@@ -1,8 +1,7 @@
-[gd_scene load_steps=18 format=3 uid="uid://bgkue8tsbpylp"]
+[gd_scene load_steps=21 format=3 uid="uid://bgkue8tsbpylp"]
 
 [ext_resource type="Script" path="res://scenes/shop/card_shop.gd" id="1_sj8q3"]
 [ext_resource type="Script" path="res://custom_resources/relic.gd" id="2_hlcxd"]
-[ext_resource type="Texture2D" uid="uid://cjl8f526yke17" path="res://campfire_bg.png" id="2_up4lr"]
 [ext_resource type="Resource" uid="uid://d1hg48cey4d5d" path="res://relics/arcane_hat.tres" id="3_gxbgt"]
 [ext_resource type="PackedScene" uid="uid://bel25lww6qcw4" path="res://scenes/shop/shop_card.tscn" id="3_h1sm7"]
 [ext_resource type="Resource" uid="uid://cakchay7xwhga" path="res://relics/blood_sword.tres" id="4_6fpu7"]
@@ -17,6 +16,10 @@
 [ext_resource type="Resource" uid="uid://dqw5p0yla10kc" path="res://relics/war_horn.tres" id="12_m5yxb"]
 [ext_resource type="Resource" uid="uid://dn2ygkdslg7x2" path="res://relics/hidden_dagger.tres" id="13_lq166"]
 [ext_resource type="Resource" uid="uid://bmibvwv5u41l6" path="res://relics/runic_bones.tres" id="14_bal2l"]
+[ext_resource type="Resource" uid="uid://dxfbn0i1jr0o3" path="res://relics/war_drum.tres" id="15_0rnkd"]
+[ext_resource type="Texture2D" uid="uid://ds50nthiabar3" path="res://card_shop_background.png" id="15_uslgw"]
+[ext_resource type="Resource" uid="uid://c08xty5w4xohd" path="res://relics/fuel-o-meter.tres" id="16_35415"]
+[ext_resource type="Resource" uid="uid://dn5pcdeedr816" path="res://relics/the_one.tres" id="17_016lr"]
 
 [node name="CardShop" type="Control"]
 layout_mode = 3
@@ -27,7 +30,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_sj8q3")
-shop_relics = Array[ExtResource("2_hlcxd")]([ExtResource("3_gxbgt"), ExtResource("4_6fpu7"), ExtResource("5_y406q"), ExtResource("6_ncno0"), ExtResource("7_lw1ag"), ExtResource("8_87y4j"), ExtResource("9_h7t8v"), ExtResource("10_7i4pi"), ExtResource("11_cs10h"), ExtResource("12_m5yxb"), ExtResource("13_lq166"), ExtResource("14_bal2l")])
+shop_relics = Array[ExtResource("2_hlcxd")]([ExtResource("3_gxbgt"), ExtResource("4_6fpu7"), ExtResource("5_y406q"), ExtResource("6_ncno0"), ExtResource("7_lw1ag"), ExtResource("8_87y4j"), ExtResource("9_h7t8v"), ExtResource("10_7i4pi"), ExtResource("11_cs10h"), ExtResource("12_m5yxb"), ExtResource("13_lq166"), ExtResource("14_bal2l"), ExtResource("15_0rnkd"), ExtResource("16_35415"), ExtResource("17_016lr")])
 
 [node name="Background" type="TextureRect" parent="."]
 layout_mode = 1
@@ -36,7 +39,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = ExtResource("2_up4lr")
+texture = ExtResource("15_uslgw")
 expand_mode = 3
 stretch_mode = 6
 
@@ -65,12 +68,13 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -184.0
-offset_top = -132.5
-offset_right = 184.0
-offset_bottom = 132.5
+offset_left = -328.0
+offset_top = -166.0
+offset_right = 352.0
+offset_bottom = 442.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/separation = 30
 
 [node name="Cards" type="HBoxContainer" parent="ShopContent"]
 unique_name_in_owner = true
@@ -97,7 +101,7 @@ layout_mode = 2
 [node name="Relics" type="HBoxContainer" parent="ShopContent"]
 unique_name_in_owner = true
 layout_mode = 2
-alignment = 2
+alignment = 1
 
 [node name="ShopRelic" parent="ShopContent/Relics" instance=ExtResource("4_wjtdx")]
 layout_mode = 2

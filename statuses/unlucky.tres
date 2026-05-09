@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="UnluckyStatus" load_steps=3 format=3 uid="uid://gfxsst52ctxd"]
+
+[ext_resource type="Script" path="res://statuses/unlucky.gd" id="1_l0dxl"]
+[ext_resource type="Texture2D" uid="uid://bk4l3bt3u4rr5" path="res://unlucky_status.png" id="1_p3q2i"]
+
+[resource]
+script = ExtResource("1_l0dxl")
+id = "unlucky"
+type = 2
+stack_type = 2
+can_expire = true
+duration = 0
+stacks = 0
+icon = ExtResource("1_p3q2i")
+tooltip = ""

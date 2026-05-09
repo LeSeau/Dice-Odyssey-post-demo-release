@@ -1,0 +1,15 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://dn5pcdeedr816"]
+
+[ext_resource type="Texture2D" uid="uid://qs0mp4g648qv" path="res://The One.png" id="1_ayikc"]
+[ext_resource type="Script" path="res://relics/the_one.gd" id="2_scrvc"]
+
+[resource]
+script = ExtResource("2_scrvc")
+relic_name = "The One"
+id = "the_one"
+type = 4
+has_counter = false
+counter = 0
+starter_relic = false
+icon = ExtResource("1_ayikc")
+tooltip = "The first time you roll a 1 each fight, Charge 1"

@@ -302,7 +302,7 @@ theme_override_fonts/normal_font = ExtResource("8_4fhak")
 bbcode_enabled = true
 text = "Health fountain ahead![color=yellow] [/color]
 
-[p] [p] Gain [color=green]YOUR ROLL * 3 HP. [/color]
+[p] [p] Gain [color=green]YOUR ROLL * 4 HP. [/color]
 
 "
 fit_content = true

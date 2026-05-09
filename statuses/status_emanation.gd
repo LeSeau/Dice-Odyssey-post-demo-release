@@ -1,4 +1,4 @@
-class_name EnergizedStatus
+
 extends Status
 
 const MODIFIER := 0.5

@@ -68,7 +68,7 @@ func _on_roll_dice_pressed() -> void:
 
     if roll_result!= 0:
         reward_panel.show()
-        var health_reward = roll_result * 3
+        var health_reward = roll_result * 4
         character_stats.health += health_reward 
         Events.hp_changed.emit()
 

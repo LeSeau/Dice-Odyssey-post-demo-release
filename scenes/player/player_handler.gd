@@ -25,6 +25,7 @@ func _ready() -> void:
 func start_battle(char_stats: CharacterStats) -> void:
 
     Global.fight_turn = 0
+    Global.has_rolled_1_this_fight = false
     character = char_stats
     character.draw_pile = character.deck.duplicate(true)
     character.draw_pile.shuffle()

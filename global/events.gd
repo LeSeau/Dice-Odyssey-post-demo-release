@@ -15,6 +15,7 @@ signal add_block(amount)
 signal fan_hand_requested
 signal draw_card(amount)
 signal scout_effect(amount)
+signal refuel_happened(amount)
 
 # Player-related events
 signal player_hand_drawn
@@ -65,6 +66,7 @@ signal next_roll_determined
 signal next_roll_randomized
 signal weak_effect_consumed
 signal check_lucky_status
+signal check_unlucky_status
 signal check_weak_status
 signal check_blessed_status
 signal check_canalize_status

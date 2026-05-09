@@ -7,7 +7,7 @@ const WEAK_STATUS = preload("res://statuses/weak.tres")
 var exposed_duration := 2
 var weak_stacks := 2
 
-@export var damage := 12
+@export var damage := 15
 var base_damage = damage
 
 func is_performable() -> bool:

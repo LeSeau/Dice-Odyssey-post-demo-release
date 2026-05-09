@@ -1,0 +1,26 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://cqdxs36w0xxsm"]
+
+[ext_resource type="Texture2D" uid="uid://cwgxjq8wo6sn8" path="res://geomancy.png" id="1_oh8ke"]
+[ext_resource type="Script" path="res://characters/warrior/cards/geomancy.gd" id="2_v5dom"]
+[ext_resource type="AudioStream" uid="uid://cy6owtfbf8sfv" path="res://sounds/fountainheal.wav" id="3_66tkx"]
+
+[resource]
+script = ExtResource("2_v5dom")
+id = "card_geomancy"
+name = "Geomancy"
+type = 1
+target = 0
+description = "Triple your Power"
+rarity = 1
+red_only = false
+can_play_without_dice = false
+requirement = 2
+requirement_number = 3
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = ""
+icon = ExtResource("1_oh8ke")
+tooltip_text = ""
+sound = ExtResource("3_66tkx")

@@ -1,4 +1,4 @@
-[gd_scene load_steps=47 format=3 uid="uid://cahno8aso5net"]
+[gd_scene load_steps=49 format=3 uid="uid://cahno8aso5net"]
 
 [ext_resource type="Script" path="res://scenes/battle/battle.gd" id="1_4s751"]
 [ext_resource type="PackedScene" uid="uid://d0efyathkfg74" path="res://scenes/enemy/enemy.tscn" id="2_02s5s"]
@@ -33,6 +33,7 @@
 [ext_resource type="PackedScene" uid="uid://chry0sgk7t0yf" path="res://scenes/ui/tooltip.tscn" id="26_orwrd"]
 [ext_resource type="FontFile" uid="uid://dujsng7qdioan" path="res://assets/static/Roboto_Condensed-SemiBold.ttf" id="28_gfxxc"]
 [ext_resource type="Texture2D" uid="uid://b1my7ua56jx7t" path="res://tutorial_arrow.png" id="29_0band"]
+[ext_resource type="FontFile" uid="uid://t1kjnid0fq8h" path="res://assets/static/Roboto-Black.ttf" id="29_kb8h2"]
 [ext_resource type="Texture2D" uid="uid://babawuw4jquuw" path="res://tutorial_arrow_down.png" id="30_rkd0t"]
 [ext_resource type="Texture2D" uid="uid://bsod70jcw5ate" path="res://power_reset_image.png" id="31_tnut7"]
 [ext_resource type="Script" path="res://scenes/battle/camera_2d.gd" id="36_g4ffy"]
@@ -83,11 +84,14 @@ bg_color = Color(0.6, 0.6, 0.6, 0)
 bg_color = Color(0.6, 0.6, 0.6, 0)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_q7ine"]
-bg_color = Color(0.694986, 0.589328, 0.299179, 1)
+bg_color = Color(0.694118, 0.588235, 0.298039, 1)
 corner_radius_top_left = 40
 corner_radius_top_right = 40
 corner_radius_bottom_right = 40
 corner_radius_bottom_left = 40
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_afe52"]
+bg_color = Color(0, 0, 0, 0.431373)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_upauj"]
 bg_color = Color(0.144787, 0.273985, 0.277578, 1)
@@ -133,11 +137,6 @@ stats = ExtResource("5_5flmk")
 
 [node name="Player" parent="." instance=ExtResource("3_dpj45")]
 position = Vector2(207, 426)
-stats = ExtResource("4_fwb8a")
-
-[node name="PlayerNAh" parent="." instance=ExtResource("3_dpj45")]
-visible = false
-position = Vector2(29, 65)
 stats = ExtResource("4_fwb8a")
 
 [node name="CardTargetSelector" parent="." instance=ExtResource("3_vyv1n")]
@@ -444,11 +443,28 @@ volume_db = 5.0
 visible = false
 custom_minimum_size = Vector2(250, 50)
 offset_left = 437.0
-offset_top = 63.0
+offset_top = 90.0
 offset_right = 773.0
-offset_bottom = 183.0
+offset_bottom = 210.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_q7ine")
 script = ExtResource("23_2rbv5")
+
+[node name="ExitButton" type="Button" parent="ScoutPanel"]
+z_index = 10
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -51.0
+offset_top = 9.0
+offset_right = -13.0
+offset_bottom = 47.0
+grow_horizontal = 0
+theme_override_colors/font_color = Color(0.144787, 0.273985, 0.277578, 1)
+theme_override_fonts/font = ExtResource("29_kb8h2")
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_afe52")
+text = "X"
 
 [node name="RichTextLabel" type="RichTextLabel" parent="ScoutPanel"]
 custom_minimum_size = Vector2(0, 30)
@@ -458,6 +474,7 @@ anchor_right = 1.0
 offset_top = 15.0
 offset_bottom = 45.0
 grow_horizontal = 2
+mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("23_a6w84")
 bbcode_enabled = true
 text = "[center]Choose next roll[/center]"
@@ -1217,6 +1234,7 @@ script = ExtResource("36_g4ffy")
 [connection signal="toggled" from="BattleUI/DiceAnimationControl/DiceAnimationOption/DiceAnimationCheck" to="." method="_on_dice_animation_check_toggled"]
 [connection signal="mouse_entered" from="BattleUI/DrawPileButton" to="." method="_on_draw_pile_button_mouse_entered"]
 [connection signal="mouse_exited" from="BattleUI/DrawPileButton" to="." method="_on_draw_pile_button_mouse_exited"]
+[connection signal="pressed" from="ScoutPanel/ExitButton" to="." method="_on_exit_button_pressed"]
 [connection signal="pressed" from="CanvasLayer/Tutorial/Tutorial1/Tutorial1Button" to="." method="_on_tutorial_1_button_pressed"]
 [connection signal="pressed" from="CanvasLayer/Tutorial/Tutorial3/Tutorial3Button" to="." method="_on_tutorial_3_button_pressed"]
 [connection signal="pressed" from="CanvasLayer/Tutorial/Tutorial5/Tutorial5Button" to="." method="_on_tutorial_5_button_pressed"]

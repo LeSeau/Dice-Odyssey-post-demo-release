@@ -1,0 +1,26 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://cpqu8iv8mx7g"]
+
+[ext_resource type="Texture2D" uid="uid://dxncnc34b3bpu" path="res://repel.png" id="1_gjpk0"]
+[ext_resource type="Script" path="res://characters/warrior/cards/repel.gd" id="2_p7jew"]
+[ext_resource type="AudioStream" uid="uid://df64e7qat73gs" path="res://art/block.ogg" id="3_1bmcd"]
+
+[resource]
+script = ExtResource("2_p7jew")
+id = "card_repel"
+name = "Repel"
+type = 1
+target = 0
+description = "Block X damage. Draw 2 cards"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 0
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = ""
+icon = ExtResource("1_gjpk0")
+tooltip_text = ""
+sound = ExtResource("3_1bmcd")

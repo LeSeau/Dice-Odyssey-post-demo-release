@@ -1,0 +1,24 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://cgvijkuvbpe1g"]
+
+[ext_resource type="Texture2D" uid="uid://ro7rxkqloi3x" path="res://Marionette.png" id="1_x5vrf"]
+[ext_resource type="Script" path="res://characters/warrior/cards/marionette.gd" id="2_sgvrk"]
+
+[resource]
+script = ExtResource("2_sgvrk")
+id = "card_marionette"
+name = "Marionette"
+type = 1
+target = 0
+description = "At the start of each turn, gain a Scout 2 card. Exhaust"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 1
+requirement_number = 6
+exhausts = true
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Exhaust, Scout"
+icon = ExtResource("1_x5vrf")
+tooltip_text = ""

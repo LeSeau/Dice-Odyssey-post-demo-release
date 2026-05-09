@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="BattleStats" load_steps=3 format=3 uid="uid://cam4b221dgqno"]
+
+[ext_resource type="PackedScene" uid="uid://ejaty3n1bbjs" path="res://battles/tier_1_sigil_slug.tscn" id="1_3731a"]
+[ext_resource type="Script" path="res://custom_resources/battle_stats.gd" id="2_72f6a"]
+
+[resource]
+script = ExtResource("2_72f6a")
+battle_tier = 0
+weight = 10.0
+gold_reward_min = 30
+gold_reward_max = 40
+enemies = ExtResource("1_3731a")
+group = ""

@@ -11,6 +11,6 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     var support_effect := SupportEffect.new()
     support_effect.sound = sound
     support_effect.execute(targets)
-
+    Events.refuel_happened.emit(Global.roll_value)
     Events.dice_roll_reset.emit()
     Events.dice_amount_changed.emit()

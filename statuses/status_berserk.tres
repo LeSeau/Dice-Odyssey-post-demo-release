@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="EnergizedStatus" load_steps=3 format=3 uid="uid://dmio6s8c8qqv3"]
+
+[ext_resource type="Texture2D" uid="uid://dlvsyk64xcjd" path="res://berserk_status_icon.png" id="1_8n174"]
+[ext_resource type="Script" path="res://statuses/status_berserk.gd" id="2_ekb7b"]
+
+[resource]
+script = ExtResource("2_ekb7b")
+id = "berserk"
+type = 1
+stack_type = 2
+can_expire = false
+duration = 1
+stacks = 1
+icon = ExtResource("1_8n174")
+tooltip = "Gain one more Blue Dice each turn for the rest of the fight"

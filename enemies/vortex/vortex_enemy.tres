@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="EnemyStats" load_steps=4 format=3 uid="uid://b66s0x2qura8o"]
+
+[ext_resource type="PackedScene" uid="uid://btp36eutchomm" path="res://enemies/vortex/vortex_enemy_ai.tscn" id="1_4c64o"]
+[ext_resource type="Texture2D" uid="uid://4qd1jjhkgcep" path="res://vortex.png" id="2_uerfd"]
+[ext_resource type="Script" path="res://custom_resources/enemy_stats.gd" id="3_2vh84"]
+
+[resource]
+script = ExtResource("3_2vh84")
+ai = ExtResource("1_4c64o")
+max_health = 44
+art = ExtResource("2_uerfd")
