@@ -63,7 +63,7 @@ func start_turn() -> void:
     Global.player.stats.block = 0
     Global.has_rolled_6_this_turn = false
     Global.cards_played_this_turn = 0
-    Global.fight_dice_rolled = 0
+
     character.reset_mana()
     relics.activate_relics_by_type(Relic.Type.START_OF_TURN)
     Global.blue_dice_current_amount = Global.blue_dice_max_amount + Global.blue_dice_bonus_amount + Global.blue_dice_bonus_amount_fight

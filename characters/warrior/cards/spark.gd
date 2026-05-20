@@ -2,7 +2,7 @@ extends Card
 
 
 func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void: 
-    Global.blue_dice_current_amount+=1
+    Global.blue_dice_current_amount+=2
 
     var support_effect := SupportEffect.new()
     support_effect.sound = sound

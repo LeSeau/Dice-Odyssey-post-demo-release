@@ -1,11 +1,62 @@
-[gd_scene load_steps=4 format=3 uid="uid://btktlydklchb4"]
+[gd_scene load_steps=8 format=3 uid="uid://btktlydklchb4"]
 
 [ext_resource type="Script" path="res://main_menu.gd" id="1_vi5tj"]
+[ext_resource type="Texture2D" uid="uid://k03iq5x04c7" path="res://main_menu_resolution_ok.png" id="2_3c4kg"]
 
-[sub_resource type="Gradient" id="Gradient_kdmrr"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cvc1e"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(1, 1, 0.227451, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
 
-[sub_resource type="GradientTexture1D" id="GradientTexture1D_1e4cm"]
-gradient = SubResource("Gradient_kdmrr")
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mqnf8"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(1, 1, 0.227451, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_eiscl"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 1, 0.227451, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pktf8"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(1, 1, 0.227451, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_r22wc"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -23,48 +74,19 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = SubResource("GradientTexture1D_1e4cm")
+texture = ExtResource("2_3c4kg")
+expand_mode = 2
 
-[node name="Label" type="Label" parent="."]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -20.0
-offset_top = -16.0
-offset_right = 20.0
-offset_bottom = 16.0
-grow_horizontal = 2
-grow_vertical = 2
-text = "Dice Odyssey"
-horizontal_alignment = 1
-vertical_alignment = 1
+[node name="NewRun" type="Button" parent="."]
+layout_mode = 0
+offset_left = 65.0
+offset_top = 468.0
+offset_right = 353.0
+offset_bottom = 522.0
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxFlat_cvc1e")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_mqnf8")
+theme_override_styles/hover = SubResource("StyleBoxFlat_eiscl")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_pktf8")
+theme_override_styles/normal = SubResource("StyleBoxFlat_r22wc")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
-layout_mode = 1
-anchors_preset = 12
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_top = -214.0
-grow_horizontal = 2
-grow_vertical = 0
-
-[node name="NewRun" type="Button" parent="VBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 0
-text = "start"
-
-[node name="Button2" type="Button" parent="VBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 0
-text = "start"
-
-[node name="Button3" type="Button" parent="VBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 0
-text = "start"
-
-[connection signal="pressed" from="VBoxContainer/NewRun" to="." method="_on_new_run_pressed"]
+[connection signal="pressed" from="NewRun" to="." method="_on_new_run_pressed"]

@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://bpca6v2u1mdu3"]
+[gd_scene load_steps=12 format=3 uid="uid://bpca6v2u1mdu3"]
 
 [ext_resource type="Script" path="res://scenes/enemy/enemy_action_picker.gd" id="1_qbt6f"]
 [ext_resource type="Script" path="res://enemies/lurker/lurker_attack_action.gd" id="2_2j83m"]
@@ -6,7 +6,8 @@
 [ext_resource type="Script" path="res://enemies/lurker/lurker_attack_action_2.gd" id="3_wc1n2"]
 [ext_resource type="Script" path="res://enemies/lurker/lurker_block_action.gd" id="4_e0rc8"]
 [ext_resource type="Script" path="res://custom_resources/intent.gd" id="4_l1ctj"]
-[ext_resource type="Texture2D" uid="uid://coa7pi62qv88k" path="res://assets/images/shield.png" id="7_3la4b"]
+[ext_resource type="AudioStream" uid="uid://de2ryat1pxq6" path="res://art/enemy_attack.ogg" id="5_w4cg8"]
+[ext_resource type="Texture2D" uid="uid://binq5gkgr3pre" path="res://buff_icon_intent.png" id="8_e1f83"]
 
 [sub_resource type="Resource" id="Resource_ar6nc"]
 script = ExtResource("4_l1ctj")
@@ -21,19 +22,23 @@ icon = ExtResource("3_2a3wl")
 [sub_resource type="Resource" id="Resource_ldnmh"]
 script = ExtResource("4_l1ctj")
 base_text = ""
-icon = ExtResource("7_3la4b")
+icon = ExtResource("8_e1f83")
 
 [node name="LurkerEnemyAI" type="Node"]
 script = ExtResource("1_qbt6f")
 
-[node name="LurkerAttackAction" type="Node" parent="."]
+[node name="LurkerAttackOpener" type="Node" parent="."]
 script = ExtResource("2_2j83m")
 intent = SubResource("Resource_ar6nc")
+sound = ExtResource("5_w4cg8")
+action_id = "lurker_first_attack"
 
 [node name="LurkerAttackAction2" type="Node" parent="."]
 script = ExtResource("3_wc1n2")
 intent = SubResource("Resource_h03ab")
+action_id = "lurker_second_attack"
 
 [node name="LurkerBlockAction" type="Node" parent="."]
 script = ExtResource("4_e0rc8")
 intent = SubResource("Resource_ldnmh")
+action_id = "lurker_block"

@@ -1,5 +1,9 @@
-Node2D
+AnimationPlayer
+TextureButton
+Control
+TextureRect
 Button
+Node2D
 RichTextLabel
 HBoxContainer
 CenterContainer
@@ -8,8 +12,4 @@ Camera2D
 Label
 ColorRect
 CanvasLayer
-TextureRect
 Panel
-PopupPanel
-Control
-CPUParticles2D

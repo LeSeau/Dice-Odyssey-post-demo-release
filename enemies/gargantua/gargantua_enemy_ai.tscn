@@ -1,0 +1,56 @@
+[gd_scene load_steps=14 format=3 uid="uid://bhbxt2ady2acu"]
+
+[ext_resource type="Script" path="res://scenes/enemy/enemy_action_picker.gd" id="1_xqm11"]
+[ext_resource type="Script" path="res://enemies/gargantua/gargantua_attack_action.gd" id="2_j8su7"]
+[ext_resource type="Texture2D" uid="uid://cm56j6ual41dr" path="res://attack_icon_intent.png" id="3_yb1ay"]
+[ext_resource type="Script" path="res://custom_resources/intent.gd" id="4_dlh1p"]
+[ext_resource type="AudioStream" uid="uid://de2ryat1pxq6" path="res://art/enemy_attack.ogg" id="5_x44rf"]
+[ext_resource type="Script" path="res://enemies/gargantua/gargantua_attack_turn_2.gd" id="6_jr8kq"]
+[ext_resource type="Script" path="res://enemies/gargantua/gargantua_buff_action.gd" id="6_nsf4b"]
+[ext_resource type="Script" path="res://enemies/gargantua/gargantua_attack_action_3.gd" id="7_48din"]
+[ext_resource type="Texture2D" uid="uid://ckf4qt26na5g7" path="res://debuff_intent.png" id="8_3s5oc"]
+
+[sub_resource type="Resource" id="Resource_efwuq"]
+script = ExtResource("4_dlh1p")
+base_text = "%s"
+icon = ExtResource("3_yb1ay")
+
+[sub_resource type="Resource" id="Resource_udsam"]
+script = ExtResource("4_dlh1p")
+base_text = "%s"
+icon = ExtResource("3_yb1ay")
+
+[sub_resource type="Resource" id="Resource_ilxhr"]
+script = ExtResource("4_dlh1p")
+base_text = ""
+icon = ExtResource("8_3s5oc")
+
+[sub_resource type="Resource" id="Resource_khc7k"]
+script = ExtResource("4_dlh1p")
+base_text = "%s"
+icon = ExtResource("3_yb1ay")
+
+[node name="GargantuaEnemyAI" type="Node"]
+script = ExtResource("1_xqm11")
+
+[node name="GargantuaAttackOpener" type="Node" parent="."]
+script = ExtResource("6_nsf4b")
+intent = SubResource("Resource_efwuq")
+sound = ExtResource("5_x44rf")
+action_id = "gargantua_first_attack"
+
+[node name="GargantuaAttackTurn2" type="Node" parent="."]
+script = ExtResource("6_jr8kq")
+intent = SubResource("Resource_udsam")
+sound = ExtResource("5_x44rf")
+action_id = "gargantua_second_attack"
+
+[node name="GargantuaAttackExposed" type="Node" parent="."]
+script = ExtResource("7_48din")
+intent = SubResource("Resource_ilxhr")
+
+[node name="GargantuaAttackAction" type="Node" parent="."]
+script = ExtResource("2_j8su7")
+intent = SubResource("Resource_khc7k")
+sound = ExtResource("5_x44rf")
+type = 1

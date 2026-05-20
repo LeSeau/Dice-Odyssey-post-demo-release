@@ -32,6 +32,7 @@ func perform_action() -> void:
     var weak := WEAK_STATUS.duplicate()
     weak.stacks = weak_stacks
     status_effect.status = weak
+    print("weak stacks before apply: ", weak.stacks)
     status_effect.execute([target])
     
     tween.tween_property(enemy, "global_position", end, 0.4)

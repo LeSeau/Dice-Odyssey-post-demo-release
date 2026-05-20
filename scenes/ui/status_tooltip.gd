@@ -24,9 +24,9 @@ func get_tooltip_content(status: Status) -> void:
         "absorb":
             text = "At the end of their turn, gain strength equal to your last roll."
         "blessed":
-            text = "Your dice rolls gain 1 power."
+            text = "Your dice rolls gain 2 power."
         "canalize":
-            text = "If your power exceeds 8, gain 3 strength."
+            text = "If your power exceeds 9, gain 3 strength."
         "chaos":
             text = "When you roll a Dice, discard 1 random card. Then, draw a card."
         "exposed":
@@ -47,6 +47,14 @@ func get_tooltip_content(status: Status) -> void:
             text = "This enemy prevents you from rolling the same Dice type twice in a row."
         "berserk":
             text = "You deal 50% more damage with Red Dice"
+        "marionette":
+            text = "At the start of each turn, gain a Scout 2 card"
+        "sigil":
+            text = "Everytime your power hits exactly the Sigil number, gain 1 Blue Dice. The Sigil number changes every turn."
+        "greedy":
+            text = "Gains 1 Strength for every 6 dice rolled this fight."
+        "parasite":
+            text = "Gains 3 Strength if you generate more than 15 Power in the same turn."
         "depleted":
             text = "You have 1 less Blue Dice next turn for each stack."
         "energized":

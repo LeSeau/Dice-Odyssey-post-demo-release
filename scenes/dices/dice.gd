@@ -14,6 +14,7 @@ extends Control
 @onready var bonus_requirement_panel: Panel = $CardDropArea/CardBackground/CardFrame/BonusEffect/BonusRequirementPanel
 @onready var bonus_requirement_label: RichTextLabel = $CardDropArea/CardBackground/CardFrame/BonusEffect/BonusRequirementPanel/BonusRequirementLabel
 @onready var bonus_effect_label: Label = $CardDropArea/CardBackground/CardFrame/BonusEffect/BonusEffectLabel
+@onready var mech_section: Control = $MechSection
 
 
 @onready var aura: ColorRect = $Panel/Aura
@@ -44,6 +45,7 @@ extends Control
 @onready var roll_history: RichTextLabel = $RollHistory
 
 var ink_is_on = false
+var mech_adjustment_used := false
 
 var evil_faces = [
                 load("res://assets/images/blue0.png"),
@@ -94,6 +96,14 @@ var green_faces = [
                 load("res://assets/images/green1.png"),
                 load("res://assets/images/green2.png"),
                 load("res://assets/images/green3.png"),
+            ]
+var mech_faces = [
+                load("res://assets/images/mech1.png"),
+                load("res://assets/images/mech2.png"),
+                load("res://assets/images/mech3.png"),
+                load("res://assets/images/mech4.png"),
+                load("res://assets/images/mech5.png"),
+                load("res://assets/images/mech6.png"),
             ]
             
 var dice_roll_sounds = [
@@ -166,6 +176,8 @@ func roll_dice():
             can_roll = Global.odd_dice_current_amount > 0
         "green":
             can_roll = Global.green_dice_current_amount > 0
+        "mech":
+            can_roll = Global.mech_dice_current_amount > 0
 
     if not can_roll:
         print("no more " + dice_type + " dice")
@@ -198,6 +210,9 @@ func roll_dice():
         "green":
             values = [1,2, 3]
             faces = green_faces
+        "mech":
+            values = [1,2, 3, 4, 5, 6]
+            faces = mech_faces
         _:
             values = [1,2,3,4,5,6]
             faces = [
@@ -279,12 +294,13 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
     Global.last_roll = values[roll_index]
 
     # Update dice display
-    if dice_type in ["evil", "even", "odd", "magma", "green"]:
+    if dice_type in ["evil", "even", "odd", "magma", "green", "mech"]:
         dice_display.texture = faces[roll_index]
     else:
         dice_display.texture = load("res://assets/images/" + dice_type + str(Global.last_roll) + ".png")
 
     Global.roll_value += Global.last_roll
+    Global.power_generated_this_turn += Global.last_roll    
     current_power.text = str(Global.roll_value)
     var power_tween = create_tween()
     power_tween.tween_property(current_power, "scale", Vector2(1.4, 1.4), 0.07)
@@ -349,8 +365,10 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
         Events.dice_rolled.emit(Global.dice_type, Global.roll_value)
     else:
         Events.red_dice_rolled.emit()
-
+    _check_sigil_trigger()
     Events.hover_playable_cards.emit()
+    mech_adjustment_used = false
+    _update_mech_buttons()
 
 
 func _on_active_dice_changed(new_dice_type):
@@ -365,10 +383,14 @@ func _on_active_dice_changed(new_dice_type):
     update_dice_display()
     
     if(dice_type == "red"):
-        print("dice is red yes")
         card_drop_area.show()
+        mech_section.hide()
+    elif(dice_type == "mech"):
+        mech_section.show()  
+        card_drop_area.hide()      
     else:
         card_drop_area.hide()
+        mech_section.hide()
         Global.playing_red_card = false
         
     Global.roll_value = 0
@@ -400,6 +422,9 @@ func update_dice_display():
         current_power.modulate = Color(0.925, 0.764, 0.043) 
         dice_display.texture = load("res://assets/images/" + dice_type + "1.png")
     elif dice_type == "green":
+        current_power.modulate = Color(0.0, 0.933, 0.475)
+        dice_display.texture = load("res://assets/images/" + dice_type + "1.png")
+    elif dice_type == "mech":
         current_power.modulate = Color(0.0, 0.933, 0.475)
         dice_display.texture = load("res://assets/images/" + dice_type + "1.png")
     set_shader_from_global_type()
@@ -455,6 +480,7 @@ func play_strong_dice_sound():
 
 func _on_player_turn_started() -> void:
     Global.roll_history = []
+    Global.power_generated_this_turn = 0
     if socketed_card_ui != null:
         _on_cancel_red_card_pressed()
     if Global.starting_power_next_turn!=0:
@@ -466,7 +492,9 @@ func _on_player_turn_started() -> void:
     current_power.text = str(Global.roll_value)
     # If you have a variable tracking the roll value, reset it here too
     # Global.roll_value = 0  # This is now handled in the dice_interface.gd
-
+    mech_adjustment_used = false
+    _update_mech_buttons()
+    
 func _on_dice_roll_reset() -> void:
 
     if Global.no_reset:
@@ -483,6 +511,8 @@ func _on_dice_roll_reset() -> void:
         Global.roll_value = 0
         Global.roll_history = []
     Events.check_ink_status.emit()
+    mech_adjustment_used = false
+    _update_mech_buttons()
 
 
 func _on_card_charged(card_ui):
@@ -589,7 +619,7 @@ func _on_change_current_power():
     
     current_power.text = str(Global.roll_value)
     animation_player_power.play("power_change")
-    
+    _check_sigil_trigger()
 
 
 func _on_next_roll_determined():
@@ -622,6 +652,8 @@ func set_shader_from_global_type() -> void:
         "odd":
             new_shader_material = preload("res://scenes/dices/odd_dice_shader.tres")
         "green":
+            new_shader_material = preload("res://scenes/dices/green_dice_shader.tres")
+        "mech":
             new_shader_material = preload("res://scenes/dices/green_dice_shader.tres")
         _:
             push_warning("Unknown dice type: %s" % Global.dice_type)
@@ -728,3 +760,35 @@ func update_roll_history_ui():
     roll_history.push_color(color)
     roll_history.add_text(text)
     roll_history.pop()
+
+func _check_sigil_trigger() -> void:
+    for enemy in get_tree().get_nodes_in_group("enemies"):
+        if enemy.status_handler._has_status("sigil"):
+            var sigil = enemy.status_handler._get_status("sigil")
+            if Global.roll_value == sigil.stacks:
+                Global.blue_dice_current_amount += 1
+                Events.dice_amount_changed.emit()
+                Events.charge_dice_animation.emit()
+
+
+func _on_mech_increase_pressed() -> void:
+    if mech_adjustment_used or Global.roll_value == 0:
+        return
+    mech_adjustment_used = true
+    Global.roll_value += 1
+    SFXPlayer.play(load("res://sounds/blacksmithsound.wav"))
+    Events.change_current_power.emit()
+    _update_mech_buttons()
+
+func _on_mech_decrease_pressed() -> void:
+    if mech_adjustment_used or Global.roll_value == 0:
+        return
+    mech_adjustment_used = true
+    Global.roll_value -= 1
+    SFXPlayer.play(load("res://sounds/blacksmithsound.wav"))
+    Events.change_current_power.emit()
+    _update_mech_buttons()
+
+func _update_mech_buttons() -> void:
+    var usable = not mech_adjustment_used and Global.roll_value > 0
+    mech_section.modulate.a = 1.0 if usable else 0.3

@@ -1,11 +1,10 @@
 extends EnemyAction
 
-@export var damage := 5
-var base_damage =  5
+@export var damage := 9
+var base_damage =  9
 
 func is_performable() -> bool:
-    return enemy.last_action == "defender_single_attack"
-
+    return enemy.last_action == "lurker_block"
 
 func perform_action() -> void:
     if not enemy or not target:
@@ -17,14 +16,13 @@ func perform_action() -> void:
     var damage_effect := DamageEffect.new()
     damage_effect.amount = modifiers.get_modified_value(base_damage, Modifier.Type.DMG_DEALT)
     print("modified damage is:", damage_effect.amount)
+    
 
     var target_array: Array[Node] = [target]
     damage_effect.amount = damage_effect.amount
     damage_effect.sound = sound
     
     tween.tween_property(enemy, "global_position", end, 0.4)
-    tween.tween_callback(damage_effect.execute.bind(target_array))
-    tween.tween_interval(0.35)
     tween.tween_callback(damage_effect.execute.bind(target_array))
     tween.tween_interval(0.25)
     tween.tween_property(enemy, "global_position", start, 0.4)

@@ -147,7 +147,7 @@ z_index = 10
 offset_left = 67.0
 offset_top = -170.0
 offset_right = 181.0
-offset_bottom = -138.0
+offset_bottom = -110.0
 
 [node name="StatusHandler" parent="." node_paths=PackedStringArray("status_owner") instance=ExtResource("7_jbqlv")]
 offset_left = 33.0

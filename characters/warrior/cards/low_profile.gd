@@ -9,7 +9,7 @@ func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
         support_effect.sound = sound
         support_effect.execute(targets)
         var block_effect := BlockEffect.new()
-        block_effect.amount = 3
+        block_effect.amount = 5
         block_effect.sound = sound
         block_effect.execute(targets)
 

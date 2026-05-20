@@ -2,7 +2,7 @@ extends EnemyAction
 
 
 
-@export var damage := 7
+@export var damage := 6
 
 var base_damage = damage
 

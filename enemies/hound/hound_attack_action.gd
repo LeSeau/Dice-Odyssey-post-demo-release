@@ -1,10 +1,10 @@
 extends EnemyAction
 
-@export var damage := 14
+@export var damage := 11
 @onready var modifier_handler: ModifierHandler = $"../ModifierHandler"
 
 
-var base_damage = 14
+var base_damage = 11
 
 func is_performable() -> bool:
     if enemy.last_action == "hound_attack":

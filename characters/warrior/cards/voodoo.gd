@@ -2,7 +2,7 @@ extends Card
 func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void: 
     var dice_amount_to_return = Global.roll_history.size()
     
-    var all_dice_types = ["blue", "red", "even", "odd", "giant", "green", "evil", "magma"]
+    var all_dice_types = ["blue", "red", "even", "odd", "giant", "green", "evil", "magma", "mech"]
     var random_dice = all_dice_types[randi() % all_dice_types.size()]
     
     var property_name := "%s_dice_current_amount" % random_dice

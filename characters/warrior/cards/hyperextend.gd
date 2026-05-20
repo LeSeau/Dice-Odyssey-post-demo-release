@@ -8,7 +8,7 @@ func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
     damage_effect.amount = modifiers.get_modified_value(base_damage, Modifier.Type.DMG_DEALT)
     damage_effect.sound = sound
     damage_effect.execute(targets) 
-    Global.next_roll_modifier+=3
+    Global.next_roll_modifier+=4
     Events.display_next_roll_modifier.emit()
     var support_effect := SupportEffect.new()
     support_effect.sound = sound

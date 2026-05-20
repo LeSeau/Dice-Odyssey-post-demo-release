@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://dylibuut0hlr7"]
+[gd_scene load_steps=12 format=3 uid="uid://dylibuut0hlr7"]
 
 [ext_resource type="Script" path="res://scenes/enemy/enemy_action_picker.gd" id="1_emqrd"]
 [ext_resource type="Script" path="res://enemies/sigil_slug/sigil_attack_action.gd" id="2_oth06"]
@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://custom_resources/intent.gd" id="4_nu4yu"]
 [ext_resource type="Script" path="res://enemies/sigil_slug/sigil_block_action.gd" id="4_tll6n"]
 [ext_resource type="Texture2D" uid="uid://coa7pi62qv88k" path="res://assets/images/shield.png" id="7_5u8mg"]
+[ext_resource type="AudioStream" uid="uid://k8m4o3hlwm7l" path="res://art/enemy_block.ogg" id="8_a1q87"]
 
 [sub_resource type="Resource" id="Resource_f6lfo"]
 script = ExtResource("4_nu4yu")
@@ -29,11 +30,14 @@ script = ExtResource("1_emqrd")
 [node name="SigilAttackAction" type="Node" parent="."]
 script = ExtResource("2_oth06")
 intent = SubResource("Resource_f6lfo")
+action_id = "sigil_first_attack"
 
 [node name="SigilAttackAction2" type="Node" parent="."]
 script = ExtResource("3_ftnly")
 intent = SubResource("Resource_ioomt")
+action_id = "sigil_second_attack"
 
 [node name="SigilBlockAction" type="Node" parent="."]
 script = ExtResource("4_tll6n")
 intent = SubResource("Resource_i6amf")
+sound = ExtResource("8_a1q87")

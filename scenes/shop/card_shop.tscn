@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3 uid="uid://bgkue8tsbpylp"]
+[gd_scene load_steps=22 format=3 uid="uid://bgkue8tsbpylp"]
 
 [ext_resource type="Script" path="res://scenes/shop/card_shop.gd" id="1_sj8q3"]
 [ext_resource type="Script" path="res://custom_resources/relic.gd" id="2_hlcxd"]
@@ -20,6 +20,7 @@
 [ext_resource type="Texture2D" uid="uid://ds50nthiabar3" path="res://card_shop_background.png" id="15_uslgw"]
 [ext_resource type="Resource" uid="uid://c08xty5w4xohd" path="res://relics/fuel-o-meter.tres" id="16_35415"]
 [ext_resource type="Resource" uid="uid://dn5pcdeedr816" path="res://relics/the_one.tres" id="17_016lr"]
+[ext_resource type="Resource" uid="uid://ciglk4bcovgic" path="res://relics/crown.tres" id="18_08up8"]
 
 [node name="CardShop" type="Control"]
 layout_mode = 3
@@ -30,7 +31,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_sj8q3")
-shop_relics = Array[ExtResource("2_hlcxd")]([ExtResource("3_gxbgt"), ExtResource("4_6fpu7"), ExtResource("5_y406q"), ExtResource("6_ncno0"), ExtResource("7_lw1ag"), ExtResource("8_87y4j"), ExtResource("9_h7t8v"), ExtResource("10_7i4pi"), ExtResource("11_cs10h"), ExtResource("12_m5yxb"), ExtResource("13_lq166"), ExtResource("14_bal2l"), ExtResource("15_0rnkd"), ExtResource("16_35415"), ExtResource("17_016lr")])
+shop_relics = Array[ExtResource("2_hlcxd")]([ExtResource("3_gxbgt"), ExtResource("4_6fpu7"), ExtResource("5_y406q"), ExtResource("6_ncno0"), ExtResource("7_lw1ag"), ExtResource("8_87y4j"), ExtResource("9_h7t8v"), ExtResource("10_7i4pi"), ExtResource("11_cs10h"), ExtResource("12_m5yxb"), ExtResource("13_lq166"), ExtResource("14_bal2l"), ExtResource("15_0rnkd"), ExtResource("16_35415"), ExtResource("17_016lr"), ExtResource("18_08up8")])
 
 [node name="Background" type="TextureRect" parent="."]
 layout_mode = 1

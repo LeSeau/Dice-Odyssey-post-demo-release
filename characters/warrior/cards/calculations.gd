@@ -4,8 +4,10 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
         var support_effect := SupportEffect.new()
         support_effect.sound = sound
         support_effect.execute(targets)
-        Events.draw_card.emit(2)
-        
+        Global.even_dice_current_amount+=2
+        Events.dice_amount_changed.emit()
+        Events.charge_dice_animation.emit()
+        Events.temporary_dice_added.emit("even")
         # Add Oracle card to hand
 
         var oracle_card = load("res://characters/warrior/cards/card_oracle_exhaust.tres")

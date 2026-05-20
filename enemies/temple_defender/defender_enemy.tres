@@ -1,11 +1,11 @@
 [gd_resource type="Resource" script_class="EnemyStats" load_steps=4 format=3 uid="uid://bbo24od4aavfj"]
 
 [ext_resource type="PackedScene" uid="uid://d3b23v3dpsd60" path="res://enemies/temple_defender/defender_enemy_ai.tscn" id="1_14ure"]
-[ext_resource type="Texture2D" uid="uid://nwdj6qh61d2r" path="res://gptdefender.png" id="2_io4o7"]
+[ext_resource type="Texture2D" uid="uid://du8rtsy24oest" path="res://defender_v2.png" id="2_4t0th"]
 [ext_resource type="Script" path="res://custom_resources/enemy_stats.gd" id="3_fjngj"]
 
 [resource]
 script = ExtResource("3_fjngj")
 ai = ExtResource("1_14ure")
-max_health = 44
-art = ExtResource("2_io4o7")
+max_health = 38
+art = ExtResource("2_4t0th")

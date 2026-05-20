@@ -22,5 +22,5 @@ bonus_requirement_number = 0
 bonus_description_text = ""
 tags = ""
 icon = ExtResource("1_07mm7")
-tooltip_text = ""
+tooltip_text = null
 sound = ExtResource("3_buaeb")

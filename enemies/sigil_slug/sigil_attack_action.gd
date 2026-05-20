@@ -4,7 +4,7 @@ extends EnemyAction
 @onready var modifier_handler: ModifierHandler = $"../ModifierHandler"
 
 
-var base_damage = 12
+var base_damage = 10
 
 func is_performable() -> bool:
     return Global.fight_turn == 0
@@ -29,6 +29,7 @@ func perform_action() -> void:
     tween.tween_callback(damage_effect.execute.bind(target_array))
     tween.tween_interval(0.25)
     tween.tween_property(enemy, "global_position", start, 0.4)
+    reroll_sigil()
     
     tween.finished.connect(
         func():
@@ -44,3 +45,12 @@ func update_intent_text() -> void:
     var total_modified_damage := player.modifier_handler.get_modified_value(damage_with_enemy_mods, Modifier.Type.DMG_TAKEN)
 
     intent.current_text = intent.base_text % total_modified_damage
+
+func reroll_sigil() -> void:
+    if enemy.status_handler._has_status("sigil"):
+        var sigil = enemy.status_handler._get_status("sigil")
+        var last = sigil.stacks
+        var new_value = randi_range(1, 6)
+        while new_value == last:
+            new_value = randi_range(1, 6)
+        sigil.stacks = new_value

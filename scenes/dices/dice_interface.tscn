@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3 uid="uid://d2f4gl88lkokw"]
+[gd_scene load_steps=20 format=3 uid="uid://d2f4gl88lkokw"]
 
 [ext_resource type="Theme" path="res://daiso_theme.tres" id="1_8u3o8"]
 [ext_resource type="Script" path="res://scenes/dices/dice_interface.gd" id="1_hbfrn"]
@@ -13,6 +13,7 @@
 [ext_resource type="Texture2D" uid="uid://ckr0ifje35um6" path="res://assets/images/even8.png" id="11_h0rqu"]
 [ext_resource type="Texture2D" uid="uid://br8qll0nj8dy6" path="res://assets/images/odd7.png" id="12_0guum"]
 [ext_resource type="Texture2D" uid="uid://ffjm2ac2wjyh" path="res://assets/images/green1.png" id="13_y2mvv"]
+[ext_resource type="Texture2D" uid="uid://qfff0bysul00" path="res://assets/images/mech1.png" id="14_yq6or"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xxwa5"]
 bg_color = Color(1, 1, 1, 0.698039)
@@ -111,6 +112,7 @@ offset_left = -16.0
 offset_right = 24.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 theme = ExtResource("1_8u3o8")
 theme_override_styles/panel = SubResource("StyleBoxFlat_xxwa5")
 
@@ -123,6 +125,7 @@ offset_top = -0.5
 offset_bottom = 0.5
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 theme_override_constants/margin_left = 0
 theme_override_constants/margin_top = 4
 theme_override_constants/margin_right = 0
@@ -130,6 +133,7 @@ theme_override_constants/margin_bottom = 2
 
 [node name="HBoxContainer" type="HBoxContainer" parent="DicePanel/MarginContainer"]
 layout_mode = 2
+mouse_filter = 2
 theme_override_constants/separation = 20
 alignment = 1
 
@@ -138,6 +142,7 @@ custom_minimum_size = Vector2(35, 35)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
+mouse_filter = 0
 theme_override_constants/separation = 3
 alignment = 1
 
@@ -145,6 +150,7 @@ alignment = 1
 custom_minimum_size = Vector2(20, 20)
 layout_mode = 2
 size_flags_vertical = 8
+mouse_filter = 2
 texture = ExtResource("3_q6max")
 expand_mode = 4
 script = ExtResource("5_cju5n")
@@ -332,16 +338,60 @@ label_settings = SubResource("LabelSettings_dsa2r")
 horizontal_alignment = 1
 vertical_alignment = 2
 
+[node name="Dice9" type="VBoxContainer" parent="DicePanel/MarginContainer/HBoxContainer"]
+visible = false
+custom_minimum_size = Vector2(35, 35)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_constants/separation = 3
+alignment = 1
+
+[node name="Dice9Texture" type="TextureRect" parent="DicePanel/MarginContainer/HBoxContainer/Dice9"]
+custom_minimum_size = Vector2(35, 35)
+layout_mode = 2
+size_flags_vertical = 8
+texture = ExtResource("14_yq6or")
+expand_mode = 1
+
+[node name="Dice9Label" type="Label" parent="DicePanel/MarginContainer/HBoxContainer/Dice9"]
+layout_mode = 2
+size_flags_vertical = 1
+theme = ExtResource("4_vgytt")
+text = "1/1"
+label_settings = SubResource("LabelSettings_dsa2r")
+horizontal_alignment = 1
+vertical_alignment = 2
+
 [node name="AnimationPlayer" type="AnimationPlayer" parent="DicePanel"]
 libraries = {
 "": SubResource("AnimationLibrary_5brqs")
 }
 
 [connection signal="gui_input" from="DicePanel/MarginContainer/HBoxContainer/Dice1" to="." method="_on_dice_1_gui_input"]
+[connection signal="mouse_entered" from="DicePanel/MarginContainer/HBoxContainer/Dice1" to="." method="_on_dice_1_mouse_entered"]
+[connection signal="mouse_exited" from="DicePanel/MarginContainer/HBoxContainer/Dice1" to="." method="_on_dice_1_mouse_exited"]
 [connection signal="gui_input" from="DicePanel/MarginContainer/HBoxContainer/Dice2" to="." method="_on_dice_2_gui_input"]
+[connection signal="mouse_entered" from="DicePanel/MarginContainer/HBoxContainer/Dice2" to="." method="_on_dice_2_mouse_entered"]
+[connection signal="mouse_exited" from="DicePanel/MarginContainer/HBoxContainer/Dice2" to="." method="_on_dice_2_mouse_exited"]
 [connection signal="gui_input" from="DicePanel/MarginContainer/HBoxContainer/Dice3" to="." method="_on_dice_3_gui_input"]
+[connection signal="mouse_entered" from="DicePanel/MarginContainer/HBoxContainer/Dice3" to="." method="_on_dice_3_mouse_entered"]
+[connection signal="mouse_exited" from="DicePanel/MarginContainer/HBoxContainer/Dice3" to="." method="_on_dice_3_mouse_exited"]
 [connection signal="gui_input" from="DicePanel/MarginContainer/HBoxContainer/Dice4" to="." method="_on_dice_4_gui_input"]
+[connection signal="mouse_entered" from="DicePanel/MarginContainer/HBoxContainer/Dice4" to="." method="_on_dice_4_mouse_entered"]
+[connection signal="mouse_exited" from="DicePanel/MarginContainer/HBoxContainer/Dice4" to="." method="_on_dice_4_mouse_exited"]
 [connection signal="gui_input" from="DicePanel/MarginContainer/HBoxContainer/Dice5" to="." method="_on_dice_5_gui_input"]
+[connection signal="mouse_entered" from="DicePanel/MarginContainer/HBoxContainer/Dice5" to="." method="_on_dice_5_mouse_entered"]
+[connection signal="mouse_exited" from="DicePanel/MarginContainer/HBoxContainer/Dice5" to="." method="_on_dice_5_mouse_exited"]
 [connection signal="gui_input" from="DicePanel/MarginContainer/HBoxContainer/Dice6" to="." method="_on_dice_6_gui_input"]
+[connection signal="mouse_entered" from="DicePanel/MarginContainer/HBoxContainer/Dice6" to="." method="_on_dice_6_mouse_entered"]
+[connection signal="mouse_exited" from="DicePanel/MarginContainer/HBoxContainer/Dice6" to="." method="_on_dice_6_mouse_exited"]
 [connection signal="gui_input" from="DicePanel/MarginContainer/HBoxContainer/Dice7" to="." method="_on_dice_7_gui_input"]
+[connection signal="mouse_entered" from="DicePanel/MarginContainer/HBoxContainer/Dice7" to="." method="_on_dice_7_mouse_entered"]
+[connection signal="mouse_exited" from="DicePanel/MarginContainer/HBoxContainer/Dice7" to="." method="_on_dice_7_mouse_exited"]
 [connection signal="gui_input" from="DicePanel/MarginContainer/HBoxContainer/Dice8" to="." method="_on_dice_8_gui_input"]
+[connection signal="mouse_entered" from="DicePanel/MarginContainer/HBoxContainer/Dice8" to="." method="_on_dice_8_mouse_entered"]
+[connection signal="mouse_exited" from="DicePanel/MarginContainer/HBoxContainer/Dice8" to="." method="_on_dice_8_mouse_exited"]
+[connection signal="gui_input" from="DicePanel/MarginContainer/HBoxContainer/Dice9" to="." method="_on_dice_9_gui_input"]
+[connection signal="mouse_entered" from="DicePanel/MarginContainer/HBoxContainer/Dice9" to="." method="_on_dice_9_mouse_entered"]
+[connection signal="mouse_exited" from="DicePanel/MarginContainer/HBoxContainer/Dice9" to="." method="_on_dice_9_mouse_exited"]

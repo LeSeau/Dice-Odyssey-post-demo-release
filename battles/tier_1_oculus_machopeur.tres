@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="BattleStats" load_steps=3 format=3 uid="uid://etn4srq362uh"]
+
+[ext_resource type="PackedScene" uid="uid://t1be555amomt" path="res://battles/tier_1_oculus_machopeur.tscn" id="1_wyk8c"]
+[ext_resource type="Script" path="res://custom_resources/battle_stats.gd" id="2_41crt"]
+
+[resource]
+script = ExtResource("2_41crt")
+battle_tier = 1
+weight = 1.0
+gold_reward_min = 30
+gold_reward_max = 40
+enemies = ExtResource("1_wyk8c")
+group = ""

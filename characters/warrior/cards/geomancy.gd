@@ -3,7 +3,7 @@ extends Card
 
 func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void: 
     print("Reinforce applied")
-    if Global.roll_value <= 3: 
+    if Global.roll_value <= 4: 
         Events.reset_charged_card.emit()
         Global.roll_value*=3
         Events.change_current_power.emit()

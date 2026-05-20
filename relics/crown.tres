@@ -1,0 +1,15 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://ciglk4bcovgic"]
+
+[ext_resource type="Script" path="res://relics/crown.gd" id="1_34tq8"]
+[ext_resource type="Texture2D" uid="uid://ds7osn7pu5l2e" path="res://crown.png" id="1_sv381"]
+
+[resource]
+script = ExtResource("1_34tq8")
+relic_name = "Crown"
+id = "Crown"
+type = 4
+has_counter = true
+counter = 0
+starter_relic = false
+icon = ExtResource("1_sv381")
+tooltip = "The tenth Dice you roll each fight charges 1"

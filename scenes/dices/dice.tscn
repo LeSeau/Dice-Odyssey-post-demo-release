@@ -1,4 +1,4 @@
-[gd_scene load_steps=54 format=3 uid="uid://drwjp5bi8wmx6"]
+[gd_scene load_steps=55 format=3 uid="uid://drwjp5bi8wmx6"]
 
 [ext_resource type="Texture2D" uid="uid://c17qq0sj25epy" path="res://assets/images/blue1.png" id="1_hxyyb"]
 [ext_resource type="Script" path="res://scenes/dices/dice.gd" id="1_xhb7n"]
@@ -9,6 +9,7 @@
 [ext_resource type="StyleBox" uid="uid://belt0xy3pi11o" path="res://scenes/card_ui/card_background.tres" id="3_molar"]
 [ext_resource type="Texture2D" uid="uid://dh1akl0w2wb7w" path="res://ink_on_dice.png" id="3_xja36"]
 [ext_resource type="Shader" path="res://card_socket_shader.gdshader" id="5_7lpos"]
+[ext_resource type="Texture2D" uid="uid://babawuw4jquuw" path="res://tutorial_arrow_down.png" id="5_ti466"]
 [ext_resource type="StyleBox" uid="uid://boqwwfxsajq1s" path="res://scenes/card_ui/card_banner.tres" id="5_u45bp"]
 [ext_resource type="LabelSettings" uid="uid://cy482afjc3tjk" path="res://scenes/card_ui/card_title.tres" id="6_mpv3d"]
 [ext_resource type="StyleBox" uid="uid://ba5f3gvin2wmm" path="res://scenes/card_ui/card_panel.tres" id="7_23bka"]
@@ -609,6 +610,34 @@ grow_vertical = 2
 texture = ExtResource("3_xja36")
 expand_mode = 1
 
+[node name="MechSection" type="Control" parent="."]
+visible = false
+anchors_preset = 0
+offset_left = -49.0
+offset_right = -3.0
+offset_bottom = 179.0
+
+[node name="MechIncrease" type="TextureButton" parent="MechSection"]
+layout_mode = 0
+offset_left = 2.0
+offset_top = 5.0
+offset_right = 44.0
+offset_bottom = 64.0
+texture_normal = ExtResource("5_ti466")
+ignore_texture_size = true
+stretch_mode = 6
+flip_v = true
+
+[node name="MechDecrease" type="TextureButton" parent="MechSection"]
+layout_mode = 0
+offset_left = 3.0
+offset_top = 110.0
+offset_right = 45.0
+offset_bottom = 169.0
+texture_normal = ExtResource("5_ti466")
+ignore_texture_size = true
+stretch_mode = 6
+
 [node name="CardDropArea" type="Control" parent="."]
 visible = false
 custom_minimum_size = Vector2(80, 120)
@@ -931,5 +960,7 @@ offset_right = 261.0
 offset_bottom = 43.0
 theme_override_font_sizes/normal_font_size = 12
 
+[connection signal="pressed" from="MechSection/MechIncrease" to="." method="_on_mech_increase_pressed"]
+[connection signal="pressed" from="MechSection/MechDecrease" to="." method="_on_mech_decrease_pressed"]
 [connection signal="pressed" from="CardDropArea/CancelRedCardPanel/CancelRedCard" to="." method="_on_cancel_red_card_pressed"]
 [connection signal="pressed" from="Button" to="Button" method="_on_pressed"]

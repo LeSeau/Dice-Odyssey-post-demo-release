@@ -1,17 +1,18 @@
-[gd_scene load_steps=11 format=3 uid="uid://dcnemw5e1iheh"]
+[gd_scene load_steps=12 format=3 uid="uid://dcnemw5e1iheh"]
 
 [ext_resource type="Script" path="res://scenes/enemy/enemy_action_picker.gd" id="1_k4f4l"]
 [ext_resource type="Script" path="res://enemies/dragonpriest/dragonpriest_buff_action.gd" id="2_0bmgg"]
 [ext_resource type="Script" path="res://enemies/dragonpriest/dragonpriest_attack_action.gd" id="2_mstls"]
 [ext_resource type="Script" path="res://enemies/dragonpriest/dragonpriest_attack_action_2.gd" id="3_ao6pd"]
 [ext_resource type="Texture2D" uid="uid://dxm470owuxqc1" path="res://assets/images/swordicon.png" id="3_c2rht"]
+[ext_resource type="Texture2D" uid="uid://cm56j6ual41dr" path="res://attack_icon_intent.png" id="3_epc1l"]
 [ext_resource type="Texture2D" uid="uid://cj3x4kmau3jo7" path="res://buff_icon.png" id="3_u55tk"]
 [ext_resource type="Script" path="res://custom_resources/intent.gd" id="4_2x55c"]
 
 [sub_resource type="Resource" id="Resource_dkrq0"]
 script = ExtResource("4_2x55c")
 base_text = "%s"
-icon = ExtResource("3_c2rht")
+icon = ExtResource("3_epc1l")
 
 [sub_resource type="Resource" id="Resource_l61yj"]
 script = ExtResource("4_2x55c")

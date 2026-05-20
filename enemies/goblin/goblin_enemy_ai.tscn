@@ -1,0 +1,45 @@
+[gd_scene load_steps=12 format=3 uid="uid://bhrtpevndvae0"]
+
+[ext_resource type="Script" path="res://scenes/enemy/enemy_action_picker.gd" id="1_t58td"]
+[ext_resource type="Script" path="res://enemies/goblin/goblin_attack_action.gd" id="2_k8day"]
+[ext_resource type="Script" path="res://enemies/goblin/goblin_attack_action_2.gd" id="3_2234q"]
+[ext_resource type="Texture2D" uid="uid://cm56j6ual41dr" path="res://attack_icon_intent.png" id="3_7522w"]
+[ext_resource type="Script" path="res://enemies/goblin/goblin_block_action.gd" id="4_jupco"]
+[ext_resource type="Script" path="res://custom_resources/intent.gd" id="4_yylpi"]
+[ext_resource type="AudioStream" uid="uid://de2ryat1pxq6" path="res://art/enemy_attack.ogg" id="5_4f5xi"]
+[ext_resource type="Texture2D" uid="uid://ckf4qt26na5g7" path="res://debuff_intent.png" id="8_lqtc2"]
+
+[sub_resource type="Resource" id="Resource_1ftwn"]
+script = ExtResource("4_yylpi")
+base_text = "%s"
+icon = ExtResource("3_7522w")
+
+[sub_resource type="Resource" id="Resource_r1nat"]
+script = ExtResource("4_yylpi")
+base_text = "%s"
+icon = ExtResource("3_7522w")
+
+[sub_resource type="Resource" id="Resource_e2kur"]
+script = ExtResource("4_yylpi")
+base_text = ""
+icon = ExtResource("8_lqtc2")
+
+[node name="GoblinEnemyAI" type="Node"]
+script = ExtResource("1_t58td")
+
+[node name="GoblinAttackAction" type="Node" parent="."]
+script = ExtResource("2_k8day")
+intent = SubResource("Resource_1ftwn")
+sound = ExtResource("5_4f5xi")
+
+[node name="GoblinAttackAction2" type="Node" parent="."]
+script = ExtResource("3_2234q")
+intent = SubResource("Resource_r1nat")
+sound = ExtResource("5_4f5xi")
+
+[node name="GoblinDebuffAction" type="Node" parent="."]
+script = ExtResource("4_jupco")
+intent = SubResource("Resource_e2kur")
+sound = ExtResource("5_4f5xi")
+type = 1
+chance_weight = 10.0

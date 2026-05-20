@@ -8,7 +8,7 @@ func apply_effects(targets: Array[Node], _modifiers: ModifierHandler) -> void:
         block_effect.sound = sound
         block_effect.execute(targets)
         
-        var all_dice = ["blue", "red", "green", "giant", "magma", "even", "odd"]
+        var all_dice = ["blue", "red", "green", "giant", "magma", "even", "odd", "mech"]
         var chosen = all_dice[randi() % all_dice.size()]
         Global.set(chosen + "_dice_current_amount", Global.get(chosen + "_dice_current_amount") + 1)
         Events.dice_amount_changed.emit()

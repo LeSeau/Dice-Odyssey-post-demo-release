@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="EnemyStats" load_steps=4 format=3 uid="uid://bkbnyc3ymuyj"]
+
+[ext_resource type="PackedScene" uid="uid://bhrtpevndvae0" path="res://enemies/goblin/goblin_enemy_ai.tscn" id="1_5sym6"]
+[ext_resource type="Texture2D" uid="uid://bdi06f8pcn2me" path="res://goblin_enemy_v2.png" id="2_afoln"]
+[ext_resource type="Script" path="res://custom_resources/enemy_stats.gd" id="3_vmw20"]
+
+[resource]
+script = ExtResource("3_vmw20")
+ai = ExtResource("1_5sym6")
+max_health = 22
+art = ExtResource("2_afoln")

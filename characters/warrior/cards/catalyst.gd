@@ -5,7 +5,8 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     
     var property_name := "%s_dice_current_amount" % Global.dice_type
     Global.set(property_name, Global.get(property_name) + dice_amount_to_return)
-    
+    Global.next_roll_modifier+=2
+    Events.display_next_roll_modifier.emit()   
     if Global.roll_value >= 6:
         var active_dice = Global.dice_type
         var dice_amount_variable = active_dice + "_dice_current_amount"

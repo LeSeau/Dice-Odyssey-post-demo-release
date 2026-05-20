@@ -1,7 +1,8 @@
 extends Panel
 
-@onready var vbox := $VBoxContainer
+
 @onready var tooltip_label: RichTextLabel = %TooltipText
+@onready var vbox: VBoxContainer = $MarginContainer/VBoxContainer
 
 func show_tooltip(global_pos: Vector2) -> void:
     # Convert global to local relative to parent
@@ -31,4 +32,6 @@ func get_tooltip_content(dice):
         text = "Faces: 1-6"
     elif dice == "green":
         text = "Faces: 1-3"
+    elif dice == "mech":
+        text = "Faces: 1-6. After each roll, you can add or substract 1 Power."
     tooltip_label.text = text

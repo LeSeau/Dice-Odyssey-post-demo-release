@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="SigilStatus" load_steps=3 format=3 uid="uid://ds3wrp3sm28i6"]
+
+[ext_resource type="Texture2D" uid="uid://0goii4bfhmt2" path="res://sigil_status_v2.png" id="1_4qplf"]
+[ext_resource type="Script" path="res://statuses/sigil.gd" id="1_wnt82"]
+
+[resource]
+script = ExtResource("1_wnt82")
+id = "sigil"
+type = 2
+stack_type = 1
+can_expire = false
+duration = 1
+stacks = 1
+icon = ExtResource("1_4qplf")
+tooltip = ""

@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://cib6v5vr2rvqj"]
+[gd_scene load_steps=16 format=3 uid="uid://cib6v5vr2rvqj"]
 
 [ext_resource type="Script" path="res://scenes/shop/shop.gd" id="1_4fjq1"]
 [ext_resource type="Texture2D" uid="uid://bc7ex1r6orvji" path="res://assets/images/shopbackground.jpg" id="2_meook"]
@@ -11,6 +11,7 @@
 [ext_resource type="Texture2D" uid="uid://bfc443rfo1g08" path="res://assets/images/red6.png" id="9_oasbf"]
 [ext_resource type="FontFile" uid="uid://t1kjnid0fq8h" path="res://assets/static/Roboto-Black.ttf" id="10_p37ri"]
 [ext_resource type="Texture2D" uid="uid://ffjm2ac2wjyh" path="res://assets/images/green1.png" id="10_qav0k"]
+[ext_resource type="Texture2D" uid="uid://7v2b0w4yru8e" path="res://assets/images/mech6.png" id="11_81ont"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3s3aq"]
 bg_color = Color(0.246036, 0.403102, 0.363782, 1)
@@ -534,6 +535,61 @@ bbcode_enabled = true
 text = "[center]Buy ([color=#FFD700]100G[/color])[/center]
 "
 
+[node name="Dice9" type="VBoxContainer" parent="MarginContainer/Panel/HBoxContainer"]
+visible = false
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="DiceTitle9" type="Panel" parent="MarginContainer/Panel/HBoxContainer/Dice9"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_fty16")
+
+[node name="DiceTitleLabel9" type="Label" parent="MarginContainer/Panel/HBoxContainer/Dice9/DiceTitle9"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -91.0
+offset_top = -16.0
+offset_right = 91.0
+offset_bottom = 16.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Mech Dice
+"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Dice9Texture" type="TextureRect" parent="MarginContainer/Panel/HBoxContainer/Dice9"]
+custom_minimum_size = Vector2(200, 200)
+layout_mode = 2
+size_flags_horizontal = 4
+texture = ExtResource("11_81ont")
+expand_mode = 1
+
+[node name="BuyDice9" type="Button" parent="MarginContainer/Panel/HBoxContainer/Dice9"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_vertical = 8
+
+[node name="BuyDice9Label" type="RichTextLabel" parent="MarginContainer/Panel/HBoxContainer/Dice9/BuyDice9"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 6.0
+offset_bottom = 6.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+bbcode_enabled = true
+text = "[center]Buy ([color=#FFD700]100G[/color])[/center]
+"
+
 [node name="TextureRect" type="TextureRect" parent="MarginContainer/Panel"]
 layout_mode = 0
 offset_right = 40.0
@@ -634,6 +690,9 @@ text = "Go back"
 [connection signal="mouse_entered" from="MarginContainer/Panel/HBoxContainer/Dice8" to="." method="_on_dice_8_mouse_entered"]
 [connection signal="mouse_exited" from="MarginContainer/Panel/HBoxContainer/Dice8" to="." method="_on_dice_8_mouse_exited"]
 [connection signal="pressed" from="MarginContainer/Panel/HBoxContainer/Dice8/BuyDice8" to="." method="_on_buy_dice_8_pressed"]
+[connection signal="mouse_entered" from="MarginContainer/Panel/HBoxContainer/Dice9" to="." method="_on_dice_9_mouse_entered"]
+[connection signal="mouse_exited" from="MarginContainer/Panel/HBoxContainer/Dice9" to="." method="_on_dice_9_mouse_exited"]
+[connection signal="pressed" from="MarginContainer/Panel/HBoxContainer/Dice9/BuyDice9" to="." method="_on_buy_dice_9_pressed"]
 [connection signal="pressed" from="MarginContainer/Panel/ExitShopButton" to="." method="_on_exit_shop_button_pressed"]
 [connection signal="pressed" from="RerollButton" to="." method="_on_reroll_button_pressed"]
 [connection signal="pressed" from="VBoxContainer/Button" to="." method="_on_button_pressed"]

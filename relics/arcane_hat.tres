@@ -8,7 +8,9 @@ script = ExtResource("1_q51o4")
 relic_name = "Arcane Hat"
 id = "arcane_hat"
 type = 4
+has_counter = false
+counter = 0
 starter_relic = false
 icon = ExtResource("1_1r2ge")
-tooltip = "When you play an Exact card, draw 1 Card
+tooltip = "When you charge a Dice, draw 1 Card
 "

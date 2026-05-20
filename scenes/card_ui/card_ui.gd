@@ -63,6 +63,7 @@ const MULTIPLE_STYLEBOX := preload("res://scenes/card_ui/card_requirement_multip
 @onready var card_state_machine: CardStateMachine = $CardStateMachine
 @onready var targets: Array[Node] = []
 
+@onready var support_icon: TextureRect = $CardBackground/CardFrame/CardBanner/SupportIcon
 
 
 var original_index := 0
@@ -136,6 +137,7 @@ func _set_card(value: Card) -> void:
     description.text = str(card.description)
     icon.texture = card.icon
     title.text = str(card.name)
+    #support_icon.visible = card.rarity == Card.Rarity.SUPPORT
     if card.can_play_without_dice:
         description_panel.add_theme_stylebox_override("panel", SUPPORT_STYLEBOX)
         card_banner.add_theme_stylebox_override("panel", SUPPORT_STYLEBOX)

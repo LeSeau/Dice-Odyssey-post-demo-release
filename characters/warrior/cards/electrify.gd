@@ -15,11 +15,11 @@ func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
     Events.charge_dice_animation.emit()
     var status_effect := StatusEffect.new()
     var depleted := DEPLETED_STATUS.duplicate()
-    depleted.duration = 2
+    depleted.duration = 1
     status_effect.status = depleted
     var player_targets = targets[0].get_tree().get_nodes_in_group("player")
     status_effect.execute(player_targets)
-    Global.blue_dice_bonus_amount -= 2
+    Global.blue_dice_bonus_amount -= 1
 
 func _on_dice_rolled():
     print("adding dice to damage")

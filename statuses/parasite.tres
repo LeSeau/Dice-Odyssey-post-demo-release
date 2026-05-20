@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ParasiteStatus" load_steps=3 format=3 uid="uid://cyu7vtsvurhxv"]
+
+[ext_resource type="Script" path="res://statuses/parasite.gd" id="1_axalu"]
+[ext_resource type="Texture2D" uid="uid://cfyd1vupwjrkl" path="res://parasite_status_icon.png" id="1_ay4xu"]
+
+[resource]
+script = ExtResource("1_axalu")
+id = "parasite"
+type = 2
+stack_type = 1
+can_expire = false
+duration = 0
+stacks = 0
+icon = ExtResource("1_ay4xu")
+tooltip = ""

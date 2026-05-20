@@ -1,3 +1,4 @@
+res://scenes/ui
 res://scenes/shop
 C:/Users/julie/Desktop/daiso august copy/build/web
 res://scenes/card_ui
@@ -9,7 +10,6 @@ res://relics
 res://scenes/campfire
 res://scenes/treasure
 res://scenes/relic_handler
-res://scenes/ui
 res://scenes/events
 res://assets/images
 res://battles

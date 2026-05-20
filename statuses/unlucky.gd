@@ -33,6 +33,8 @@ func on_lucky_check() -> void:
             values = [1,3,5,7]
         "green":
             values = [1,2,3]
+        "mech":
+            values = [1,2,3,4,5,6]
 
     #if values.empty():
         #return

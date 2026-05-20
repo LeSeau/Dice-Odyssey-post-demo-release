@@ -1,9 +1,8 @@
-[gd_scene load_steps=10 format=3 uid="uid://djrenoyp58mtl"]
+[gd_scene load_steps=9 format=3 uid="uid://djrenoyp58mtl"]
 
 [ext_resource type="Script" path="res://scenes/relic_handler/relic_ui.gd" id="1_88a14"]
 [ext_resource type="Texture2D" uid="uid://cjjvnifpm1fb" path="res://assets/images/frenzyfigurine.jpg" id="1_kgfs5"]
 [ext_resource type="Material" uid="uid://d30aqi80c1nrc" path="res://art/white_sprite_material.tres" id="2_36xc6"]
-[ext_resource type="Resource" uid="uid://3ajqt4x42i82" path="res://relics/philosopher_stone.tres" id="2_anovp"]
 [ext_resource type="FontFile" uid="uid://t1kjnid0fq8h" path="res://assets/static/Roboto-Black.ttf" id="5_yxl41"]
 
 [sub_resource type="Animation" id="Animation_7soui"]
@@ -79,7 +78,6 @@ anchors_preset = 0
 offset_right = 56.0
 offset_bottom = 56.0
 script = ExtResource("1_88a14")
-relic = ExtResource("2_anovp")
 
 [node name="Icon" type="TextureRect" parent="."]
 custom_minimum_size = Vector2(56, 56)

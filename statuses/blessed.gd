@@ -11,7 +11,7 @@ func initialize_status(_target: Node) -> void:
 func consume_stack() -> void:
     if duration > 0:
         print("consuming stack")
-        Global.next_roll_modifier +=1
+        Global.next_roll_modifier +=2
         # The status_changed signal will trigger status_ui to update or remove itself
         status_changed.emit()
 

@@ -13,6 +13,7 @@ const TooltipScene = preload("res://scenes/ui/dice_tooltip.tscn")
 @onready var dice_6: VBoxContainer = $MarginContainer/Panel/HBoxContainer/Dice6
 @onready var dice_7: VBoxContainer = $MarginContainer/Panel/HBoxContainer/Dice7
 @onready var dice_8: VBoxContainer = $MarginContainer/Panel/HBoxContainer/Dice8
+@onready var dice_9: VBoxContainer = $MarginContainer/Panel/HBoxContainer/Dice9
 
 
 @onready var buy_dice_1_label: RichTextLabel = $MarginContainer/Panel/HBoxContainer/Dice1/BuyDice1/BuyDice1Label
@@ -23,18 +24,20 @@ const TooltipScene = preload("res://scenes/ui/dice_tooltip.tscn")
 @onready var buy_dice_6_label: RichTextLabel = $MarginContainer/Panel/HBoxContainer/Dice6/BuyDice6/BuyDice6Label
 @onready var buy_dice_7_label: RichTextLabel = $MarginContainer/Panel/HBoxContainer/Dice7/BuyDice7/BuyDice7Label
 @onready var buy_dice_8_label: RichTextLabel = $MarginContainer/Panel/HBoxContainer/Dice8/BuyDice8/BuyDice8Label
+@onready var buy_dice_9_label: RichTextLabel = $MarginContainer/Panel/HBoxContainer/Dice9/BuyDice9/BuyDice9Label
 
 
 @export var run_stats: RunStats
 
-var evil_dice_base_price = 200
-var giant_dice_base_price = 180
-var magma_dice_base_price = 210
-var even_dice_base_price = 180
-var odd_dice_base_price = 180
-var blue_dice_base_price = 150
-var red_dice_base_price = 150
-var green_dice_base_price = 120
+var evil_dice_base_price = 210
+var giant_dice_base_price = 240
+var magma_dice_base_price = 260
+var even_dice_base_price = 200
+var odd_dice_base_price = 200
+var blue_dice_base_price = 180
+var red_dice_base_price = 220
+var green_dice_base_price = 160
+var mech_dice_base_price = 190
 
 var reroll_price = 20
 
@@ -46,15 +49,16 @@ var odd_dice_price = odd_dice_base_price
 var blue_dice_price = blue_dice_base_price
 var red_dice_price = red_dice_base_price
 var green_dice_price = green_dice_base_price
+var mech_dice_price = mech_dice_base_price
 
 
-var existing_dices = 8
+var existing_dices = 9
 
 
 
 func _ready():
     Events.dice_price_changed.connect(_on_dice_price_changed)
-    var dice_nodes = [dice_1, dice_2, dice_3, dice_4, dice_5, dice_6, dice_7, dice_8]
+    var dice_nodes = [dice_1, dice_2, dice_3, dice_4, dice_5, dice_6, dice_7, dice_8, dice_9]
     
     # Hide all dice containers initially
     for dice in dice_nodes:
@@ -158,14 +162,15 @@ func _on_buy_dice_5_pressed() -> void:
         update_dice_price()
         
 func update_dice_price() -> void:
-    evil_dice_price  = int(evil_dice_base_price  * pow(1.30, Global.purchased_dice_counts["evil"]))
-    giant_dice_price = int(giant_dice_base_price * pow(1.30, Global.purchased_dice_counts["giant"]))
-    magma_dice_price = int(magma_dice_base_price * pow(1.30, Global.purchased_dice_counts["magma"]))
-    even_dice_price  = int(even_dice_base_price  * pow(1.30, Global.purchased_dice_counts["even"]))
-    odd_dice_price   = int(odd_dice_base_price   * pow(1.30, Global.purchased_dice_counts["odd"]))
-    blue_dice_price  = int(blue_dice_base_price  * pow(1.30, Global.purchased_dice_counts["blue"]))
-    red_dice_price   = int(red_dice_base_price   * pow(1.30, Global.purchased_dice_counts["red"]))
-    green_dice_price = int(green_dice_base_price * pow(1.30, Global.purchased_dice_counts["green"]))
+    evil_dice_price  = int(evil_dice_base_price  * pow(1.35, Global.purchased_dice_counts["evil"]))
+    giant_dice_price = int(giant_dice_base_price * pow(1.35, Global.purchased_dice_counts["giant"]))
+    magma_dice_price = int(magma_dice_base_price * pow(1.35, Global.purchased_dice_counts["magma"]))
+    even_dice_price  = int(even_dice_base_price  * pow(1.35, Global.purchased_dice_counts["even"]))
+    odd_dice_price   = int(odd_dice_base_price   * pow(1.35, Global.purchased_dice_counts["odd"]))
+    blue_dice_price  = int(blue_dice_base_price  * pow(1.35, Global.purchased_dice_counts["blue"]))
+    red_dice_price   = int(red_dice_base_price   * pow(1.35, Global.purchased_dice_counts["red"]))
+    green_dice_price = int(green_dice_base_price * pow(1.35, Global.purchased_dice_counts["green"]))
+    mech_dice_price = int(mech_dice_base_price * pow(1.35, Global.purchased_dice_counts["mech"]))
 
 
     buy_dice_1_label.text = "[center]Buy ([color=#FFD700]" + str(evil_dice_price) + "G[/color])[/center]"
@@ -176,6 +181,8 @@ func update_dice_price() -> void:
     buy_dice_6_label.text = "[center]Buy ([color=#FFD700]" + str(blue_dice_price) + "G[/color])[/center]"
     buy_dice_7_label.text = "[center]Buy ([color=#FFD700]" + str(red_dice_price) + "G[/color])[/center]"
     buy_dice_8_label.text = "[center]Buy ([color=#FFD700]" + str(green_dice_price) + "G[/color])[/center]"
+    buy_dice_9_label.text = "[center]Buy ([color=#FFD700]" + str(mech_dice_price) + "G[/color])[/center]"
+
     get_cheapest_available_dice_price()
 
 func _on_dice_price_changed():
@@ -224,6 +231,21 @@ func _on_buy_dice_8_pressed() -> void:
         Events.update_dice_top_bar.emit()
         Global.purchased_dice_counts["green"] += 1
         update_dice_price()
+        
+func _on_buy_dice_9_pressed() -> void:
+    if Global.gold >= mech_dice_price:
+        Global.gold-= mech_dice_price
+        Events.gold_changed.emit()
+        Events.dice_bought.emit("mech")
+        SFXPlayer.play(load("res://sounds/buydicesound.wav")) 
+        Global.mech_dice_max_amount+=1
+        Global.mech_dice_current_amount+=1
+        if Global.mech_dice_current_amount == 1:
+            Global.dice_inventory.append("mech")
+        Events.update_dice_top_bar.emit()
+        Global.purchased_dice_counts["mech"] += 1
+        update_dice_price()
+
 
         
 func is_mouse_over_dice() -> bool:
@@ -438,6 +460,32 @@ func _on_dice_8_mouse_exited() -> void:
     if tooltip_instance_bonus and is_instance_valid(tooltip_instance_bonus):
         tooltip_instance_bonus.queue_free()
         tooltip_instance_bonus = null
+        
+func _on_dice_9_mouse_entered() -> void:
+    await get_tree().create_timer(0.01).timeout
+
+    if not is_mouse_over_dice():
+        return
+
+    var dice_pos = dice_9.global_position + Vector2(0, dice_9.size.y - 480)
+
+    tooltip_instance_requirement = TooltipScene.instantiate()
+    get_tree().root.add_child(tooltip_instance_requirement)
+    tooltip_instance_requirement.get_tooltip_content("mech")
+    tooltip_instance_requirement.show_tooltip(dice_pos)
+
+
+func _on_dice_9_mouse_exited() -> void:
+    if tooltip_instance_requirement and is_instance_valid(tooltip_instance_requirement):
+        tooltip_instance_requirement.queue_free()
+        tooltip_instance_requirement = null
+
+    if tooltip_instance_bonus and is_instance_valid(tooltip_instance_bonus):
+        tooltip_instance_bonus.queue_free()
+        tooltip_instance_bonus = null
+
+
+
 
 
 func _on_exit_shop_button_pressed() -> void:
@@ -447,7 +495,7 @@ func _on_exit_shop_button_pressed() -> void:
 
 
 func reroll_shop_dice() -> void:
-    var dice_nodes = [dice_1, dice_2, dice_3, dice_4, dice_5, dice_6, dice_7, dice_8]
+    var dice_nodes = [dice_1, dice_2, dice_3, dice_4, dice_5, dice_6, dice_7, dice_8, dice_9]
 
     # Hide all dice first
     for dice in dice_nodes:
@@ -483,7 +531,8 @@ func get_cheapest_available_dice_price() -> int:
         4: odd_dice_price,
         5: blue_dice_price,
         6: red_dice_price,
-        7: green_dice_price
+        7: green_dice_price,
+        8: mech_dice_price
     }
     
     var prices = []

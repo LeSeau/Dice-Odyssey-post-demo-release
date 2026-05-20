@@ -7,8 +7,8 @@
 [ext_resource type="PackedScene" uid="uid://2n4lap6w3pde" path="res://scenes/player/player.tscn" id="3_dpj45"]
 [ext_resource type="PackedScene" uid="uid://dwt63vvppukag" path="res://scenes/card_target_selector/card_target_selector.tscn" id="3_vyv1n"]
 [ext_resource type="Script" path="res://scenes/enemy/enemy_handler.gd" id="4_41vpn"]
+[ext_resource type="Texture2D" uid="uid://b6n22vtc7dr20" path="res://assets/backgrounds/20-2.jpg" id="4_51csj"]
 [ext_resource type="Resource" uid="uid://sbkc4o401k4l" path="res://characters/warrior/warrior.tres" id="4_fwb8a"]
-[ext_resource type="Texture2D" uid="uid://b6n22vtc7dr20" path="res://assets/backgrounds/20-2.jpg" id="4_gbmov"]
 [ext_resource type="Resource" uid="uid://bnmpwl3k8qb8n" path="res://enemies/crab/crab_enemy.tres" id="5_5flmk"]
 [ext_resource type="Script" path="res://scenes/ui/battle_ui.gd" id="7_18vit"]
 [ext_resource type="Script" path="res://scenes/player/player_handler.gd" id="8_3di7i"]
@@ -114,9 +114,9 @@ char_stats = ExtResource("4_fwb8a")
 music = ExtResource("3_7d1uf")
 
 [node name="Background" type="Sprite2D" parent="."]
-modulate = Color(0.662452, 0.662452, 0.662452, 1)
+modulate = Color(0.73, 0.73, 0.73, 1)
 position = Vector2(0, 1)
-texture = ExtResource("4_gbmov")
+texture = ExtResource("4_51csj")
 centered = false
 
 [node name="CardDropArea" type="Area2D" parent="."]
@@ -210,10 +210,10 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -350.0
-offset_top = -107.0
-offset_right = 350.0
-offset_bottom = 43.0
+offset_left = -346.0
+offset_top = -128.0
+offset_right = 354.0
+offset_bottom = 22.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_constants/separation = -35

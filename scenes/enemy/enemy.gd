@@ -7,6 +7,8 @@ const WHITE_SPRITE_MATERIAL := preload("res://art/white_sprite_material.tres")
 @export var stats: EnemyStats : set = set_enemy_stats
 @export var width: int 
 @export var height: int
+@export var initial_statuses: Array[Status] = []
+
 @onready var sprite_2d: Sprite2D = $SpriteRoot/Sprite2D
 
 
@@ -41,7 +43,13 @@ func set_enemy_stats(value: EnemyStats) -> void:
         
     
     update_enemy()
+    _apply_initial_statuses()  # <-- add this
 
+func _apply_initial_statuses() -> void:
+    if not is_inside_tree():
+        await ready
+    for status in initial_statuses:
+        status_handler.add_status(status.duplicate())
 
 func setup_ai() -> void:
     if enemy_action_picker:

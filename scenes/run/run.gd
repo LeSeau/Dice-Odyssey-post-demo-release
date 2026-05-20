@@ -81,7 +81,7 @@ func _initialize_dice_display() -> void:
     dice_displays["red"] = red_dice
     
     # Create templates for other dice types that can be added later
-    var dice_types = ["evil", "giant", "magma", "even", "odd", "green"]
+    var dice_types = ["evil", "giant", "magma", "even", "odd", "green", "mech"]
     
     for dice_type in dice_types:
         # Skip if we've already created this dice type
@@ -124,6 +124,7 @@ func get_dice_max_amount(dice_type: String) -> int:
         "even": return Global.even_dice_max_amount
         "odd": return Global.odd_dice_max_amount
         "green": return Global.green_dice_max_amount
+        "mech": return Global.mech_dice_max_amount
         _: return 0
 
 # Updated function to handle all dice types
@@ -135,7 +136,7 @@ func _on_update_dice_top_bar() -> void:
     red_dice_amount.text = str(Global.red_dice_max_amount)
     
     # Check if we need to add any new dice types
-    var dice_types = ["evil", "giant", "magma", "even", "odd", "green"]
+    var dice_types = ["evil", "giant", "magma", "even", "odd", "green", "mech"]
     
     for dice_type in dice_types:
         var max_amount = get_dice_max_amount(dice_type)
@@ -278,7 +279,7 @@ func _get_tier_for_room(room: Room) -> int:
     elif room.type == Room.Type.ELITE:
         return 3
     elif room.row > 8:
-        return 2
+        return 1
     elif room.row > 2:
         return 1
     else:

@@ -1,0 +1,46 @@
+[gd_scene load_steps=13 format=3 uid="uid://cfq8k1iwvjxkf"]
+
+[ext_resource type="Script" path="res://scenes/enemy/enemy_action_picker.gd" id="1_mk0b0"]
+[ext_resource type="Script" path="res://enemies/oculus/oculus_attack_action.gd" id="2_dyefc"]
+[ext_resource type="Texture2D" uid="uid://cm56j6ual41dr" path="res://attack_icon_intent.png" id="3_s10rf"]
+[ext_resource type="Script" path="res://enemies/oculus/oculus_attack_action_2.gd" id="3_u0kk1"]
+[ext_resource type="Script" path="res://custom_resources/intent.gd" id="4_vccv0"]
+[ext_resource type="AudioStream" uid="uid://de2ryat1pxq6" path="res://art/enemy_attack.ogg" id="5_dqxre"]
+[ext_resource type="Script" path="res://enemies/oculus/oculus_attack_buff_action.gd" id="7_1gx1o"]
+[ext_resource type="Texture2D" uid="uid://binq5gkgr3pre" path="res://buff_icon_intent.png" id="8_b2mhy"]
+[ext_resource type="AudioStream" uid="uid://cupear06meqp6" path="res://sounds/attacksound.mp3" id="9_s03av"]
+
+[sub_resource type="Resource" id="Resource_i1gdi"]
+script = ExtResource("4_vccv0")
+base_text = "%s"
+icon = ExtResource("3_s10rf")
+
+[sub_resource type="Resource" id="Resource_4kwjb"]
+script = ExtResource("4_vccv0")
+base_text = "%s"
+icon = ExtResource("3_s10rf")
+
+[sub_resource type="Resource" id="Resource_5suyb"]
+script = ExtResource("4_vccv0")
+base_text = ""
+icon = ExtResource("8_b2mhy")
+
+[node name="OculusEnemyAI" type="Node"]
+script = ExtResource("1_mk0b0")
+
+[node name="OculusAttackAction" type="Node" parent="."]
+script = ExtResource("2_dyefc")
+intent = SubResource("Resource_i1gdi")
+sound = ExtResource("5_dqxre")
+action_id = "oculus_attack"
+
+[node name="OculusAttackAction2" type="Node" parent="."]
+script = ExtResource("3_u0kk1")
+intent = SubResource("Resource_4kwjb")
+sound = ExtResource("5_dqxre")
+action_id = "oculus_second_attack"
+
+[node name="OculusBuffAction" type="Node" parent="."]
+script = ExtResource("7_1gx1o")
+intent = SubResource("Resource_5suyb")
+sound = ExtResource("9_s03av")

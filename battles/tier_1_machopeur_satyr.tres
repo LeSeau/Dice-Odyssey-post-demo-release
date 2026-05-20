@@ -10,3 +10,4 @@ weight = 1.0
 gold_reward_min = 30
 gold_reward_max = 40
 enemies = ExtResource("1_iwse4")
+group = ""

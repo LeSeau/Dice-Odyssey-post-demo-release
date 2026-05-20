@@ -21,25 +21,10 @@ func set_relic(new_relic: Relic) -> void:
     relic = new_relic
     icon.texture = relic.icon
     
-    # Setup counter if this relic needs one
-    if relic.has_counter:
-        counter.visible = true
-        Events.card_played.connect(_on_card_played)
-        Events.player_turn_started.connect(_on_player_turn_started)
-        update_counter()
-    else:
-        counter.visible = false
+    counter.visible = false
+    relic.initialize_relic(self)
 
-func _on_card_played(_card: Card) -> void:
-    update_counter()
-    
-func _on_player_turn_started() -> void:
-    update_counter()
 
-func update_counter() -> void:
-    if relic and relic.has_counter:
-        counter.text = str(Global.cards_played_this_turn)
-        counter.visible = true
 
 # Keep your existing functionality
 func flash() -> void:

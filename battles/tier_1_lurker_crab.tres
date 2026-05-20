@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="BattleStats" load_steps=3 format=3 uid="uid://rdf6nwie4yma"]
+
+[ext_resource type="PackedScene" uid="uid://3xbe7qpnc1yb" path="res://battles/tier_1_lurker_crab.tscn" id="1_1kuf5"]
+[ext_resource type="Script" path="res://custom_resources/battle_stats.gd" id="2_fcb81"]
+
+[resource]
+script = ExtResource("2_fcb81")
+battle_tier = 1
+weight = 10.0
+gold_reward_min = 30
+gold_reward_max = 40
+enemies = ExtResource("1_1kuf5")
+group = ""

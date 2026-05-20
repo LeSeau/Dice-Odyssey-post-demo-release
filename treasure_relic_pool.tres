@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RelicPool" load_steps=18 format=3 uid="uid://2if2rhy1aktn"]
+[gd_resource type="Resource" script_class="RelicPool" load_steps=19 format=3 uid="uid://2if2rhy1aktn"]
 
 [ext_resource type="Script" path="res://custom_resources/relic.gd" id="1_3cua4"]
 [ext_resource type="Resource" uid="uid://d1hg48cey4d5d" path="res://relics/arcane_hat.tres" id="2_fqptj"]
@@ -17,7 +17,8 @@
 [ext_resource type="Resource" uid="uid://dxfbn0i1jr0o3" path="res://relics/war_drum.tres" id="14_0sw8d"]
 [ext_resource type="Resource" uid="uid://c08xty5w4xohd" path="res://relics/fuel-o-meter.tres" id="15_kefn7"]
 [ext_resource type="Resource" uid="uid://dn5pcdeedr816" path="res://relics/the_one.tres" id="16_sytgm"]
+[ext_resource type="Resource" uid="uid://ciglk4bcovgic" path="res://relics/crown.tres" id="17_28okp"]
 
 [resource]
 script = ExtResource("2_tgoc2")
-pool = Array[ExtResource("1_3cua4")]([ExtResource("2_fqptj"), ExtResource("3_nr6f2"), ExtResource("4_yunvh"), ExtResource("6_wv4ds"), ExtResource("7_8op50"), ExtResource("8_53mm1"), ExtResource("9_plo4j"), ExtResource("10_pt110"), ExtResource("11_1ld04"), ExtResource("12_w00ns"), ExtResource("12_ckpsv"), ExtResource("13_si5dn"), ExtResource("14_0sw8d"), ExtResource("15_kefn7"), ExtResource("16_sytgm")])
+pool = Array[ExtResource("1_3cua4")]([ExtResource("2_fqptj"), ExtResource("3_nr6f2"), ExtResource("4_yunvh"), ExtResource("6_wv4ds"), ExtResource("7_8op50"), ExtResource("8_53mm1"), ExtResource("9_plo4j"), ExtResource("10_pt110"), ExtResource("11_1ld04"), ExtResource("12_w00ns"), ExtResource("12_ckpsv"), ExtResource("13_si5dn"), ExtResource("14_0sw8d"), ExtResource("15_kefn7"), ExtResource("16_sytgm"), ExtResource("17_28okp")])

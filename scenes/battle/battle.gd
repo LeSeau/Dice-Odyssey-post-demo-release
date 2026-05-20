@@ -91,6 +91,7 @@ func start_battle() -> void:
     relics.relics_activated.connect(_on_relics_activated)
     relics.activate_relics_by_type(Relic.Type.START_OF_COMBAT)
     Global.fight_turn = 0
+    Global.fight_dice_rolled = 0
     Global.dice_type = "blue"
     Events.battle_started.emit()
 
@@ -186,6 +187,14 @@ var dice_faces := {
         load("res://assets/images/green1.png"),
         load("res://assets/images/green2.png"),
         load("res://assets/images/green3.png"),
+    ],
+    "mech": [
+        load("res://assets/images/mech1.png"),
+        load("res://assets/images/mech2.png"),
+        load("res://assets/images/mech3.png"),
+        load("res://assets/images/mech4.png"),
+        load("res://assets/images/mech5.png"),
+        load("res://assets/images/mech6.png"),
     ],
 }
 

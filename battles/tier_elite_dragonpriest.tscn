@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3 uid="uid://bn53gm3m6g40w"]
+
+[ext_resource type="PackedScene" uid="uid://d0efyathkfg74" path="res://scenes/enemy/enemy.tscn" id="1_6k8pb"]
+[ext_resource type="Resource" uid="uid://d2j00fsae0a3t" path="res://enemies/dragonpriest/dragonpriest_enemy.tres" id="2_ntj7k"]
+
+[node name="TierEliteDragonpriest" type="Node2D"]
+
+[node name="Dragonpriest" parent="." instance=ExtResource("1_6k8pb")]
+position = Vector2(858, 394)
+stats = ExtResource("2_ntj7k")

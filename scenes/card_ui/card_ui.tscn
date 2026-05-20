@@ -1,4 +1,4 @@
-[gd_scene load_steps=29 format=3 uid="uid://b60egpxyditoc"]
+[gd_scene load_steps=30 format=3 uid="uid://b60egpxyditoc"]
 
 [ext_resource type="Material" uid="uid://bcdb8cbop4w8o" path="res://scenes/dices/blue_dice_shader.tres" id="1_n3kmb"]
 [ext_resource type="Script" path="res://scenes/card_ui/card_ui.gd" id="2_uam7p"]
@@ -12,6 +12,7 @@
 [ext_resource type="StyleBox" uid="uid://cjypcaytp7ubr" path="res://scenes/card_ui/card_ui_normal.tres" id="5_ewbr7"]
 [ext_resource type="Script" path="res://scenes/card_ui/card_states/card_dragging_state.gd" id="6_jk8rm"]
 [ext_resource type="StyleBox" uid="uid://ba5f3gvin2wmm" path="res://scenes/card_ui/card_panel.tres" id="6_sxdlv"]
+[ext_resource type="Texture2D" uid="uid://sxiw6df36trq" path="res://assets/images/blue6.png" id="7_45tt3"]
 [ext_resource type="Script" path="res://scenes/card_ui/card_states/card_released_state.gd" id="7_k7cbr"]
 [ext_resource type="Script" path="res://scenes/card_ui/card_states/card_aiming_state.gd" id="8_ew01p"]
 [ext_resource type="StyleBox" uid="uid://bp11k7kqceuxa" path="res://scenes/card_ui/description_panel.tres" id="8_kiuki"]
@@ -155,6 +156,22 @@ horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 2
 metadata/_edit_use_anchors_ = true
+
+[node name="SupportIcon" type="TextureRect" parent="CardBackground/CardFrame/CardBanner"]
+visible = false
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -24.0
+offset_top = -10.5
+offset_bottom = 9.5
+grow_horizontal = 0
+grow_vertical = 2
+texture = ExtResource("7_45tt3")
+expand_mode = 1
 
 [node name="Panel" type="Panel" parent="CardBackground/CardFrame"]
 custom_minimum_size = Vector2(110, 80)

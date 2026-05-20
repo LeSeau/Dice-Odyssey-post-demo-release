@@ -1,0 +1,13 @@
+[gd_scene load_steps=5 format=3 uid="uid://6kicbxvy4n25"]
+
+[ext_resource type="PackedScene" uid="uid://d0efyathkfg74" path="res://scenes/enemy/enemy.tscn" id="1_lfmdq"]
+[ext_resource type="Resource" uid="uid://c4m2yma4imgos" path="res://enemies/gargantua/gargantua_enemy.tres" id="2_ddpo1"]
+[ext_resource type="Script" path="res://custom_resources/status.gd" id="3_rnq2a"]
+[ext_resource type="Resource" uid="uid://ossmgwdewnbs" path="res://statuses/greedy.tres" id="4_m54ej"]
+
+[node name="TierEliteGargantua" type="Node2D"]
+
+[node name="Gargantua" parent="." instance=ExtResource("1_lfmdq")]
+position = Vector2(918, 418)
+stats = ExtResource("2_ddpo1")
+initial_statuses = Array[ExtResource("3_rnq2a")]([ExtResource("4_m54ej")])

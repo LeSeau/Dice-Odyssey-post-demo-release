@@ -1,6 +1,6 @@
 [gd_resource type="Resource" load_steps=4 format=3 uid="uid://cexum1jvlid0b"]
 
-[ext_resource type="Texture2D" uid="uid://dy68253p31hjo" path="res://assets/images/gptstrike.png" id="1_k5ct5"]
+[ext_resource type="Texture2D" uid="uid://6si7wrbk0cdd" path="res://strike_v3.png" id="1_hkigs"]
 [ext_resource type="Script" path="res://characters/warrior/cards/warrior_axe_attack.gd" id="2_1h6te"]
 [ext_resource type="AudioStream" uid="uid://bnoudyk1my2eh" path="res://impact1ok.mp3" id="3_8n27v"]
 
@@ -21,6 +21,6 @@ bonus_requirement = 0
 bonus_requirement_number = 0
 bonus_description_text = ""
 tags = ""
-icon = ExtResource("1_k5ct5")
+icon = ExtResource("1_hkigs")
 tooltip_text = ""
 sound = ExtResource("3_8n27v")

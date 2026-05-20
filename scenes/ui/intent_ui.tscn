@@ -1,7 +1,7 @@
-[gd_scene load_steps=5 format=3 uid="uid://b6p08ajglydq8"]
+[gd_scene load_steps=8 format=3 uid="uid://b6p08ajglydq8"]
 
 [ext_resource type="Script" path="res://scenes/ui/intent_ui.gd" id="1_aarbb"]
-[ext_resource type="Texture2D" uid="uid://dxm470owuxqc1" path="res://assets/images/swordicon.png" id="2_hevkv"]
+[ext_resource type="Texture2D" uid="uid://cm56j6ual41dr" path="res://attack_icon_intent.png" id="2_o32yy"]
 [ext_resource type="FontFile" uid="uid://b2y60c4274gkj" path="res://fonts/Cinzel-Bold.otf" id="3_jrid6"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_ftoyl"]
@@ -11,14 +11,53 @@ outline_size = 3
 shadow_size = 5
 shadow_color = Color(0, 0, 0, 1)
 
+[sub_resource type="Animation" id="Animation_7mnno"]
+resource_name = "idle"
+length = 4.0
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = false
+tracks/0/path = NodePath(".:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 2, 4),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(0, 0), Vector2(0, 3), Vector2(0, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_4eqr2"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(582, 0)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_12idr"]
+_data = {
+"RESET": SubResource("Animation_4eqr2"),
+"idle": SubResource("Animation_7mnno")
+}
+
 [node name="IntentUI" type="HBoxContainer"]
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -57.0
-offset_right = 57.0
+offset_left = -58.0
+offset_right = 58.0
 offset_bottom = 96.0
 grow_horizontal = 2
+mouse_filter = 0
 theme_override_constants/separation = -6
 alignment = 1
 script = ExtResource("1_aarbb")
@@ -26,7 +65,8 @@ script = ExtResource("1_aarbb")
 [node name="Icon" type="TextureRect" parent="."]
 custom_minimum_size = Vector2(60, 60)
 layout_mode = 2
-texture = ExtResource("2_hevkv")
+mouse_filter = 2
+texture = ExtResource("2_o32yy")
 expand_mode = 3
 stretch_mode = 6
 
@@ -38,3 +78,12 @@ text = "7"
 label_settings = SubResource("LabelSettings_ftoyl")
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+"": SubResource("AnimationLibrary_12idr")
+}
+autoplay = "idle"
+
+[connection signal="mouse_entered" from="." to="." method="_on_mouse_entered"]
+[connection signal="mouse_exited" from="." to="." method="_on_mouse_exited"]

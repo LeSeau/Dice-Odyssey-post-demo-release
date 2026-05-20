@@ -4,11 +4,15 @@ var testing_mode: bool = true
 var tutorial_on = false
 var tutorial_reset_power_warning = true
 
+var gold = 7575
+var player_hp = 6666
+var player_max_hp = 6666
+
 
 var roll_value: int = 0  # Stores the latest dice roll result
 var last_roll: int = 0
 var blue_dice_current_amount = 2
-var blue_dice_max_amount = 2
+var blue_dice_max_amount = 22
 var blue_dice_bonus_amount = 0
 var blue_dice_bonus_amount_fight = 0
 var red_dice_current_amount = 1
@@ -32,6 +36,9 @@ var even_dice_bonus_amount = 0
 var odd_dice_current_amount = 0
 var odd_dice_max_amount = 0
 var odd_dice_bonus_amount = 0
+var mech_dice_current_amount = 0
+var mech_dice_max_amount = 0
+var mech_dice_bonus_amount = 0
 
 var charged_dice_this_turn := false
 var dice_amount_rolled_this_turn
@@ -54,14 +61,13 @@ var dice_inventory = ["blue", "red"]
 var roll_history = []
 var shop_initialized = false  # Whether the shop has been initialized
 var shop_dice_selection = []  # Stores which dice are shown
-var gold = 75
-var player_hp = 66
-var player_max_hp = 66
+
 var lose_strength_next_turn = 0
 var has_blocked_last_turn = false
 var starting_power_next_turn = 0
 var is_removing_card = true
 var removing_card: bool = false
+var power_generated_this_turn = 0
 
 var purchased_dice_counts = {
     "evil": 0,
@@ -71,7 +77,8 @@ var purchased_dice_counts = {
     "odd": 0,
     "blue": 0,
     "red": 0,
-    "green": 0
+    "green": 0,
+    "mech": 0
 }
 
 var cheapest_dice_price
@@ -101,5 +108,6 @@ var no_reset: bool = false
 
 var pending_card_rewards = 1
 var hound_debuff_attack_done = false
+var gargantua_debuff_attack_done = false
 var has_rolled_6_this_turn = false
 var has_rolled_1_this_fight = false

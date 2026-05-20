@@ -1,8 +1,7 @@
-[gd_scene load_steps=5 format=3 uid="uid://wkl4lkhx142u"]
+[gd_scene load_steps=4 format=3 uid="uid://wkl4lkhx142u"]
 
 [ext_resource type="Texture2D" uid="uid://d0edy7thj8ce6" path="res://art/heart.png" id="1_0vhk3"]
 [ext_resource type="Script" path="res://scenes/status_handler/status_ui.gd" id="1_5tjqe"]
-[ext_resource type="Resource" uid="uid://ekj0l2u6s0np" path="res://statuses/muscle.tres" id="2_opvwp"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_gwb6o"]
 font_size = 15
@@ -11,7 +10,6 @@ font_size = 15
 layout_mode = 3
 anchors_preset = 0
 script = ExtResource("1_5tjqe")
-status = ExtResource("2_opvwp")
 
 [node name="Icon" type="TextureRect" parent="."]
 custom_minimum_size = Vector2(30, 30)

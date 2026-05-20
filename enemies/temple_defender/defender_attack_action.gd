@@ -4,10 +4,10 @@ extends EnemyAction
 @onready var modifier_handler: ModifierHandler = $"../ModifierHandler"
 
 
-var base_damage = 12
+var base_damage = 10
 
 func is_performable() -> bool:
-    return Global.fight_turn == 0
+    return Global.fight_turn == 0 or enemy.last_action == "defender_block"
 
 func perform_action() -> void:
     if not enemy or not target:

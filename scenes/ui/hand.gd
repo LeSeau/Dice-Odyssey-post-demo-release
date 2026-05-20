@@ -53,6 +53,7 @@ func _on_card_ui_reparent_requested(child: CardUI) -> void:
     call_deferred("_update_card_positions")
 
 func _update_card_positions() -> void:
+    
     var card_count := get_child_count()
     if card_count == 0:
         return
@@ -71,12 +72,15 @@ func _update_card_positions() -> void:
 
                 # Store only the Y position
                 _original_positions[card] = Vector2(0, card.position.y)
+                #card.scale = Vector2(1.1, 1.1)
     else:
         var card := get_child(0) as CardUI
         if card:
             card.rotation_degrees = 0
             card.position.y = 0
             _original_positions[card] = Vector2(0, 0)
+
+    
 
 func _on_card_mouse_entered(card: CardUI) -> void:
     if card.disabled or not _original_positions.has(card):

@@ -1,15 +1,13 @@
-[gd_scene load_steps=4 format=3 uid="uid://by8dt1onfbykt"]
+[gd_scene load_steps=3 format=3 uid="uid://by8dt1onfbykt"]
 
 [ext_resource type="Script" path="res://scenes/shop/shop_relic.gd" id="1_wqxco"]
 [ext_resource type="PackedScene" uid="uid://djrenoyp58mtl" path="res://scenes/relic_handler/relic_ui.tscn" id="2_2saq4"]
-[ext_resource type="Resource" uid="uid://1p6lk2kyn3fi" path="res://relics/volcanic_rock.tres" id="2_fhstq"]
 
 [node name="ShopRelic" type="VBoxContainer"]
 custom_minimum_size = Vector2(80, 261)
 offset_right = 80.0
 offset_bottom = 261.0
 script = ExtResource("1_wqxco")
-relic = ExtResource("2_fhstq")
 
 [node name="RelicContainer" type="CenterContainer" parent="."]
 layout_mode = 2

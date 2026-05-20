@@ -3,9 +3,12 @@ extends Control
 
 signal active_dice_changed(active_dice)
 
+const TooltipScene = preload("res://scenes/ui/dice_tooltip.tscn")
+
+
 @onready var control: DiceInterface = $"."
-@onready var dice_1: VBoxContainer = $DicePanel/HBoxContainer/Dice1
-@onready var dice_2: VBoxContainer = $DicePanel/HBoxContainer/Dice2
+@onready var dice_1: VBoxContainer = $DicePanel/MarginContainer/HBoxContainer/Dice1
+@onready var dice_2: VBoxContainer = $DicePanel/MarginContainer/HBoxContainer/Dice2
 @onready var dice_1_label: Label = $DicePanel/MarginContainer/HBoxContainer/Dice1/Dice1Label
 @onready var dice_2_label: Label = $DicePanel/MarginContainer/HBoxContainer/Dice2/Dice2Label
 @onready var dice_3: VBoxContainer = $DicePanel/MarginContainer/HBoxContainer/Dice3
@@ -31,7 +34,12 @@ signal active_dice_changed(active_dice)
 @onready var dice_8: VBoxContainer = $DicePanel/MarginContainer/HBoxContainer/Dice8
 @onready var dice_8_texture: TextureRect = $DicePanel/MarginContainer/HBoxContainer/Dice8/Dice8Texture
 @onready var dice_8_label: Label = $DicePanel/MarginContainer/HBoxContainer/Dice8/Dice8Label
+@onready var dice_9: VBoxContainer = $DicePanel/MarginContainer/HBoxContainer/Dice9
+@onready var dice_9_texture: TextureRect = $DicePanel/MarginContainer/HBoxContainer/Dice9/Dice9Texture
+@onready var dice_9_label: Label = $DicePanel/MarginContainer/HBoxContainer/Dice9/Dice9Label
 
+
+var tooltip_instance: Panel
 
 
 
@@ -45,6 +53,7 @@ func _ready() -> void:
     dice_6_label.text = str(Global.even_dice_current_amount, "/", Global.even_dice_max_amount)
     dice_7_label.text = str(Global.odd_dice_current_amount, "/", Global.odd_dice_max_amount)
     dice_8_label.text = str(Global.green_dice_current_amount, "/", Global.green_dice_max_amount)
+    dice_9_label.text = str(Global.mech_dice_current_amount, "/", Global.mech_dice_max_amount)
     # Connect event listener for dice rolls
     Events.dice_rolled.connect(_on_dice_rolled)
     Events.dice_amount_changed.connect(_on_dice_amount_changed)
@@ -57,6 +66,13 @@ func _ready() -> void:
     dice_panel.custom_minimum_size.x = (different_dices_amount * 50)+100
     Events.temporary_dice_added.connect(_on_temporary_dice_added)
    
+    await get_tree().process_frame
+    print("dice_1 is: ", dice_1)
+    print("dice_1 size: ", dice_1.size)
+    print("dice_1 visible: ", dice_1.visible)
+    print("dice_1 mouse filter: ", dice_1.mouse_filter)
+    dice_1.mouse_entered.connect(func(): print("ENTERED"))
+    dice_1.mouse_exited.connect(func(): print("EXITED"))
 
 
 # Called when a dice is rolled
@@ -93,6 +109,10 @@ func _on_dice_rolled(dice_type: String, roll_value: int):
         if Global.green_dice_current_amount > 0:  
             Global.green_dice_current_amount -= 1
             dice_8_label.text = str(Global.green_dice_current_amount, "/", Global.green_dice_max_amount)
+    elif Global.dice_type == "mech":  # Reduce only if it's the blue die
+        if Global.mech_dice_current_amount > 0:  
+            Global.mech_dice_current_amount -= 1
+            dice_9_label.text = str(Global.mech_dice_current_amount, "/", Global.mech_dice_max_amount)
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
@@ -193,6 +213,21 @@ func _on_dice_8_gui_input(event: InputEvent) -> void:
         Events.active_dice_changed.emit("green")
         Global.dice_type = "green"
         Events.update_roll_history_ui.emit()
+
+func _on_dice_9_gui_input(event: InputEvent) -> void:
+    if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+        if Global.tutorial_reset_power_warning && Global.roll_value>0&& Global.dice_type != "red":
+            #show warning message
+            Events.show_warning_message.emit()
+            Global.tutorial_reset_power_warning = false 
+            return
+        Events.active_dice_changed.emit("mech")
+        Global.dice_type = "mech"
+        Events.update_roll_history_ui.emit()
+
+        
+        
+        
         
 func _on_player_turn_started() -> void:
     Global.blue_dice_current_amount = Global.blue_dice_max_amount + Global.blue_dice_bonus_amount + Global.blue_dice_bonus_amount_fight
@@ -203,7 +238,8 @@ func _on_player_turn_started() -> void:
     Global.magma_dice_current_amount = Global.magma_dice_max_amount + Global.magma_dice_bonus_amount
     Global.even_dice_current_amount = Global.even_dice_max_amount + Global.even_dice_bonus_amount
     Global.odd_dice_current_amount = Global.odd_dice_max_amount + Global.odd_dice_bonus_amount
-
+    Global.mech_dice_current_amount = Global.mech_dice_max_amount + Global.odd_dice_bonus_amount
+    
     dice_1_label.text = str(Global.blue_dice_current_amount, "/", Global.blue_dice_max_amount)
     dice_2_label.text = str(Global.red_dice_current_amount, "/", Global.red_dice_max_amount)
     dice_3_label.text = str(Global.evil_dice_current_amount, "/", Global.evil_dice_max_amount)
@@ -212,6 +248,7 @@ func _on_player_turn_started() -> void:
     dice_6_label.text = str(Global.even_dice_current_amount, "/", Global.even_dice_max_amount)
     dice_7_label.text = str(Global.odd_dice_current_amount, "/", Global.odd_dice_max_amount)
     dice_8_label.text = str(Global.green_dice_current_amount, "/", Global.green_dice_max_amount)
+    dice_9_label.text = str(Global.mech_dice_current_amount, "/", Global.mech_dice_max_amount)
 
     Global.roll_history = []
     Events.update_roll_history_ui.emit()
@@ -224,6 +261,7 @@ func _on_player_turn_started() -> void:
     Global.magma_dice_bonus_amount = 0
     Global.even_dice_bonus_amount = 0
     Global.odd_dice_bonus_amount = 0
+    Global.mech_dice_bonus_amount = 0
     Global.charged_dice_this_turn = false
    
 func _on_dice_amount_changed():
@@ -235,6 +273,7 @@ func _on_dice_amount_changed():
     dice_6_label.text = str(Global.even_dice_current_amount, "/", Global.even_dice_max_amount)
     dice_7_label.text = str(Global.odd_dice_current_amount, "/", Global.odd_dice_max_amount)
     dice_8_label.text = str(Global.green_dice_current_amount, "/", Global.green_dice_max_amount)
+    dice_9_label.text = str(Global.mech_dice_current_amount, "/", Global.mech_dice_max_amount)
 
 func initialize_dices():
     if Global.evil_dice_max_amount > 0 or Global.evil_dice_current_amount > 0 or Global.evil_dice_bonus_amount > 0:
@@ -284,6 +323,14 @@ func initialize_dices():
         dice_8.show()
     else:
         dice_8.hide()
+    
+    if Global.mech_dice_max_amount > 0 or Global.mech_dice_current_amount > 0 or Global.mech_dice_bonus_amount > 0:
+        print("mech dice appearing")
+        dice_9_texture.texture = load("res://assets/images/mech1.png")
+        dice_9_label.text = str(Global.mech_dice_current_amount, "/", Global.mech_dice_max_amount)
+        dice_9.show()
+    else:
+        dice_9.hide()
         
 func add_dice_slot(dice_type: String) -> int:
     var textures = [dice_1_texture, dice_2_texture, dice_3_texture, dice_4_texture, dice_5_texture, dice_6_texture, dice_7_texture,dice_8_texture]
@@ -313,3 +360,64 @@ func _on_charge_dice_animation():
 func _on_temporary_dice_added(dice_type: String):
     print("adding dice")
     initialize_dices()  # Refresh the interface
+
+func _show_tooltip(dice_node: VBoxContainer, dice_type: String) -> void:
+    if tooltip_instance and is_instance_valid(tooltip_instance):
+        tooltip_instance.queue_free()
+        tooltip_instance = null
+    tooltip_instance = TooltipScene.instantiate()
+    get_tree().root.add_child(tooltip_instance)
+    tooltip_instance.get_tooltip_content(dice_type)
+    tooltip_instance.show_tooltip(Vector2(498, 148))  # adjust to taste
+
+func _hide_tooltip() -> void:
+    if tooltip_instance and is_instance_valid(tooltip_instance):
+        tooltip_instance.queue_free()
+        tooltip_instance = null
+        
+        
+
+func _on_dice_1_mouse_entered() -> void:
+    _show_tooltip(dice_1, "blue")
+func _on_dice_1_mouse_exited() -> void:
+    _hide_tooltip()
+
+func _on_dice_2_mouse_entered() -> void:
+    _show_tooltip(dice_2, "red")
+func _on_dice_2_mouse_exited() -> void:
+    _hide_tooltip()
+
+func _on_dice_3_mouse_entered() -> void:
+    _show_tooltip(dice_3, "evil")
+func _on_dice_3_mouse_exited() -> void:
+    _hide_tooltip()
+
+func _on_dice_4_mouse_entered() -> void:
+    _show_tooltip(dice_4, "giant")
+func _on_dice_4_mouse_exited() -> void:
+    _hide_tooltip()
+
+func _on_dice_5_mouse_entered() -> void:
+    _show_tooltip(dice_5, "magma")
+func _on_dice_5_mouse_exited() -> void:
+    _hide_tooltip()
+
+func _on_dice_6_mouse_entered() -> void:
+    _show_tooltip(dice_6, "even")
+func _on_dice_6_mouse_exited() -> void:
+    _hide_tooltip()
+
+func _on_dice_7_mouse_entered() -> void:
+    _show_tooltip(dice_7, "odd")
+func _on_dice_7_mouse_exited() -> void:
+    _hide_tooltip()
+
+func _on_dice_8_mouse_entered() -> void:
+    _show_tooltip(dice_8, "green")
+func _on_dice_8_mouse_exited() -> void:
+    _hide_tooltip()
+
+func _on_dice_9_mouse_entered() -> void:
+    _show_tooltip(dice_9, "mech")
+func _on_dice_9_mouse_exited() -> void:
+    _hide_tooltip()

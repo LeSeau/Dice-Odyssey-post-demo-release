@@ -3,7 +3,7 @@ extends Card
 
 func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void: 
     var block_effect := BlockEffect.new()
-    block_effect.amount = 8
+    block_effect.amount = 10
     block_effect.sound = sound
     block_effect.execute(targets)
     Events.dice_roll_reset.emit()

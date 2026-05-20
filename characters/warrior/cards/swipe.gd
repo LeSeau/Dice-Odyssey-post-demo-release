@@ -22,8 +22,8 @@ func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
         support_effect.execute(targets)
         Events.dice_amount_changed.emit()
 
-        var oracle_card2 = load("res://characters/warrior/cards/card_scout2.tres")
-        Events.add_card_to_hand_requested.emit(oracle_card2)
+        var oracle_card3 = load("res://characters/warrior/cards/card_scout3.tres")
+        Events.add_card_to_hand_requested.emit(oracle_card3)
         Events.reset_charged_card.emit()  
         
     Events.dice_roll_reset.emit()

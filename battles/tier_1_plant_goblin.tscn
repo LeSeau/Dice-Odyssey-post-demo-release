@@ -1,0 +1,18 @@
+[gd_scene load_steps=4 format=3 uid="uid://cxafqxpk47ton"]
+
+[ext_resource type="PackedScene" uid="uid://d0efyathkfg74" path="res://scenes/enemy/enemy.tscn" id="1_jl2pd"]
+[ext_resource type="Resource" uid="uid://bkbnyc3ymuyj" path="res://enemies/goblin/goblin_enemy.tres" id="2_wis8d"]
+[ext_resource type="Resource" uid="uid://boa1u200jkm38" path="res://enemies/plant/plant_enemy.tres" id="3_882qe"]
+
+[node name="Tier1PlantGoblin" type="Node2D"]
+
+[node name="Goblin" parent="." instance=ExtResource("1_jl2pd")]
+position = Vector2(992, 450)
+scale = Vector2(0.75, 0.75)
+stats = ExtResource("2_wis8d")
+width = 320
+height = 320
+
+[node name="Plant" parent="." instance=ExtResource("1_jl2pd")]
+position = Vector2(714, 368)
+stats = ExtResource("3_882qe")

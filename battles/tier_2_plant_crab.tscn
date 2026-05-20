@@ -1,0 +1,16 @@
+[gd_scene load_steps=4 format=3 uid="uid://c1pl0a12xcu4y"]
+
+[ext_resource type="PackedScene" uid="uid://d0efyathkfg74" path="res://scenes/enemy/enemy.tscn" id="1_pdfuf"]
+[ext_resource type="Resource" uid="uid://bnmpwl3k8qb8n" path="res://enemies/crab/crab_enemy.tres" id="2_77x4v"]
+[ext_resource type="Resource" uid="uid://boa1u200jkm38" path="res://enemies/plant/plant_enemy.tres" id="3_acshb"]
+
+[node name="Tier2PlantCrab" type="Node2D"]
+
+[node name="Crab" parent="." instance=ExtResource("1_pdfuf")]
+position = Vector2(758, 418)
+stats = ExtResource("2_77x4v")
+
+[node name="Plant" parent="." instance=ExtResource("1_pdfuf")]
+position = Vector2(1034, 411)
+scale = Vector2(0.75, 0.75)
+stats = ExtResource("3_acshb")

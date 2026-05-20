@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="BattleStats" load_steps=3 format=3 uid="uid://cyji1crbxxqy5"]
+
+[ext_resource type="PackedScene" uid="uid://6kicbxvy4n25" path="res://battles/tier_elite_gargantua.tscn" id="1_uw5dp"]
+[ext_resource type="Script" path="res://custom_resources/battle_stats.gd" id="2_ym48l"]
+
+[resource]
+script = ExtResource("2_ym48l")
+battle_tier = 3
+weight = 1.0
+gold_reward_min = 45
+gold_reward_max = 60
+enemies = ExtResource("1_uw5dp")
+group = ""
