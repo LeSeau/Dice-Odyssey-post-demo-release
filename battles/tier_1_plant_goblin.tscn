@@ -6,13 +6,16 @@
 
 [node name="Tier1PlantGoblin" type="Node2D"]
 
+[node name="Plant" parent="." instance=ExtResource("1_jl2pd")]
+position = Vector2(751, 394)
+stats = ExtResource("3_882qe")
+width = 210
+height = 210
+intent_ui_y_offset = 20
+
 [node name="Goblin" parent="." instance=ExtResource("1_jl2pd")]
 position = Vector2(992, 450)
 scale = Vector2(0.75, 0.75)
 stats = ExtResource("2_wis8d")
-width = 320
-height = 320
-
-[node name="Plant" parent="." instance=ExtResource("1_jl2pd")]
-position = Vector2(714, 368)
-stats = ExtResource("3_882qe")
+width = 240
+height = 240

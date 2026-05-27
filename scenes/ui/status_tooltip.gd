@@ -8,6 +8,7 @@ func show_tooltip(global_pos: Vector2) -> void:
     global_position = global_pos
     # Show the popup first to ensure the window exists
     show()
+    
 
     # Then make the window transparent
     get_window().transparent = true
@@ -58,7 +59,7 @@ func get_tooltip_content(status: Status) -> void:
         "depleted":
             text = "You have 1 less Blue Dice next turn for each stack."
         "energized":
-            text = "You have 1 more Blue Dice next turn."
+            text = "You have X more Blue Dice next turn."
         "serenity":
             text = "You draw 1 more Card each turn."
         "emanation":

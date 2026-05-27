@@ -1,7 +1,6 @@
 extends Card
 func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     if Global.roll_value <= 5:
-        Events.reset_charged_card.emit()
         
         var hit_count = targets.size()
         
@@ -26,3 +25,4 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
                 await tree.create_timer(0.7).timeout
         
         Events.dice_roll_reset.emit()
+    Events.reset_charged_card.emit()

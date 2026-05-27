@@ -74,7 +74,6 @@ func _ready() -> void:
         skip_tutorial_button.show()
     dice_animation_check.button_pressed = Global.testing_mode
 
-
     
 
 

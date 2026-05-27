@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=3 format=3 uid="uid://bmibvwv5u41l6"]
+[gd_resource type="Resource" script_class="RunicBones" load_steps=3 format=3 uid="uid://bmibvwv5u41l6"]
 
 [ext_resource type="Texture2D" uid="uid://uwanwn0k5dbi" path="res://runic_bones.png" id="1_y576x"]
 [ext_resource type="Script" path="res://relics/runic_bones.gd" id="2_sjshm"]

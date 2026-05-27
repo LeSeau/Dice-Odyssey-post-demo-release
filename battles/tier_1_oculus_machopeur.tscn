@@ -8,12 +8,13 @@
 
 [node name="Tier1OculusMachopeur" type="Node2D"]
 
+[node name="Machopeur" parent="." instance=ExtResource("1_7w70i")]
+position = Vector2(749, 365)
+stats = ExtResource("5_l2rhy")
+sprite_y_offset = 20
+
 [node name="Oculus" parent="." instance=ExtResource("1_7w70i")]
 position = Vector2(992, 450)
 scale = Vector2(0.75, 0.75)
 stats = ExtResource("2_mef5j")
 initial_statuses = Array[ExtResource("3_vdm17")]([ExtResource("4_dfbq7")])
-
-[node name="Machopeur" parent="." instance=ExtResource("1_7w70i")]
-position = Vector2(714, 368)
-stats = ExtResource("5_l2rhy")

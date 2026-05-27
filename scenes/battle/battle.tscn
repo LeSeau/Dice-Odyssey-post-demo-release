@@ -137,7 +137,6 @@ stats = ExtResource("5_5flmk")
 
 [node name="Player" parent="." instance=ExtResource("3_dpj45")]
 position = Vector2(207, 426)
-stats = ExtResource("4_fwb8a")
 
 [node name="CardTargetSelector" parent="." instance=ExtResource("3_vyv1n")]
 
@@ -216,6 +215,7 @@ offset_right = 354.0
 offset_bottom = 22.0
 grow_horizontal = 2
 grow_vertical = 0
+mouse_filter = 2
 theme_override_constants/separation = -35
 alignment = 1
 script = ExtResource("2_uaw60")

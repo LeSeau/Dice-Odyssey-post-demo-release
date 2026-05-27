@@ -1,11 +1,11 @@
 [gd_resource type="Resource" script_class="EnemyStats" load_steps=4 format=3 uid="uid://cnfm48lkjfj76"]
 
 [ext_resource type="PackedScene" uid="uid://d3m8xv3lpd3t7" path="res://enemies/medusa/medusa_enemy_ai.tscn" id="1_s27jt"]
-[ext_resource type="Texture2D" uid="uid://bjlwisupdjmre" path="res://medusav3.png" id="2_wka5w"]
+[ext_resource type="Texture2D" uid="uid://cisvytqh1fq2q" path="res://medusa_perfect.png" id="2_1fchw"]
 [ext_resource type="Script" path="res://custom_resources/enemy_stats.gd" id="3_hdvna"]
 
 [resource]
 script = ExtResource("3_hdvna")
 ai = ExtResource("1_s27jt")
 max_health = 50
-art = ExtResource("2_wka5w")
+art = ExtResource("2_1fchw")

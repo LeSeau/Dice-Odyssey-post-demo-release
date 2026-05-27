@@ -19,6 +19,8 @@ func play_effect(roll_value: int, dice_type):
             color = Color("cc33b2")  
         "giant":
             color = Color("276e1ef0")  
+        "mech":
+            color = Color("595959ff")
         _:
             color = Color(1, 1, 1)  # White default
     

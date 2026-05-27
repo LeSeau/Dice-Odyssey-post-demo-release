@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="AbsorbStatus" load_steps=3 format=3 uid="uid://onh4o4w5pnga"]
 
 [ext_resource type="Script" path="res://statuses/absorb.gd" id="1_6nina"]
-[ext_resource type="Texture2D" uid="uid://3efpqtemqalv" path="res://gpt_absorb_status.png" id="1_tmnl1"]
+[ext_resource type="Texture2D" uid="uid://7llmluvb3weg" path="res://absorb_icon_v2.png" id="1_hqeaj"]
 
 [resource]
 script = ExtResource("1_6nina")
@@ -11,5 +11,5 @@ stack_type = 0
 can_expire = false
 duration = 0
 stacks = 0
-icon = ExtResource("1_tmnl1")
+icon = ExtResource("1_hqeaj")
 tooltip = ""

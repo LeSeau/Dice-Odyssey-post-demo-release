@@ -6,17 +6,27 @@
 
 [node name="Tier0Satyrs3" type="Node2D"]
 
-[node name="S Satyr" parent="." instance=ExtResource("1_3tpcr")]
-position = Vector2(1043, 462)
+[node name="S Satyr2" parent="." instance=ExtResource("1_3tpcr")]
+position = Vector2(731, 417)
 scale = Vector2(0.75, 0.75)
 stats = ExtResource("2_l8s2u")
+width = 270
+height = 270
+sprite_y_offset = 20
 
 [node name="B Satyr" parent="." instance=ExtResource("1_3tpcr")]
 position = Vector2(876, 475)
 scale = Vector2(0.75, 0.75)
 stats = ExtResource("3_dfl1p")
+width = 290
+height = 290
+sprite_y_offset = 10
+intent_ui_y_offset = 10
 
-[node name="S Satyr2" parent="." instance=ExtResource("1_3tpcr")]
-position = Vector2(731, 417)
+[node name="S Satyr" parent="." instance=ExtResource("1_3tpcr")]
+position = Vector2(1043, 462)
 scale = Vector2(0.75, 0.75)
 stats = ExtResource("2_l8s2u")
+width = 270
+height = 270
+sprite_y_offset = 20

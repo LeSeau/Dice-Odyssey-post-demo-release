@@ -42,7 +42,7 @@ func add_relic(relic: Relic) -> void:
     var new_relic_ui := RELIC_UI.instantiate() as RelicUI
     relics.add_child(new_relic_ui)
     new_relic_ui.relic = relic  # set_relic handles initialize_relic already
-    
+    print("ADDED: ", relic.id)
 func has_relic(id: String) -> bool:
     for relic_ui: RelicUI in relics.get_children():
         if relic_ui.relic.id == id and is_instance_valid(relic_ui):
@@ -67,6 +67,7 @@ func _get_all_relic_ui_nodes() ->  Array[RelicUI]:
     
 
 func _on_relics_child_exiting_tree(relic_ui: RelicUI) -> void:
+    print("child exiting tree: ", relic_ui.name)
     if not relic_ui:
         return
     

@@ -2,7 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://tdq22k6innox" path="res://pulse.png" id="1_1nqdf"]
 [ext_resource type="Script" path="res://characters/warrior/cards/pulse.gd" id="2_k1rhe"]
-[ext_resource type="AudioStream" uid="uid://df64e7qat73gs" path="res://art/block.ogg" id="3_y03ki"]
+[ext_resource type="AudioStream" uid="uid://68q2f8fotq13" path="res://sounds/blocksound.mp3" id="3_cld5e"]
 
 [resource]
 script = ExtResource("2_k1rhe")
@@ -23,4 +23,4 @@ bonus_description_text = ""
 tags = ""
 icon = ExtResource("1_1nqdf")
 tooltip_text = ""
-sound = ExtResource("3_y03ki")
+sound = ExtResource("3_cld5e")

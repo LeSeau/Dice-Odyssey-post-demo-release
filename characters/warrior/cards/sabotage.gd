@@ -9,7 +9,6 @@ var weak_duration := 2
 
 func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
     if Global.roll_value <= 2:
-        Events.reset_charged_card.emit()
         Events.dice_rolled.connect(_on_dice_rolled)
 
         var status_effect := StatusEffect.new()
@@ -26,5 +25,6 @@ func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
             damage_effect.execute(targets)
             
         Events.dice_roll_reset.emit()
+        Events.reset_charged_card.emit()
 func _on_dice_rolled():
     print("adding dice to damage")

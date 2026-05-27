@@ -181,6 +181,7 @@ func _start_run() -> void:
     map.unlock_floor(0)
 
 
+
 func _change_view(scene: PackedScene) -> Node:
     print(scene)
     if current_view.get_child_count() > 0:
@@ -266,6 +267,7 @@ func _on_campfire_room_entered() -> Node:
 
 func _on_shop_entered() -> void:
     var shop := _change_view(SHOP_SCENE) as Shop
+    dice_shop.hide()
     shop.char_stats = character
     shop.run_stats = stats
     shop.relic_handler = relic_handler

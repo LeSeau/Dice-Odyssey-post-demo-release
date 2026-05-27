@@ -6,11 +6,14 @@
 
 [node name="Tier1MachopeurOctopus" type="Node2D"]
 
+[node name="Machopeur" parent="." instance=ExtResource("1_sl2hc")]
+position = Vector2(714, 368)
+stats = ExtResource("3_q3pq7")
+
 [node name="Octopus" parent="." instance=ExtResource("1_sl2hc")]
 position = Vector2(992, 450)
 scale = Vector2(0.75, 0.75)
 stats = ExtResource("2_csqyc")
-
-[node name="Machopeur" parent="." instance=ExtResource("1_sl2hc")]
-position = Vector2(714, 368)
-stats = ExtResource("3_q3pq7")
+width = 260
+height = 260
+intent_ui_y_offset = 20

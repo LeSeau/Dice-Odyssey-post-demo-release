@@ -20,6 +20,6 @@ func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
     var player_targets = targets[0].get_tree().get_nodes_in_group("player")
     status_effect.execute(player_targets)
     Global.blue_dice_bonus_amount -= 1
-
+    Events.reset_charged_card.emit()
 func _on_dice_rolled():
     print("adding dice to damage")

@@ -1,6 +1,6 @@
 [gd_resource type="Resource" load_steps=3 format=3 uid="uid://c08xty5w4xohd"]
 
-[ext_resource type="Texture2D" uid="uid://c3smvcarqt45g" path="res://fuel-o-meter.png" id="1_w7blp"]
+[ext_resource type="Texture2D" uid="uid://d2vx6iine5ni3" path="res://fuel-o-meter_perfect.png" id="1_fx6qp"]
 [ext_resource type="Script" path="res://relics/fuel-o-meter.gd" id="2_371k4"]
 
 [resource]
@@ -11,5 +11,5 @@ type = 4
 has_counter = false
 counter = 0
 starter_relic = false
-icon = ExtResource("1_w7blp")
+icon = ExtResource("1_fx6qp")
 tooltip = "If you refuel more than 9 power, gain 2 strength"

@@ -8,3 +8,6 @@
 [node name="Plant" parent="." instance=ExtResource("1_3h2um")]
 position = Vector2(892, 416)
 stats = ExtResource("2_pvkay")
+width = 250
+height = 250
+intent_ui_y_offset = 20

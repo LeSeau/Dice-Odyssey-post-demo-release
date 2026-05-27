@@ -2,7 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://bfx0uv48gcfh0" path="res://blaze.png" id="1_4cj7d"]
 [ext_resource type="Script" path="res://characters/warrior/cards/blaze.gd" id="2_f6cuv"]
-[ext_resource type="AudioStream" uid="uid://cy6owtfbf8sfv" path="res://sounds/fountainheal.wav" id="3_4t2xq"]
+[ext_resource type="AudioStream" uid="uid://bryyjsmk8fak6" path="res://detonationsound.mp3" id="3_hkta5"]
 
 [resource]
 script = ExtResource("2_f6cuv")
@@ -23,4 +23,4 @@ bonus_description_text = ""
 tags = "Weak"
 icon = ExtResource("1_4cj7d")
 tooltip_text = ""
-sound = ExtResource("3_4t2xq")
+sound = ExtResource("3_hkta5")

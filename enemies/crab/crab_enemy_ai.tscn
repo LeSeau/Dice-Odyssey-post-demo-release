@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://dbk6y12yqgre"]
+[gd_scene load_steps=15 format=3 uid="uid://dbk6y12yqgre"]
 
 [ext_resource type="Script" path="res://scenes/enemy/enemy_action_picker.gd" id="1_pubwu"]
 [ext_resource type="Script" path="res://enemies/crab/crab_attack_action.gd" id="2_dvmrv"]
@@ -9,6 +9,7 @@
 [ext_resource type="AudioStream" uid="uid://de2ryat1pxq6" path="res://art/enemy_attack.ogg" id="5_cyehc"]
 [ext_resource type="Script" path="res://enemies/crab/crab_big_attack_action.gd" id="5_feuxr"]
 [ext_resource type="Texture2D" uid="uid://coa7pi62qv88k" path="res://assets/images/shield.png" id="8_txomh"]
+[ext_resource type="AudioStream" uid="uid://k8m4o3hlwm7l" path="res://art/enemy_block.ogg" id="10_bcpek"]
 
 [sub_resource type="Resource" id="Resource_url5i"]
 script = ExtResource("4_vcx3h")
@@ -36,6 +37,7 @@ script = ExtResource("1_pubwu")
 [node name="FirstAttackAction" type="Node" parent="."]
 script = ExtResource("2_dvmrv")
 intent = SubResource("Resource_url5i")
+sound = ExtResource("5_cyehc")
 type = 1
 chance_weight = 5.0
 action_id = "crab_attack"
@@ -49,6 +51,7 @@ chance_weight = 10.0
 [node name="BigAttackAction" type="Node" parent="."]
 script = ExtResource("5_feuxr")
 intent = SubResource("Resource_3ioxj")
+sound = ExtResource("5_cyehc")
 type = 1
 chance_weight = 2.0
 action_id = "crab_big_attack"
@@ -56,6 +59,7 @@ action_id = "crab_big_attack"
 [node name="BlockBuffAction" type="Node" parent="."]
 script = ExtResource("3_mwt7u")
 intent = SubResource("Resource_gmdyh")
+sound = ExtResource("10_bcpek")
 type = 1
 chance_weight = 4.0
 action_id = "crab_block"

@@ -8,13 +8,14 @@ const WHITE_SPRITE_MATERIAL := preload("res://art/white_sprite_material.tres")
 @export var width: int 
 @export var height: int
 @export var initial_statuses: Array[Status] = []
-
+@export var sprite_y_offset: int = 0
 @onready var sprite_2d: Sprite2D = $SpriteRoot/Sprite2D
-
-
+@export var stats_ui_y_offset: int = 0
+@export var intent_ui_y_offset: int = 0
 @onready var arrow: Sprite2D = $Arrow
 @onready var stats_ui: StatsUI = $StatsUI
 @onready var intent_ui: IntentUI = $IntentUI
+@export var status_handler_y_offset: int = 0
 @onready var status_handler: StatusHandler = $StatusHandler
 @onready var modifier_handler: ModifierHandler = $ModifierHandler
 
@@ -100,9 +101,15 @@ func update_enemy() -> void:
         var height_scale = target_height / tex_size.y
         var final_scale = min(width_scale, height_scale)
         sprite_2d.scale = Vector2(final_scale, final_scale)
-
+        
+        var sprite_display_height = tex_size.y * final_scale
+        intent_ui.position.y = -sprite_display_height / 2 - 30 - intent_ui_y_offset
+        stats_ui.position.y = (tex_size.y * final_scale / 2) + stats_ui_y_offset
+        status_handler.position.y = (tex_size.y * final_scale / 2) + stats_ui.size.y + status_handler_y_offset - 8
+    sprite_2d.position.y = sprite_y_offset
     arrow.position = Vector2.RIGHT * (sprite_2d.get_rect().size.x * sprite_2d.scale.x / 2 + ARROW_OFFSET)
-
+    setup_ai()
+    update_stats()
     setup_ai()
     update_stats()
 

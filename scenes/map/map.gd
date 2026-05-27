@@ -184,23 +184,19 @@ func unlock_next_rooms() -> void:
 # =========================================================
 # SHOW / HIDE
 # =========================================================
-
-func show_map() -> void:
-
-    show()
-
-    map_legend.show()
-
-    camera_2d.enabled = true
-
+var saved_camera_y: float = 0.0
 
 func hide_map() -> void:
-
+    saved_camera_y = camera_2d.position.y   # save before anything
     hide()
-
     map_legend.hide()
-
     camera_2d.enabled = false
+
+func show_map() -> void:
+    show()
+    map_legend.show()
+    camera_2d.enabled = true
+    camera_2d.position.y = saved_camera_y   # restore after re-enabling
     
 
 

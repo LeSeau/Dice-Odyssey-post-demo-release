@@ -39,6 +39,7 @@ action_id = "octopus_attack"
 [node name="OctopusAttackDebuff" type="Node" parent="."]
 script = ExtResource("2_eou4d")
 intent = SubResource("Resource_xhih8")
+sound = ExtResource("9_q1hgs")
 type = 1
 chance_weight = 5.0
 action_id = "octopus_debuff_attack"

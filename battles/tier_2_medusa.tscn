@@ -6,7 +6,6 @@
 [node name="Tier1Medusa" type="Node2D"]
 
 [node name="Medusa" parent="." instance=ExtResource("1_eyblv")]
-position = Vector2(858, 438)
+position = Vector2(840, 404)
 stats = ExtResource("2_xam05")
-width = 170
-height = 200
+intent_ui_y_offset = 15

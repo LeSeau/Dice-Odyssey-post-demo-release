@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="SerenityStatus" load_steps=3 format=3 uid="uid://cxurw5kfm1qb1"]
 
-[ext_resource type="Texture2D" uid="uid://bjgn3jvmyuj0x" path="res://gptserenity.png" id="1_7xudy"]
+[ext_resource type="Texture2D" uid="uid://cbnktwu8wsnks" path="res://serenity_perfect.png" id="1_ptq4l"]
 [ext_resource type="Script" path="res://statuses/serenity_status.gd" id="2_1vyia"]
 
 [resource]
@@ -11,5 +11,5 @@ stack_type = 0
 can_expire = false
 duration = 0
 stacks = 0
-icon = ExtResource("1_7xudy")
+icon = ExtResource("1_ptq4l")
 tooltip = ""

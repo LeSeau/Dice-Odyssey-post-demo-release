@@ -20,6 +20,7 @@ func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
         status_effect.status = lucky
         status_effect.execute(targets)
         Events.card_type_played.emit("exact")
+        Events.reset_charged_card.emit()
 
 func _on_dice_rolled():
     print("adding dice to damage")

@@ -70,4 +70,5 @@ theme_override_font_sizes/normal_font_size = 12
 theme_override_font_sizes/bold_font_size = 12
 bbcode_enabled = true
 text = "[center]charge X: gain X active dice[/center]"
+fit_content = true
 scroll_active = false

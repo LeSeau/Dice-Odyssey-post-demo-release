@@ -1,6 +1,6 @@
 [gd_resource type="Resource" load_steps=4 format=3 uid="uid://dpcld8y688tao"]
 
-[ext_resource type="Texture2D" uid="uid://da6yne04qefxq" path="res://emergency.png" id="1_mnl3s"]
+[ext_resource type="Texture2D" uid="uid://cnigvxd7lt03y" path="res://emergency_v2.png" id="1_ie5ic"]
 [ext_resource type="Script" path="res://characters/warrior/cards/emergency.gd" id="2_w6hlm"]
 [ext_resource type="AudioStream" uid="uid://knqxepryrqf3" path="res://tensionsound.mp3" id="3_ngtqk"]
 
@@ -21,6 +21,6 @@ bonus_requirement = 0
 bonus_requirement_number = 0
 bonus_description_text = ""
 tags = ""
-icon = ExtResource("1_mnl3s")
+icon = ExtResource("1_ie5ic")
 tooltip_text = ""
 sound = ExtResource("3_ngtqk")

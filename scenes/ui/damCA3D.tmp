@@ -1,0 +1,22 @@
+[gd_scene load_steps=4 format=3 uid="uid://dwpj2qhe04ne4"]
+
+[ext_resource type="Script" path="res://damage_popup.gd" id="1_s416q"]
+[ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="2_4voy7"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_8t4me"]
+font = ExtResource("2_4voy7")
+font_size = 60
+font_color = Color(1, 0.14902, 0.294118, 1)
+outline_size = 1
+shadow_size = 5
+shadow_color = Color(0, 0, 0, 0.980392)
+
+[node name="DamagePopup" type="Node2D"]
+script = ExtResource("1_s416q")
+
+[node name="Label" type="Label" parent="."]
+offset_left = 17.0
+offset_top = -171.0
+offset_right = 57.0
+offset_bottom = -110.0
+label_settings = SubResource("LabelSettings_8t4me")

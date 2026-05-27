@@ -10,13 +10,22 @@
 position = Vector2(731, 417)
 scale = Vector2(0.75, 0.75)
 stats = ExtResource("2_qedg0")
+width = 180
+height = 180
+intent_ui_y_offset = 30
 
 [node name="B Octopus" parent="." instance=ExtResource("1_4is44")]
 position = Vector2(876, 475)
 scale = Vector2(0.75, 0.75)
 stats = ExtResource("3_okv4s")
+width = 260
+height = 260
+intent_ui_y_offset = 20
 
 [node name="S Octopus2" parent="." instance=ExtResource("1_4is44")]
 position = Vector2(1043, 462)
 scale = Vector2(0.75, 0.75)
 stats = ExtResource("2_qedg0")
+width = 180
+height = 180
+intent_ui_y_offset = 30

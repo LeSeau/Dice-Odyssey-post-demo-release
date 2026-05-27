@@ -18,4 +18,4 @@ func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
     exposed.duration = 2
     status_effect.status = exposed
     status_effect.execute(targets)
-    
+    Events.reset_charged_card.emit()    

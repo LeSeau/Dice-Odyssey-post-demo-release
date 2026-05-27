@@ -2,7 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://dcg2pw0u0ir2p" path="res://nova.png" id="1_sgdgd"]
 [ext_resource type="Script" path="res://characters/warrior/cards/nova.gd" id="2_aup18"]
-[ext_resource type="AudioStream" uid="uid://df64e7qat73gs" path="res://art/block.ogg" id="3_kp212"]
+[ext_resource type="AudioStream" uid="uid://68q2f8fotq13" path="res://sounds/blocksound.mp3" id="3_2hfno"]
 
 [resource]
 script = ExtResource("2_aup18")
@@ -23,4 +23,4 @@ bonus_description_text = ""
 tags = "Charge"
 icon = ExtResource("1_sgdgd")
 tooltip_text = ""
-sound = ExtResource("3_kp212")
+sound = ExtResource("3_2hfno")

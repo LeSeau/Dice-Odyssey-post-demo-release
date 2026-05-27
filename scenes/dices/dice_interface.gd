@@ -66,13 +66,8 @@ func _ready() -> void:
     dice_panel.custom_minimum_size.x = (different_dices_amount * 50)+100
     Events.temporary_dice_added.connect(_on_temporary_dice_added)
    
-    await get_tree().process_frame
-    print("dice_1 is: ", dice_1)
-    print("dice_1 size: ", dice_1.size)
-    print("dice_1 visible: ", dice_1.visible)
-    print("dice_1 mouse filter: ", dice_1.mouse_filter)
-    dice_1.mouse_entered.connect(func(): print("ENTERED"))
-    dice_1.mouse_exited.connect(func(): print("EXITED"))
+
+
 
 
 # Called when a dice is rolled
@@ -143,6 +138,7 @@ func _on_dice_2_gui_input(event: InputEvent) -> void:
             return
         Events.active_dice_changed.emit("red")
         Global.dice_type = "red"
+        Events.reset_charged_card.emit()
         if Global.tutorial_red_dice: 
             Events.tutorial_step_requested.emit(9)
             Global.tutorial_red_dice = false
@@ -238,7 +234,7 @@ func _on_player_turn_started() -> void:
     Global.magma_dice_current_amount = Global.magma_dice_max_amount + Global.magma_dice_bonus_amount
     Global.even_dice_current_amount = Global.even_dice_max_amount + Global.even_dice_bonus_amount
     Global.odd_dice_current_amount = Global.odd_dice_max_amount + Global.odd_dice_bonus_amount
-    Global.mech_dice_current_amount = Global.mech_dice_max_amount + Global.odd_dice_bonus_amount
+    Global.mech_dice_current_amount = Global.mech_dice_max_amount + Global.mech_dice_bonus_amount
     
     dice_1_label.text = str(Global.blue_dice_current_amount, "/", Global.blue_dice_max_amount)
     dice_2_label.text = str(Global.red_dice_current_amount, "/", Global.red_dice_max_amount)

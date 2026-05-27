@@ -8,7 +8,7 @@
 [ext_resource type="Texture2D" uid="uid://b0e0uo8ivw2xr" path="res://slice_explanation_bonus.png" id="6_k881s"]
 [ext_resource type="Texture2D" uid="uid://b1my7ua56jx7t" path="res://tutorial_arrow.png" id="6_nflis"]
 [ext_resource type="FontFile" uid="uid://dltntsanjiykq" path="res://fonts/LuckiestGuy-Regular.ttf" id="8_0m1kg"]
-[ext_resource type="Texture2D" uid="uid://c83q27yacmt2w" path="res://slash_explanation_demo_bonus_v3.png" id="9_ywkg3"]
+[ext_resource type="Texture2D" uid="uid://261qbfumstme" path="res://slash_explanation_demo_bonus_v4.png" id="9_34xb1"]
 
 [sub_resource type="Theme" id="Theme_xppm6"]
 
@@ -258,7 +258,7 @@ offset_bottom = 105.833
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-texture = ExtResource("9_ywkg3")
+texture = ExtResource("9_34xb1")
 expand_mode = 1
 
 [node name="Button2" type="Button" parent="BonusExplanationBox2"]

@@ -13,3 +13,6 @@ stats = ExtResource("3_bl17w")
 [node name="Satyr" parent="." instance=ExtResource("1_et4yg")]
 position = Vector2(706, 362)
 stats = ExtResource("2_qkxi1")
+width = 270
+height = 270
+sprite_y_offset = 20

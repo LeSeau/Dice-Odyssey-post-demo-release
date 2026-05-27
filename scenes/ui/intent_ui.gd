@@ -38,6 +38,8 @@ func _get_tooltip_text_for_icon() -> String:
             return "This enemy will gain a positive effect."
         "buff_icon":
             return "This enemy will gain a positive effect."
+        "buff_block_intent":
+            return "This enemy will gain a positive effect and block damage next turn."
         _:
             return "This enemy is preparing something."
 

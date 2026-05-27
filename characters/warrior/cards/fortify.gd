@@ -25,7 +25,7 @@ func apply_effects(targets: Array [Node], _modifiers: ModifierHandler) -> void:
 
     
     Events.dice_roll_reset.emit()
-        
+    Events.reset_charged_card.emit()   
     
 
 func _on_dice_rolled():

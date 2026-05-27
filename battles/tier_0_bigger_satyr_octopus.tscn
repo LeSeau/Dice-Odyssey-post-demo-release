@@ -15,3 +15,6 @@ stats = ExtResource("2_82fsh")
 position = Vector2(731, 417)
 scale = Vector2(0.75, 0.75)
 stats = ExtResource("3_x0pwp")
+width = 260
+height = 260
+intent_ui_y_offset = 20

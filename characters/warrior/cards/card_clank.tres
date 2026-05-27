@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://characters/warrior/cards/clank.gd" id="1_rwlve"]
 [ext_resource type="Texture2D" uid="uid://l33pmm34whjx" path="res://clank.png" id="1_uyjnr"]
-[ext_resource type="AudioStream" uid="uid://bnoudyk1my2eh" path="res://impact1ok.mp3" id="2_twpjc"]
+[ext_resource type="AudioStream" uid="uid://benx6kt8eskgi" path="res://sounds/kamikazefail.mp3" id="3_ndd0y"]
 
 [resource]
 script = ExtResource("1_rwlve")
@@ -23,4 +23,4 @@ bonus_description_text = ""
 tags = ""
 icon = ExtResource("1_uyjnr")
 tooltip_text = ""
-sound = ExtResource("2_twpjc")
+sound = ExtResource("3_ndd0y")

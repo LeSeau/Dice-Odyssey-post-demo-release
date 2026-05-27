@@ -1,11 +1,11 @@
 [gd_resource type="Resource" script_class="EnemyStats" load_steps=4 format=3 uid="uid://b8imxfdpc3ktt"]
 
 [ext_resource type="PackedScene" uid="uid://4an2yp5ysxg3" path="res://enemies/leviathan/leviathan_enemy_ai.tscn" id="1_kkqsu"]
-[ext_resource type="Texture2D" uid="uid://b2rit2f1r8mmf" path="res://leviathan.png" id="2_elhgo"]
+[ext_resource type="Texture2D" uid="uid://4s68sj4qg0n0" path="res://leviathan_jenya.png" id="2_oerru"]
 [ext_resource type="Script" path="res://custom_resources/enemy_stats.gd" id="3_fuvpg"]
 
 [resource]
 script = ExtResource("3_fuvpg")
 ai = ExtResource("1_kkqsu")
 max_health = 85
-art = ExtResource("2_elhgo")
+art = ExtResource("2_oerru")

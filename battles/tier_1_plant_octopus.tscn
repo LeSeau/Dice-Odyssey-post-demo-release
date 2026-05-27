@@ -6,11 +6,17 @@
 
 [node name="Tier1PlantOctopus" type="Node2D"]
 
+[node name="Plant" parent="." instance=ExtResource("1_noo65")]
+position = Vector2(751, 394)
+stats = ExtResource("3_jikbk")
+width = 210
+height = 210
+intent_ui_y_offset = 20
+
 [node name="Octopus" parent="." instance=ExtResource("1_noo65")]
 position = Vector2(992, 450)
 scale = Vector2(0.75, 0.75)
 stats = ExtResource("2_rc4xv")
-
-[node name="Plant" parent="." instance=ExtResource("1_noo65")]
-position = Vector2(714, 368)
-stats = ExtResource("3_jikbk")
+width = 260
+height = 260
+intent_ui_y_offset = 20

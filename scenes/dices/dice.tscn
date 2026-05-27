@@ -334,10 +334,11 @@ anim_speed_curve = SubResource("CurveTexture_hiixt")
 
 [sub_resource type="LabelSettings" id="LabelSettings_mm8wg"]
 line_spacing = -2.0
+font = ExtResource("7_vre42")
 font_size = 80
 outline_size = 5
 outline_color = Color(0.313726, 0.0823529, 0, 1)
-shadow_size = 16
+shadow_size = 8
 shadow_color = Color(0, 0, 0, 0.866667)
 shadow_offset = Vector2(3, 3)
 
@@ -424,9 +425,9 @@ border_width_right = 1
 border_width_bottom = 1
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_x0x7m"]
-bg_color = Color(0.827451, 0.639216, 0.054902, 1)
+bg_color = Color(0.784314, 0.533333, 0.0392157, 1)
 border_width_left = 2
-border_width_top = 1
+border_width_top = 4
 border_width_right = 2
 border_width_bottom = 2
 border_color = Color(1, 1, 0.227451, 1)
@@ -470,10 +471,10 @@ shadow_offset = Vector2(1, 2)
 
 [sub_resource type="LabelSettings" id="LabelSettings_7fdwi"]
 font = ExtResource("7_vre42")
-font_size = 22
-shadow_size = 0
-shadow_color = Color(0, 0, 0, 1)
-shadow_offset = Vector2(0, 0)
+font_size = 25
+shadow_size = 2
+shadow_color = Color(0.176471, 0.101961, 0, 0.666667)
+shadow_offset = Vector2(1, 2)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_w36f5"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
@@ -579,9 +580,9 @@ anchor_left = 1.0
 anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
-offset_left = 21.0
+offset_left = 24.0
 offset_top = -34.0
-offset_right = 83.0
+offset_right = 114.0
 offset_bottom = 62.0
 grow_horizontal = 0
 grow_vertical = 2
@@ -619,10 +620,10 @@ offset_bottom = 179.0
 
 [node name="MechIncrease" type="TextureButton" parent="MechSection"]
 layout_mode = 0
-offset_left = 2.0
-offset_top = 5.0
-offset_right = 44.0
-offset_bottom = 64.0
+offset_left = -11.0
+offset_top = -5.0
+offset_right = 46.0
+offset_bottom = 80.0
 texture_normal = ExtResource("5_ti466")
 ignore_texture_size = true
 stretch_mode = 6
@@ -630,10 +631,10 @@ flip_v = true
 
 [node name="MechDecrease" type="TextureButton" parent="MechSection"]
 layout_mode = 0
-offset_left = 3.0
-offset_top = 110.0
-offset_right = 45.0
-offset_bottom = 169.0
+offset_left = -11.0
+offset_top = 93.0
+offset_right = 46.0
+offset_bottom = 178.0
 texture_normal = ExtResource("5_ti466")
 ignore_texture_size = true
 stretch_mode = 6
@@ -872,9 +873,9 @@ anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.2
 offset_left = 1.0
-offset_top = 9.0
+offset_top = 4.0
 offset_right = 7.0
-offset_bottom = 9.0
+offset_bottom = 17.2
 grow_horizontal = 2
 grow_vertical = 0
 theme = ExtResource("2_exd4y")
@@ -894,8 +895,10 @@ anchors_preset = 13
 anchor_left = 0.5
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -8.0
-offset_right = 8.0
+offset_left = -31.0
+offset_top = -5.0
+offset_right = 31.0
+offset_bottom = -5.0
 grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("2_l0ni4")
@@ -963,4 +966,6 @@ theme_override_font_sizes/normal_font_size = 12
 [connection signal="pressed" from="MechSection/MechIncrease" to="." method="_on_mech_increase_pressed"]
 [connection signal="pressed" from="MechSection/MechDecrease" to="." method="_on_mech_decrease_pressed"]
 [connection signal="pressed" from="CardDropArea/CancelRedCardPanel/CancelRedCard" to="." method="_on_cancel_red_card_pressed"]
+[connection signal="button_down" from="Button" to="Button" method="_on_button_down"]
+[connection signal="button_up" from="Button" to="Button" method="_on_button_up"]
 [connection signal="pressed" from="Button" to="Button" method="_on_pressed"]

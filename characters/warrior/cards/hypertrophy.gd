@@ -21,7 +21,7 @@ func apply_effects(targets: Array [Node], _modifiers: ModifierHandler) -> void:
         status_effect.execute(targets)
         Events.change_current_power.emit()
     
-
+        Events.reset_charged_card.emit()
         
     
 

@@ -1,8 +1,11 @@
+Sprite2D
+CheckButton
+CheckBox
+Button
 AnimationPlayer
 TextureButton
 Control
 TextureRect
-Button
 Node2D
 RichTextLabel
 HBoxContainer
@@ -10,6 +13,3 @@ CenterContainer
 VBoxContainer
 Camera2D
 Label
-ColorRect
-CanvasLayer
-Panel

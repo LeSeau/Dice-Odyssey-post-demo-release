@@ -7,7 +7,7 @@ func initialize_relic(owner: RelicUI) -> void:
     # Connect to the dice rolled event when the relic is added
     Events.dice_rolled.connect(_on_dice_rolled.bind(owner))
     print("BowRelic: Connected to dice_rolled signal")
-
+    print("initialize_relic called for ", relic_name)
 func _on_dice_rolled(dice_type: String, roll_value: int, owner: RelicUI) -> void:
     print("BowRelic: Dice rolled! Type: ", dice_type, " Roll value: ", roll_value, " Last roll: ", Global.last_roll)
     
@@ -42,3 +42,4 @@ func deactivate_relic(owner: RelicUI) -> void:
     # Disconnect the event when the relic is removed
     if Events.dice_rolled.is_connected(_on_dice_rolled):
         Events.dice_rolled.disconnect(_on_dice_rolled)
+    print("bow was deactivated")

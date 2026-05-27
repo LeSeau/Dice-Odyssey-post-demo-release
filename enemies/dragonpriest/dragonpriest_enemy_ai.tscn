@@ -1,13 +1,14 @@
-[gd_scene load_steps=12 format=3 uid="uid://dcnemw5e1iheh"]
+[gd_scene load_steps=13 format=3 uid="uid://dcnemw5e1iheh"]
 
 [ext_resource type="Script" path="res://scenes/enemy/enemy_action_picker.gd" id="1_k4f4l"]
 [ext_resource type="Script" path="res://enemies/dragonpriest/dragonpriest_buff_action.gd" id="2_0bmgg"]
 [ext_resource type="Script" path="res://enemies/dragonpriest/dragonpriest_attack_action.gd" id="2_mstls"]
 [ext_resource type="Script" path="res://enemies/dragonpriest/dragonpriest_attack_action_2.gd" id="3_ao6pd"]
-[ext_resource type="Texture2D" uid="uid://dxm470owuxqc1" path="res://assets/images/swordicon.png" id="3_c2rht"]
 [ext_resource type="Texture2D" uid="uid://cm56j6ual41dr" path="res://attack_icon_intent.png" id="3_epc1l"]
 [ext_resource type="Texture2D" uid="uid://cj3x4kmau3jo7" path="res://buff_icon.png" id="3_u55tk"]
 [ext_resource type="Script" path="res://custom_resources/intent.gd" id="4_2x55c"]
+[ext_resource type="AudioStream" uid="uid://de2ryat1pxq6" path="res://art/enemy_attack.ogg" id="5_r6gbx"]
+[ext_resource type="AudioStream" uid="uid://cy6owtfbf8sfv" path="res://sounds/fountainheal.wav" id="9_hqii1"]
 
 [sub_resource type="Resource" id="Resource_dkrq0"]
 script = ExtResource("4_2x55c")
@@ -17,7 +18,7 @@ icon = ExtResource("3_epc1l")
 [sub_resource type="Resource" id="Resource_l61yj"]
 script = ExtResource("4_2x55c")
 base_text = "%s"
-icon = ExtResource("3_c2rht")
+icon = ExtResource("3_epc1l")
 
 [sub_resource type="Resource" id="Resource_ma4xk"]
 script = ExtResource("4_2x55c")
@@ -30,14 +31,17 @@ script = ExtResource("1_k4f4l")
 [node name="FirstAttackAction" type="Node" parent="."]
 script = ExtResource("2_mstls")
 intent = SubResource("Resource_dkrq0")
+sound = ExtResource("5_r6gbx")
 type = 1
 chance_weight = 10.0
 
 [node name="AttackAction2" type="Node" parent="."]
 script = ExtResource("3_ao6pd")
 intent = SubResource("Resource_l61yj")
+sound = ExtResource("5_r6gbx")
 
 [node name="BuffAction" type="Node" parent="."]
 script = ExtResource("2_0bmgg")
 intent = SubResource("Resource_ma4xk")
+sound = ExtResource("9_hqii1")
 chance_weight = 10.0

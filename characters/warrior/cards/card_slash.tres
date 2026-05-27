@@ -1,6 +1,6 @@
 [gd_resource type="Resource" load_steps=4 format=3 uid="uid://dvmwn8ln2x4ie"]
 
-[ext_resource type="Texture2D" uid="uid://stpl5kmiptvh" path="res://slash.png" id="1_hmsx3"]
+[ext_resource type="Texture2D" uid="uid://goxackt3qnyb" path="res://slash_v2.png" id="1_yyevv"]
 [ext_resource type="Script" path="res://characters/warrior/cards/slash.gd" id="2_fy3lp"]
 [ext_resource type="AudioStream" uid="uid://dixklg6g4jnsq" path="res://art/slash.ogg" id="3_jm0la"]
 
@@ -21,6 +21,6 @@ bonus_requirement = 0
 bonus_requirement_number = 0
 bonus_description_text = ""
 tags = ""
-icon = ExtResource("1_hmsx3")
+icon = ExtResource("1_yyevv")
 tooltip_text = ""
 sound = ExtResource("3_jm0la")

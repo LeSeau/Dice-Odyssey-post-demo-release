@@ -5,18 +5,19 @@
 
 [sub_resource type="LabelSettings" id="LabelSettings_8t4me"]
 font = ExtResource("2_4voy7")
-font_size = 60
-font_color = Color(1, 0.14902, 0.294118, 1)
+font_size = 45
+font_color = Color(1, 0.266667, 0, 1)
 outline_size = 1
+outline_color = Color(0.290196, 0.0392157, 0, 1)
 shadow_size = 5
-shadow_color = Color(0, 0, 0, 0.980392)
+shadow_color = Color(0.227451, 0, 0, 1)
 
 [node name="DamagePopup" type="Node2D"]
 script = ExtResource("1_s416q")
 
 [node name="Label" type="Label" parent="."]
-offset_left = 17.0
-offset_top = -171.0
-offset_right = 57.0
-offset_bottom = -110.0
+offset_left = 27.0
+offset_top = -164.0
+offset_right = 67.0
+offset_bottom = -103.0
 label_settings = SubResource("LabelSettings_8t4me")

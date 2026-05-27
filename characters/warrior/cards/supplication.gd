@@ -15,3 +15,4 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
         Events.charge_dice_animation.emit()
         Events.temporary_dice_added.emit("green")
         Events.card_type_played.emit("support")
+    Events.reset_charged_card.emit()

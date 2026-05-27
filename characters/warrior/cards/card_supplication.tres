@@ -2,7 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://bvr4vbfb304nb" path="res://supplication.png" id="1_5r87j"]
 [ext_resource type="Script" path="res://characters/warrior/cards/supplication.gd" id="2_gd65b"]
-[ext_resource type="AudioStream" uid="uid://bxiu5qeksdpg7" path="res://impact_power.ogg" id="3_a4fha"]
+[ext_resource type="AudioStream" uid="uid://cy6owtfbf8sfv" path="res://sounds/fountainheal.wav" id="3_oxqu6"]
 
 [resource]
 script = ExtResource("2_gd65b")
@@ -23,4 +23,4 @@ bonus_description_text = ""
 tags = "Charge, Green Dice"
 icon = ExtResource("1_5r87j")
 tooltip_text = ""
-sound = ExtResource("3_a4fha")
+sound = ExtResource("3_oxqu6")

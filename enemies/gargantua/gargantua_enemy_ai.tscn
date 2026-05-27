@@ -48,6 +48,7 @@ action_id = "gargantua_second_attack"
 [node name="GargantuaAttackExposed" type="Node" parent="."]
 script = ExtResource("7_48din")
 intent = SubResource("Resource_ilxhr")
+sound = ExtResource("5_x44rf")
 
 [node name="GargantuaAttackAction" type="Node" parent="."]
 script = ExtResource("2_j8su7")

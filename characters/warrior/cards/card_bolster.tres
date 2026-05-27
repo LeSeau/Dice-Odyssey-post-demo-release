@@ -2,7 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://kcjvtkdjfj6x" path="res://bolster_v2.png" id="1_4tp04"]
 [ext_resource type="Script" path="res://characters/warrior/cards/bolster.gd" id="2_ld5fs"]
-[ext_resource type="AudioStream" uid="uid://csxs8784ydfwg" path="res://kamikazesound.mp3" id="3_psxh6"]
+[ext_resource type="AudioStream" uid="uid://cy6owtfbf8sfv" path="res://sounds/fountainheal.wav" id="3_se2qp"]
 
 [resource]
 script = ExtResource("2_ld5fs")
@@ -23,4 +23,4 @@ bonus_description_text = ""
 tags = "Strength"
 icon = ExtResource("1_4tp04")
 tooltip_text = ""
-sound = ExtResource("3_psxh6")
+sound = ExtResource("3_se2qp")

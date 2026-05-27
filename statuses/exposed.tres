@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="ExposedStatus" load_steps=3 format=3 uid="uid://cimh1b4fapqw2"]
 
-[ext_resource type="Texture2D" uid="uid://bnmwexpal0g0c" path="res://assets/images/mommybandages.png" id="1_7cnfs"]
+[ext_resource type="Texture2D" uid="uid://m2xbjt5ccsrg" path="res://exposed_icon_v2.png" id="1_owleg"]
 [ext_resource type="Script" path="res://statuses/exposed.gd" id="2_pxifp"]
 
 [resource]
@@ -11,5 +11,5 @@ stack_type = 2
 can_expire = true
 duration = 0
 stacks = 0
-icon = ExtResource("1_7cnfs")
+icon = ExtResource("1_owleg")
 tooltip = "To do"

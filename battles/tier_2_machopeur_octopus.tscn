@@ -14,8 +14,14 @@ stats = ExtResource("2_rc2vf")
 position = Vector2(929, 465)
 scale = Vector2(0.75, 0.75)
 stats = ExtResource("3_mwqir")
+width = 260
+height = 260
+intent_ui_y_offset = 20
 
 [node name="Octopus2" parent="." instance=ExtResource("1_fao5v")]
 position = Vector2(1072, 425)
 scale = Vector2(0.75, 0.75)
 stats = ExtResource("3_mwqir")
+width = 260
+height = 260
+intent_ui_y_offset = 20

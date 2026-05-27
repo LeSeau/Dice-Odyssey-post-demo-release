@@ -7,17 +7,26 @@
 
 [node name="Tier0Octopus2Satyr1" type="Node2D"]
 
-[node name="S Octopus" parent="." instance=ExtResource("1_xrr82")]
-position = Vector2(1043, 462)
+[node name="S Satyr" parent="." instance=ExtResource("1_xrr82")]
+position = Vector2(731, 417)
 scale = Vector2(0.75, 0.75)
-stats = ExtResource("3_o4qpu")
+stats = ExtResource("2_st6gq")
+width = 270
+height = 270
+sprite_y_offset = 20
 
 [node name="B Octopus" parent="." instance=ExtResource("1_xrr82")]
 position = Vector2(876, 475)
 scale = Vector2(0.75, 0.75)
 stats = ExtResource("3_xvhcc")
+width = 260
+height = 260
+intent_ui_y_offset = 20
 
-[node name="S Satyr" parent="." instance=ExtResource("1_xrr82")]
-position = Vector2(731, 417)
+[node name="S Octopus" parent="." instance=ExtResource("1_xrr82")]
+position = Vector2(1043, 462)
 scale = Vector2(0.75, 0.75)
-stats = ExtResource("2_st6gq")
+stats = ExtResource("3_o4qpu")
+width = 180
+height = 180
+intent_ui_y_offset = 30

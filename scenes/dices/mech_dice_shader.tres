@@ -1,0 +1,16 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://ccnkytxymcua0"]
+
+[ext_resource type="Shader" path="res://dice_glow.gdshader" id="1_hcths"]
+
+[resource]
+shader = ExtResource("1_hcths")
+shader_parameter/magic_color = Color(0.0343, 0.1, 0.027, 0.941176)
+shader_parameter/accent_color = Color(0.0798591, 0.0339623, 0, 0.870588)
+shader_parameter/border_size = 0.133
+shader_parameter/border_softness = 0.037
+shader_parameter/power_intensity = 1.819
+shader_parameter/wave_speed = 2.022
+shader_parameter/noise_scale = 8.677
+shader_parameter/square_roundness = 0.3
+shader_parameter/edge_fade_softness = 0.092
+shader_parameter/use_texture_alpha = false

@@ -9,6 +9,7 @@ font_size = 15
 [node name="StatusUI" type="Control"]
 layout_mode = 3
 anchors_preset = 0
+mouse_filter = 2
 script = ExtResource("1_5tjqe")
 
 [node name="Icon" type="TextureRect" parent="."]

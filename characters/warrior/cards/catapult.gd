@@ -3,7 +3,7 @@ extends Card
 const LUCKY_STATUS = preload("res://statuses/lucky.tres")
 
 func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
-
+    Events.reset_charged_card.emit()
     if Global.roll_value <= 2:
         Events.reset_charged_card.emit()
         var damage_effect := DamageEffect.new()

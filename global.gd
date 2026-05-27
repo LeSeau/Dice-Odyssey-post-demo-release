@@ -1,12 +1,12 @@
 extends Node
 
-var testing_mode: bool = true
+var testing_mode: bool = false
 var tutorial_on = false
 var tutorial_reset_power_warning = true
 
 var gold = 7575
-var player_hp = 6666
-var player_max_hp = 6666
+var player_hp = 66
+var player_max_hp = 66
 
 
 var roll_value: int = 0  # Stores the latest dice roll result

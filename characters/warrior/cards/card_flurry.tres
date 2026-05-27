@@ -2,7 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://xi788rq6u78s" path="res://flurry.png" id="1_4koo4"]
 [ext_resource type="Script" path="res://characters/warrior/cards/flurry.gd" id="2_shfxm"]
-[ext_resource type="AudioStream" uid="uid://csxs8784ydfwg" path="res://kamikazesound.mp3" id="3_0u1eu"]
+[ext_resource type="AudioStream" uid="uid://b2l4kmoq5ivyx" path="res://whipsound.mp3" id="3_gsppk"]
 
 [resource]
 script = ExtResource("2_shfxm")
@@ -23,4 +23,4 @@ bonus_description_text = ""
 tags = ""
 icon = ExtResource("1_4koo4")
 tooltip_text = ""
-sound = ExtResource("3_0u1eu")
+sound = ExtResource("3_gsppk")

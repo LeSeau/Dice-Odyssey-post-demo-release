@@ -35,6 +35,7 @@ func set_relic(new_relic: Relic) -> void:
         
     
     var new_relic_ui := RELIC_UI.instantiate() as RelicUI
+    new_relic_ui.initialize_on_set = false
     relic_container.add_child(new_relic_ui)
     new_relic_ui.relic = relic
 

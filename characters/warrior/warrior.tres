@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="CharacterStats" load_steps=6 format=3 uid="uid://sbkc4o401k4l"]
 
-[ext_resource type="Texture2D" uid="uid://cydwcr8gro0re" path="res://heronobg.png" id="1_87tve"]
 [ext_resource type="Script" path="res://custom_resources/character_stats.gd" id="1_d8ou5"]
+[ext_resource type="Texture2D" uid="uid://wpobkh0ew5wh" path="res://main_character_perfect.png" id="1_mp77a"]
 [ext_resource type="Resource" uid="uid://c3m88jaaggugt" path="res://characters/warrior/warrior_draftable_cards.tres" id="2_unq6o"]
 [ext_resource type="Resource" uid="uid://dyyfi3rcfxyug" path="res://characters/warrior/warrior_starting_deck.tres" id="3_d68oj"]
 [ext_resource type="Resource" uid="uid://bmn7pxyr8k46m" path="res://relics/coupons.tres" id="5_mn1ko"]
@@ -14,4 +14,4 @@ max_mana = 10
 draftable_cards = ExtResource("2_unq6o")
 starting_relic = ExtResource("5_mn1ko")
 max_health = 66
-art = ExtResource("1_87tve")
+art = ExtResource("1_mp77a")

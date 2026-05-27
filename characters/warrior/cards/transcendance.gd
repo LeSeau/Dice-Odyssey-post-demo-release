@@ -11,3 +11,4 @@ func apply_effects(targets: Array [Node], _modifiers: ModifierHandler) -> void:
         status_effect.sound = sound
         status_effect.execute(targets)
         Events.dice_roll_reset.emit()
+    Events.reset_charged_card.emit()

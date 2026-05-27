@@ -1,0 +1,26 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://dd24f5dedjdtu"]
+
+[ext_resource type="Texture2D" uid="uid://dpey4pupqfw4s" path="res://snatch.png" id="1_hh0ny"]
+[ext_resource type="Script" path="res://characters/warrior/cards/snatch.gd" id="2_kvk6a"]
+[ext_resource type="AudioStream" uid="uid://b2l4kmoq5ivyx" path="res://whipsound.mp3" id="3_4gwxn"]
+
+[resource]
+script = ExtResource("2_kvk6a")
+id = "card_snatch"
+name = "Snatch"
+type = 0
+target = 1
+description = "Deal X damage. Boost 4"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 0
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Boost"
+icon = ExtResource("1_hh0ny")
+tooltip_text = ""
+sound = ExtResource("3_4gwxn")

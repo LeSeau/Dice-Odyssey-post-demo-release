@@ -8,7 +8,7 @@
 [ext_resource type="AudioStream" uid="uid://de2ryat1pxq6" path="res://art/enemy_attack.ogg" id="5_dqxre"]
 [ext_resource type="Script" path="res://enemies/oculus/oculus_attack_buff_action.gd" id="7_1gx1o"]
 [ext_resource type="Texture2D" uid="uid://binq5gkgr3pre" path="res://buff_icon_intent.png" id="8_b2mhy"]
-[ext_resource type="AudioStream" uid="uid://cupear06meqp6" path="res://sounds/attacksound.mp3" id="9_s03av"]
+[ext_resource type="AudioStream" uid="uid://cy6owtfbf8sfv" path="res://sounds/fountainheal.wav" id="9_ek6tc"]
 
 [sub_resource type="Resource" id="Resource_i1gdi"]
 script = ExtResource("4_vccv0")
@@ -43,4 +43,4 @@ action_id = "oculus_second_attack"
 [node name="OculusBuffAction" type="Node" parent="."]
 script = ExtResource("7_1gx1o")
 intent = SubResource("Resource_5suyb")
-sound = ExtResource("9_s03av")
+sound = ExtResource("9_ek6tc")

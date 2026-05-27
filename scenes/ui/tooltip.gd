@@ -60,6 +60,8 @@ func get_tooltip_content(requirement):
         text += "Your dice rolls gain 2 power"
     elif requirement == "Exposed":
         text += "Take 50% more damage."
+    elif requirement == "Weak":
+        text+= "Your next roll loses 1 power per stack."
     elif requirement == "Strength":
         text += "Deal X more damage on each attack."
     elif requirement == "Scout":

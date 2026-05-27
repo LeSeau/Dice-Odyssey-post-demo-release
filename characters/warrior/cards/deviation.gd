@@ -16,3 +16,4 @@ func apply_effects(targets: Array[Node], _modifiers: ModifierHandler) -> void:
         Events.temporary_dice_added.emit(chosen)
         
         Events.dice_roll_reset.emit()
+    Events.reset_charged_card.emit()

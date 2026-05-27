@@ -3,7 +3,7 @@ extends Relic
 
 func initialize_relic(owner: RelicUI) -> void:
     Events.dice_rolled.connect(_on_dice_rolled.bind(owner))
-
+    print("initializing the one relic")
 
 
 func _on_dice_rolled(dice_type: String, roll_value: int, owner: RelicUI) -> void:

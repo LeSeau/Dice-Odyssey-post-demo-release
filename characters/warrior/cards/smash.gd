@@ -12,7 +12,7 @@ func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
         damage_effect.sound = sound
         damage_effect.execute(targets)
         Events.dice_roll_reset.emit()
-        
+    Events.reset_charged_card.emit()       
     
 
 func _on_dice_rolled():

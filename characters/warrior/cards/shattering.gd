@@ -2,7 +2,7 @@ extends Card
 
 
 func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void: 
-    if Global.roll_value >= 3:
+    if Global.roll_value >= 6:
         var block_effect := BlockEffect.new()
         block_effect.amount = Global.roll_value
         block_effect.sound = sound
@@ -16,6 +16,7 @@ func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
         Events.dice_amount_changed.emit()
         Events.charge_dice_animation.emit()
         Events.temporary_dice_added.emit("green")
+    Events.reset_charged_card.emit()
 
 func _on_dice_rolled():
     print("adding dice to damage")

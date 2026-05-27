@@ -10,11 +10,17 @@
 position = Vector2(1066, 425)
 scale = Vector2(0.75, 0.75)
 stats = ExtResource("2_8jyrm")
+width = 270
+height = 270
+sprite_y_offset = 20
 
 [node name="Satyr2" parent="." instance=ExtResource("1_csfcg")]
 position = Vector2(904, 465)
 scale = Vector2(0.75, 0.75)
 stats = ExtResource("2_8jyrm")
+width = 270
+height = 270
+sprite_y_offset = 20
 
 [node name="Crab" parent="." instance=ExtResource("1_csfcg")]
 position = Vector2(714, 368)

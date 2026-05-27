@@ -73,5 +73,6 @@ func _on_enemy_action_completed(enemy: Enemy) -> void:
     enemy.status_handler.apply_statuses_by_type(Status.Type.END_OF_TURN)
 
 func _on_player_hand_drawn() -> void:
-    for enemy: Enemy in get_children():
-        enemy.update_intent()
+    for child in get_children():
+        if child is Enemy:
+            child.update_intent()

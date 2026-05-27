@@ -14,7 +14,6 @@ func _on_dice_rolled(dice_type: String, roll_value: int, owner: RelicUI) -> void
         
 func _on_change_current_power(owner: RelicUI) -> void:
     print("spyglass ok change current power")
-    # Check if this is a red dice roll and boost the value
     if Global.roll_value == 10:
         owner.flash()  # Visual feedback that the relic activated
         var oracle_card = load("res://characters/warrior/cards/card_oracle_exhaust.tres")

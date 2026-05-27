@@ -2,7 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://dfnlg8lb1f5la" path="res://fortify.png" id="1_kmhvb"]
 [ext_resource type="Script" path="res://characters/warrior/cards/fortify.gd" id="1_oq7mj"]
-[ext_resource type="AudioStream" uid="uid://df64e7qat73gs" path="res://art/block.ogg" id="2_2fpun"]
+[ext_resource type="AudioStream" uid="uid://68q2f8fotq13" path="res://sounds/blocksound.mp3" id="3_k6lv8"]
 
 [resource]
 script = ExtResource("1_oq7mj")
@@ -23,4 +23,4 @@ bonus_description_text = "Gain 1 Strength"
 tags = "Strength"
 icon = ExtResource("1_kmhvb")
 tooltip_text = ""
-sound = ExtResource("2_2fpun")
+sound = ExtResource("3_k6lv8")

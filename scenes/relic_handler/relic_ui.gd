@@ -5,6 +5,7 @@ extends Control
 @onready var icon: TextureRect = $Icon
 @onready var animation_player: AnimationPlayer = $AnimationPlayer
 @onready var counter: Label = $Counter
+@export var initialize_on_set := true
 
 # Tooltip instance
 var tooltip_instance: CanvasLayer
@@ -22,7 +23,9 @@ func set_relic(new_relic: Relic) -> void:
     icon.texture = relic.icon
     
     counter.visible = false
-    relic.initialize_relic(self)
+
+    if initialize_on_set:
+        relic.initialize_relic(self)
 
 
 

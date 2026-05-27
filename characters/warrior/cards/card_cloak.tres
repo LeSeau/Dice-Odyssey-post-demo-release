@@ -1,0 +1,26 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://clpxyalt3yvw5"]
+
+[ext_resource type="Texture2D" uid="uid://bpes2c662q8jf" path="res://cloak.png" id="1_gxy8r"]
+[ext_resource type="Script" path="res://characters/warrior/cards/cloak.gd" id="2_7piec"]
+[ext_resource type="AudioStream" uid="uid://68q2f8fotq13" path="res://sounds/blocksound.mp3" id="3_ahl6v"]
+
+[resource]
+script = ExtResource("2_7piec")
+id = "card_cloak"
+name = "Cloak"
+type = 1
+target = 0
+description = "Block X"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 0
+requirement_number = 0
+exhausts = false
+bonus_requirement = 4
+bonus_requirement_number = 0
+bonus_description_text = "Charge 1"
+tags = "Charge"
+icon = ExtResource("1_gxy8r")
+tooltip_text = ""
+sound = ExtResource("3_ahl6v")

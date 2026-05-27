@@ -3,8 +3,26 @@ extends Node2D
 var fade_duration: float = 0.6
 
 func show_damage(amount: int) -> void:
-    label.text = "-"+str(amount)
+    label.text = "-" + str(amount)
+    
+    # Size punch based on damage amount
+    var punch_scale = 1.0 + (amount / 40.0)  # small damage = subtle, big damage = big punch
+    punch_scale = clamp(punch_scale, 1.0, 2.0)
+    label.scale = Vector2(punch_scale, punch_scale)
+    
     var tween := create_tween()
-    tween.tween_property(self, "position", position + Vector2.UP * 30, fade_duration)
-    tween.parallel().tween_property(self, "modulate:a", 0.0, fade_duration)
-    tween.finished.connect(queue_free)
+    tween.set_parallel(true)
+    
+    # Scale back to normal quickly
+    tween.tween_property(label, "scale", Vector2(1.0, 1.0), 0.12).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+    
+    # Float up with slight arc (random x drift)
+    var drift = randf_range(-15.0, 15.0)
+    tween.tween_property(self, "position", position + Vector2(drift, -50), fade_duration).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+    
+    # Fade out in second half only
+    var fade_tween = create_tween()
+    fade_tween.tween_interval(fade_duration * 0.5)
+    fade_tween.tween_property(self, "modulate:a", 0.0, fade_duration * 0.5)
+    
+    tween.chain().tween_callback(queue_free)

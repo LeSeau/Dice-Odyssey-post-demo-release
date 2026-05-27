@@ -2,7 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://cgxrlwrh2flx0" path="res://doomsday.png" id="1_cjwng"]
 [ext_resource type="Script" path="res://characters/warrior/cards/doomsday.gd" id="2_ovv1i"]
-[ext_resource type="AudioStream" uid="uid://bryyjsmk8fak6" path="res://detonationsound.mp3" id="3_kr5rg"]
+[ext_resource type="AudioStream" uid="uid://bmk6ieyjgirsp" path="res://laughsound.mp3" id="3_h1gft"]
 
 [resource]
 script = ExtResource("2_ovv1i")
@@ -23,4 +23,4 @@ bonus_description_text = ""
 tags = ""
 icon = ExtResource("1_cjwng")
 tooltip_text = ""
-sound = ExtResource("3_kr5rg")
+sound = ExtResource("3_h1gft")

@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://ln0k1sera72a"]
+[gd_scene load_steps=13 format=3 uid="uid://ln0k1sera72a"]
 
 [ext_resource type="Script" path="res://scenes/enemy/enemy_action_picker.gd" id="1_hph8o"]
 [ext_resource type="Script" path="res://enemies/plant/plant_attack_action.gd" id="2_a6cy0"]
@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://enemies/plant/plant_attack_buff_action.gd" id="6_o37vu"]
 [ext_resource type="Script" path="res://enemies/plant/plant_attack_action_2.gd" id="6_sob0b"]
 [ext_resource type="Texture2D" uid="uid://binq5gkgr3pre" path="res://buff_icon_intent.png" id="7_ny148"]
+[ext_resource type="AudioStream" uid="uid://cy6owtfbf8sfv" path="res://sounds/fountainheal.wav" id="9_5qby4"]
 
 [sub_resource type="Resource" id="Resource_adal2"]
 script = ExtResource("4_e0q8s")
@@ -42,4 +43,5 @@ action_id = "plant_attack2"
 [node name="PlantBuffAction" type="Node" parent="."]
 script = ExtResource("6_o37vu")
 intent = SubResource("Resource_5a765")
+sound = ExtResource("9_5qby4")
 action_id = "plant_buff"

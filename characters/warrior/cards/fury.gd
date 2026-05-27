@@ -20,7 +20,7 @@ func apply_effects(targets: Array [Node], _modifiers: ModifierHandler) -> void:
         status_effect.execute(targets)
         Events.dice_roll_reset.emit()
         Global.lose_strength_next_turn = muscle.stacks
-    
+        Events.reset_charged_card.emit()
 
         
     

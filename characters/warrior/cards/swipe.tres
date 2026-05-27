@@ -2,7 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://15qdyodgr8l0" path="res://swipe.png" id="1_7au6t"]
 [ext_resource type="Script" path="res://characters/warrior/cards/swipe.gd" id="2_kjta4"]
-[ext_resource type="AudioStream" uid="uid://dixklg6g4jnsq" path="res://art/slash.ogg" id="3_cpdgl"]
+[ext_resource type="AudioStream" uid="uid://csxs8784ydfwg" path="res://kamikazesound.mp3" id="3_1xe4c"]
 
 [resource]
 script = ExtResource("2_kjta4")
@@ -23,4 +23,4 @@ bonus_description_text = ""
 tags = "Scout"
 icon = ExtResource("1_7au6t")
 tooltip_text = ""
-sound = ExtResource("3_cpdgl")
+sound = ExtResource("3_1xe4c")

@@ -22,3 +22,4 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     var support_effect := SupportEffect.new()
     support_effect.sound = sound
     support_effect.execute(targets)
+    Events.reset_charged_card.emit()
