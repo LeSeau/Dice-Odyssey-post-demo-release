@@ -13,8 +13,9 @@ const CARD_MENU_UI = preload("res://scenes/ui/card_menu_ui.tscn")
 @onready var card_menu_ai_2: CardMenuUI = $VBoxContainer/Cards/CardMenuAI2
 @onready var card_menu_ai_3: CardMenuUI = $VBoxContainer/Cards/CardMenuAI3
 
-@onready var bonus_explanation_box_2: Panel = $BonusExplanationBox2
+
 @onready var bonus_explanation_box: Panel = $VBoxContainer/CanvasLayer/BonusExplanationBox
+@onready var bonus_explanation_box_2: Panel = $VBoxContainer/CanvasLayer/BonusExplanationBox2
 
 @onready var button: Button = $BonusExplanationBox/Button
 @onready var button_2: Button = $BonusExplanationBox2/Button2

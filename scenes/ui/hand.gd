@@ -90,6 +90,8 @@ func _on_card_mouse_entered(card: CardUI) -> void:
         tween.tween_property(card, "position:y",
             _original_positions[card].y + hover_lift, hover_time).set_ease(Tween.EASE_OUT)
         card.z_index = 50
+        card.rotation_degrees = 0
+        card.scale = Vector2(1.12, 1.12)
 
 func _on_card_mouse_exited(card: CardUI) -> void:
     if not _original_positions.has(card):
@@ -99,6 +101,8 @@ func _on_card_mouse_exited(card: CardUI) -> void:
         tween.tween_property(card, "position:y",
             _original_positions[card].y, hover_time).set_ease(Tween.EASE_IN)
         card.z_index = 1
+        card.rotation_degrees = _get_card_fan_angle(card)
+        card.scale = Vector2(1.0, 1.0)
 
 func _on_add_card_to_hand_requested(card: Card) -> void:
     add_card(card)
@@ -224,3 +228,11 @@ func _on_hover_playable_cards() -> void:
     # Dim unplayable cards (reduced opacity)
     for card in unplayable:
         card.set_playable_visual(false)
+
+func _get_card_fan_angle(card: CardUI) -> float:
+    var card_count := get_child_count()
+    if card_count <= 1:
+        return 0.0
+    var i := card.get_index()
+    var progress := float(i) / float(card_count - 1)
+    return fan_degrees * (progress - 0.5)

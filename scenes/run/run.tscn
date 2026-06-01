@@ -1,4 +1,4 @@
-[gd_scene load_steps=33 format=3 uid="uid://b56wvanf6u6h7"]
+[gd_scene load_steps=38 format=3 uid="uid://b56wvanf6u6h7"]
 
 [ext_resource type="Script" path="res://scenes/run/run.gd" id="1_sgoer"]
 [ext_resource type="PackedScene" uid="uid://deprxl041o8nn" path="res://scenes/map/map.tscn" id="2_1mcea"]
@@ -16,25 +16,78 @@
 [ext_resource type="AudioStream" uid="uid://6p70t2f0sp0v" path="res://victory_daiso.mp3" id="10_8bgi1"]
 [ext_resource type="Texture2D" uid="uid://bgwa4qau0i542" path="res://dice shop clean outline.png" id="10_wacie"]
 [ext_resource type="Texture2D" uid="uid://ye2g85fpdt1y" path="res://deck.png" id="13_pm2lc"]
-[ext_resource type="FontFile" uid="uid://b2y60c4274gkj" path="res://fonts/Cinzel-Bold.otf" id="14_iskvw"]
 [ext_resource type="FontFile" uid="uid://dltntsanjiykq" path="res://fonts/LuckiestGuy-Regular.ttf" id="20_hicqd"]
-[ext_resource type="FontFile" uid="uid://dq4bmvx1ogtey" path="res://Noto_Sans/static/NotoSans-Medium.ttf" id="20_sfths"]
+[ext_resource type="Texture2D" uid="uid://des7u80d2851r" path="res://discord_logo_test.png" id="25_5yr4f"]
 [ext_resource type="Texture2D" uid="uid://debpwfe3e4476" path="res://assets/images/shop.jpg" id="30_a4wio"]
 [ext_resource type="FontFile" uid="uid://dujsng7qdioan" path="res://assets/static/Roboto_Condensed-SemiBold.ttf" id="32_hr3b7"]
 [ext_resource type="AudioStream" uid="uid://lw8o2xuyd2fr" path="res://map_music.ogg" id="32_xlp2w"]
 [ext_resource type="FontFile" uid="uid://bm3deysyi2y55" path="res://Belwe Bold/Belwe Bold.otf" id="33_q6s60"]
 [ext_resource type="Texture2D" uid="uid://b1my7ua56jx7t" path="res://tutorial_arrow.png" id="33_ys7td"]
-[ext_resource type="Texture2D" uid="uid://c6w3p47gbm7w4" path="res://discordlogo.png" id="34_8bsh1"]
+
+[sub_resource type="Gradient" id="Gradient_ajfrf"]
+colors = PackedColorArray(0.101961, 0.227451, 0.235294, 1, 0.0588235, 0.133333, 0.141176, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_l7gh7"]
+gradient = SubResource("Gradient_ajfrf")
+fill_to = Vector2(0, 1)
+
+[sub_resource type="StyleBoxLine" id="StyleBoxLine_6aa02"]
+color = Color(0.784314, 0.662745, 0.431373, 1)
+grow_begin = 0.0
+grow_end = -3.0
+thickness = 3
+vertical = true
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_mjnxi"]
+content_margin_top = 8.0
+
+[sub_resource type="LabelSettings" id="LabelSettings_cbb1u"]
+font = ExtResource("20_hicqd")
+font_size = 14
+font_color = Color(0.92549, 0.890196, 0.815686, 1)
+outline_size = 1
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6wcbv"]
+content_margin_left = 0.0
+content_margin_top = 9.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.568627, 0.137255, 0.137255, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
 
 [sub_resource type="LabelSettings" id="LabelSettings_8pgi2"]
+line_spacing = 0.0
 font = ExtResource("20_hicqd")
-font_size = 30
+font_size = 22
 font_color = Color(1, 1, 0.168627, 1)
+outline_size = 1
+outline_color = Color(0, 0, 0, 1)
+shadow_color = Color(0, 0, 0, 1)
+shadow_offset = Vector2(0, 2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mcnqj"]
+content_margin_left = 4.0
+content_margin_top = 0.0
+content_margin_right = 4.0
+content_margin_bottom = 0.0
+bg_color = Color(0.784314, 0.658824, 0.294118, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
 
 [sub_resource type="LabelSettings" id="LabelSettings_8eny0"]
-font = ExtResource("14_iskvw")
-font_size = 26
+font = ExtResource("20_hicqd")
+font_size = 18
+outline_size = 1
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 0
 shadow_color = Color(0, 0, 0, 1)
+shadow_offset = Vector2(0, 0)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_41je3"]
 bg_color = Color(0.144787, 0.273985, 0.277578, 1)
@@ -47,16 +100,21 @@ border_blend = true
 shadow_size = 2
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_x2rwe"]
-bg_color = Color(0.246036, 0.403102, 0.363782, 1)
+content_margin_left = 12.0
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+bg_color = Color(0.345098, 0.396078, 0.94902, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0, 0, 0, 1)
+border_color = Color(0.227451, 0.290196, 0.780392, 1)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
+shadow_color = Color(0.117647, 0.145098, 0.458824, 0.8)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_kdfmm"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
@@ -134,86 +192,124 @@ custom_minimum_size = Vector2(50, 80)
 anchors_preset = 10
 anchor_right = 1.0
 grow_horizontal = 2
-color = Color(0.144787, 0.273985, 0.277578, 1)
+color = Color(0.101961, 0.227451, 0.235294, 1)
+
+[node name="TextureRect" type="TextureRect" parent="TopBar/Background"]
+visible = false
+custom_minimum_size = Vector2(1280, 80)
+layout_mode = 0
+offset_right = 1280.0
+offset_bottom = 80.0
+texture = SubResource("GradientTexture2D_l7gh7")
+
+[node name="ColorRect" type="ColorRect" parent="TopBar/Background"]
+custom_minimum_size = Vector2(0, 3)
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(0.784314, 0.658824, 0.294118, 1)
 
 [node name="BarItems" type="HBoxContainer" parent="TopBar"]
-custom_minimum_size = Vector2(0, 72)
+custom_minimum_size = Vector2(0, 80)
 anchors_preset = 10
 anchor_right = 1.0
+offset_bottom = 80.0
 grow_horizontal = 2
-theme_override_constants/separation = 20
+theme_override_constants/separation = 12
 
 [node name="GoldUI" parent="TopBar/BarItems" instance=ExtResource("3_xchug")]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(30, 0)
+custom_minimum_size = Vector2(82, 0)
 layout_mode = 2
 
 [node name="HBoxContainer" type="HBoxContainer" parent="TopBar/BarItems"]
 layout_mode = 2
+theme_override_constants/separation = -3
 
 [node name="TextureRect" type="TextureRect" parent="TopBar/BarItems/HBoxContainer"]
-custom_minimum_size = Vector2(25, 25)
+custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
 texture = ExtResource("5_s8vna")
 expand_mode = 1
 stretch_mode = 5
 
 [node name="HealthLabel" type="Label" parent="TopBar/BarItems/HBoxContainer"]
+custom_minimum_size = Vector2(65, 0)
 layout_mode = 2
+theme_override_font_sizes/font_size = 22
 text = "66/66"
 
-[node name="DiceTopBar" type="GridContainer" parent="TopBar/BarItems"]
-custom_minimum_size = Vector2(130, 20)
+[node name="VSeparator" type="VSeparator" parent="TopBar/BarItems"]
+modulate = Color(0.784314, 0.662745, 0.431373, 1)
 layout_mode = 2
-theme_override_constants/h_separation = -1
-theme_override_constants/v_separation = -15
-columns = 2
+theme_override_constants/separation = 20
+theme_override_styles/separator = SubResource("StyleBoxLine_6aa02")
 
-[node name="BlueDice" type="HBoxContainer" parent="TopBar/BarItems/DiceTopBar"]
+[node name="DiceTopBar" type="HBoxContainer" parent="TopBar/BarItems"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="BlueDice" type="VBoxContainer" parent="TopBar/BarItems/DiceTopBar"]
 custom_minimum_size = Vector2(36, 0)
 layout_mode = 2
-size_flags_vertical = 6
-theme_override_constants/separation = 4
+size_flags_vertical = 8
+theme_override_constants/separation = -6
 
 [node name="BlueDiceTexture" type="TextureRect" parent="TopBar/BarItems/DiceTopBar/BlueDice"]
-custom_minimum_size = Vector2(25, 25)
-layout_mode = 2
-texture = ExtResource("4_32ynl")
-expand_mode = 1
-stretch_mode = 6
-
-[node name="BlueDiceAmount" type="RichTextLabel" parent="TopBar/BarItems/DiceTopBar/BlueDice"]
-custom_minimum_size = Vector2(36, 12)
-layout_mode = 2
-theme_override_fonts/normal_font = ExtResource("20_sfths")
-theme_override_font_sizes/normal_font_size = 14
-bbcode_enabled = true
-text = "2"
-scroll_active = false
-
-[node name="RedDice" type="HBoxContainer" parent="TopBar/BarItems/DiceTopBar"]
-custom_minimum_size = Vector2(36, 0)
+custom_minimum_size = Vector2(32, 40)
 layout_mode = 2
 size_flags_vertical = 6
-theme_override_constants/separation = 4
+texture = ExtResource("4_32ynl")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="BlueDiceAmount" type="Label" parent="TopBar/BarItems/DiceTopBar/BlueDice"]
+custom_minimum_size = Vector2(36, 28)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxEmpty_mjnxi")
+text = "x2"
+label_settings = SubResource("LabelSettings_cbb1u")
+horizontal_alignment = 1
+
+[node name="RedDice" type="VBoxContainer" parent="TopBar/BarItems/DiceTopBar"]
+custom_minimum_size = Vector2(36, 0)
+layout_mode = 2
+size_flags_vertical = 8
+theme_override_constants/separation = -6
 
 [node name="RedDiceTexture" type="TextureRect" parent="TopBar/BarItems/DiceTopBar/RedDice"]
-custom_minimum_size = Vector2(25, 25)
+custom_minimum_size = Vector2(32, 40)
 layout_mode = 2
+size_flags_vertical = 3
 texture = ExtResource("5_14sn0")
 expand_mode = 1
-stretch_mode = 6
+stretch_mode = 5
 
-[node name="RedDiceAmount" type="RichTextLabel" parent="TopBar/BarItems/DiceTopBar/RedDice"]
-custom_minimum_size = Vector2(36, 12)
+[node name="RedDiceAmount" type="Label" parent="TopBar/BarItems/DiceTopBar/RedDice"]
+custom_minimum_size = Vector2(36, 28)
 layout_mode = 2
-theme_override_fonts/normal_font = ExtResource("20_sfths")
-theme_override_font_sizes/normal_font_size = 14
-bbcode_enabled = true
-text = "1"
-scroll_active = false
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxEmpty_mjnxi")
+text = "x2"
+label_settings = SubResource("LabelSettings_cbb1u")
+horizontal_alignment = 1
 
-[node name="RelicHandlerContainer" type="CenterContainer" parent="TopBar/BarItems"]
+[node name="VSeparator3" type="VSeparator" parent="TopBar/BarItems"]
+modulate = Color(0.784314, 0.662745, 0.431373, 1)
+layout_mode = 2
+theme_override_constants/separation = 20
+theme_override_styles/separator = SubResource("StyleBoxLine_6aa02")
+
+[node name="RelicHandlerContainer" type="HBoxContainer" parent="TopBar/BarItems"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
@@ -226,7 +322,6 @@ layout_mode = 2
 [node name="Spacer" type="Control" parent="TopBar/BarItems"]
 custom_minimum_size = Vector2(2, 0)
 layout_mode = 2
-size_flags_horizontal = 3
 
 [node name="DiceShop" type="TextureButton" parent="TopBar/BarItems"]
 custom_minimum_size = Vector2(80, 80)
@@ -238,36 +333,51 @@ script = ExtResource("7_oewux")
 
 [node name="AffordableIndicator" type="Label" parent="TopBar/BarItems/DiceShop"]
 layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -44.0
-offset_top = -71.0
-offset_right = -4.0
-offset_bottom = -39.0
-grow_horizontal = 2
-grow_vertical = 0
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -9.0
+offset_top = 3.0
+offset_right = 9.0
+offset_bottom = 38.0
+grow_horizontal = 0
+theme_override_styles/normal = SubResource("StyleBoxFlat_6wcbv")
 text = "!"
 label_settings = SubResource("LabelSettings_8pgi2")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Spacer2" type="Control" parent="TopBar/BarItems"]
+custom_minimum_size = Vector2(2, 0)
+layout_mode = 2
 
 [node name="DeckButton" parent="TopBar/BarItems" node_paths=PackedStringArray("counter") instance=ExtResource("3_bglvk")]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
-size_flags_horizontal = 8
 texture_normal = ExtResource("13_pm2lc")
 counter = NodePath("Counter")
 
 [node name="Counter" type="Label" parent="TopBar/BarItems/DeckButton"]
+custom_minimum_size = Vector2(25, 25)
 layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
 offset_left = -10.0
-offset_top = 1.0
-offset_right = 30.0
-offset_bottom = 47.0
+offset_top = 3.0
+offset_right = 15.0
+offset_bottom = 28.0
+grow_horizontal = 0
+theme_override_styles/normal = SubResource("StyleBoxFlat_mcnqj")
 text = "11"
 label_settings = SubResource("LabelSettings_8eny0")
+horizontal_alignment = 1
+vertical_alignment = 2
+
+[node name="Spacer3" type="Control" parent="TopBar/BarItems"]
+custom_minimum_size = Vector2(30, 0)
+layout_mode = 2
 
 [node name="DeckView" parent="TopBar" instance=ExtResource("4_rq0pt")]
 unique_name_in_owner = true
@@ -353,10 +463,10 @@ layer = 100
 [node name="JoinDiscordControl" type="Control" parent="CanvasLayer"]
 layout_mode = 3
 anchors_preset = 0
-offset_left = 11.0
-offset_top = 134.0
-offset_right = 195.0
-offset_bottom = 165.0
+offset_left = 1210.0
+offset_top = 83.0
+offset_right = 1276.0
+offset_bottom = 124.0
 size_flags_horizontal = 8
 size_flags_vertical = 0
 
@@ -375,18 +485,19 @@ anchors_preset = 14
 anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
-offset_left = 8.0
+offset_left = -12.0
 offset_top = -10.0
-offset_right = 8.0
+offset_right = -12.0
 offset_bottom = 10.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("33_q6s60")
 theme_override_font_sizes/font_size = 16
-text = "Join Discord!"
+horizontal_alignment = 1
 
 [node name="DiscordLogo" type="TextureRect" parent="CanvasLayer/JoinDiscordControl/JoinDiscordOption"]
-custom_minimum_size = Vector2(26, 26)
+custom_minimum_size = Vector2(22, 22)
 layout_mode = 1
 anchors_preset = 6
 anchor_left = 1.0
@@ -399,7 +510,7 @@ offset_right = -21.0
 offset_bottom = 13.5
 grow_horizontal = 0
 grow_vertical = 2
-texture = ExtResource("34_8bsh1")
+texture = ExtResource("25_5yr4f")
 expand_mode = 1
 stretch_mode = 5
 

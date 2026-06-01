@@ -90,6 +90,7 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_pktf8")
 theme_override_styles/normal = SubResource("StyleBoxFlat_r22wc")
 
 [node name="Button" type="Button" parent="."]
+visible = false
 custom_minimum_size = Vector2(20, 20)
 layout_mode = 0
 offset_left = 56.0

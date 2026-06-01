@@ -16,22 +16,23 @@
 [ext_resource type="Texture2D" uid="uid://qfff0bysul00" path="res://assets/images/mech1.png" id="14_yq6or"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xxwa5"]
-bg_color = Color(1, 1, 1, 0.698039)
+bg_color = Color(0.129412, 0.164706, 0.243137, 1)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0.00261779, 0.00261779, 0.00261778, 1)
-corner_radius_top_left = 20
-corner_radius_top_right = 20
-corner_radius_bottom_right = 20
-corner_radius_bottom_left = 20
+border_color = Color(1, 1, 1, 0.14902)
+corner_radius_top_left = 28
+corner_radius_top_right = 28
+corner_radius_bottom_right = 28
+corner_radius_bottom_left = 28
 expand_margin_top = 2.0
 shadow_size = 1
 
 [sub_resource type="LabelSettings" id="LabelSettings_dsa2r"]
 line_spacing = 0.0
 font = ExtResource("6_w42le")
+font_size = 13
 shadow_size = 3
 shadow_color = Color(0, 0, 0, 0.509804)
 
@@ -126,10 +127,10 @@ offset_bottom = 0.5
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-theme_override_constants/margin_left = 0
-theme_override_constants/margin_top = 4
-theme_override_constants/margin_right = 0
-theme_override_constants/margin_bottom = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 6
 
 [node name="HBoxContainer" type="HBoxContainer" parent="DicePanel/MarginContainer"]
 layout_mode = 2
@@ -138,21 +139,22 @@ theme_override_constants/separation = 20
 alignment = 1
 
 [node name="Dice1" type="VBoxContainer" parent="DicePanel/MarginContainer/HBoxContainer"]
-custom_minimum_size = Vector2(35, 35)
+custom_minimum_size = Vector2(40, 28)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 mouse_filter = 0
-theme_override_constants/separation = 3
+theme_override_constants/separation = 0
 alignment = 1
 
 [node name="Dice1Texture" type="TextureRect" parent="DicePanel/MarginContainer/HBoxContainer/Dice1"]
-custom_minimum_size = Vector2(20, 20)
+custom_minimum_size = Vector2(32, 32)
 layout_mode = 2
-size_flags_vertical = 8
+size_flags_horizontal = 4
+size_flags_vertical = 4
 mouse_filter = 2
 texture = ExtResource("3_q6max")
-expand_mode = 4
+expand_mode = 5
 script = ExtResource("5_cju5n")
 
 [node name="Dice1Label" type="Label" parent="DicePanel/MarginContainer/HBoxContainer/Dice1"]
@@ -165,19 +167,20 @@ horizontal_alignment = 1
 vertical_alignment = 2
 
 [node name="Dice2" type="VBoxContainer" parent="DicePanel/MarginContainer/HBoxContainer"]
-custom_minimum_size = Vector2(35, 35)
+custom_minimum_size = Vector2(40, 45)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
-theme_override_constants/separation = 3
+theme_override_constants/separation = 0
 alignment = 1
 
 [node name="Dice2Texture" type="TextureRect" parent="DicePanel/MarginContainer/HBoxContainer/Dice2"]
-custom_minimum_size = Vector2(35, 35)
+custom_minimum_size = Vector2(32, 32)
 layout_mode = 2
-size_flags_vertical = 8
+size_flags_horizontal = 4
+size_flags_vertical = 4
 texture = ExtResource("5_qecou")
-expand_mode = 1
+expand_mode = 5
 
 [node name="Dice2Label" type="Label" parent="DicePanel/MarginContainer/HBoxContainer/Dice2"]
 layout_mode = 2
@@ -190,19 +193,20 @@ vertical_alignment = 2
 
 [node name="Dice3" type="VBoxContainer" parent="DicePanel/MarginContainer/HBoxContainer"]
 visible = false
-custom_minimum_size = Vector2(35, 35)
+custom_minimum_size = Vector2(40, 45)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
-theme_override_constants/separation = 3
+theme_override_constants/separation = 0
 alignment = 1
 
 [node name="Dice3Texture" type="TextureRect" parent="DicePanel/MarginContainer/HBoxContainer/Dice3"]
-custom_minimum_size = Vector2(35, 35)
+custom_minimum_size = Vector2(32, 22)
 layout_mode = 2
-size_flags_vertical = 8
+size_flags_horizontal = 4
+size_flags_vertical = 4
 texture = ExtResource("8_fm7rw")
-expand_mode = 1
+expand_mode = 4
 
 [node name="Dice3Label" type="Label" parent="DicePanel/MarginContainer/HBoxContainer/Dice3"]
 layout_mode = 2
@@ -215,19 +219,20 @@ vertical_alignment = 2
 
 [node name="Dice4" type="VBoxContainer" parent="DicePanel/MarginContainer/HBoxContainer"]
 visible = false
-custom_minimum_size = Vector2(35, 35)
+custom_minimum_size = Vector2(40, 45)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
-theme_override_constants/separation = 3
+theme_override_constants/separation = 0
 alignment = 1
 
 [node name="Dice4Texture" type="TextureRect" parent="DicePanel/MarginContainer/HBoxContainer/Dice4"]
-custom_minimum_size = Vector2(35, 35)
+custom_minimum_size = Vector2(32, 22)
 layout_mode = 2
-size_flags_vertical = 8
+size_flags_horizontal = 4
+size_flags_vertical = 4
 texture = ExtResource("9_j57h4")
-expand_mode = 1
+expand_mode = 4
 
 [node name="Dice4Label" type="Label" parent="DicePanel/MarginContainer/HBoxContainer/Dice4"]
 layout_mode = 2
@@ -240,19 +245,20 @@ vertical_alignment = 2
 
 [node name="Dice5" type="VBoxContainer" parent="DicePanel/MarginContainer/HBoxContainer"]
 visible = false
-custom_minimum_size = Vector2(35, 35)
+custom_minimum_size = Vector2(40, 45)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
-theme_override_constants/separation = 3
+theme_override_constants/separation = 0
 alignment = 1
 
 [node name="Dice5Texture" type="TextureRect" parent="DicePanel/MarginContainer/HBoxContainer/Dice5"]
-custom_minimum_size = Vector2(35, 35)
+custom_minimum_size = Vector2(32, 22)
 layout_mode = 2
-size_flags_vertical = 8
+size_flags_horizontal = 4
+size_flags_vertical = 4
 texture = ExtResource("10_5yi0r")
-expand_mode = 1
+expand_mode = 4
 
 [node name="Dice5Label" type="Label" parent="DicePanel/MarginContainer/HBoxContainer/Dice5"]
 layout_mode = 2
@@ -265,19 +271,20 @@ vertical_alignment = 2
 
 [node name="Dice6" type="VBoxContainer" parent="DicePanel/MarginContainer/HBoxContainer"]
 visible = false
-custom_minimum_size = Vector2(35, 35)
+custom_minimum_size = Vector2(40, 45)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
-theme_override_constants/separation = 3
+theme_override_constants/separation = 0
 alignment = 1
 
 [node name="Dice6Texture" type="TextureRect" parent="DicePanel/MarginContainer/HBoxContainer/Dice6"]
-custom_minimum_size = Vector2(35, 35)
+custom_minimum_size = Vector2(32, 22)
 layout_mode = 2
-size_flags_vertical = 8
+size_flags_horizontal = 4
+size_flags_vertical = 4
 texture = ExtResource("11_h0rqu")
-expand_mode = 1
+expand_mode = 4
 
 [node name="Dice6Label" type="Label" parent="DicePanel/MarginContainer/HBoxContainer/Dice6"]
 layout_mode = 2
@@ -290,19 +297,20 @@ vertical_alignment = 2
 
 [node name="Dice7" type="VBoxContainer" parent="DicePanel/MarginContainer/HBoxContainer"]
 visible = false
-custom_minimum_size = Vector2(35, 35)
+custom_minimum_size = Vector2(40, 45)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
-theme_override_constants/separation = 3
+theme_override_constants/separation = 0
 alignment = 1
 
 [node name="Dice7Texture" type="TextureRect" parent="DicePanel/MarginContainer/HBoxContainer/Dice7"]
-custom_minimum_size = Vector2(35, 35)
+custom_minimum_size = Vector2(32, 22)
 layout_mode = 2
-size_flags_vertical = 8
+size_flags_horizontal = 4
+size_flags_vertical = 4
 texture = ExtResource("12_0guum")
-expand_mode = 1
+expand_mode = 4
 
 [node name="Dice7Label" type="Label" parent="DicePanel/MarginContainer/HBoxContainer/Dice7"]
 layout_mode = 2
@@ -315,19 +323,20 @@ vertical_alignment = 2
 
 [node name="Dice8" type="VBoxContainer" parent="DicePanel/MarginContainer/HBoxContainer"]
 visible = false
-custom_minimum_size = Vector2(35, 35)
+custom_minimum_size = Vector2(40, 45)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
-theme_override_constants/separation = 3
+theme_override_constants/separation = 0
 alignment = 1
 
 [node name="Dice8Texture" type="TextureRect" parent="DicePanel/MarginContainer/HBoxContainer/Dice8"]
-custom_minimum_size = Vector2(35, 35)
+custom_minimum_size = Vector2(32, 22)
 layout_mode = 2
-size_flags_vertical = 8
+size_flags_horizontal = 4
+size_flags_vertical = 4
 texture = ExtResource("13_y2mvv")
-expand_mode = 1
+expand_mode = 4
 
 [node name="Dice8Label" type="Label" parent="DicePanel/MarginContainer/HBoxContainer/Dice8"]
 layout_mode = 2
@@ -340,19 +349,20 @@ vertical_alignment = 2
 
 [node name="Dice9" type="VBoxContainer" parent="DicePanel/MarginContainer/HBoxContainer"]
 visible = false
-custom_minimum_size = Vector2(35, 35)
+custom_minimum_size = Vector2(40, 45)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
-theme_override_constants/separation = 3
+theme_override_constants/separation = 0
 alignment = 1
 
 [node name="Dice9Texture" type="TextureRect" parent="DicePanel/MarginContainer/HBoxContainer/Dice9"]
-custom_minimum_size = Vector2(35, 35)
+custom_minimum_size = Vector2(32, 22)
 layout_mode = 2
-size_flags_vertical = 8
+size_flags_horizontal = 4
+size_flags_vertical = 4
 texture = ExtResource("14_yq6or")
-expand_mode = 1
+expand_mode = 4
 
 [node name="Dice9Label" type="Label" parent="DicePanel/MarginContainer/HBoxContainer/Dice9"]
 layout_mode = 2

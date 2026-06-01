@@ -11,7 +11,7 @@ const TOOLTIP_HEIGHT = 108    # Approximate height of each tooltip
 const TOOLTIP_SPACING = 1     # Space between tooltips
 
 const PLAYABLE_OPACITY := 1.0
-const UNPLAYABLE_OPACITY := 1.0
+const UNPLAYABLE_OPACITY := 0.45
 
 const TooltipScene = preload("res://scenes/ui/tooltip.tscn")
 const SUPPORT_STYLEBOX := preload("res://scenes/card_ui/card_ui_support.tres")

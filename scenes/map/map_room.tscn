@@ -23,7 +23,7 @@ tracks/0/keys = {
 tracks/1/type = "value"
 tracks/1/imported = false
 tracks/1/enabled = true
-tracks/1/path = NodePath("Visuals/Line2D:modulate")
+tracks/1/path = NodePath("Line2D:modulate")
 tracks/1/interp = 1
 tracks/1/loop_wrap = true
 tracks/1/keys = {
@@ -53,8 +53,8 @@ tracks/0/keys = {
 resource_name = "select"
 tracks/0/type = "value"
 tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("Visuals/Line2D:modulate")
+tracks/0/enabled = false
+tracks/0/path = NodePath("Line2D:modulate")
 tracks/0/interp = 2
 tracks/0/loop_wrap = true
 tracks/0/keys = {
@@ -90,15 +90,16 @@ collision_layer = 8
 collision_mask = 0
 script = ExtResource("1_5dnox")
 
-[node name="Visuals" type="Node2D" parent="."]
-
-[node name="Line2D" type="Line2D" parent="Visuals"]
+[node name="Line2D" type="Line2D" parent="."]
 modulate = Color(1, 1, 1, 0)
 z_index = 2
 position = Vector2(1.94286, -2.31298)
 scale = Vector2(0.907143, 0.946565)
-points = PackedVector2Array(-66, -17, -60, 31, -36, 52, 19, 59, 51, 35, 54, 19, 47, -33, 11, -52, -36, -44, -60, -2)
 closed = true
+width = 8.0
+default_color = Color(0.941176, 0.752941, 0.25098, 1)
+
+[node name="Visuals" type="Node2D" parent="."]
 
 [node name="Sprite2D" type="Sprite2D" parent="Visuals"]
 scale = Vector2(0.15, 0.15)

@@ -10,12 +10,12 @@ const ICONS := {
     Room.Type.CAMPFIRE: [preload("res://campfire_icon.png"), Vector2.ONE],    
     Room.Type.TREASURE: [preload("res://treasurenobg.png"), Vector2.ONE],
     Room.Type.SHOP: [preload("res://shop_icon_nano3.png"), Vector2.ONE],
-    Room.Type.BOSS: [preload("res://assets/images/boss-icon.jpg"), Vector2(0.6, 0.6)],
-    Room.Type.EVENT: [preload("res://events_icon_map.png"), Vector2.ONE],
+    Room.Type.BOSS: [preload("res://boss_icon_v3.png"), Vector2(1.6, 1.6)],
+    Room.Type.EVENT: [preload("res://event_icon_v9.png"), Vector2.ONE],
 }
 
 @onready var sprite_2d: Sprite2D = $Visuals/Sprite2D
-@onready var line_2d: Line2D = $Visuals/Line2D
+@onready var line_2d: Line2D = $Line2D
 @onready var animation_player: AnimationPlayer = $AnimationPlayer
 
 var available := false : set = set_available
@@ -26,7 +26,8 @@ func _ready() -> void:
     test_room.type = Room.Type.MONSTER
     test_room.position = Vector2(500, 500)
     room = test_room
-    
+    _make_circle(55.0)
+    line_2d.visible = false 
 
 
 func set_available(new_value: bool) -> void:
@@ -45,7 +46,9 @@ func set_room (new_data: Room) -> void:
     #sprite_2d.scale = ICONS[room.type][1]
 
 func show_selected() -> void:
-    line_2d.modulate = Color.WHITE
+    line_2d.visible = true
+    line_2d.modulate = Color("#f0c040")
+
 
 func _on_input_event(viewport: Node, event: InputEvent, shape_idx: int) -> void:
     if not available or not event.is_action_pressed("left_mouse"):
@@ -57,8 +60,15 @@ func _on_input_event(viewport: Node, event: InputEvent, shape_idx: int) -> void:
     print("selected")    
     room.selected = true
     animation_player.play("select")
-    
+    line_2d.visible = true
+    line_2d.modulate = Color("#f0c040")
 
 
 func _on_map_room_selected() -> void:
     selected.emit(room)
+
+func _make_circle(radius: float, points: int = 32) -> void:
+    line_2d.clear_points()
+    for i in range(points + 1):
+        var angle := (float(i) / points) * TAU
+        line_2d.add_point(Vector2(cos(angle), sin(angle)) * radius)

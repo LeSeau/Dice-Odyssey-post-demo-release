@@ -120,7 +120,7 @@ func _on_relics_activated(type: Relic.Type) -> void:
         Relic.Type.END_OF_COMBAT:
             Global.blue_dice_bonus_amount = 0                
             Global.is_final_boss_fight = battle_stats.resource_path.contains("leviathan")
-            Events.battle_over_screen_requested.emit("Victorious!", BattleOverPanel.Type.WIN)
+            Events.battle_over_screen_requested.emit("Victory!", BattleOverPanel.Type.WIN)
             Events.stop_battle_music.emit()
 
 

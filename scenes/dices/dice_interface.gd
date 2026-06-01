@@ -4,7 +4,11 @@ extends Control
 signal active_dice_changed(active_dice)
 
 const TooltipScene = preload("res://scenes/ui/dice_tooltip.tscn")
-
+const DICE_TYPE_TO_NODE = {
+    "blue": "dice_1", "red": "dice_2", "evil": "dice_3",
+    "giant": "dice_4", "magma": "dice_5", "even": "dice_6",
+    "odd": "dice_7", "green": "dice_8", "mech": "dice_9"
+}
 
 @onready var control: DiceInterface = $"."
 @onready var dice_1: VBoxContainer = $DicePanel/MarginContainer/HBoxContainer/Dice1
@@ -63,9 +67,11 @@ func _ready() -> void:
     Events.charge_dice_animation.connect(_on_charge_dice_animation)
     initialize_dices()
     var different_dices_amount = Global.dice_inventory.size()
-    dice_panel.custom_minimum_size.x = (different_dices_amount * 50)+100
+    dice_panel.custom_minimum_size.x = (different_dices_amount * 65) + 20
     Events.temporary_dice_added.connect(_on_temporary_dice_added)
-   
+    Events.active_dice_changed.connect(update_selected_highlight)
+    await get_tree().process_frame
+    update_selected_highlight(Global.dice_type)
 
 
 
@@ -417,3 +423,14 @@ func _on_dice_9_mouse_entered() -> void:
     _show_tooltip(dice_9, "mech")
 func _on_dice_9_mouse_exited() -> void:
     _hide_tooltip()
+
+
+func update_selected_highlight(selected_type: String) -> void:
+    for dice_type in DICE_TYPE_TO_NODE:
+        var node = get(DICE_TYPE_TO_NODE[dice_type])
+        if dice_type == selected_type:
+            node.modulate = Color(1.3, 1.3, 1.3, 1.0)
+            node.scale = Vector2(1.1, 1.1)
+        else:
+            node.modulate = Color(0.6, 0.6, 0.6, 1.0)
+            node.scale = Vector2(1.0, 1.0)

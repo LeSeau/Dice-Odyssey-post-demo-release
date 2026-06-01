@@ -27,11 +27,14 @@ const SHOP_SCENE := preload ("res://scenes/shop/card_shop.tscn")
 @onready var map: Map = $Map
 @onready var dice_shop: TextureButton = $TopBar/BarItems/DiceShop
 @onready var audio_player: AudioStreamPlayer2D = $AudioPlayer
-@onready var blue_dice: HBoxContainer = $TopBar/BarItems/DiceTopBar/BlueDice
-@onready var red_dice: HBoxContainer = $TopBar/BarItems/DiceTopBar/RedDice
-@onready var blue_dice_amount: RichTextLabel = $TopBar/BarItems/DiceTopBar/BlueDice/BlueDiceAmount
-@onready var red_dice_amount: RichTextLabel = $TopBar/BarItems/DiceTopBar/RedDice/RedDiceAmount
-@onready var dice_top_bar: GridContainer = $TopBar/BarItems/DiceTopBar
+@onready var blue_dice: VBoxContainer = $TopBar/BarItems/DiceTopBar/BlueDice
+@onready var red_dice: VBoxContainer = $TopBar/BarItems/DiceTopBar/RedDice
+@onready var blue_dice_texture: TextureRect = $TopBar/BarItems/DiceTopBar/BlueDice/BlueDiceTexture
+@onready var blue_dice_amount: Label = $TopBar/BarItems/DiceTopBar/BlueDice/BlueDiceAmount
+@onready var red_dice_amount: Label = $TopBar/BarItems/DiceTopBar/RedDice/RedDiceAmount
+
+@onready var dice_top_bar: HBoxContainer = $TopBar/BarItems/DiceTopBar
+
 @onready var map_music: AudioStreamPlayer2D = $MapMusic
 
 @onready var affordable_indicator: Label = $TopBar/BarItems/DiceShop/AffordableIndicator
@@ -132,8 +135,8 @@ func _on_update_dice_top_bar() -> void:
     print("updating dice top bar")
     
     # Always update blue and red dice (starting dice)
-    blue_dice_amount.text = str(Global.blue_dice_max_amount)
-    red_dice_amount.text = str(Global.red_dice_max_amount)
+    blue_dice_amount.text = "x" + str(Global.blue_dice_max_amount)
+    red_dice_amount.text = "x" + str(Global.red_dice_max_amount)
     
     # Check if we need to add any new dice types
     var dice_types = ["evil", "giant", "magma", "even", "odd", "green", "mech"]
@@ -170,7 +173,7 @@ func _on_update_dice_top_bar() -> void:
             # Update the amount
             var dice_display = dice_displays[dice_type]
             var amount_label = dice_display.get_node(dice_type.capitalize() + "DiceAmount")
-            amount_label.text = str(max_amount)
+            amount_label.text = "x" + str(max_amount)
     
 
 func _start_run() -> void:
@@ -364,6 +367,7 @@ func _on_battle_won() -> void:
     print("battle won!")
     Global.cards_played_this_turn = 0
     Global.next_roll_modifier = 0
+    Global.dice_type = "blue"
     var reward_scene := _change_view(BATTLE_REWARD_SCENE) as BattleReward
     reward_scene.run_stats = stats           
     reward_scene.character_stats = character 

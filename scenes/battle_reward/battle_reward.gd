@@ -5,9 +5,9 @@ extends Control
 
 const CARD_REWARDS = preload("res://scenes/ui/card_rewards.tscn")
 const REWARD_BUTTON = preload("res://scenes/ui/reward_button.tscn")
-const GOLD_ICON := preload("res://coin_gold_icon_v2.png")
+const GOLD_ICON := preload("res://gold_icon_v2.png")
 const GOLD_TEXT := "%s gold"
-const CARD_ICON := preload("res://assets/images/drawpile.jpg")
+const CARD_ICON := preload("res://card_cover_ok.png")
 const CARD_TEXT := "Add New Card"
 
 var relic_tooltip_instance: CanvasLayer
@@ -53,6 +53,7 @@ func _ready() -> void:
 
 func add_gold_reward(amount: int) -> void:
     var gold_reward := REWARD_BUTTON.instantiate() as RewardButton
+    gold_reward.custom_minimum_size.y = 70
     gold_reward.reward_icon = GOLD_ICON
     gold_reward.reward_text = GOLD_TEXT % amount
     gold_reward.pressed.connect(on_gold_reward_taken.bind(amount))  
@@ -60,6 +61,7 @@ func add_gold_reward(amount: int) -> void:
 
 func add_card_reward() -> void:
     var card_reward := REWARD_BUTTON.instantiate() as RewardButton
+    card_reward.custom_minimum_size.y = 70
     card_reward.reward_icon = CARD_ICON
     card_reward.reward_text = CARD_TEXT
     card_reward.pressed.connect(_show_card_rewards)

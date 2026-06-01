@@ -213,19 +213,19 @@ grow_horizontal = 2
 grow_vertical = 0
 theme_override_fonts/font = ExtResource("5_kq4aa")
 theme_override_font_sizes/font_size = 16
-text = "A nice addition!"
+text = "Got it"
 
-[node name="BonusExplanationBox2" type="Panel" parent="."]
+[node name="BonusExplanationBox2" type="Panel" parent="VBoxContainer/CanvasLayer"]
 visible = false
-layout_mode = 0
-offset_left = 642.0
-offset_top = 88.6667
-offset_right = 837.0
-offset_bottom = 406.667
+custom_minimum_size = Vector2(275, 134)
+offset_left = 965.0
+offset_top = 134.0
+offset_right = 1240.0
+offset_bottom = 588.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_ejl2v")
 
-[node name="RichTextLabel2" type="RichTextLabel" parent="BonusExplanationBox2"]
+[node name="RichTextLabel2" type="RichTextLabel" parent="VBoxContainer/CanvasLayer/BonusExplanationBox2"]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
@@ -235,33 +235,33 @@ offset_right = -4.0
 offset_bottom = 145.667
 grow_horizontal = 2
 theme_override_fonts/normal_font = ExtResource("5_kq4aa")
-theme_override_font_sizes/normal_font_size = 12
+theme_override_font_sizes/normal_font_size = 14
 bbcode_enabled = true
 text = "[center]Some [color=purple]Cards[/color] are [color=blue]Transcendent.[/color]
 
 Unlike other [color=purple]Cards[/color], they require no [color=red]Power[/color] to be played and do not reset it after being played.
 
-"
+This means you can play them without rolling any Dice before."
 fit_content = true
 
-[node name="TextureRect" type="TextureRect" parent="BonusExplanationBox2"]
+[node name="TextureRect" type="TextureRect" parent="VBoxContainer/CanvasLayer/BonusExplanationBox2"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -47.5
-offset_top = -59.1666
-offset_right = 47.5
-offset_bottom = 105.833
+offset_left = -67.5
+offset_top = -65.0
+offset_right = 59.5
+offset_bottom = 142.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 texture = ExtResource("9_34xb1")
 expand_mode = 1
 
-[node name="Button2" type="Button" parent="BonusExplanationBox2"]
+[node name="Button2" type="Button" parent="VBoxContainer/CanvasLayer/BonusExplanationBox2"]
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
@@ -275,7 +275,7 @@ grow_horizontal = 2
 grow_vertical = 0
 theme_override_fonts/font = ExtResource("5_kq4aa")
 theme_override_font_sizes/font_size = 16
-text = "Interesting!"
+text = "Got it"
 
 [connection signal="pressed" from="VBoxContainer/CanvasLayer/BonusExplanationBox/Button" to="." method="_on_button_pressed"]
-[connection signal="pressed" from="BonusExplanationBox2/Button2" to="." method="_on_button_2_pressed"]
+[connection signal="pressed" from="VBoxContainer/CanvasLayer/BonusExplanationBox2/Button2" to="." method="_on_button_2_pressed"]

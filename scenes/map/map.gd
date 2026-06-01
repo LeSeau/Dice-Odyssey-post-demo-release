@@ -154,8 +154,9 @@ func _connect_lines(room: Room) -> void:
 
         new_map_line.add_point(room.position)
         new_map_line.add_point(next.position)
-
         lines.add_child(new_map_line)
+        new_map_line.default_color = Color("#8B5E1A")
+        new_map_line.width = 30.0
 
 
 # =========================================================

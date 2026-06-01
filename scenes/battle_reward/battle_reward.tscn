@@ -1,13 +1,14 @@
-[gd_scene load_steps=22 format=3 uid="uid://c8jey0cxdu81o"]
+[gd_scene load_steps=23 format=3 uid="uid://c8jey0cxdu81o"]
 
 [ext_resource type="Script" path="res://scenes/battle_reward/battle_reward.gd" id="1_a043u"]
 [ext_resource type="Theme" uid="uid://c8cqncsqlplyu" path="res://main_theme.tres" id="1_q6qpk"]
 [ext_resource type="Texture2D" uid="uid://b6n22vtc7dr20" path="res://assets/backgrounds/20-2.jpg" id="2_deyfh"]
 [ext_resource type="FontFile" uid="uid://b1es4i7nr43mv" path="res://fonts/CinzelDecorative-Bold.otf" id="3_otbk4"]
 [ext_resource type="PackedScene" uid="uid://cx5xkggna3b7" path="res://scenes/ui/reward_button.tscn" id="4_64d8x"]
+[ext_resource type="StyleBox" uid="uid://dx1bqkh30y5r0" path="res://scenes/card_ui/card_pressed_stylebox.tres" id="5_l2flf"]
 [ext_resource type="Texture2D" uid="uid://dkru2p65j706x" path="res://assets/images/gold.png" id="5_y3r08"]
-[ext_resource type="Texture2D" uid="uid://gmmxmk13p3b6" path="res://assets/images/drawpile.jpg" id="6_bbdnc"]
 [ext_resource type="AudioStream" uid="uid://bu8uvjhi41uik" path="res://success.mp3" id="7_62kpv"]
+[ext_resource type="Texture2D" uid="uid://dsoxpivfgbykx" path="res://card_cover_icon.png" id="8_hqcvj"]
 [ext_resource type="Texture2D" uid="uid://b8ieeidou3ip7" path="res://stupid_adventurer.png" id="8_l0o1a"]
 [ext_resource type="FontFile" uid="uid://bfgwr7o37ol1j" path="res://Noto_Sans/static/NotoSans-Regular.ttf" id="9_4s5dy"]
 [ext_resource type="Texture2D" uid="uid://dq5o7hv31n0h7" path="res://gg.png" id="9_7bn3q"]
@@ -16,7 +17,12 @@
 
 [sub_resource type="LabelSettings" id="LabelSettings_l7wgc"]
 font = ExtResource("3_otbk4")
-font_size = 30
+font_size = 32
+font_color = Color(0.933333, 0.709804, 0.164706, 1)
+outline_size = 3
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 3
+shadow_offset = Vector2(2, 2)
 
 [sub_resource type="Theme" id="Theme_chlki"]
 
@@ -120,6 +126,7 @@ label_settings = SubResource("LabelSettings_l7wgc")
 [node name="RewardContainer" type="PanelContainer" parent="VBoxContainer"]
 custom_minimum_size = Vector2(550, 300)
 layout_mode = 2
+theme_override_styles/panel = ExtResource("5_l2flf")
 
 [node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/RewardContainer"]
 layout_mode = 2
@@ -141,7 +148,7 @@ reward_text = "127"
 
 [node name="CardRewardButton2" parent="VBoxContainer/RewardContainer/MarginContainer/Rewards" instance=ExtResource("4_64d8x")]
 layout_mode = 2
-reward_icon = ExtResource("6_bbdnc")
+reward_icon = ExtResource("8_hqcvj")
 reward_text = "Add New Card"
 
 [node name="BackButton" type="Button" parent="VBoxContainer"]

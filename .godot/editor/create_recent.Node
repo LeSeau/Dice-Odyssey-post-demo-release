@@ -1,3 +1,9 @@
+TextureRect
+ColorRect
+HBoxContainer
+VSeparator
+Label
+VBoxContainer
 Sprite2D
 CheckButton
 CheckBox
@@ -5,11 +11,4 @@ Button
 AnimationPlayer
 TextureButton
 Control
-TextureRect
 Node2D
-RichTextLabel
-HBoxContainer
-CenterContainer
-VBoxContainer
-Camera2D
-Label

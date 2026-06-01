@@ -4,13 +4,17 @@
 [ext_resource type="PackedScene" uid="uid://djrenoyp58mtl" path="res://scenes/relic_handler/relic_ui.tscn" id="2_2saq4"]
 
 [node name="ShopRelic" type="VBoxContainer"]
-custom_minimum_size = Vector2(80, 261)
-offset_right = 80.0
-offset_bottom = 261.0
+custom_minimum_size = Vector2(80, 140)
+offset_right = 100.0
+offset_bottom = 140.0
+scale = Vector2(2, 2)
+alignment = 1
 script = ExtResource("1_wqxco")
 
 [node name="RelicContainer" type="CenterContainer" parent="."]
+custom_minimum_size = Vector2(56, 56)
 layout_mode = 2
+size_flags_vertical = 4
 
 [node name="RelicUI" parent="RelicContainer" instance=ExtResource("2_2saq4")]
 layout_mode = 2

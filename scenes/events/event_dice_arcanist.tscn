@@ -15,10 +15,14 @@ fill_to = Vector2(0, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_oau2j"]
 bg_color = Color(0, 0, 0, 1)
+border_color = Color(0.8, 0.8, 0.8, 0)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.588235)
+shadow_size = 20
+shadow_offset = Vector2(0, 4)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sbp1t"]
 bg_color = Color(0.63264, 0.534451, 0.857609, 1)

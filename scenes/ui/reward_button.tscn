@@ -1,7 +1,9 @@
-[gd_scene load_steps=6 format=3 uid="uid://cx5xkggna3b7"]
+[gd_scene load_steps=7 format=3 uid="uid://cx5xkggna3b7"]
 
 [ext_resource type="Script" path="res://scenes/ui/reward_button.gd" id="1_vy02q"]
 [ext_resource type="Texture2D" uid="uid://clibtud31k586" path="res://coin_gold_icon_v2.png" id="2_vqh4b"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_u4jpg"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_c56ci"]
 content_margin_left = 0.0
@@ -21,6 +23,7 @@ Panel/styles/panel = SubResource("StyleBoxFlat_c56ci")
 [sub_resource type="Theme" id="Theme_87rbf"]
 
 [node name="RewardButton" type="Button"]
+material = SubResource("ShaderMaterial_u4jpg")
 custom_minimum_size = Vector2(0, 70)
 offset_right = 375.0
 offset_bottom = 70.0
@@ -43,15 +46,15 @@ theme_override_constants/margin_bottom = 10
 layout_mode = 2
 size_flags_vertical = 4
 theme = SubResource("Theme_87rbf")
-theme_override_constants/separation = 2
+theme_override_constants/separation = 10
 
 [node name="CustomIcon" type="TextureRect" parent="MarginContainer/HBoxContainer"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(50, 50)
+custom_minimum_size = Vector2(60, 60)
 layout_mode = 2
 texture = ExtResource("2_vqh4b")
 expand_mode = 1
-stretch_mode = 6
+stretch_mode = 5
 
 [node name="CustomText" type="Label" parent="MarginContainer/HBoxContainer"]
 unique_name_in_owner = true

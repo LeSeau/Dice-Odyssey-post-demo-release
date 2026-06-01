@@ -8,19 +8,28 @@
 [ext_resource type="Texture2D" uid="uid://bnrcwics06wiy" path="res://normal_fight_icon_v2.png" id="6_fwmwk"]
 [ext_resource type="FontFile" uid="uid://bm3deysyi2y55" path="res://Belwe Bold/Belwe Bold.otf" id="7_0tp22"]
 [ext_resource type="Texture2D" uid="uid://dk5mwssfa4snd" path="res://elite_fight_icon_v2.png" id="8_ft5nu"]
-[ext_resource type="Texture2D" uid="uid://dultdsfjqpq6p" path="res://events_icon_map.png" id="9_6yelc"]
+[ext_resource type="Texture2D" uid="uid://dfr8frhmlno8r" path="res://event_icon_v9.png" id="9_dtsx0"]
 [ext_resource type="Texture2D" uid="uid://8t5hsrgvdtxg" path="res://treasurenobg.png" id="10_cfghj"]
 [ext_resource type="Texture2D" uid="uid://ds5q0r5yw8u82" path="res://shop_icon_nano3.png" id="10_xuouu"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ifwcs"]
-bg_color = Color(0.246036, 0.403102, 0.363782, 1)
-border_width_left = 4
-border_width_top = 4
-border_width_right = 4
-border_width_bottom = 2
-border_color = Color(0, 0, 0, 1)
-shadow_color = Color(0, 0, 0, 1)
-shadow_size = 2
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7evpp"]
+content_margin_left = 16.0
+content_margin_top = 10.0
+content_margin_right = 16.0
+content_margin_bottom = 10.0
+bg_color = Color(0.144787, 0.273985, 0.277578, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.227451, 0.541176, 0.431373, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0.0156863, 0.121569, 0.0901961, 0.815686)
+shadow_size = 4
+shadow_offset = Vector2(0, 4)
 
 [node name="Map" type="Node2D"]
 script = ExtResource("1_bw6fj")
@@ -77,7 +86,7 @@ offset_right = -4.0
 offset_bottom = -2.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_ifwcs")
+theme_override_styles/panel = SubResource("StyleBoxFlat_7evpp")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MapLegend/Control/Panel"]
 layout_mode = 1
@@ -133,7 +142,7 @@ layout_mode = 2
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
 size_flags_vertical = 3
-texture = ExtResource("9_6yelc")
+texture = ExtResource("9_dtsx0")
 expand_mode = 1
 stretch_mode = 5
 

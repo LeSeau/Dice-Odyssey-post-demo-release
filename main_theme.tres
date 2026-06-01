@@ -1,7 +1,8 @@
 [gd_resource type="Theme" load_steps=7 format=3 uid="uid://c8cqncsqlplyu"]
 
 [ext_resource type="StyleBox" uid="uid://cxceq06ivjxlg" path="res://scenes/card_ui/card_base_stylebox.tres" id="1_cof14"]
-[ext_resource type="StyleBox" uid="uid://15046auw6h2r" path="res://scenes/card_ui/card_hover_stylebox.tres" id="1_lro6f"]
+[ext_resource type="StyleBox" uid="uid://cvwok1abmdx8a" path="res://scenes/card_ui/card_hover_stylebox_v2.tres" id="1_fsn3q"]
+[ext_resource type="StyleBox" uid="uid://dx1bqkh30y5r0" path="res://scenes/card_ui/card_pressed_stylebox.tres" id="3_ni3hi"]
 [ext_resource type="FontFile" uid="uid://b1es4i7nr43mv" path="res://fonts/CinzelDecorative-Bold.otf" id="3_qa563"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_r8u4k"]
@@ -14,25 +15,13 @@ border_color = Color(0.701961, 0.701961, 0.701961, 1)
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dmy1r"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6ipyv"]
-bg_color = Color(0.145098, 0.27451, 0.278431, 1)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 3
-border_color = Color(1, 1, 0.227451, 1)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
-
 [resource]
 default_font = ExtResource("3_qa563")
 default_font_size = 26
 Button/styles/disabled = SubResource("StyleBoxFlat_r8u4k")
 Button/styles/focus = SubResource("StyleBoxEmpty_dmy1r")
-Button/styles/hover = ExtResource("1_lro6f")
+Button/styles/hover = ExtResource("1_fsn3q")
 Button/styles/normal = ExtResource("1_cof14")
-Button/styles/pressed = SubResource("StyleBoxFlat_6ipyv")
+Button/styles/pressed = ExtResource("3_ni3hi")
 Panel/styles/panel = null
-PanelContainer/styles/panel = ExtResource("1_cof14")
+PanelContainer/styles/panel = ExtResource("1_fsn3q")

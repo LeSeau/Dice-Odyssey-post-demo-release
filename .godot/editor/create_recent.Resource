@@ -1,6 +1,6 @@
+Shader
 RelicPool
 Card
-Shader
 Relic
 Resource
 EventStats

@@ -19,10 +19,14 @@ border_width_left = 10
 border_width_top = 10
 border_width_right = 10
 border_width_bottom = 10
+border_color = Color(0.8, 0.6, 0.2, 1)
 corner_radius_top_left = 50
 corner_radius_top_right = 50
 corner_radius_bottom_right = 50
 corner_radius_bottom_left = 50
+shadow_color = Color(0, 0, 0, 0.4)
+shadow_size = 8
+shadow_offset = Vector2(0, 4)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fty16"]
 bg_color = Color(0, 0.143815, 0, 1)
@@ -76,6 +80,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(1, 1, 0.227451, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 40
 text = "Dice shop"
 horizontal_alignment = 1
@@ -94,7 +99,7 @@ offset_right = 500.0
 offset_bottom = 279.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 50
+theme_override_constants/separation = 30
 alignment = 1
 
 [node name="Dice1" type="VBoxContainer" parent="MarginContainer/Panel/HBoxContainer"]
@@ -596,6 +601,7 @@ offset_right = 40.0
 offset_bottom = 40.0
 
 [node name="ExitShopButton" type="Button" parent="MarginContainer/Panel"]
+z_index = 100
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0

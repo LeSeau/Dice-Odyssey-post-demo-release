@@ -4,7 +4,7 @@ var testing_mode: bool = false
 var tutorial_on = false
 var tutorial_reset_power_warning = true
 
-var gold = 7575
+var gold = 999
 var player_hp = 66
 var player_max_hp = 66
 
@@ -12,7 +12,7 @@ var player_max_hp = 66
 var roll_value: int = 0  # Stores the latest dice roll result
 var last_roll: int = 0
 var blue_dice_current_amount = 2
-var blue_dice_max_amount = 22
+var blue_dice_max_amount = 2
 var blue_dice_bonus_amount = 0
 var blue_dice_bonus_amount_fight = 0
 var red_dice_current_amount = 1
