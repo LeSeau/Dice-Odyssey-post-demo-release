@@ -21,7 +21,11 @@ func enter() -> void:
         # Position card centered on mouse
         card_ui.global_position = mouse_pos - (card_ui.size / 2)
     
-    card_ui.panel.set("theme_override_styles/panel", card_ui.DRAG_STYLEBOX)
+    if card_ui.card.can_play_without_dice:
+        card_ui.panel.set("theme_override_styles/panel", card_ui.DRAG_CELESTIAL_STYLEBOX)
+        card_ui.card_frame.add_theme_stylebox_override("panel", card_ui.SUPPORT_STYLEBOX)
+    else:
+        card_ui.panel.set("theme_override_styles/panel", card_ui.DRAG_STYLEBOX)
     Events.card_drag_started.emit(card_ui)
     
     minimum_drag_time_elapsed = false

@@ -15,9 +15,9 @@ dest_files=["res://.godot/imported/repel.png-6094190f6c85bdc91636b01f49adba49.ct
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
-compress/lossy_quality=0.7
+compress/lossy_quality=0.5
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0

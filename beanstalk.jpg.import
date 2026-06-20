@@ -17,7 +17,7 @@ dest_files=["res://.godot/imported/beanstalk.jpg-8aa1cc848daa25a787c2fdf1f89423d
 
 compress/mode=1
 compress/high_quality=false
-compress/lossy_quality=0.7
+compress/lossy_quality=0.5
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0

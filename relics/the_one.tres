@@ -13,3 +13,4 @@ counter = 0
 starter_relic = false
 icon = ExtResource("1_o7n62")
 tooltip = "The first time you roll a 1 each fight, Charge 1"
+tags = "Charge"

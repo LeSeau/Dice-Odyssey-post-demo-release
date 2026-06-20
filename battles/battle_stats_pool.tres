@@ -22,7 +22,7 @@
 [ext_resource type="Resource" uid="uid://bwpgt7y8oxb7m" path="res://battles/tier_elite_dragonpriest.tres" id="24_mpiti"]
 [ext_resource type="Resource" uid="uid://djisx67h35yw2" path="res://battles/tier_2_vortex.tres" id="24_t4syr"]
 [ext_resource type="Resource" uid="uid://cam4b221dgqno" path="res://battles/tier_1_sigil_slug.tres" id="25_772uc"]
-[ext_resource type="Resource" uid="uid://etn4srq362uh" path="res://battles/tier_1_oculus_machopeur.tres" id="25_w6lpa"]
+[ext_resource type="Resource" uid="uid://etn4srq362uh" path="res://battles/tier_1_oculus_goblin.tres" id="25_w6lpa"]
 [ext_resource type="Resource" uid="uid://cggwv0oy81tfh" path="res://battles/tier_1_lurker.tres" id="26_8avrr"]
 [ext_resource type="Resource" uid="uid://dgxkwvhn1v5mb" path="res://battles/tier_2_medusa.tres" id="26_ns73c"]
 [ext_resource type="Resource" uid="uid://bbmd6r6ye56c7" path="res://battles/tier_1_plant_goblin.tres" id="26_xl02g"]

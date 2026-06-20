@@ -11,11 +11,10 @@ position = Vector2(760, 371)
 stats = ExtResource("3_fmr0d")
 sprite_y_offset = 20
 
-[node name="Satyr1" parent="." instance=ExtResource("1_ppjke")]
+[node name="B Satyr" parent="." instance=ExtResource("1_ppjke")]
 position = Vector2(992, 450)
 scale = Vector2(0.75, 0.75)
 stats = ExtResource("2_uspug")
-width = 290
-height = 290
-sprite_y_offset = 10
+width = 310
+height = 310
 intent_ui_y_offset = 10

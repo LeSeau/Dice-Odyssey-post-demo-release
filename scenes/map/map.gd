@@ -185,10 +185,7 @@ func unlock_next_rooms() -> void:
 # =========================================================
 # SHOW / HIDE
 # =========================================================
-var saved_camera_y: float = 0.0
-
 func hide_map() -> void:
-    saved_camera_y = camera_2d.position.y   # save before anything
     hide()
     map_legend.hide()
     camera_2d.enabled = false
@@ -197,7 +194,12 @@ func show_map() -> void:
     show()
     map_legend.show()
     camera_2d.enabled = true
-    camera_2d.position.y = saved_camera_y   # restore after re-enabling
+    _focus_camera_on_current_floor()
+
+func _focus_camera_on_current_floor() -> void:
+    var target_y := -floors_climbed * MapGenerator.Y_DIST
+    target_y = clamp(target_y, -camera_edge_y, 0)
+    camera_2d.position.y = target_y
     
 
 

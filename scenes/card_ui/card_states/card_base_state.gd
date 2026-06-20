@@ -29,12 +29,17 @@ func on_mouse_entered() -> void:
         #return
 
     card_ui.panel.set("theme_override_styles/panel", card_ui.HOVER_STYLEBOX)
+    if card_ui.card.can_play_without_dice:
+        card_ui.panel.set("theme_override_styles/panel", card_ui.HOVER_CELESTIAL_STYLEBOX)
+        card_ui.card_frame.add_theme_stylebox_override("panel", card_ui.SUPPORT_STYLEBOX)
     #Events.card_tooltip_requested.emit(card_ui.card.icon, card_ui.card.tooltip_text)
 
 
 func on_mouse_exited() -> void:
     if not card_ui.playable or card_ui.disabled:
         return
-
-    card_ui.panel.set("theme_override_styles/panel", card_ui.BASE_STYLEBOX)
-    #Events.tooltip_hide_requested.emit()
+    if card_ui.card.can_play_without_dice:
+        card_ui.panel.set("theme_override_styles/panel", card_ui.BASE_CELESTIAL_STYLEBOX)
+        card_ui.card_frame.add_theme_stylebox_override("panel", card_ui.SUPPORT_STYLEBOX)
+    else:
+        card_ui.panel.set("theme_override_styles/panel", card_ui.BASE_STYLEBOX)

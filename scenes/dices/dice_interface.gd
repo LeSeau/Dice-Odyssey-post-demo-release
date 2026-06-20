@@ -265,6 +265,7 @@ func _on_player_turn_started() -> void:
     Global.odd_dice_bonus_amount = 0
     Global.mech_dice_bonus_amount = 0
     Global.charged_dice_this_turn = false
+    initialize_dices()
    
 func _on_dice_amount_changed():
     dice_1_label.text = str(Global.blue_dice_current_amount, "/", Global.blue_dice_max_amount)
@@ -358,6 +359,7 @@ func _on_resize_dice_interface():
 
 func _on_charge_dice_animation():
     animation_player.play("charge")  # Play the 'charge' animation  
+    initialize_dices()
 
 func _on_temporary_dice_added(dice_type: String):
     print("adding dice")

@@ -1,4 +1,4 @@
-[gd_scene load_steps=30 format=3 uid="uid://b60egpxyditoc"]
+[gd_scene load_steps=29 format=3 uid="uid://b60egpxyditoc"]
 
 [ext_resource type="Material" uid="uid://bcdb8cbop4w8o" path="res://scenes/dices/blue_dice_shader.tres" id="1_n3kmb"]
 [ext_resource type="Script" path="res://scenes/card_ui/card_ui.gd" id="2_uam7p"]
@@ -15,11 +15,14 @@
 [ext_resource type="Texture2D" uid="uid://sxiw6df36trq" path="res://assets/images/blue6.png" id="7_45tt3"]
 [ext_resource type="Script" path="res://scenes/card_ui/card_states/card_released_state.gd" id="7_k7cbr"]
 [ext_resource type="Script" path="res://scenes/card_ui/card_states/card_aiming_state.gd" id="8_ew01p"]
-[ext_resource type="StyleBox" uid="uid://bp11k7kqceuxa" path="res://scenes/card_ui/description_panel.tres" id="8_kiuki"]
 [ext_resource type="StyleBox" uid="uid://bxyflqo45i4i4" path="res://scenes/card_ui/card_requirement_multiple.tres" id="8_ys1jj"]
-[ext_resource type="FontFile" uid="uid://c4mfyi0ta8qeq" path="res://fonts/MinionPro-Semibold.otf" id="9_dligw"]
-[ext_resource type="StyleBox" uid="uid://cjfl6c345al3o" path="res://scenes/card_ui/card_requirement_even.tres" id="11_mvbpu"]
+[ext_resource type="LabelSettings" uid="uid://begfebqtrbbkl" path="res://scenes/card_ui/card_ui_requirement_ribbon.tres" id="11_7624y"]
+[ext_resource type="LabelSettings" uid="uid://bl0evkb1ud5ic" path="res://scenes/card_ui/card_description_label.tres" id="12_bhbcy"]
 [ext_resource type="Texture2D" uid="uid://bx326akbkj0gi" path="res://charge_dice_icon.png" id="12_ngjpn"]
+[ext_resource type="StyleBox" uid="uid://duq08xoimq50p" path="res://scenes/card_ui/card_ui_description_panel.tres" id="13_2hj1e"]
+[ext_resource type="StyleBox" uid="uid://48tau48u3kqx" path="res://scenes/card_ui/card_bonus_requirement_exact.tres" id="13_ihvil"]
+[ext_resource type="LabelSettings" uid="uid://bhrpkq50bp811" path="res://scenes/card_ui/card_ui_bonus_requirement_label.tres" id="14_kqhhb"]
+[ext_resource type="LabelSettings" uid="uid://cu35utjlrjheh" path="res://scenes/card_ui/card_ui_bonus_effect_label.tres" id="16_oujah"]
 
 [sub_resource type="Theme" id="Theme_pln6u"]
 
@@ -27,42 +30,23 @@
 
 [sub_resource type="Theme" id="Theme_r5rwi"]
 
-[sub_resource type="Theme" id="Theme_87anf"]
-
-[sub_resource type="Theme" id="Theme_4faku"]
-
-[sub_resource type="LabelSettings" id="LabelSettings_4nyx2"]
-line_spacing = -1.0
-font = ExtResource("9_dligw")
-font_size = 12
-outline_size = 4
-outline_color = Color(0, 0, 0, 1)
-shadow_color = Color(0, 0, 0, 1)
-
 [sub_resource type="Theme" id="Theme_j3xpc"]
-
-[sub_resource type="LabelSettings" id="LabelSettings_boihb"]
-line_spacing = -1.0
-font = ExtResource("9_dligw")
-font_size = 11
-outline_size = 3
-outline_color = Color(0, 0, 0, 1)
-shadow_color = Color(0, 0, 0, 1)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ly5x7"]
 size = Vector2(129, 249)
 
 [node name="CardUI" type="Control"]
 z_index = 7
-custom_minimum_size = Vector2(120, 180)
+texture_filter = 2
+custom_minimum_size = Vector2(140, 210)
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 3.0
-offset_top = -3.0
-offset_right = -1157.0
-offset_bottom = -543.0
+offset_left = 55.0
+offset_top = 36.0
+offset_right = -1085.0
+offset_bottom = -474.0
 grow_horizontal = 2
 grow_vertical = 2
 theme = SubResource("Theme_pln6u")
@@ -116,9 +100,9 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 theme_override_styles/panel = ExtResource("2_uqn26")
-metadata/_edit_use_anchors_ = true
 
 [node name="CardFrame" type="Panel" parent="CardBackground"]
+z_index = 8
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -127,26 +111,24 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 1
 theme_override_styles/panel = ExtResource("5_ewbr7")
-metadata/_edit_use_anchors_ = true
 
 [node name="CardBanner" type="Panel" parent="CardBackground/CardFrame"]
 z_index = 3
-custom_minimum_size = Vector2(23, 25)
+custom_minimum_size = Vector2(26, 26)
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_bottom = 25.0
 grow_horizontal = 2
 mouse_filter = 2
 theme_override_styles/panel = ExtResource("4_l3hwx")
-metadata/_edit_use_anchors_ = true
 
 [node name="Title" type="Label" parent="CardBackground/CardFrame/CardBanner"]
 z_index = 1
 layout_mode = 1
-anchors_preset = 15
+anchors_preset = -1
+anchor_top = -0.0384615
 anchor_right = 1.0
-anchor_bottom = 1.0
+anchor_bottom = 0.961538
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_font_sizes/font_size = 0
@@ -177,14 +159,10 @@ expand_mode = 1
 custom_minimum_size = Vector2(110, 80)
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.00833333
-anchor_right = 0.00833333
-offset_left = -1.0
-offset_top = 25.0
-offset_right = 119.0
-offset_bottom = 109.0
+anchor_right = 1.0
+offset_top = 26.0
+offset_bottom = 126.0
 grow_horizontal = 2
-grow_vertical = 2
 mouse_filter = 2
 theme = SubResource("Theme_fesrv")
 theme_override_styles/panel = ExtResource("6_sxdlv")
@@ -193,15 +171,9 @@ theme_override_styles/panel = ExtResource("6_sxdlv")
 texture_filter = 4
 custom_minimum_size = Vector2(102, 75)
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -57.0
-offset_top = -40.0
-offset_right = 57.0
-offset_bottom = 40.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
@@ -211,70 +183,69 @@ expand_mode = 1
 
 [node name="RequirementPanel" type="Panel" parent="CardBackground/CardFrame"]
 z_index = 2
-custom_minimum_size = Vector2(65, 12)
+custom_minimum_size = Vector2(65, 18)
 layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -32.5
-offset_top = -67.0
-offset_right = 32.5
-offset_bottom = -53.0
+anchors_preset = -1
+anchor_right = 1.0
+offset_top = 126.0
+offset_bottom = 144.0
 grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 2
 theme_override_styles/panel = ExtResource("8_ys1jj")
 
-[node name="RequirementLabel" type="RichTextLabel" parent="CardBackground/CardFrame/RequirementPanel"]
-custom_minimum_size = Vector2(0, 30)
+[node name="RequirementLabel" type="Label" parent="CardBackground/CardFrame/RequirementPanel"]
+custom_minimum_size = Vector2(0, 9)
 layout_mode = 1
-anchors_preset = 14
-anchor_top = 0.5
+anchors_preset = 15
 anchor_right = 1.0
-anchor_bottom = 0.5
-offset_top = -8.0
-offset_bottom = 22.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
-theme_override_font_sizes/normal_font_size = 12
-bbcode_enabled = true
-text = "[center]Mult 5 [/center]"
-scroll_active = false
+text = "Mult 5"
+label_settings = ExtResource("11_7624y")
+horizontal_alignment = 1
+vertical_alignment = 1
+justification_flags = 162
 
 [node name="DescriptionPanel" type="Panel" parent="CardBackground/CardFrame"]
 layout_mode = 1
 anchors_preset = -1
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_top = -70.0
+anchor_top = 144.0
+anchor_bottom = 188.0
+offset_top = -30096.0
+offset_right = 140.0
+offset_bottom = -39292.0
 grow_horizontal = 2
-grow_vertical = 0
+grow_vertical = 2
 mouse_filter = 2
-theme = SubResource("Theme_87anf")
-theme_override_styles/panel = ExtResource("8_kiuki")
-metadata/_edit_use_anchors_ = true
+theme_override_styles/panel = ExtResource("13_2hj1e")
 
 [node name="Description" type="Label" parent="CardBackground/CardFrame/DescriptionPanel"]
 custom_minimum_size = Vector2(0, 45)
 layout_mode = 1
-anchors_preset = 14
-anchor_top = 0.5
+anchors_preset = 15
 anchor_right = 1.0
-anchor_bottom = 0.5
-offset_top = -7.0
-offset_bottom = 7.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme = SubResource("Theme_4faku")
 text = "Deals X damage"
-label_settings = SubResource("LabelSettings_4nyx2")
+label_settings = ExtResource("12_bhbcy")
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 2
+
+[node name="BonusSeparator" type="ColorRect" parent="CardBackground/CardFrame"]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+offset_left = 8.0
+offset_top = 188.0
+offset_right = -8.0
+offset_bottom = 189.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.752941, 0.501961, 0.0627451, 0.494118)
 
 [node name="BonusEffect" type="HBoxContainer" parent="CardBackground/CardFrame"]
 layout_mode = 1
@@ -282,37 +253,41 @@ anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 2.0
 offset_top = -18.0
-offset_right = 2.0
 offset_bottom = -2.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_constants/separation = 3
 
+[node name="Control" type="Control" parent="CardBackground/CardFrame/BonusEffect"]
+custom_minimum_size = Vector2(4, 0)
+layout_mode = 2
+
 [node name="BonusRequirementPanel" type="Panel" parent="CardBackground/CardFrame/BonusEffect"]
 z_index = 2
-custom_minimum_size = Vector2(35, 12)
+custom_minimum_size = Vector2(35, 14)
 layout_mode = 2
+size_flags_vertical = 4
 mouse_filter = 2
-theme_override_styles/panel = ExtResource("11_mvbpu")
+theme_override_styles/panel = ExtResource("13_ihvil")
 
-[node name="BonusRequirementLabel" type="RichTextLabel" parent="CardBackground/CardFrame/BonusEffect/BonusRequirementPanel"]
+[node name="BonusRequirementLabel" type="Label" parent="CardBackground/CardFrame/BonusEffect/BonusRequirementPanel"]
 custom_minimum_size = Vector2(0, 7)
 layout_mode = 1
 anchors_preset = 14
 anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
-offset_top = -5.5
-offset_bottom = 10.5
+offset_left = -169.0
+offset_top = -16.0
+offset_right = 169.0
+offset_bottom = 16.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
-theme_override_font_sizes/normal_font_size = 7
-bbcode_enabled = true
-text = "[center]Exact [/center]"
-scroll_active = false
+text = "Exact"
+label_settings = ExtResource("14_kqhhb")
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="BonusEffectTexture" type="TextureRect" parent="CardBackground/CardFrame/BonusEffect"]
 visible = false
@@ -328,7 +303,7 @@ layout_mode = 2
 size_flags_horizontal = 4
 theme = SubResource("Theme_j3xpc")
 text = "Draw 2 "
-label_settings = SubResource("LabelSettings_boihb")
+label_settings = ExtResource("16_oujah")
 vertical_alignment = 1
 autowrap_mode = 2
 

@@ -14,7 +14,7 @@ func _on_active_dice_changed(active_dice, target: Node) -> void:
         dmg_modifier_value = ModifierValue.create_new_modifier("berserk", ModifierValue.Type.PERCENT_BASED)
     
     if active_dice == "red":
-        dmg_modifier_value.percent_value = 0.5
+        dmg_modifier_value.percent_value = 1
     else:
         dmg_modifier_value.percent_value = 0.0
     

@@ -65,7 +65,7 @@ func get_tooltip_content(requirement):
     elif requirement == "Strength":
         text += "Deal X more damage on each attack."
     elif requirement == "Scout":
-        text += "See 3 possible outcomes for your next roll and choose one to guarantee"
+        text += "See X possible outcomes for your next roll and choose one to guarantee"
     elif requirement == "Boost":
         text += "Increases your Power after your next roll"
     elif requirement == "Support":

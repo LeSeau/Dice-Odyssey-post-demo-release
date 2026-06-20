@@ -15,9 +15,9 @@ dest_files=["res://.godot/imported/mech4.png-6f2a6d689e3f5112d0e47d7067a1b1e3.ct
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
-compress/lossy_quality=0.7
+compress/lossy_quality=0.5
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0

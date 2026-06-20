@@ -1,0 +1,12 @@
+[gd_resource type="LabelSettings" load_steps=2 format=3 uid="uid://bl0evkb1ud5ic"]
+
+[ext_resource type="FontFile" uid="uid://c4mfyi0ta8qeq" path="res://fonts/MinionPro-Semibold.otf" id="1_vmqsj"]
+
+[resource]
+line_spacing = -1.0
+font = ExtResource("1_vmqsj")
+font_size = 12
+font_color = Color(0.909804, 0.878431, 0.815686, 1)
+outline_size = 3
+outline_color = Color(0.22554, 1.57929e-07, 0.0404674, 1)
+shadow_color = Color(0, 0, 0, 1)

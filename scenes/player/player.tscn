@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scenes/player/player.gd" id="1_il1gs"]
 [ext_resource type="Resource" uid="uid://sbkc4o401k4l" path="res://characters/warrior/warrior.tres" id="2_vmwmn"]
 [ext_resource type="PackedScene" uid="uid://ph0oi5od64u5" path="res://scenes/ui/stats_ui.tscn" id="2_wnqqm"]
-[ext_resource type="Texture2D" uid="uid://dk4p715fuscbt" path="res://main_character_v3.png" id="2_xlx7y"]
+[ext_resource type="Texture2D" uid="uid://cll8rwtalh0iy" path="res://main_character_chibi.png" id="3_bvqsb"]
 [ext_resource type="PackedScene" uid="uid://c6qcxv2m34hwv" path="res://scenes/status_handler/status_handler.tscn" id="4_upllk"]
 [ext_resource type="PackedScene" uid="uid://cj610j1wjtrwi" path="res://scenes/modifier_handler/modifier_handler.tscn" id="5_5u0h2"]
 [ext_resource type="PackedScene" uid="uid://cntarjcc6q8hs" path="res://scenes/modifier_handler/modifier.tscn" id="6_j36u8"]
@@ -52,9 +52,8 @@ script = ExtResource("1_il1gs")
 stats = ExtResource("2_vmwmn")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-scale = Vector2(0.25, 0.25)
-texture = ExtResource("2_xlx7y")
-offset = Vector2(0, -140)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("3_bvqsb")
 
 [node name="StatsUI" parent="." instance=ExtResource("2_wnqqm")]
 offset_left = -83.0

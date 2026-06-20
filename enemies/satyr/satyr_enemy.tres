@@ -2,10 +2,10 @@
 
 [ext_resource type="PackedScene" uid="uid://b1a6a4fyfbdu4" path="res://enemies/satyr/satyr_enemy_ai.tscn" id="1_e20v7"]
 [ext_resource type="Script" path="res://custom_resources/enemy_stats.gd" id="1_frpr6"]
-[ext_resource type="Texture2D" uid="uid://cuyhmj7xt7hpd" path="res://satyr_v2.png" id="2_u4en3"]
+[ext_resource type="Texture2D" uid="uid://lkbvoaxrfsvi" path="res://satyr_jenya.png" id="2_e421f"]
 
 [resource]
 script = ExtResource("1_frpr6")
 ai = ExtResource("1_e20v7")
 max_health = 6
-art = ExtResource("2_u4en3")
+art = ExtResource("2_e421f")

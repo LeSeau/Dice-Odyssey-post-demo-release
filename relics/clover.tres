@@ -13,3 +13,4 @@ counter = 0
 starter_relic = false
 icon = ExtResource("1_f2kkd")
 tooltip = "Start each fight with Lucky 1"
+tags = "Lucky"

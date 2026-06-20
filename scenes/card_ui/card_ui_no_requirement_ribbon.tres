@@ -1,0 +1,14 @@
+[gd_resource type="LabelSettings" load_steps=3 format=3 uid="uid://cq3ebhwc482f"]
+
+[ext_resource type="FontFile" uid="uid://b2y60c4274gkj" path="res://fonts/Cinzel-Bold.otf" id="1_dklhi"]
+
+[sub_resource type="FontVariation" id="FontVariation_s2got"]
+base_font = ExtResource("1_dklhi")
+spacing_glyph = 2
+
+[resource]
+line_spacing = 0.0
+font = SubResource("FontVariation_s2got")
+font_size = 12
+font_color = Color(0.65434, 0.523183, 0, 0.796078)
+shadow_size = 0

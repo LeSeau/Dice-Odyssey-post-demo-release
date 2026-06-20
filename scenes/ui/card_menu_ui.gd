@@ -5,10 +5,11 @@ extends CenterContainer
 const TOOLTIP_OFFSET_X = 20  # Horizontal distance from card
 const TOOLTIP_HEIGHT = 108    # Approximate height of each tooltip
 const TOOLTIP_SPACING = 1     # Space between tooltips
-
-const BASE_STYLEBOX := preload("res://scenes/card_ui/card_base_stylebox.tres")
-const HOVER_STYLEBOX := preload("res://scenes/card_ui/card_hover_stylebox.tres")
-const SUPPORT_STYLEBOX := preload("res://scenes/card_ui/card_ui_support.tres")
+const BASE_STYLEBOX := preload("res://scenes/card_ui/card_ui_normal.tres")
+const BASE_CELESTIAL_STYLEBOX := preload("res://scenes/card_ui/card_ui_celestial.tres")
+const HOVER_STYLEBOX := preload("res://scenes/card_ui/card_menu_ui_hover_test.tres")
+const SUPPORT_STYLEBOX := preload("res://scenes/card_ui/card_ui_normal_celestial.tres")
+const NONE_STYLEBOX := preload("res://scenes/card_ui/card_requirement_none.tres")
 
 const MIN_STYLEBOX := preload("res://scenes/card_ui/card_requirement_min.tres")
 const MAX_STYLEBOX := preload("res://scenes/card_ui/card_requirement_max.tres")
@@ -17,6 +18,24 @@ const ODD_STYLEBOX := preload("res://scenes/card_ui/card_requirement_odd.tres")
 const RED_STYLEBOX := preload("res://scenes/card_ui/card_requirement_red.tres")
 const EXACT_STYLEBOX := preload("res://scenes/card_ui/card_requirement_exact.tres")
 const MULTIPLE_STYLEBOX := preload("res://scenes/card_ui/card_requirement_multiple.tres")
+
+const BONUS_MIN_STYLEBOX := preload("res://scenes/card_ui/card_bonus_requirement_min.tres")
+const BONUS_MAX_STYLEBOX := preload("res://scenes/card_ui/card_bonus_requirement_max.tres")
+const BONUS_EVEN_STYLEBOX := preload("res://scenes/card_ui/card_bonus_requirement_even.tres")
+const BONUS_ODD_STYLEBOX := preload("res://scenes/card_ui/card_bonus_requirement_odd.tres")
+const BONUS_RED_STYLEBOX := preload("res://scenes/card_ui/card_bonus_requirement_red.tres")
+const BONUS_EXACT_STYLEBOX := preload("res://scenes/card_ui/card_bonus_requirement_exact.tres")
+const BONUS_MULTIPLE_STYLEBOX := preload("res://scenes/card_ui/card_bonus_requirement_multiple.tres")
+
+const CELESTIAL_BANNER_STYLEBOX := preload("res://scenes/card_ui/card_banner_celestial.tres")
+const CELESTIAL_DESC_STYLEBOX := preload("res://scenes/card_ui/card_ui_description_panel_celestial.tres")
+const CELESTIAL_REQUIREMENT_NONE_STYLEBOX := preload("res://scenes/card_ui/card_requirement_none_celestial.tres")
+const CELESTIAL_ART_STYLEBOX := preload("res://scenes/card_ui/card_ui_celestial_art.tres")
+const HOVER_CELESTIAL_STYLEBOX := preload("res://scenes/card_ui/card_ui_hover_celestial.tres")
+const CELESTIAL_DESC_LABEL_SETTINGS := preload("res://scenes/card_ui/celestial_card_description_label.tres")
+
+const REQUIREMENT_LABEL_SETTINGS := preload("res://scenes/card_ui/card_ui_requirement_ribbon.tres")
+const NO_REQUIREMENT_LABEL_SETTINGS := preload("res://scenes/card_ui/card_ui_no_requirement_ribbon.tres")
 
 const TooltipScene = preload("res://scenes/ui/tooltip.tscn")
 
@@ -28,25 +47,31 @@ const TooltipScene = preload("res://scenes/ui/tooltip.tscn")
 @onready var icon: TextureRect = $Visuals/CardBackground/CardFrame/Panel/CardArt
 @onready var description: Label = $Visuals/CardBackground/CardFrame/DescriptionPanel/Description
 @onready var requirement_panel: Panel = $Visuals/CardBackground/CardFrame/RequirementPanel
-@onready var requirement_label: RichTextLabel = $Visuals/CardBackground/CardFrame/RequirementPanel/RequirementLabel
+@onready var requirement_label: Label = $Visuals/CardBackground/CardFrame/RequirementPanel/RequirementLabel
 @onready var bonus_effect: HBoxContainer = $Visuals/CardBackground/CardFrame/BonusEffect
 @onready var bonus_requirement_panel: Panel = $Visuals/CardBackground/CardFrame/BonusEffect/BonusRequirementPanel
-@onready var bonus_requirement_label: RichTextLabel = $Visuals/CardBackground/CardFrame/BonusEffect/BonusRequirementPanel/BonusRequirementLabel
+@onready var bonus_requirement_label: Label = $Visuals/CardBackground/CardFrame/BonusEffect/BonusRequirementPanel/BonusRequirementLabel
 @onready var bonus_effect_texture: TextureRect = $Visuals/CardBackground/CardFrame/BonusEffect/BonusEffectTexture
 @onready var bonus_effect_label: Label = $Visuals/CardBackground/CardFrame/BonusEffect/BonusEffectLabel
 @onready var animation_player: AnimationPlayer = $AnimationPlayer
 @onready var removal_sound_player: AudioStreamPlayer2D = $AnimationPlayer/RemovalSoundPlayer
 @onready var description_panel: Panel = $Visuals/CardBackground/CardFrame/DescriptionPanel
 @onready var card_banner: Panel = $Visuals/CardBackground/CardFrame/CardBanner
+@onready var bonus_separator: ColorRect = $Visuals/CardBackground/CardFrame/BonusSeparator
 
 
 
 func _on_visuals_mouse_entered() -> void:
-    card_frame.set("theme_override_styles/panel", HOVER_STYLEBOX)
-
+    if card and card.can_play_without_dice:
+        card_frame.set("theme_override_styles/panel", HOVER_CELESTIAL_STYLEBOX)
+    else:
+        card_frame.set("theme_override_styles/panel", HOVER_STYLEBOX)
 
 func _on_visuals_mouse_exited() -> void:
-    card_frame.set("theme_override_styles/panel", BASE_STYLEBOX)
+    if card and card.can_play_without_dice:
+        card_frame.set("theme_override_styles/panel", BASE_CELESTIAL_STYLEBOX)
+    else:
+        card_frame.set("theme_override_styles/panel", BASE_STYLEBOX)
 
 
 
@@ -57,66 +82,71 @@ func set_card(value: Card) -> void:
     icon.texture = card.icon
     title.text = card.name
     description.text = card.description
-    if card.can_play_without_dice:
-        description_panel.add_theme_stylebox_override("panel", SUPPORT_STYLEBOX)
-        card_banner.add_theme_stylebox_override("panel", SUPPORT_STYLEBOX)
+    requirement_label.label_settings = REQUIREMENT_LABEL_SETTINGS
+
     if card.requirement == Card.Requirement.NONE:
-        requirement_panel.hide()
+        requirement_panel.add_theme_stylebox_override("panel", NONE_STYLEBOX)
+        requirement_label.label_settings = NO_REQUIREMENT_LABEL_SETTINGS
+        requirement_label.text = "ANY"
     elif card.requirement == Card.Requirement.MAX:
         requirement_panel.add_theme_stylebox_override("panel", MAX_STYLEBOX)
-        requirement_label.text = "[center]Max %d[/center]" % card.requirement_number
+        requirement_label.text = "Max %d" % card.requirement_number
     elif card.requirement == Card.Requirement.EVEN:
         requirement_panel.add_theme_stylebox_override("panel", EVEN_STYLEBOX)
-        requirement_label.text = "[center]Even[/center]"
+        requirement_label.text = "Even"
     elif card.requirement == Card.Requirement.ODD:
         requirement_panel.add_theme_stylebox_override("panel", ODD_STYLEBOX)
-        requirement_label.text = "[center]Odd[/center]"
+        requirement_label.text = "Odd"
     elif card.requirement == Card.Requirement.RED:
         requirement_panel.add_theme_stylebox_override("panel", RED_STYLEBOX)
-        requirement_label.text = "[center]Red[/center]"
+        requirement_label.text = "Red"
     elif card.requirement == Card.Requirement.EXACT:
         requirement_panel.add_theme_stylebox_override("panel", EXACT_STYLEBOX)
-        requirement_label.text = "[center]Exact %d[/center]" % card.requirement_number
+        requirement_label.text = "Exact %d" % card.requirement_number
     elif card.requirement == Card.Requirement.MIN:
         requirement_panel.add_theme_stylebox_override("panel", MIN_STYLEBOX)
-        requirement_label.text = "[center]Min %d[/center]" % card.requirement_number
+        requirement_label.text = "Min %d" % card.requirement_number
     elif card.requirement == Card.Requirement.MULTIPLE:
         requirement_panel.add_theme_stylebox_override("panel", MULTIPLE_STYLEBOX)
-        requirement_label.text = "[center]Mult %d[/center]" % card.requirement_number
-        
+        requirement_label.text = "Mult %d" % card.requirement_number
+    if card.can_play_without_dice:
+        description_panel.add_theme_stylebox_override("panel", CELESTIAL_DESC_STYLEBOX)
+        card_banner.add_theme_stylebox_override("panel", CELESTIAL_BANNER_STYLEBOX)
+        card_frame.add_theme_stylebox_override("panel", SUPPORT_STYLEBOX)
+        requirement_panel.add_theme_stylebox_override("panel", CELESTIAL_REQUIREMENT_NONE_STYLEBOX)    
+        description.label_settings = CELESTIAL_DESC_LABEL_SETTINGS
     # Make sure to show the bonus_effect container if it has a requirement
     if card.bonus_requirement == Card.Requirement.NONE:
         bonus_effect.hide()
+        bonus_separator.hide()
     else:
         # Important: Show the container if there is a bonus requirement
         bonus_effect.show()
-        
+        bonus_separator.show()
+        bonus_effect_label.text = str(card.bonus_description_text)
+        bonus_effect_texture.texture = card.bonus_description_icon      
         if card.bonus_requirement == Card.Requirement.MAX:
-            bonus_requirement_panel.add_theme_stylebox_override("panel", MAX_STYLEBOX)
-            bonus_requirement_label.text = "[center]Max %d[/center]" % card.bonus_requirement_number
+            bonus_requirement_panel.add_theme_stylebox_override("panel", BONUS_MAX_STYLEBOX)
+            bonus_requirement_label.text = "Max %d" % card.bonus_requirement_number
         elif card.bonus_requirement == Card.Requirement.EVEN:
-            bonus_requirement_panel.add_theme_stylebox_override("panel", EVEN_STYLEBOX)
-            bonus_requirement_label.text = "[center]Even[/center]"
+            bonus_requirement_panel.add_theme_stylebox_override("panel", BONUS_EVEN_STYLEBOX)
+            bonus_requirement_label.text = "Even"
         elif card.bonus_requirement == Card.Requirement.ODD:
-            bonus_requirement_panel.add_theme_stylebox_override("panel", ODD_STYLEBOX)
-            bonus_requirement_label.text = "[center]Odd[/center]"
+            bonus_requirement_panel.add_theme_stylebox_override("panel", BONUS_ODD_STYLEBOX)
+            bonus_requirement_label.text = "Odd"
         elif card.bonus_requirement == Card.Requirement.RED:
-            bonus_requirement_panel.add_theme_stylebox_override("panel", RED_STYLEBOX)
-            bonus_requirement_label.text = "[center]Red[/center]"
+            bonus_requirement_panel.add_theme_stylebox_override("panel", BONUS_RED_STYLEBOX)
+            bonus_requirement_label.text = "Red"
         elif card.bonus_requirement == Card.Requirement.EXACT:
-            bonus_requirement_panel.add_theme_stylebox_override("panel", EXACT_STYLEBOX)
-            bonus_requirement_label.text = "[center]Exact %d[/center]" % card.bonus_requirement_number
+            bonus_requirement_panel.add_theme_stylebox_override("panel", BONUS_EXACT_STYLEBOX)
+            bonus_requirement_label.text = "Exact %d" % card.bonus_requirement_number
         elif card.bonus_requirement == Card.Requirement.MIN:
-            bonus_requirement_panel.add_theme_stylebox_override("panel", MIN_STYLEBOX)
-            bonus_requirement_label.text = "[center]Min %d[/center]" % card.bonus_requirement_number
+            bonus_requirement_panel.add_theme_stylebox_override("panel", BONUS_MIN_STYLEBOX)
+            bonus_requirement_label.text = "Min %d" % card.bonus_requirement_number
         elif card.bonus_requirement == Card.Requirement.MULTIPLE:
-            bonus_requirement_panel.add_theme_stylebox_override("panel", MULTIPLE_STYLEBOX)
-            bonus_requirement_label.text = "[center]Mult %d[/center]" % card.bonus_requirement_number
+            bonus_requirement_panel.add_theme_stylebox_override("panel", BONUS_MULTIPLE_STYLEBOX)
+            bonus_requirement_label.text = "Mult %d" % card.bonus_requirement_number
     
-    bonus_effect_label.text = str(card.bonus_description_text)
-    bonus_effect_texture.texture = card.bonus_description_icon
-
-
 
 func _on_card_frame_gui_input(event: InputEvent) -> void:
     if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:

@@ -1,11 +1,11 @@
 [gd_resource type="Resource" script_class="EnemyStats" load_steps=4 format=3 uid="uid://sggulmun2aob"]
 
 [ext_resource type="PackedScene" uid="uid://bwaaq3fd2vuwg" path="res://enemies/satyr/bigger_satyr_enemy_ai.tscn" id="1_qrmsf"]
-[ext_resource type="Texture2D" uid="uid://dw511acms8vn7" path="res://bigger_satyr_v2.png" id="2_vrtkb"]
+[ext_resource type="Texture2D" uid="uid://c4hkrkmc6yyir" path="res://medium_satyr_jenya.png" id="2_3b2mv"]
 [ext_resource type="Script" path="res://custom_resources/enemy_stats.gd" id="3_roelg"]
 
 [resource]
 script = ExtResource("3_roelg")
 ai = ExtResource("1_qrmsf")
 max_health = 17
-art = ExtResource("2_vrtkb")
+art = ExtResource("2_3b2mv")

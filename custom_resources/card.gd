@@ -67,6 +67,7 @@ func play(targets: Array[Node], char_stats: CharacterStats, modifiers: ModifierH
 
     Global.cards_played_this_turn+=1
     Events.card_played.emit(self)
+    Events.check_ink_status.emit()
     if Global.tutorial_block == true && Global.tutorial_on:
         Events.tutorial_step_requested.emit(5)
         Global.tutorial_block = false

@@ -269,16 +269,16 @@ ignore_texture_size = true
 stretch_mode = 5
 
 [node name="Hand" type="HBoxContainer" parent="BattleUI" node_paths=PackedStringArray("player")]
-custom_minimum_size = Vector2(700, 200)
+custom_minimum_size = Vector2(900, 200)
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -346.0
-offset_top = -128.0
-offset_right = 354.0
-offset_bottom = 22.0
+offset_left = -446.0
+offset_top = -139.0
+offset_right = 454.0
+offset_bottom = 61.0
 grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 2
@@ -287,10 +287,10 @@ alignment = 1
 script = ExtResource("2_uaw60")
 char_stats = ExtResource("4_fwb8a")
 player = NodePath("../../Player")
-fan_radius = 30.0
-fan_degrees = 20.0
+fan_radius = 25.0
+fan_degrees = 18.0
 hover_lift = -100.0
-hover_time = 0.1
+hover_time = 0.12
 
 [node name="ManaUI" parent="BattleUI" instance=ExtResource("11_2vu01")]
 visible = false
@@ -468,6 +468,10 @@ script = ExtResource("15_qvh8t")
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = -5.0
+offset_top = -9.0
+offset_right = -5.0
+offset_bottom = -9.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
@@ -716,9 +720,9 @@ expand_mode = 1
 [node name="Tutorial3" type="Panel" parent="CanvasLayer/Tutorial"]
 visible = false
 offset_left = 737.0
-offset_top = 271.0
-offset_right = 1005.0
-offset_bottom = 366.0
+offset_top = 259.0
+offset_right = 1025.0
+offset_bottom = 362.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_upauj")
 
 [node name="RichTextLabel2" type="RichTextLabel" parent="CanvasLayer/Tutorial/Tutorial3"]
@@ -739,10 +743,10 @@ fit_content = true
 
 [node name="TextureRect" type="TextureRect" parent="CanvasLayer/Tutorial/Tutorial3"]
 layout_mode = 0
-offset_left = -13.0
-offset_top = 57.0
-offset_right = 153.0
-offset_bottom = 169.0
+offset_left = -14.0
+offset_top = 70.0
+offset_right = 152.0
+offset_bottom = 182.0
 texture = ExtResource("29_0band")
 expand_mode = 1
 flip_h = true
@@ -754,8 +758,8 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -89.0
-offset_top = -34.0
+offset_left = -105.0
+offset_top = -37.0
 offset_right = -7.0
 offset_bottom = -3.0
 grow_horizontal = 0
@@ -765,10 +769,10 @@ text = "Continue"
 
 [node name="Tutorial4" type="Panel" parent="CanvasLayer/Tutorial"]
 visible = false
-offset_left = 401.0
-offset_top = 394.0
-offset_right = 691.0
-offset_bottom = 482.0
+offset_left = 394.0
+offset_top = 373.0
+offset_right = 684.0
+offset_bottom = 461.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_upauj")
 
 [node name="RichTextLabel2" type="RichTextLabel" parent="CanvasLayer/Tutorial/Tutorial4"]
@@ -806,10 +810,10 @@ expand_mode = 1
 
 [node name="Tutorial5" type="Panel" parent="CanvasLayer/Tutorial"]
 visible = false
-offset_left = 576.0
-offset_top = 230.0
+offset_left = 571.0
+offset_top = 239.0
 offset_right = 900.0
-offset_bottom = 315.0
+offset_bottom = 342.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_upauj")
 
 [node name="RichTextLabel2" type="RichTextLabel" parent="CanvasLayer/Tutorial/Tutorial5"]
@@ -830,9 +834,9 @@ fit_content = true
 
 [node name="TextureRect" type="TextureRect" parent="CanvasLayer/Tutorial/Tutorial5"]
 layout_mode = 0
-offset_left = 312.0
+offset_left = 319.0
 offset_top = 13.0
-offset_right = 420.0
+offset_right = 427.0
 offset_bottom = 83.0
 texture = ExtResource("29_0band")
 expand_mode = 1
@@ -844,8 +848,10 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -82.0
-offset_top = -31.0
+offset_left = -99.0
+offset_top = -40.0
+offset_right = -1.0
+offset_bottom = -6.0
 grow_horizontal = 0
 grow_vertical = 0
 theme = SubResource("Theme_t77qr")
@@ -887,9 +893,9 @@ expand_mode = 1
 [node name="Tutorial7" type="Panel" parent="CanvasLayer/Tutorial"]
 visible = false
 offset_left = 398.0
-offset_top = 436.0
+offset_top = 410.0
 offset_right = 775.0
-offset_bottom = 513.0
+offset_bottom = 487.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_upauj")
 
 [node name="RichTextLabel2" type="RichTextLabel" parent="CanvasLayer/Tutorial/Tutorial7"]
@@ -961,10 +967,10 @@ flip_h = true
 
 [node name="Tutorial9" type="Panel" parent="CanvasLayer/Tutorial"]
 visible = false
-offset_left = 61.0
-offset_top = 234.0
-offset_right = 341.0
-offset_bottom = 347.0
+offset_left = 52.0
+offset_top = 174.0
+offset_right = 352.0
+offset_bottom = 355.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_upauj")
 
 [node name="RichTextLabel2" type="RichTextLabel" parent="CanvasLayer/Tutorial/Tutorial9"]
@@ -980,26 +986,29 @@ grow_vertical = 2
 theme_override_fonts/normal_font = ExtResource("28_gfxxc")
 theme_override_font_sizes/normal_font_size = 16
 bbcode_enabled = true
-text = "[center][color=red]Red Dice[/color] require you to choose the [color=purple]Card[/color] you want to play, and then roll the [color=red]Dice.[/color]
+text = "[center]With [color=red]Red Dice[/color], you choose the [color=purple]Card[/color] you want to play first, and then roll the [color=red]Dice.[/color]
+
+Other than this timing difference, they work like Blue Dice and can be played on any Card.
+
  [color=gold]Drag and drop a Strike in there![/color]
 "
 fit_content = true
 
 [node name="TextureRect" type="TextureRect" parent="CanvasLayer/Tutorial/Tutorial9"]
 layout_mode = 0
-offset_left = 147.0
-offset_top = 75.0
-offset_right = 313.0
-offset_bottom = 187.0
+offset_left = 159.0
+offset_top = 151.0
+offset_right = 325.0
+offset_bottom = 263.0
 texture = ExtResource("29_0band")
 expand_mode = 1
 
 [node name="Tutorial10" type="Panel" parent="CanvasLayer/Tutorial"]
 visible = false
-offset_left = 294.0
-offset_top = 381.0
-offset_right = 520.0
-offset_bottom = 432.0
+offset_left = 285.0
+offset_top = 379.0
+offset_right = 524.0
+offset_bottom = 445.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_upauj")
 
 [node name="RichTextLabel2" type="RichTextLabel" parent="CanvasLayer/Tutorial/Tutorial10"]
@@ -1015,7 +1024,7 @@ grow_vertical = 2
 theme_override_fonts/normal_font = ExtResource("28_gfxxc")
 theme_override_font_sizes/normal_font_size = 16
 bbcode_enabled = true
-text = "[center]Like a champ! Now roll your [color=red]Red Dice![/color]"
+text = "[center]Like a champ! Now roll your [color=red]Red Dice![/color] The roll result will be applied to your Strike"
 fit_content = true
 
 [node name="TextureRect" type="TextureRect" parent="CanvasLayer/Tutorial/Tutorial10"]
@@ -1029,9 +1038,9 @@ expand_mode = 1
 
 [node name="Tutorial11" type="Panel" parent="CanvasLayer/Tutorial"]
 visible = false
-offset_left = 778.0
+offset_left = 759.0
 offset_top = 462.0
-offset_right = 1053.0
+offset_right = 1034.0
 offset_bottom = 576.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_upauj")
 
@@ -1133,10 +1142,10 @@ expand_mode = 1
 
 [node name="Tutorial14" type="Panel" parent="CanvasLayer/Tutorial"]
 visible = false
-offset_left = 348.0
-offset_top = 434.0
-offset_right = 725.0
-offset_bottom = 511.0
+offset_left = 344.0
+offset_top = 413.0
+offset_right = 721.0
+offset_bottom = 490.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_upauj")
 
 [node name="RichTextLabel2" type="RichTextLabel" parent="CanvasLayer/Tutorial/Tutorial14"]
@@ -1207,10 +1216,10 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -119.0
-offset_top = -41.0
-offset_right = -7.0
-offset_bottom = -5.0
+offset_left = -139.0
+offset_top = -49.0
+offset_right = -12.0
+offset_bottom = -9.0
 grow_horizontal = 0
 grow_vertical = 0
 theme = SubResource("Theme_l8oq4")
@@ -1297,8 +1306,8 @@ anchor_left = 1.0
 anchor_right = 1.0
 offset_left = 925.0
 offset_top = 138.0
-offset_right = 1152.0
-offset_bottom = 186.0
+offset_right = 1168.0
+offset_bottom = 190.0
 grow_horizontal = 0
 text = "Skip tutorial"
 

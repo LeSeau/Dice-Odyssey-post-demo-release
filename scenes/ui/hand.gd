@@ -13,6 +13,7 @@ const CARD_UI_SCENE := preload("res://scenes/card_ui/card_ui.tscn")
 
 # Store original vertical Y positions (not X!)
 var _original_positions: Dictionary = {}
+var _original_z_indices: Dictionary = {}
 
 func _ready() -> void:
     resized.connect(_update_card_positions)
@@ -69,7 +70,7 @@ func _update_card_positions() -> void:
                 var vertical_offset := -sin(progress * PI) * fan_radius
                 card.position.y = round(vertical_offset)
                 card.z_index = i*3
-
+                _original_z_indices[card] = i * 3
                 # Store only the Y position
                 _original_positions[card] = Vector2(0, card.position.y)
                 #card.scale = Vector2(1.1, 1.1)
@@ -100,7 +101,7 @@ func _on_card_mouse_exited(card: CardUI) -> void:
         var tween := create_tween()
         tween.tween_property(card, "position:y",
             _original_positions[card].y, hover_time).set_ease(Tween.EASE_IN)
-        card.z_index = 1
+        card.z_index = _original_z_indices.get(card, 1)
         card.rotation_degrees = _get_card_fan_angle(card)
         card.scale = Vector2(1.0, 1.0)
 
@@ -218,16 +219,17 @@ func _on_hover_playable_cards() -> void:
     # Optional: Keep debug for testing
     # debug_print_hand_requirements()
     
-    var playable = get_playable_cards()
-    var unplayable = get_unplayable_cards()
-    
-    # Highlight playable cards (full opacity)
-    for card in playable:
-        card.set_playable_visual(true)
-    
-    # Dim unplayable cards (reduced opacity)
-    for card in unplayable:
-        card.set_playable_visual(false)
+    #var playable = get_playable_cards()
+    #var unplayable = get_unplayable_cards()
+    #
+    ## Highlight playable cards (full opacity)
+    #for card in playable:
+        #card.set_playable_visual(true)
+    #
+    ## Dim unplayable cards (reduced opacity)
+    #for card in unplayable:
+        #card.set_playable_visual(false)
+    pass
 
 func _get_card_fan_angle(card: CardUI) -> float:
     var card_count := get_child_count()

@@ -15,9 +15,9 @@ dest_files=["res://.godot/imported/occultism.png-c8b3b4f76634ce6710758887d3e898f
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
-compress/lossy_quality=0.7
+compress/lossy_quality=0.5
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0

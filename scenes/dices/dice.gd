@@ -9,13 +9,14 @@ extends Control
 @onready var charged_card_texture: TextureRect = $CardDropArea/CardBackground/CardFrame/Panel/ChargedCardTexture
 @onready var charged_card_description: Label = $CardDropArea/CardBackground/CardFrame/DescriptionPanel/ChargedCardDescription
 @onready var requirement_panel: Panel = $CardDropArea/CardBackground/CardFrame/RequirementPanel
-@onready var requirement_label: RichTextLabel = $CardDropArea/CardBackground/CardFrame/RequirementPanel/RequirementLabel
+@onready var requirement_label: Label = $CardDropArea/CardBackground/CardFrame/RequirementPanel/RequirementLabel
 @onready var bonus_effect: HBoxContainer = $CardDropArea/CardBackground/CardFrame/BonusEffect
 @onready var bonus_requirement_panel: Panel = $CardDropArea/CardBackground/CardFrame/BonusEffect/BonusRequirementPanel
-@onready var bonus_requirement_label: RichTextLabel = $CardDropArea/CardBackground/CardFrame/BonusEffect/BonusRequirementPanel/BonusRequirementLabel
+@onready var bonus_requirement_label: Label = $CardDropArea/CardBackground/CardFrame/BonusEffect/BonusRequirementPanel/BonusRequirementLabel
 @onready var bonus_effect_label: Label = $CardDropArea/CardBackground/CardFrame/BonusEffect/BonusEffectLabel
 @onready var mech_section: Control = $MechSection
-
+@onready var bonus_effect_texture: TextureRect = $CardDropArea/CardBackground/CardFrame/BonusEffect/BonusEffectTexture
+@onready var bonus_separator: ColorRect = $CardDropArea/CardBackground/CardFrame/BonusSeparator
 
 @onready var aura: ColorRect = $Panel/Aura
 @onready var animation_player: AnimationPlayer = $Panel/DiceDisplay/AnimationPlayer
@@ -43,6 +44,7 @@ extends Control
 @onready var cancel_red_card: TextureButton = $CardDropArea/CancelRedCardPanel/CancelRedCard
 
 @onready var roll_history: RichTextLabel = $RollHistory
+@onready var description_panel: Panel = $CardDropArea/CardBackground/CardFrame/DescriptionPanel
 
 var ink_is_on = false
 var mech_adjustment_used := false
@@ -132,7 +134,7 @@ func _ready():
     Events.display_next_roll_modifier.connect(_on_display_next_roll_modifier)
     Events.clear_socket.connect(_on_clear_socket)
     Events.update_roll_history_ui.connect(update_roll_history_ui)
-
+    Events.refuel_happened.connect(_on_refuel_happened)
 
     
     # Initialize the dice display with the correct texture based on dice_type
@@ -140,6 +142,7 @@ func _ready():
     
     # Make sure Global.dice_type is synchronized
     Global.dice_type = dice_type
+    _set_socket_empty()
 
 func roll_dice():
     var can_roll = false
@@ -438,7 +441,7 @@ func update_dice_display():
     
     current_power.get_theme_font("font")
     current_power.add_theme_color_override("font_outline_color", outline_color)
-    set_shader_from_global_type()
+    set_shader_from_global_type(dice_type)
 
 func _on_dice_rolled(rolled_dice_type, roll_value):
     print("Dice rolled: ", roll_value)
@@ -524,7 +527,6 @@ func _on_dice_roll_reset() -> void:
         Global.roll_value = 0
         current_power.modulate.a = 0.4
         Global.roll_history = []
-    Events.check_ink_status.emit()
     mech_adjustment_used = false
     _update_mech_buttons()
 
@@ -548,64 +550,75 @@ func _on_card_charged(card_ui):
         await get_tree().create_timer(0.1).timeout
 
     # Now socket the new card
+    _set_socket_filled()
     socketed_card_ui = card_ui
     charged_card_texture.texture = card_ui.card.icon
     charged_card_description.text = card_ui.card.description
     title.text = card_ui.card.name
     cancel_red_card_panel.show()
-    
+
+    # Requirement
     if card_ui.card.requirement == Card.Requirement.NONE:
-        requirement_panel.hide()
-    else:
         requirement_panel.show()
-        if card_ui.card.requirement == Card.Requirement.MAX:
-            requirement_panel.add_theme_stylebox_override("panel", CardUI.MAX_STYLEBOX)
-            requirement_label.text = "[center]Max %d[/center]" % card_ui.card.requirement_number
-        elif card_ui.card.requirement == Card.Requirement.EVEN:
-            requirement_panel.add_theme_stylebox_override("panel", CardUI.EVEN_STYLEBOX)
-            requirement_label.text = "[center]Even[/center]"
-        elif card_ui.card.requirement == Card.Requirement.ODD:
-            requirement_panel.add_theme_stylebox_override("panel", CardUI.ODD_STYLEBOX)
-            requirement_label.text = "[center]Odd[/center]"
-        elif card_ui.card.requirement == Card.Requirement.RED:
-            requirement_panel.add_theme_stylebox_override("panel", CardUI.RED_STYLEBOX)
-            requirement_label.text = "[center]Red[/center]"
-        elif card_ui.card.requirement == Card.Requirement.EXACT:
-            requirement_panel.add_theme_stylebox_override("panel", CardUI.EXACT_STYLEBOX)
-            requirement_label.text = "[center]Exact %d[/center]" % card_ui.card.requirement_number
-        elif card_ui.card.requirement == Card.Requirement.MIN:
-            requirement_panel.add_theme_stylebox_override("panel", CardUI.MIN_STYLEBOX)
-            requirement_label.text = "[center]Min %d[/center]" % card_ui.card.requirement_number
-        elif card_ui.card.requirement == Card.Requirement.MULTIPLE:
-            requirement_panel.add_theme_stylebox_override("panel", CardUI.MULTIPLE_STYLEBOX)
-            requirement_label.text = "[center]Mult %d[/center]" % card_ui.card.requirement_number
+        requirement_panel.add_theme_stylebox_override("panel", CardUI.NONE_STYLEBOX)
+        requirement_label.text = "Any"
+    elif card_ui.card.requirement == Card.Requirement.MAX:
+        requirement_panel.show()
+        requirement_panel.add_theme_stylebox_override("panel", CardUI.MAX_STYLEBOX)
+        requirement_label.text = "Max %d" % card_ui.card.requirement_number
+    elif card_ui.card.requirement == Card.Requirement.EVEN:
+        requirement_panel.show()
+        requirement_panel.add_theme_stylebox_override("panel", CardUI.EVEN_STYLEBOX)
+        requirement_label.text = "Even"
+    elif card_ui.card.requirement == Card.Requirement.ODD:
+        requirement_panel.show()
+        requirement_panel.add_theme_stylebox_override("panel", CardUI.ODD_STYLEBOX)
+        requirement_label.text = "Odd"
+    elif card_ui.card.requirement == Card.Requirement.RED:
+        requirement_panel.show()
+        requirement_panel.add_theme_stylebox_override("panel", CardUI.RED_STYLEBOX)
+        requirement_label.text = "Red"
+    elif card_ui.card.requirement == Card.Requirement.EXACT:
+        requirement_panel.show()
+        requirement_panel.add_theme_stylebox_override("panel", CardUI.EXACT_STYLEBOX)
+        requirement_label.text = "Exact %d" % card_ui.card.requirement_number
+    elif card_ui.card.requirement == Card.Requirement.MIN:
+        requirement_panel.show()
+        requirement_panel.add_theme_stylebox_override("panel", CardUI.MIN_STYLEBOX)
+        requirement_label.text = "Min %d" % card_ui.card.requirement_number
+    elif card_ui.card.requirement == Card.Requirement.MULTIPLE:
+        requirement_panel.show()
+        requirement_panel.add_theme_stylebox_override("panel", CardUI.MULTIPLE_STYLEBOX)
+        requirement_label.text = "Mult %d" % card_ui.card.requirement_number
+
+    # Bonus requirement
     if card_ui.card.bonus_requirement == Card.Requirement.NONE:
         bonus_effect.hide()
     else:
         bonus_effect.show()
         bonus_effect_label.text = str(card_ui.card.bonus_description_text)
-        
         if card_ui.card.bonus_requirement == Card.Requirement.MAX:
-            bonus_requirement_panel.add_theme_stylebox_override("panel", CardUI.MAX_STYLEBOX)
-            bonus_requirement_label.text = "[center]Max %d[/center]" % card_ui.card.bonus_requirement_number
+            bonus_requirement_panel.add_theme_stylebox_override("panel", CardUI.BONUS_MAX_STYLEBOX)
+            bonus_requirement_label.text = "Max %d" % card_ui.card.bonus_requirement_number
         elif card_ui.card.bonus_requirement == Card.Requirement.EVEN:
-            bonus_requirement_panel.add_theme_stylebox_override("panel", CardUI.EVEN_STYLEBOX)
-            bonus_requirement_label.text = "[center]Even[/center]"
+            bonus_requirement_panel.add_theme_stylebox_override("panel", CardUI.BONUS_EVEN_STYLEBOX)
+            bonus_requirement_label.text = "Even"
         elif card_ui.card.bonus_requirement == Card.Requirement.ODD:
-            bonus_requirement_panel.add_theme_stylebox_override("panel", CardUI.ODD_STYLEBOX)
-            bonus_requirement_label.text = "[center]Odd[/center]"
+            bonus_requirement_panel.add_theme_stylebox_override("panel", CardUI.BONUS_ODD_STYLEBOX)
+            bonus_requirement_label.text = "Odd"
         elif card_ui.card.bonus_requirement == Card.Requirement.RED:
-            bonus_requirement_panel.add_theme_stylebox_override("panel", CardUI.RED_STYLEBOX)
-            bonus_requirement_label.text = "[center]Red[/center]"
+            bonus_requirement_panel.add_theme_stylebox_override("panel", CardUI.BONUS_RED_STYLEBOX)
+            bonus_requirement_label.text = "Red"
         elif card_ui.card.bonus_requirement == Card.Requirement.EXACT:
-            bonus_requirement_panel.add_theme_stylebox_override("panel", CardUI.EXACT_STYLEBOX)
-            bonus_requirement_label.text = "[center]Exact %d[/center]" % card_ui.card.bonus_requirement_number
+            bonus_requirement_panel.add_theme_stylebox_override("panel", CardUI.BONUS_EXACT_STYLEBOX)
+            bonus_requirement_label.text = "Exact %d" % card_ui.card.bonus_requirement_number
         elif card_ui.card.bonus_requirement == Card.Requirement.MIN:
-            bonus_requirement_panel.add_theme_stylebox_override("panel", CardUI.MIN_STYLEBOX)
-            bonus_requirement_label.text = "[center]Min %d[/center]" % card_ui.card.bonus_requirement_number
+            bonus_requirement_panel.add_theme_stylebox_override("panel", CardUI.BONUS_MIN_STYLEBOX)
+            bonus_requirement_label.text = "Min %d" % card_ui.card.bonus_requirement_number
         elif card_ui.card.bonus_requirement == Card.Requirement.MULTIPLE:
-            bonus_requirement_panel.add_theme_stylebox_override("panel", CardUI.MULTIPLE_STYLEBOX)
-            bonus_requirement_label.text = "[center]Mult %d[/center]" % card_ui.card.bonus_requirement_number
+            bonus_requirement_panel.add_theme_stylebox_override("panel", CardUI.BONUS_MULTIPLE_STYLEBOX)
+            bonus_requirement_label.text = "Mult %d" % card_ui.card.bonus_requirement_number
+
     card_ui.hide()
     card_ui.disabled = true
     
@@ -621,12 +634,7 @@ func _on_card_charged(card_ui):
 func _on_reset_charged_card():
 
     if charged_card_texture.texture != null:
-        print("reset charged card")
-        charged_card_texture.texture = null
-        charged_card_description.text = "Place a card here"
-        title.text = "Card"
-        requirement_panel.hide()
-        bonus_effect.hide()
+        _set_socket_empty()
    
 
 func _on_change_current_power():
@@ -647,10 +655,10 @@ func _on_battle_started():
     Global.blue_dice_bonus_amount_fight = 0
     set_shader_from_global_type()
 
-func set_shader_from_global_type() -> void:
+func set_shader_from_global_type(type: String = Global.dice_type) -> void:
     var new_shader_material : ShaderMaterial
 
-    match Global.dice_type:
+    match type:
         "red":
             new_shader_material = preload("res://scenes/dices/red_dice_shader.tres")
         "blue":
@@ -677,11 +685,34 @@ func set_shader_from_global_type() -> void:
 
 
 func _on_charge_dice_animation():
-    animation_player.play("charge")  # Play the 'charge' animation  
+    animation_player.play("charge")  # existing aura animation
     dice_roll_player.stream = load("res://chargedicesound.mp3")
-    dice_roll_player.volume_db = 6  # Increase volume (optional)
-    dice_roll_player.play()   
+    dice_roll_player.volume_db = 6
+    dice_roll_player.play()
     gpu_particles_2d.emitting = true
+
+    # --- 1. Scale micro-punch (dice absorbs the charge) ---
+    var scale_tween := create_tween()
+    scale_tween.tween_property(dice_display, "scale", Vector2(1.12, 1.12), 0.08) \
+        .set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+    scale_tween.tween_property(dice_display, "scale", Vector2(1.0, 1.0), 0.18) \
+        .set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+
+    # --- 2. Brightness flash (energy hitting the face) ---
+    var flash_tween := create_tween()
+    flash_tween.tween_interval(0.06)  # slight delay so flash lands at aura peak
+    flash_tween.tween_property(dice_display, "modulate", Color(2.0, 2.0, 2.0, 1.0), 0.07) \
+        .set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+    flash_tween.tween_property(dice_display, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.20) \
+        .set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
+
+    # --- 3. Power label sympathetic pulse ---
+    var power_tween := create_tween()
+    power_tween.tween_interval(0.05)
+    power_tween.tween_property(current_power, "scale", Vector2(1.2, 1.2), 0.07) \
+        .set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+    power_tween.tween_property(current_power, "scale", Vector2(1.0, 1.0), 0.15) \
+        .set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
     
 func _on_put_ink_on_dice():
     if not ink_is_on:
@@ -709,12 +740,7 @@ func _on_cancel_red_card_pressed() -> void:
         return
     
     # Clear the socket display
-    charged_card_texture.texture = null
-    charged_card_description.text = "Place a card here"
-    title.text = "Card"
-    requirement_panel.hide()
-    bonus_effect.hide()
-    cancel_red_card_panel.hide()
+    _set_socket_empty()
     
     # Re-enable the card in the hand
     if is_instance_valid(socketed_card_ui):
@@ -838,3 +864,75 @@ func _spawn_roll_popup(value: int) -> void:
     tween.tween_property(popup, "position", popup.position + Vector2(0, -40), 0.6).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
     tween.tween_property(popup, "modulate:a", 0.0, 0.6).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
     tween.chain().tween_callback(popup.queue_free)
+
+func _on_refuel_happened(amount: int) -> void:
+    var start_value := Global.roll_value  # capture before reset happens
+    
+    # --- Power drain animation ---
+    var steps := mini(start_value, 8)  # max 8 ticks regardless of value
+    var step_size: float = float(start_value) / float(maxi(steps, 1))
+    var step_duration := 0.03  # seconds per tick
+
+    for i in range(steps):
+        await get_tree().create_timer(step_duration * i).timeout
+        var display_val := int(start_value - step_size * (i + 1))
+        current_power.text = str(maxi(display_val, 0))
+
+    # Final snap to 0 with a punch
+    await get_tree().create_timer(step_duration * steps).timeout
+    current_power.text = "0"
+    current_power.modulate.a = 0.4
+
+    var drain_punch := create_tween()
+    drain_punch.tween_property(current_power, "scale", Vector2(1.15, 1.15), 0.06) \
+        .set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+    drain_punch.tween_property(current_power, "scale", Vector2(1.0, 1.0), 0.12) \
+        .set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+
+    # --- Dice recharge pulse ---
+    var dice_tween := create_tween()
+    dice_tween.tween_property(dice_display, "modulate", Color(2.0, 2.0, 2.0, 1.0), 0.08) \
+        .set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+    dice_tween.tween_property(dice_display, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.25) \
+        .set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
+
+    var dice_scale_tween := create_tween()
+    dice_scale_tween.tween_property(dice_display, "scale", Vector2(1.12, 1.12), 0.08) \
+        .set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+    dice_scale_tween.tween_property(dice_display, "scale", Vector2(1.0, 1.0), 0.18) \
+        .set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+        
+        
+func _set_socket_empty() -> void:
+    card_drop_area.scale = Vector2(0.857, 0.857)  # after you apply scale
+    card_banner.modulate.a = 0.7
+    panel.modulate.a = 0.35
+    $CardDropArea/CardBackground/CardFrame/DescriptionPanel.modulate.a = 0.15
+    title.text = "?"
+    title.modulate.a = 0.7
+    title.show()
+    charged_card_texture.texture = null
+    charged_card_texture.hide()
+    requirement_panel.show()
+    requirement_panel.add_theme_stylebox_override("panel", CardUI.NONE_STYLEBOX)
+    requirement_label.text = "Drop a card"
+    requirement_panel.modulate.a = 0.5
+    charged_card_description.text = "Place a card here"
+    description_panel.modulate.a = 0.6
+    bonus_effect.hide()
+    bonus_separator.hide()
+    cancel_red_card_panel.hide()
+    
+func _set_socket_filled() -> void:
+    card_banner.modulate.a = 1.0
+    panel.modulate.a = 1.0
+    title.modulate.a = 1.0
+    $CardDropArea/CardBackground/CardFrame/DescriptionPanel.modulate.a = 1.0
+    requirement_panel.modulate.a = 1.0
+    title.show()
+    charged_card_texture.show()
+    $CardDropArea/CardBackground/CardFrame/DescriptionPanel.show()
+    var tween = create_tween()
+    tween.tween_property(card_drop_area, "scale", Vector2(0.857, 0.857), 0.12)\
+        .from(Vector2(0.728, 0.728))\
+        .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)

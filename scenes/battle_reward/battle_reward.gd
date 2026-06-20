@@ -171,7 +171,7 @@ func _on_relic_reward_taken(relic: Relic) -> void:
     relic_handler.add_relic(relic)  
  
 func on_gold_reward_taken(amount: int) -> void:
-    SFXPlayer.play(Global.sfx_click)
+    SFXPlayer.play(Global.sfx_gold_pickup)
     Global.gold += amount  # <- This uses Global system directly
     if run_stats:
         run_stats.gold = Global.gold  # Sync RunStats to match

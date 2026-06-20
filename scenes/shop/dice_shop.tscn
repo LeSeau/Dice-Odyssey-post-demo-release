@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://cib6v5vr2rvqj"]
+[gd_scene load_steps=17 format=3 uid="uid://cib6v5vr2rvqj"]
 
 [ext_resource type="Script" path="res://scenes/shop/shop.gd" id="1_4fjq1"]
 [ext_resource type="Texture2D" uid="uid://bc7ex1r6orvji" path="res://assets/images/shopbackground.jpg" id="2_meook"]
@@ -30,6 +30,9 @@ shadow_offset = Vector2(0, 4)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fty16"]
 bg_color = Color(0, 0.143815, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_s1di4"]
+bg_color = Color(0.246036, 0.403102, 0.363782, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_o5hgo"]
 bg_color = Color(0.247059, 0.403922, 0.364706, 0.92549)
@@ -611,9 +614,11 @@ offset_top = 23.0
 offset_right = -34.0
 offset_bottom = 112.0
 grow_horizontal = 0
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
 theme_override_colors/font_color = Color(0.144787, 0.273985, 0.277578, 1)
 theme_override_fonts/font = ExtResource("10_p37ri")
 theme_override_font_sizes/font_size = 75
+theme_override_styles/hover = SubResource("StyleBoxFlat_s1di4")
 theme_override_styles/normal = SubResource("StyleBoxFlat_o5hgo")
 text = "X"
 

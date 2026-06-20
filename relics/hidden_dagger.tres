@@ -14,3 +14,4 @@ starter_relic = false
 icon = ExtResource("1_6kfa3")
 tooltip = "Start each fight with Boost 3
 "
+tags = "Boost"

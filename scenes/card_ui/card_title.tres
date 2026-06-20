@@ -1,7 +1,16 @@
-[gd_resource type="LabelSettings" load_steps=2 format=3 uid="uid://cy482afjc3tjk"]
+[gd_resource type="LabelSettings" load_steps=3 format=3 uid="uid://cy482afjc3tjk"]
 
-[ext_resource type="FontFile" uid="uid://bm3deysyi2y55" path="res://Belwe Bold/Belwe Bold.otf" id="1_ltol2"]
+[ext_resource type="FontFile" uid="uid://b2y60c4274gkj" path="res://fonts/Cinzel-Bold.otf" id="1_eilth"]
+
+[sub_resource type="FontVariation" id="FontVariation_66wpn"]
+base_font = ExtResource("1_eilth")
+variation_embolden = 0.2
 
 [resource]
-font = ExtResource("1_ltol2")
+font = SubResource("FontVariation_66wpn")
+font_size = 15
 font_color = Color(1, 0.843137, 0, 1)
+outline_size = 1
+outline_color = Color(0.227451, 0.0313726, 0.0313726, 1)
+shadow_size = 0
+shadow_offset = Vector2(0, 0)

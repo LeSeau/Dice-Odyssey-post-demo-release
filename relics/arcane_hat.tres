@@ -14,3 +14,4 @@ starter_relic = false
 icon = ExtResource("1_1r2ge")
 tooltip = "When you charge a Dice, draw 1 Card
 "
+tags = "Charge"

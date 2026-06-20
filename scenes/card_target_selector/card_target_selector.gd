@@ -17,7 +17,8 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
     if not targeting:
         return
-
+    if not is_instance_valid(current_card):
+        return
     area_2d.position = get_local_mouse_position()
     card_arc.points = _get_points()
 

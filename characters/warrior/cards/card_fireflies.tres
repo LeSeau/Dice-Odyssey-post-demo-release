@@ -1,6 +1,6 @@
 [gd_resource type="Resource" load_steps=4 format=3 uid="uid://cao5rqdkdbvdx"]
 
-[ext_resource type="Texture2D" uid="uid://b0271oj6u4bm1" path="res://fireflies.png" id="1_e8eqq"]
+[ext_resource type="Texture2D" uid="uid://dulwe7hmldibr" path="res://fireflies_ok.png" id="1_qvmsn"]
 [ext_resource type="Script" path="res://characters/warrior/cards/fireflies.gd" id="2_cms6e"]
 [ext_resource type="AudioStream" uid="uid://68q2f8fotq13" path="res://sounds/blocksound.mp3" id="3_ftywo"]
 
@@ -21,6 +21,6 @@ bonus_requirement = 0
 bonus_requirement_number = 0
 bonus_description_text = ""
 tags = "Boost"
-icon = ExtResource("1_e8eqq")
+icon = ExtResource("1_qvmsn")
 tooltip_text = ""
 sound = ExtResource("3_ftywo")

@@ -4,7 +4,7 @@ var testing_mode: bool = false
 var tutorial_on = false
 var tutorial_reset_power_warning = true
 
-var gold = 999
+var gold = 75
 var player_hp = 66
 var player_max_hp = 66
 
@@ -84,6 +84,7 @@ var purchased_dice_counts = {
 var cheapest_dice_price
 
 var sfx_click = preload("res://sfx/219069_annabloom_click1 (mp3cut.net).wav")
+var sfx_gold_pickup = preload("res://gold_pickup_sound.mp3")
 var tutorial_forced_roll = 0
 
 var tutorial_block = true

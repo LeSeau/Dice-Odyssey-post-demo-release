@@ -13,3 +13,4 @@ counter = 0
 starter_relic = false
 icon = ExtResource("1_g2epq")
 tooltip = "When your power hits exactly 10, gain a Scout card"
+tags = "Scout"

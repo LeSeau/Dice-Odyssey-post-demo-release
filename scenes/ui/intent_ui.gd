@@ -50,12 +50,22 @@ func _on_mouse_entered() -> void:
     var text = _get_tooltip_text_for_icon()
     if text == "":
         return
+    
     tooltip_instance = TooltipScene.instantiate()
     get_tree().root.add_child(tooltip_instance)
     var tooltip_panel = tooltip_instance.get_node("Tooltip")
     tooltip_panel.get_node("%TooltipText").text = text
-    tooltip_panel.show_tooltip(global_position + Vector2(-40, -80))    
+    tooltip_panel.show_tooltip(global_position + Vector2(-40, -80))
     
+    _start_tooltip_safety_timeout(tooltip_instance)
+
+func _start_tooltip_safety_timeout(this_tooltip) -> void:
+    await get_tree().create_timer(8.0).timeout
+    # Only free it if it's still the active one and hasn't already been freed.
+    if is_instance_valid(this_tooltip) and tooltip_instance == this_tooltip:
+        this_tooltip.queue_free()
+        tooltip_instance = null
+
 func _on_mouse_exited() -> void:
     if tooltip_instance and is_instance_valid(tooltip_instance):
         tooltip_instance.queue_free()

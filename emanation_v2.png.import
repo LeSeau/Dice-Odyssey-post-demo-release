@@ -15,9 +15,9 @@ dest_files=["res://.godot/imported/emanation_v2.png-6f771e48c8aaafa7aac92b636468
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
-compress/lossy_quality=0.7
+compress/lossy_quality=0.5
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0

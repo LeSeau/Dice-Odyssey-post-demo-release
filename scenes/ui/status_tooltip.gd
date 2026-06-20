@@ -33,7 +33,7 @@ func get_tooltip_content(status: Status) -> void:
         "exposed":
             text = "Take 50% more damage."
         "ink":
-            text = "Your Power is hidden. Lose 1 ink stack every time you play a non-support Card."
+            text = "Your Power is hidden. Lose 1 ink stack every time you play a Card."
         "strength":
             text = "Deal X more damage on each attack." 
         "true_strength":
@@ -47,7 +47,7 @@ func get_tooltip_content(status: Status) -> void:
         "flux":
             text = "This enemy prevents you from rolling the same Dice type twice in a row."
         "berserk":
-            text = "You deal 50% more damage with Red Dice"
+            text = "You deal double damage with Red Dice"
         "marionette":
             text = "At the start of each turn, gain a Scout 2 card"
         "sigil":

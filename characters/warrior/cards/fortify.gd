@@ -19,7 +19,7 @@ func apply_effects(targets: Array [Node], _modifiers: ModifierHandler) -> void:
     if Global.roll_value % 2 == 0:
         var status_effect := StatusEffect.new()
         var muscle := MUSCLE_STATUS.duplicate()
-        muscle.stacks = 1
+        muscle.stacks = 2
         status_effect.status = muscle
         status_effect.execute(targets)
 

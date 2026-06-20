@@ -156,6 +156,7 @@ grow_vertical = 2
 
 [node name="MapButton" type="Button" parent="DebugButtons"]
 unique_name_in_owner = true
+visible = false
 layout_mode = 2
 text = "Map
 "
@@ -163,6 +164,7 @@ icon_alignment = 1
 
 [node name="BattleButton" type="Button" parent="DebugButtons"]
 unique_name_in_owner = true
+visible = false
 layout_mode = 2
 text = "Battle
 "
@@ -386,9 +388,9 @@ visible = false
 [node name="DiceShopExplanationBox" type="Panel" parent="TopBar"]
 visible = false
 z_index = 1000
-offset_left = 850.0
+offset_left = 803.0
 offset_top = 91.0
-offset_right = 1115.0
+offset_right = 1068.0
 offset_bottom = 324.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_41je3")

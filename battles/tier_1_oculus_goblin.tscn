@@ -1,0 +1,21 @@
+[gd_scene load_steps=6 format=3 uid="uid://t1be555amomt"]
+
+[ext_resource type="PackedScene" uid="uid://d0efyathkfg74" path="res://scenes/enemy/enemy.tscn" id="1_2jp6t"]
+[ext_resource type="Resource" uid="uid://bkbnyc3ymuyj" path="res://enemies/goblin/goblin_enemy.tres" id="2_2e7ne"]
+[ext_resource type="Resource" uid="uid://dfmffwdj0hm71" path="res://enemies/oculus/oculus_enemy.tres" id="3_3l5d1"]
+[ext_resource type="Script" path="res://custom_resources/status.gd" id="4_wn5w0"]
+[ext_resource type="Resource" uid="uid://cyu7vtsvurhxv" path="res://statuses/parasite.tres" id="5_qvccn"]
+
+[node name="Tier1OculusGoblin" type="Node2D"]
+
+[node name="Goblin" parent="." instance=ExtResource("1_2jp6t")]
+position = Vector2(749, 365)
+stats = ExtResource("2_2e7ne")
+width = 240
+height = 240
+
+[node name="Oculus" parent="." instance=ExtResource("1_2jp6t")]
+position = Vector2(992, 450)
+scale = Vector2(0.75, 0.75)
+stats = ExtResource("3_3l5d1")
+initial_statuses = Array[ExtResource("4_wn5w0")]([ExtResource("5_qvccn")])

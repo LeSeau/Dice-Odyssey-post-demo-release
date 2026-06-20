@@ -15,9 +15,9 @@ dest_files=["res://.godot/imported/low_blow_nano_v5.png-8af5bb92c9d17b3ca2d562b8
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
-compress/lossy_quality=0.7
+compress/lossy_quality=0.5
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0

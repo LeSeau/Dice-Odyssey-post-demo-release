@@ -1,7 +1,7 @@
 [gd_scene load_steps=11 format=3 uid="uid://ds7cye5xvb7si"]
 
 [ext_resource type="Texture2D" uid="uid://dcfx0mp1thd8a" path="res://assets/images/relicwizard.jpg" id="1_1m62g"]
-[ext_resource type="Script" path="res://scenes/events/event_test.gd" id="1_i130k"]
+[ext_resource type="Script" path="res://scenes/events/event_deonassius.gd" id="1_7in58"]
 [ext_resource type="Texture2D" uid="uid://cixhe0hba0c1" path="res://assets/images/scroll.jpg" id="1_o6qay"]
 [ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="2_w7k0r"]
 [ext_resource type="FontFile" uid="uid://bfgwr7o37ol1j" path="res://Noto_Sans/static/NotoSans-Regular.ttf" id="4_swvkx"]
@@ -34,7 +34,7 @@ anchors_preset = 0
 offset_top = 35.0
 offset_right = 1280.0
 offset_bottom = 755.0
-script = ExtResource("1_i130k")
+script = ExtResource("1_7in58")
 
 [node name="TextureRect" type="TextureRect" parent="."]
 layout_mode = 1

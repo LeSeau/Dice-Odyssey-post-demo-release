@@ -1,10 +1,14 @@
-[gd_scene load_steps=4 format=3 uid="uid://jg7s3ul6gyqj"]
+[gd_scene load_steps=5 format=3 uid="uid://jg7s3ul6gyqj"]
 
 [ext_resource type="Script" path="res://scenes/ui/card_pile_view.gd" id="1_byypi"]
 [ext_resource type="PackedScene" uid="uid://d2vlobkkv27hu" path="res://scenes/ui/card_menu_ui.tscn" id="1_gt0jo"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_6m3id"]
 font_size = 36
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_fat5r"]
+content_margin_left = 14.0
+content_margin_top = 20.0
 
 [node name="CardPileView" type="Control"]
 z_index = 120
@@ -52,14 +56,15 @@ horizontal_alignment = 1
 [node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxEmpty_fat5r")
 horizontal_scroll_mode = 3
 vertical_scroll_mode = 2
 
 [node name="Cards" type="GridContainer" parent="MarginContainer/VBoxContainer/ScrollContainer"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/h_separation = 30
-theme_override_constants/v_separation = 12
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 16
 columns = 7
 
 [node name="CardMenuAI" parent="MarginContainer/VBoxContainer/ScrollContainer/Cards" instance=ExtResource("1_gt0jo")]

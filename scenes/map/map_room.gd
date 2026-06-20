@@ -38,13 +38,21 @@ func set_available(new_value: bool) -> void:
     elif not room.selected:
         animation_player.play("RESET")
         
-func set_room (new_data: Room) -> void:
+func set_room(new_data: Room) -> void:
     room = new_data
     position = room.position 
     line_2d.rotation_degrees = randi_range(0, 360)
     sprite_2d.texture = ICONS[room.type][0]
-    #sprite_2d.scale = ICONS[room.type][1]
-
+    
+    var new_shape = $CollisionShape2D.shape.duplicate()
+    $CollisionShape2D.shape = new_shape
+    
+    if room.type == Room.Type.BOSS:
+        $CollisionShape2D.shape.radius = 120.0
+        _make_circle(120)
+    else: 
+        $CollisionShape2D.shape.radius = 44.83
+        _make_circle(55)
 func show_selected() -> void:
     line_2d.visible = true
     line_2d.modulate = Color("#f0c040")
