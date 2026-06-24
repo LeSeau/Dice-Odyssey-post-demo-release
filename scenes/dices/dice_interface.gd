@@ -240,8 +240,8 @@ func _on_player_turn_started() -> void:
     Global.magma_dice_current_amount = Global.magma_dice_max_amount + Global.magma_dice_bonus_amount
     Global.even_dice_current_amount = Global.even_dice_max_amount + Global.even_dice_bonus_amount
     Global.odd_dice_current_amount = Global.odd_dice_max_amount + Global.odd_dice_bonus_amount
-    Global.mech_dice_current_amount = Global.mech_dice_max_amount + Global.mech_dice_bonus_amount
-    
+    Global.mech_dice_current_amount = Global.mech_dice_max_amount + Global.mech_dice_bonus_amount + Global.mech_dice_bonus_amount_fight
+
     dice_1_label.text = str(Global.blue_dice_current_amount, "/", Global.blue_dice_max_amount)
     dice_2_label.text = str(Global.red_dice_current_amount, "/", Global.red_dice_max_amount)
     dice_3_label.text = str(Global.evil_dice_current_amount, "/", Global.evil_dice_max_amount)
@@ -327,7 +327,7 @@ func initialize_dices():
     else:
         dice_8.hide()
     
-    if Global.mech_dice_max_amount > 0 or Global.mech_dice_current_amount > 0 or Global.mech_dice_bonus_amount > 0:
+    if Global.mech_dice_max_amount > 0 or Global.mech_dice_current_amount > 0 or Global.mech_dice_bonus_amount > 0 or Global.mech_dice_bonus_amount_fight > 0:
         print("mech dice appearing")
         dice_9_texture.texture = load("res://assets/images/mech1.png")
         dice_9_label.text = str(Global.mech_dice_current_amount, "/", Global.mech_dice_max_amount)

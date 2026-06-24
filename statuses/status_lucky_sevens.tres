@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="LuckySevensStatus" load_steps=3 format=3 uid="uid://dluckysevens00"]
+
+[ext_resource type="Texture2D" uid="uid://cixhe0hba0c1" path="res://assets/images/scroll.jpg" id="1_icon"]
+[ext_resource type="Script" path="res://statuses/status_lucky_sevens.gd" id="2_script"]
+
+[resource]
+script = ExtResource("2_script")
+id = "lucky_sevens"
+type = 2
+stack_type = 0
+can_expire = false
+duration = 1
+stacks = 0
+icon = ExtResource("1_icon")
+tooltip = "Every 7 Dice you roll this combat, gain Lucky 1"

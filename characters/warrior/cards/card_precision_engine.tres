@@ -1,0 +1,26 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://drfcil4fugg5p"]
+
+[ext_resource type="Texture2D" uid="uid://cixhe0hba0c1" path="res://assets/images/scroll.jpg" id="1_icon"]
+[ext_resource type="Script" path="res://characters/warrior/cards/precision_engine.gd" id="2_script"]
+[ext_resource type="AudioStream" uid="uid://cy6owtfbf8sfv" path="res://sounds/fountainheal.wav" id="3_sound"]
+
+[resource]
+script = ExtResource("2_script")
+id = "card_precision_engine"
+name = "Precision Engine"
+type = 2
+target = 0
+description = "Whenever you play a card with a satisfied Exact requirement, charge 1 of your active Dice"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 1
+requirement_number = 6
+exhausts = true
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Charge"
+icon = ExtResource("1_icon")
+tooltip_text = ""
+sound = ExtResource("3_sound")

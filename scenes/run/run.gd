@@ -402,6 +402,9 @@ func _on_map_exited(room: Room) -> void:
         Room.Type.SHOP:
             _on_shop_entered()
         Room.Type.EVENT:
+            if room.is_secret_fight:
+                _on_battle_room_entered(room)
+                return
             # Check if we have events available
             if event_stats_pool.pool.size() > 0:
                 # Get a random event from the pool

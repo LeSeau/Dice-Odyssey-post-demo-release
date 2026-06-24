@@ -12,4 +12,4 @@ can_expire = false
 duration = 1
 stacks = 1
 icon = ExtResource("1_krxjk")
-tooltip = "At the start of each turn, gain a Scout 2 card"
+tooltip = "At the start of each turn, gain a Scout 3 card"

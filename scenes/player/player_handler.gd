@@ -114,14 +114,11 @@ func draw_cards(amount: int) -> void:
     )
 
 func discard_cards() -> void:
-    print("trying to discard hand; bug?")
-    
     # If hand is empty, emit signal immediately
     if hand.get_child_count() == 0:
         Events.player_hand_discarded.emit()
-        print("hand was discarded (empty hand); bug?")
         return
-        
+
     var tween := create_tween()
     for card_ui: CardUI in hand.get_children():
         tween.tween_callback(character.discard.add_card.bind(card_ui.card))
@@ -131,10 +128,9 @@ func discard_cards() -> void:
             audio_stream_player_2d.play()
         )
         tween.tween_interval(HAND_DISCARD_INTERVAL)
-    
+
     tween.finished.connect(func():
         Events.player_hand_discarded.emit()
-        print("hand was discarded; bug?")
     )
     
 func discard_random_card() -> void:

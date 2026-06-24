@@ -5,9 +5,11 @@ extends Card
 func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
 
     if Global.roll_value >= 4:
-        Global.green_dice_current_amount+=1
+        var active_dice = Global.dice_type
+        var dice_amount_variable = active_dice + "_dice_current_amount"
+        Global.set(dice_amount_variable, Global.get(dice_amount_variable) + 1)
         Events.charge_dice_animation.emit()
-        Events.temporary_dice_added.emit("green")
+        Events.temporary_dice_added.emit(active_dice)
         var damage_effect := DamageEffect.new()
         var base_damage = Global.roll_value
         Events.reset_charged_card.emit()

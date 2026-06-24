@@ -44,3 +44,4 @@ action_id = "oculus_second_attack"
 script = ExtResource("7_1gx1o")
 intent = SubResource("Resource_5suyb")
 sound = ExtResource("9_ek6tc")
+action_id = "oculus_buff"

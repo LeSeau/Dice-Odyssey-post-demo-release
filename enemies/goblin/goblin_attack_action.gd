@@ -7,7 +7,7 @@ extends EnemyAction
 var base_damage = 7
 
 func is_performable() -> bool:
-    return Global.fight_turn == 0 or enemy.last_action == "defender_block"
+    return true
 
 func perform_action() -> void:
     if not enemy or not target:

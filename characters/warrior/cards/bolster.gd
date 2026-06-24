@@ -12,7 +12,7 @@ func apply_effects(targets: Array [Node], _modifiers: ModifierHandler) -> void:
     #exposed.duration = exposed_duration
     #status_effect.status = exposed
     #status_effect.execute(targets)
-    if Global.roll_value >=  8:
+    if Global.roll_value >=  5:
         var status_effect := StatusEffect.new()
         var muscle := MUSCLE_STATUS.duplicate()
         muscle.stacks = 2

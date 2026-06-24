@@ -9,7 +9,7 @@ const CARD_MENU_UI = preload("res://scenes/ui/card_menu_ui.tscn")
 @onready var price: HBoxContainer = %Price
 @onready var price_label: RichTextLabel = %PriceLabel
 @onready var buy_button: Button = %BuyButton
-@onready var gold_cost := randi_range(50,150)
+@onready var gold_cost := randi_range(30,80)
 
 #func _ready() -> void:
     #update()

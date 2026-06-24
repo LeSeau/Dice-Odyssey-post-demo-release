@@ -51,6 +51,8 @@ const CELESTIAL_DESC_STYLEBOX := preload("res://scenes/card_ui/card_ui_descripti
 const CELESTIAL_REQUIREMENT_NONE_STYLEBOX := preload("res://scenes/card_ui/card_requirement_none_celestial.tres")
 const CELESTIAL_DESC_LABEL_SETTINGS := preload("res://scenes/card_ui/celestial_card_description_label.tres")
 
+const RITE_BANNER_STYLEBOX := preload("res://scenes/card_ui/card_banner_rite.tres")
+
 @export var card: Card : set = _set_card
 @export var char_stats: CharacterStats : set = _set_char_stats
 @export var player_modifiers: ModifierHandler 
@@ -190,8 +192,11 @@ func _set_card(value: Card) -> void:
     elif card.requirement == Card.Requirement.MULTIPLE:
         requirement_panel.add_theme_stylebox_override("panel", MULTIPLE_STYLEBOX)
         requirement_label.text = "Mult %d" % card.requirement_number
+    if card.type == Card.Type.RITE:
+        card_banner.add_theme_stylebox_override("panel", RITE_BANNER_STYLEBOX)
+
     if card.can_play_without_dice:
-        
+
         description_panel.add_theme_stylebox_override("panel", CELESTIAL_DESC_STYLEBOX)
         card_banner.add_theme_stylebox_override("panel", CELESTIAL_BANNER_STYLEBOX)
         card_frame.add_theme_stylebox_override("panel", SUPPORT_STYLEBOX)
@@ -385,7 +390,10 @@ func _on_card_frame_mouse_entered() -> void:
     var bonus_requirement_string = Card.Requirement.keys()[card.bonus_requirement]
     if bonus_requirement_string != "NONE":
         tooltips_to_show.append(bonus_requirement_string)
-    
+
+    if card.type == Card.Type.RITE:
+        tooltips_to_show.append("Rite")
+
     if card.tags != "":
         var tags_array = card.tags.split(",")
         for tag in tags_array:

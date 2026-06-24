@@ -7,7 +7,7 @@
 script = ExtResource("2_irqlu")
 id = "emanation"
 type = 0
-stack_type = 2
+stack_type = 1
 can_expire = false
 duration = 1
 stacks = 1

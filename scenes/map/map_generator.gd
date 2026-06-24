@@ -9,12 +9,13 @@ const FLOORS := 15
 const MAP_WIDTH := 7
 const PATHS := 6
 const MONSTER_ROOM_WEIGHT := 5.5
-const ELITE_ROOM_WEIGHT := 1.6
-const CAMPFIRE_ROOM_WEIGHT := 1.2
+const ELITE_ROOM_WEIGHT := 1.0
+const CAMPFIRE_ROOM_WEIGHT := 1.5
 const SHOP_ROOM_WEIGHT := 0.8
 const BOSS_ROOM_WEIGHT := 0.0
 const TREASURE_ROOM_WEIGHT := 0.0
 const EVENT_ROOM_WEIGHT := 3.0
+const EVENT_FIGHT_CHANCE := 0.1
 
 @export var battle_stats_pool: BattleStatsPool
 @export var event_stats_pool: EventStatsPool
@@ -236,10 +237,13 @@ func _set_room_randomly(room_to_set: Room) -> void:
         room_to_set.battle_stats = battle_stats_pool.get_random_battle_for_tier(4)
 
     elif type_candidate == Room.Type.EVENT:
-        var tier_for_event_rooms := 0
-        if room_to_set.row > 2:
-            tier_for_event_rooms = 1
-        room_to_set.event_stats = event_stats_pool.get_random_event_for_tier(tier_for_event_rooms)
+        if randf() < EVENT_FIGHT_CHANCE:
+            room_to_set.is_secret_fight = true
+        else:
+            var tier_for_event_rooms := 0
+            if room_to_set.row > 2:
+                tier_for_event_rooms = 1
+            room_to_set.event_stats = event_stats_pool.get_random_event_for_tier(tier_for_event_rooms)
 
 
 func _room_has_parent_of_type(room: Room, type: Room.Type) -> bool:

@@ -9,7 +9,7 @@ const RELIC_UI = preload("res://scenes/relic_handler/relic_ui.tscn")
 @onready var price: HBoxContainer = %Price
 @onready var price_label: RichTextLabel = %PriceLabel
 @onready var buy_button: Button = %BuyButton
-@onready var gold_cost := randi_range(110,200)
+@onready var gold_cost := randi_range(120,170)
 
 #func _ready() -> void:
     #update()

@@ -308,6 +308,11 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
     var power_tween = create_tween()
     power_tween.tween_property(current_power, "scale", Vector2(power_punch, power_punch), 0.07).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
     power_tween.tween_property(current_power, "scale", Vector2(1.0, 1.0), 0.14).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+
+    var base_power_color = current_power.modulate
+    var flash_tween = create_tween()
+    flash_tween.tween_property(current_power, "modulate", base_power_color.lightened(0.6), 0.05)
+    flash_tween.tween_property(current_power, "modulate", base_power_color, 0.18)
     
     # Magma dice special effect
     if dice_type == "magma": 
@@ -653,6 +658,7 @@ func _on_next_roll_determined():
 func _on_battle_started():
     Global.fight_dice_rolled = 0
     Global.blue_dice_bonus_amount_fight = 0
+    Global.mech_dice_bonus_amount_fight = 0
     set_shader_from_global_type()
 
 func set_shader_from_global_type(type: String = Global.dice_type) -> void:

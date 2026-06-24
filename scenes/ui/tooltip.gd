@@ -72,6 +72,8 @@ func get_tooltip_content(requirement):
         text += "Cards that don't attack or block but instead manipulate Power"
     elif requirement == "REST":
         text += "Heal 22 HP"
+    elif requirement == "Rite":
+        text += "A lasting effect for the rest of the combat. Exhausts when played."
     #if bonus_requirement == "MAX":
         #text += "Your power cannot exceed this value\n"
     #elif bonus_requirement == "MIN":

@@ -7,6 +7,7 @@ const ARC_POINTS := 8
 
 var current_card: CardUI
 var targeting := false
+var locked_on := false
 
 
 func _ready() -> void:
@@ -51,11 +52,14 @@ func _on_card_aim_started(card: CardUI) -> void:
     if not card.card.is_single_targeted() :
 
         return
-    
+
     targeting = true
     area_2d.monitoring = true
     area_2d.monitorable = true
     current_card = card
+    locked_on = false
+    card_arc.modulate = Color(1, 1, 1, 1)
+    card_arc.scale = Vector2(1.0, 1.0)
 
 
 func _on_card_aim_ended(_card: CardUI) -> void:
@@ -65,19 +69,34 @@ func _on_card_aim_ended(_card: CardUI) -> void:
     area_2d.monitoring = false
     area_2d.monitorable = false
     current_card = null
-    
+
 
 
 func _on_area_2d_area_entered(area: Area2D) -> void:
     if not current_card or not targeting:
         return
-    
+
     if not current_card.targets.has(area):
         current_card.targets.append(area)
+
+    _set_locked_on(true)
 
 
 func _on_area_2d_area_exited(area: Area2D) -> void:
     if not current_card or not targeting:
         return
-    
+
     current_card.targets.erase(area)
+
+    _set_locked_on(not current_card.targets.is_empty())
+
+
+func _set_locked_on(value: bool) -> void:
+    if value == locked_on:
+        return
+    locked_on = value
+
+    var target_color := Color(2.4, 2.0, 0.7, 1) if value else Color(1, 1, 1, 1)
+
+    var tween := create_tween()
+    tween.tween_property(card_arc, "modulate", target_color, 0.08)

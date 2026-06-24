@@ -7,7 +7,7 @@ func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
     block_effect.amount = Global.roll_value
     block_effect.sound = sound
     block_effect.execute(targets)
-    Global.next_roll_modifier+=4
+    Global.next_roll_modifier+=5
     Events.display_next_roll_modifier.emit()
     var support_effect := SupportEffect.new()
     support_effect.sound = sound

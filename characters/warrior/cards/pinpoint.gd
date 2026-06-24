@@ -20,3 +20,9 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
 
 func _on_dice_rolled():
     print("adding dice to damage")
+
+func get_dynamic_description() -> String:
+    if Global.has_rolled_6_this_turn:
+        return "Deal X damage. (You have rolled a 6 this turn — deal X damage again)"
+    else:
+        return "Deal X damage. (You haven't rolled a 6 this turn)"

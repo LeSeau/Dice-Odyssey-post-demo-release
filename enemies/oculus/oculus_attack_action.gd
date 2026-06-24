@@ -8,9 +8,9 @@ extends EnemyAction
 var base_damage = damage
 
 func is_performable() -> bool:
-    if enemy.last_action == "plant_attack":
+    if enemy.last_action == "oculus_attack":
         return false
-    if enemy.last_action == "plant_buff":
+    if enemy.last_action == "oculus_buff":
         return false
     return true
 

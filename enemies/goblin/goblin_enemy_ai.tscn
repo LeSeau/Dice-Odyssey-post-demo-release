@@ -31,6 +31,7 @@ script = ExtResource("1_t58td")
 script = ExtResource("2_k8day")
 intent = SubResource("Resource_1ftwn")
 sound = ExtResource("5_4f5xi")
+action_id = "goblin_attack"
 
 [node name="GoblinAttackAction2" type="Node" parent="."]
 script = ExtResource("3_2234q")

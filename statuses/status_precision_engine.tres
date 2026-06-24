@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="PrecisionEngineStatus" load_steps=3 format=3 uid="uid://dpr3c1s10n3ng1"]
+
+[ext_resource type="Texture2D" uid="uid://cixhe0hba0c1" path="res://assets/images/scroll.jpg" id="1_icon"]
+[ext_resource type="Script" path="res://statuses/status_precision_engine.gd" id="2_script"]
+
+[resource]
+script = ExtResource("2_script")
+id = "precision_engine"
+type = 2
+stack_type = 0
+can_expire = false
+duration = 1
+stacks = 1
+icon = ExtResource("1_icon")
+tooltip = "Whenever you play a card that satisfies an Exact requirement, charge 1 of your active Dice"

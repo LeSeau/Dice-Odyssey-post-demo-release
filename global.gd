@@ -39,6 +39,7 @@ var odd_dice_bonus_amount = 0
 var mech_dice_current_amount = 0
 var mech_dice_max_amount = 0
 var mech_dice_bonus_amount = 0
+var mech_dice_bonus_amount_fight = 0
 
 var charged_dice_this_turn := false
 var dice_amount_rolled_this_turn
