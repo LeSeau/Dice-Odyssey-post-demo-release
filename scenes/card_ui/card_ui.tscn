@@ -1,4 +1,4 @@
-[gd_scene load_steps=29 format=3 uid="uid://b60egpxyditoc"]
+[gd_scene load_steps=28 format=3 uid="uid://b60egpxyditoc"]
 
 [ext_resource type="Material" uid="uid://bcdb8cbop4w8o" path="res://scenes/dices/blue_dice_shader.tres" id="1_n3kmb"]
 [ext_resource type="Script" path="res://scenes/card_ui/card_ui.gd" id="2_uam7p"]
@@ -73,23 +73,6 @@ grow_vertical = 2
 pivot_offset = Vector2(90, 90)
 mouse_filter = 2
 color = Color(0.470117, 0.167668, 0.324535, 1)
-
-[node name="Glow" type="ColorRect" parent="."]
-visible = false
-z_index = -4
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -6.0
-offset_top = -8.0
-offset_right = -6.0
-offset_bottom = -8.0
-grow_horizontal = 2
-grow_vertical = 2
-scale = Vector2(1.1, 1.1)
-mouse_filter = 2
-color = Color(0.0470588, 0.960784, 0.901961, 0.352941)
 
 [node name="CardBackground" type="Panel" parent="."]
 layout_mode = 1
@@ -211,11 +194,11 @@ justification_flags = 162
 [node name="DescriptionPanel" type="Panel" parent="CardBackground/CardFrame"]
 layout_mode = 1
 anchors_preset = -1
-anchor_top = 144.0
-anchor_bottom = 188.0
-offset_top = -30096.0
+anchor_top = 0.0
+anchor_bottom = 0.0
+offset_top = 144.0
 offset_right = 140.0
-offset_bottom = -39292.0
+offset_bottom = 188.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2

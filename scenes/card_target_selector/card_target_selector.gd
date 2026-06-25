@@ -53,6 +53,13 @@ func _on_card_aim_started(card: CardUI) -> void:
 
         return
 
+    # Safety net: clear any stray highlight left over from a previous aim
+    # cycle (e.g. an interrupted fade) before starting a fresh one, rather
+    # than trying to track down every possible leak individually.
+    for enemy in get_tree().get_nodes_in_group("enemies"):
+        if enemy.has_method("set_target_highlight"):
+            enemy.set_target_highlight(false)
+
     targeting = true
     area_2d.monitoring = true
     area_2d.monitorable = true
@@ -62,12 +69,16 @@ func _on_card_aim_started(card: CardUI) -> void:
     card_arc.scale = Vector2(1.0, 1.0)
 
 
-func _on_card_aim_ended(_card: CardUI) -> void:
+func _on_card_aim_ended(card: CardUI) -> void:
     targeting = false
     card_arc.clear_points()
     area_2d.position = Vector2.ZERO
     area_2d.monitoring = false
     area_2d.monitorable = false
+    if is_instance_valid(card):
+        for target in card.targets:
+            if is_instance_valid(target) and target.has_method("set_target_highlight"):
+                target.set_target_highlight(false)
     current_card = null
 
 
@@ -79,6 +90,9 @@ func _on_area_2d_area_entered(area: Area2D) -> void:
     if not current_card.targets.has(area):
         current_card.targets.append(area)
 
+    if area.has_method("set_target_highlight"):
+        area.set_target_highlight(true)
+
     _set_locked_on(true)
 
 
@@ -87,6 +101,9 @@ func _on_area_2d_area_exited(area: Area2D) -> void:
         return
 
     current_card.targets.erase(area)
+
+    if area.has_method("set_target_highlight"):
+        area.set_target_highlight(false)
 
     _set_locked_on(not current_card.targets.is_empty())
 

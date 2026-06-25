@@ -4,6 +4,7 @@ extends Control
 @onready var dice_display: TextureRect = $Panel/DiceDisplay
 
 @onready var current_power: Label = $CurrentPower
+@onready var power_glow: TextureRect = $PowerGlow
 @export var dice_type: String = "blue"
 @onready var card_drop_area: Control = $CardDropArea
 @onready var charged_card_texture: TextureRect = $CardDropArea/CardBackground/CardFrame/Panel/ChargedCardTexture
@@ -45,6 +46,9 @@ extends Control
 
 @onready var roll_history: RichTextLabel = $RollHistory
 @onready var description_panel: Panel = $CardDropArea/CardBackground/CardFrame/DescriptionPanel
+
+const POWER_GLOW_ALPHA := 0.45
+const POWER_IDLE_PULSE_DURATION := 1.6
 
 var ink_is_on = false
 var mech_adjustment_used := false
@@ -139,10 +143,23 @@ func _ready():
     
     # Initialize the dice display with the correct texture based on dice_type
     update_dice_display()
-    
+
     # Make sure Global.dice_type is synchronized
     Global.dice_type = dice_type
     _set_socket_empty()
+    _start_power_idle_pulse()
+
+func _start_power_idle_pulse() -> void:
+    power_glow.pivot_offset = power_glow.size / 2.0
+    var idle_tween := create_tween().set_loops()
+    idle_tween.tween_property(power_glow, "scale", Vector2(1.18, 1.18), POWER_IDLE_PULSE_DURATION) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+    idle_tween.parallel().tween_property(power_glow, "modulate:a", POWER_GLOW_ALPHA * 1.6, POWER_IDLE_PULSE_DURATION) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+    idle_tween.tween_property(power_glow, "scale", Vector2(1.0, 1.0), POWER_IDLE_PULSE_DURATION) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+    idle_tween.parallel().tween_property(power_glow, "modulate:a", POWER_GLOW_ALPHA, POWER_IDLE_PULSE_DURATION) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
 func roll_dice():
     var can_roll = false
@@ -388,6 +405,7 @@ func _on_active_dice_changed(new_dice_type):
         _on_cancel_red_card_pressed()
     Global.next_guaranteed_roll = 0
     next_roll_panel.hide()
+    Events.hover_playable_cards.emit()
     update_dice_display()
     
     if(dice_type == "red"):
@@ -446,6 +464,7 @@ func update_dice_display():
     
     current_power.get_theme_font("font")
     current_power.add_theme_color_override("font_outline_color", outline_color)
+    power_glow.modulate = Color(current_power.modulate.r, current_power.modulate.g, current_power.modulate.b, POWER_GLOW_ALPHA)
     set_shader_from_global_type(dice_type)
 
 func _on_dice_rolled(rolled_dice_type, roll_value):
@@ -527,13 +546,14 @@ func _on_dice_roll_reset() -> void:
         Global.roll_value = 0
         Global.playing_red_card = false
         Global.roll_history = []
-    else: 
+    else:
         current_power.text = "0"
         Global.roll_value = 0
         current_power.modulate.a = 0.4
         Global.roll_history = []
     mech_adjustment_used = false
     _update_mech_buttons()
+    Events.hover_playable_cards.emit()
 
 
 func _on_card_charged(card_ui):
@@ -643,10 +663,11 @@ func _on_reset_charged_card():
    
 
 func _on_change_current_power():
-    
+
     current_power.text = str(Global.roll_value)
     animation_player_power.play("power_change")
     _check_sigil_trigger()
+    Events.hover_playable_cards.emit()
 
 
 func _on_next_roll_determined():
@@ -724,13 +745,17 @@ func _on_put_ink_on_dice():
     if not ink_is_on:
         ink_animation.play("ink_spray")
     dice_roll_player.stream = load("res://splatsound.mp3")
-    dice_roll_player.play()   
+    dice_roll_player.play()
     ink_is_on = true
-    
+    Global.ink_active = true
+    Events.hover_playable_cards.emit()
+
 func _on_remove_ink_from_dice():
-    if ink_is_on: 
+    if ink_is_on:
         ink_animation.play("ink_fade")
     ink_is_on = false
+    Global.ink_active = false
+    Events.hover_playable_cards.emit()
     
 func _on_display_next_roll_modifier():
     if Global.next_roll_modifier > 0:

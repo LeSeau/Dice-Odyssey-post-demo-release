@@ -3,6 +3,16 @@ extends Area2D
 
 const ARROW_OFFSET := 5
 const WHITE_SPRITE_MATERIAL := preload("res://art/white_sprite_material.tres")
+const TARGET_HIGHLIGHT_OUTLINE_COLOR := Color(2.0, 1.7, 0.6, 1.0)
+const TARGET_HIGHLIGHT_OUTLINE_THICKNESS := 3.0
+const TARGET_HIGHLIGHT_FADE_IN_DURATION := 0.1
+
+# Captured once at startup: the enemy's own outline ShaderMaterial. take_damage()'s
+# hit-flash clears sprite_2d.material to null after the FIRST hit (see below), which
+# would otherwise permanently lose this shader and silently break anything (like the
+# target highlight) that depends on it existing.
+var _base_sprite_material: ShaderMaterial
+var _target_highlight_tween: Tween
 
 @export var stats: EnemyStats : set = set_enemy_stats
 @export var width: int 
@@ -26,6 +36,10 @@ var current_action: EnemyAction : set = set_current_action
 var last_action: String = ""
 var last_action_count: int = 0
 var blocked_last_turn: bool = false
+
+
+func _ready() -> void:
+    _base_sprite_material = sprite_2d.material as ShaderMaterial
 
 
 
@@ -89,6 +103,7 @@ func update_enemy() -> void:
         await ready
 
     sprite_2d.texture = stats.art
+    sprite_2d.modulate = Color(1, 1, 1, 1)
 
     var tex_size = sprite_2d.texture.get_size()
 
@@ -149,7 +164,7 @@ func take_damage(damage: int, which_modifier: Modifier.Type) -> void:
 
     tween.finished.connect(
         func():
-            sprite_2d.material = null
+            sprite_2d.material = _base_sprite_material
             
             if stats.health <= 0:
                 Events.enemy_died.emit(self)
@@ -165,4 +180,28 @@ func _on_area_entered(_area: Area2D) -> void:
 
 func _on_area_exited(_area: Area2D) -> void:
     arrow.hide()
+
+
+func set_target_highlight(active: bool) -> void:
+    if not _base_sprite_material:
+        return
+    if _target_highlight_tween and _target_highlight_tween.is_valid():
+        _target_highlight_tween.kill()
+    # take_damage()'s hit-flash temporarily swaps sprite_2d.material to
+    # WHITE_SPRITE_MATERIAL; make sure our own outline shader is the one
+    # actually assigned before driving its parameters.
+    sprite_2d.material = _base_sprite_material
+    if active:
+        _base_sprite_material.set_shader_parameter("outline_color", TARGET_HIGHLIGHT_OUTLINE_COLOR)
+        _target_highlight_tween = create_tween()
+        _target_highlight_tween.tween_property(_base_sprite_material, "shader_parameter/outline_thickness", TARGET_HIGHLIGHT_OUTLINE_THICKNESS, TARGET_HIGHLIGHT_FADE_IN_DURATION)
+    else:
+        # Instant, unconditional snap to zero — no tween to interrupt or leave
+        # at a partial value if this gets called again before a fade finishes.
+        # Alpha is zeroed too as a second guarantee of invisibility regardless
+        # of thickness, in case anything else nudges thickness back up later.
+        _base_sprite_material.set_shader_parameter("outline_thickness", 0.0)
+        var faded_color := TARGET_HIGHLIGHT_OUTLINE_COLOR
+        faded_color.a = 0.0
+        _base_sprite_material.set_shader_parameter("outline_color", faded_color)
    

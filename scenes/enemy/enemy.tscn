@@ -11,6 +11,7 @@
 [ext_resource type="PackedScene" uid="uid://cntarjcc6q8hs" path="res://scenes/modifier_handler/modifier.tscn" id="9_cvvnv"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_0r5a0"]
+resource_local_to_scene = true
 shader = ExtResource("2_vgxuv")
 shader_parameter/outline_thickness = 0.0
 shader_parameter/outline_color = Vector4(0, 0, 0, 1)

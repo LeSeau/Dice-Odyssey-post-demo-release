@@ -33,6 +33,7 @@ func add_card(card: Card) -> void:
     new_card_ui.mouse_entered.connect(_on_card_mouse_entered.bind(new_card_ui))
     new_card_ui.mouse_exited.connect(_on_card_mouse_exited.bind(new_card_ui))
 
+    new_card_ui.set_playable_visual(_get_glow_state(card))
     call_deferred("_update_card_positions")
 
 func discard_card(card: CardUI) -> void:
@@ -216,20 +217,37 @@ func is_card_playable(card_ui: CardUI) -> bool:
     return check_card_requirement(card_ui.card)
     
 func _on_hover_playable_cards() -> void:
-    # Optional: Keep debug for testing
-    # debug_print_hand_requirements()
-    
-    #var playable = get_playable_cards()
-    #var unplayable = get_unplayable_cards()
-    #
-    ## Highlight playable cards (full opacity)
-    #for card in playable:
-        #card.set_playable_visual(true)
-    #
-    ## Dim unplayable cards (reduced opacity)
-    #for card in unplayable:
-        #card.set_playable_visual(false)
-    pass
+    for child in get_children():
+        if child is CardUI and child.card:
+            var card_ui := child as CardUI
+            card_ui.set_playable_visual(_get_glow_state(card_ui.card))
+
+func _get_glow_state(card: Card) -> CardUI.PlayableGlow:
+    if card.can_play_without_dice:
+        return CardUI.PlayableGlow.HOT
+    if Global.ink_active:
+        return CardUI.PlayableGlow.NONE
+    if Global.dice_type == "red":
+        if Global.red_dice_current_amount <= 0:
+            return CardUI.PlayableGlow.NONE
+        # Red commits the card before rolling, so only requirements that are
+        # already known to be true right now (not dependent on the upcoming
+        # roll) can be shown as a sure thing. Support cards (power
+        # manipulation, e.g. Reinforce) are excluded even when their
+        # requirement qualifies.
+        if card.rarity != Card.Rarity.SUPPORT:
+            if card.requirement == Card.Requirement.RED or card.requirement == Card.Requirement.MAX:
+                return CardUI.PlayableGlow.HOT
+            if card.requirement == Card.Requirement.NONE:
+                return CardUI.PlayableGlow.AVAILABLE
+        return CardUI.PlayableGlow.NONE
+    if Global.roll_value <= 0:
+        return CardUI.PlayableGlow.NONE
+    if card.requirement == Card.Requirement.NONE:
+        return CardUI.PlayableGlow.AVAILABLE
+    if check_card_requirement(card):
+        return CardUI.PlayableGlow.HOT
+    return CardUI.PlayableGlow.NONE
 
 func _get_card_fan_angle(card: CardUI) -> float:
     var card_count := get_child_count()

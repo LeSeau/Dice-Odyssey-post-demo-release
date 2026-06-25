@@ -41,6 +41,8 @@ var mech_dice_max_amount = 0
 var mech_dice_bonus_amount = 0
 var mech_dice_bonus_amount_fight = 0
 
+var ink_active := false
+
 var charged_dice_this_turn := false
 var dice_amount_rolled_this_turn
 var dice_type = "blue"

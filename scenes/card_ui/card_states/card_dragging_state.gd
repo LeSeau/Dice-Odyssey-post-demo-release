@@ -26,6 +26,7 @@ func enter() -> void:
         card_ui.card_frame.add_theme_stylebox_override("panel", card_ui.SUPPORT_STYLEBOX)
     else:
         card_ui.panel.set("theme_override_styles/panel", card_ui.DRAG_STYLEBOX)
+    card_ui.reapply_playable_visual()
     Events.card_drag_started.emit(card_ui)
     
     minimum_drag_time_elapsed = false

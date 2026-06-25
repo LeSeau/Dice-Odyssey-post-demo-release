@@ -10,8 +10,27 @@ const TOOLTIP_OFFSET_X = 2  # Horizontal distance from card
 const TOOLTIP_HEIGHT = 108    # Approximate height of each tooltip
 const TOOLTIP_SPACING = 1     # Space between tooltips
 
-const PLAYABLE_OPACITY := 1.0
-const UNPLAYABLE_OPACITY := 1.0
+enum PlayableGlow { NONE, AVAILABLE, HOT }
+
+const DamagePopupScript := preload("res://damage_popup.gd")
+const GLOW_DEFAULT_COLOR := Color(0.184314, 0.917647, 0.843137)
+const GLOW_BORDER_WIDTH_HOT := 5
+const GLOW_BORDER_WIDTH_AVAILABLE := 3
+const GLOW_SHADOW_ALPHA_HOT := 0.65
+const GLOW_SHADOW_ALPHA_AVAILABLE := 0.35
+const GLOW_SHADOW_SIZE_HOT := 7
+const GLOW_SHADOW_SIZE_AVAILABLE := 4
+const GLOW_HOT_MAX_ALPHA := 1.0
+const GLOW_HOT_MIN_ALPHA := 0.35
+const GLOW_AVAILABLE_ALPHA := 0.5
+const GLOW_PULSE_DURATION := 1.1
+# Dim unplayable cards by darkening (RGB multiply at full alpha) rather than
+# reducing alpha. Alpha-dimming bleeds the background through and dims
+# unevenly because the card is built from several stacked opaque layers;
+# a full-alpha brightness multiply is uniform regardless of layer stacking.
+const UNPLAYABLE_MODULATE := Color(0.86, 0.86, 0.86, 1.0)
+
+var current_glow_state: PlayableGlow = PlayableGlow.NONE
 
 const TooltipScene = preload("res://scenes/ui/tooltip.tscn")
 const SUPPORT_STYLEBOX := preload("res://scenes/card_ui/card_ui_normal_celestial.tres")
@@ -71,7 +90,10 @@ const RITE_BANNER_STYLEBOX := preload("res://scenes/card_ui/card_banner_rite.tre
 @onready var description_panel: Panel = $CardBackground/CardFrame/DescriptionPanel
 
 @onready var description: Label = $CardBackground/CardFrame/DescriptionPanel/Description
-@onready var glow: ColorRect = $Glow
+
+var _glow_tween: Tween
+var _base_frame_stylebox: StyleBox
+var _hot_frame_stylebox: StyleBoxFlat
 
 @onready var requirement_panel: Panel = $CardBackground/CardFrame/RequirementPanel
 @onready var requirement_label: Label = $CardBackground/CardFrame/RequirementPanel/RequirementLabel
@@ -464,10 +486,47 @@ func is_mouse_over_card() -> bool:
     return get_global_rect().has_point(get_global_mouse_position())
 
 # Add a function to set playability visual
-func set_playable_visual(is_playable: bool) -> void:
-    #var target_opacity = PLAYABLE_OPACITY if is_playable else UNPLAYABLE_OPACITY
-    #modulate.a = target_opacity
-    pass
+func set_playable_visual(state: PlayableGlow) -> void:
+    if not _base_frame_stylebox:
+        _base_frame_stylebox = card_frame.get_theme_stylebox("panel")
+    current_glow_state = state
+    match state:
+        PlayableGlow.HOT, PlayableGlow.AVAILABLE:
+            modulate = Color.WHITE
+            var is_hot := state == PlayableGlow.HOT
+            if not _hot_frame_stylebox:
+                _hot_frame_stylebox = _base_frame_stylebox.duplicate()
+            var border_width := GLOW_BORDER_WIDTH_HOT if is_hot else GLOW_BORDER_WIDTH_AVAILABLE
+            _hot_frame_stylebox.border_width_left = border_width
+            _hot_frame_stylebox.border_width_top = border_width
+            _hot_frame_stylebox.border_width_right = border_width
+            _hot_frame_stylebox.border_width_bottom = border_width
+            _hot_frame_stylebox.shadow_size = GLOW_SHADOW_SIZE_HOT if is_hot else GLOW_SHADOW_SIZE_AVAILABLE
+            var dice_color: Color = DamagePopupScript.DICE_TYPE_COLORS.get(Global.dice_type, GLOW_DEFAULT_COLOR)
+            _hot_frame_stylebox.shadow_color = Color(dice_color.r, dice_color.g, dice_color.b, GLOW_SHADOW_ALPHA_HOT if is_hot else GLOW_SHADOW_ALPHA_AVAILABLE)
+            card_frame.add_theme_stylebox_override("panel", _hot_frame_stylebox)
+            if is_hot:
+                var current_alpha: float = _hot_frame_stylebox.border_color.a if (_glow_tween and _glow_tween.is_valid()) else GLOW_HOT_MIN_ALPHA
+                _hot_frame_stylebox.border_color = Color(dice_color.r, dice_color.g, dice_color.b, current_alpha)
+                if not (_glow_tween and _glow_tween.is_valid()):
+                    _hot_frame_stylebox.border_color.a = GLOW_HOT_MIN_ALPHA
+                    _glow_tween = create_tween().set_loops()
+                    _glow_tween.tween_property(_hot_frame_stylebox, "border_color:a", GLOW_HOT_MAX_ALPHA, GLOW_PULSE_DURATION).set_trans(Tween.TRANS_SINE)
+                    _glow_tween.tween_property(_hot_frame_stylebox, "border_color:a", GLOW_HOT_MIN_ALPHA, GLOW_PULSE_DURATION).set_trans(Tween.TRANS_SINE)
+            else:
+                if _glow_tween and _glow_tween.is_valid():
+                    _glow_tween.kill()
+                _hot_frame_stylebox.border_color = Color(dice_color.r, dice_color.g, dice_color.b, GLOW_AVAILABLE_ALPHA)
+        PlayableGlow.NONE:
+            if _glow_tween and _glow_tween.is_valid():
+                _glow_tween.kill()
+            card_frame.add_theme_stylebox_override("panel", _base_frame_stylebox)
+            modulate = UNPLAYABLE_MODULATE
+
+# Re-applies whatever glow state was last set. Needed because other systems
+# (e.g. card hover) can overwrite CardFrame's stylebox override directly.
+func reapply_playable_visual() -> void:
+    set_playable_visual(current_glow_state)
 
 func _on_dice_rolled_update_description(_a = null, _b = null) -> void:
     if card and card.has_method("get_dynamic_description"):
