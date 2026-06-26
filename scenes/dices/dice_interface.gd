@@ -9,6 +9,24 @@ const DICE_TYPE_TO_NODE = {
     "giant": "dice_4", "magma": "dice_5", "even": "dice_6",
     "odd": "dice_7", "green": "dice_8", "mech": "dice_9"
 }
+const DICE_TYPE_TO_AMOUNT = {
+    "blue": "blue_dice_current_amount", "red": "red_dice_current_amount", "evil": "evil_dice_current_amount",
+    "giant": "giant_dice_current_amount", "magma": "magma_dice_current_amount", "even": "even_dice_current_amount",
+    "odd": "odd_dice_current_amount", "green": "green_dice_current_amount", "mech": "mech_dice_current_amount"
+}
+# Mirrors dice.gd::update_dice_display()'s palette so the selected slot here
+# matches the rolled die / Power number color elsewhere in the HUD.
+const DICE_TYPE_COLOR := {
+    "blue": Color(0.35, 0.65, 1.0),
+    "red": Color(1, 0, 0),
+    "evil": Color(0.8, 0.2, 0.7),
+    "giant": Color(0.7, 1.0, 0.3),
+    "magma": Color(1.0, 0.3, 0.0),
+    "even": Color(1.0, 0.6, 0.3),
+    "odd": Color(0.925, 0.764, 0.043),
+    "green": Color(0.0, 0.933, 0.475),
+    "mech": Color(0.35, 0.35, 0.35),
+}
 
 @onready var control: DiceInterface = $"."
 @onready var dice_1: VBoxContainer = $DicePanel/MarginContainer/HBoxContainer/Dice1
@@ -66,8 +84,7 @@ func _ready() -> void:
     Events.resize_dice_interface.connect(_on_resize_dice_interface)
     Events.charge_dice_animation.connect(_on_charge_dice_animation)
     initialize_dices()
-    var different_dices_amount = Global.dice_inventory.size()
-    dice_panel.custom_minimum_size.x = (different_dices_amount * 65) + 20
+    _resize_panel_for_dice_inventory()
     Events.temporary_dice_added.connect(_on_temporary_dice_added)
     Events.active_dice_changed.connect(update_selected_highlight)
     await get_tree().process_frame
@@ -111,9 +128,10 @@ func _on_dice_rolled(dice_type: String, roll_value: int):
             Global.green_dice_current_amount -= 1
             dice_8_label.text = str(Global.green_dice_current_amount, "/", Global.green_dice_max_amount)
     elif Global.dice_type == "mech":  # Reduce only if it's the blue die
-        if Global.mech_dice_current_amount > 0:  
+        if Global.mech_dice_current_amount > 0:
             Global.mech_dice_current_amount -= 1
             dice_9_label.text = str(Global.mech_dice_current_amount, "/", Global.mech_dice_max_amount)
+    update_selected_highlight()
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
@@ -266,7 +284,9 @@ func _on_player_turn_started() -> void:
     Global.mech_dice_bonus_amount = 0
     Global.charged_dice_this_turn = false
     initialize_dices()
-   
+    update_selected_highlight()
+    _play_panel_refill_burst()
+
 func _on_dice_amount_changed():
     dice_1_label.text = str(Global.blue_dice_current_amount, "/", Global.blue_dice_max_amount)
     dice_2_label.text = str(Global.red_dice_current_amount, "/", Global.red_dice_max_amount)
@@ -277,6 +297,7 @@ func _on_dice_amount_changed():
     dice_7_label.text = str(Global.odd_dice_current_amount, "/", Global.odd_dice_max_amount)
     dice_8_label.text = str(Global.green_dice_current_amount, "/", Global.green_dice_max_amount)
     dice_9_label.text = str(Global.mech_dice_current_amount, "/", Global.mech_dice_max_amount)
+    update_selected_highlight()
 
 func initialize_dices():
     if Global.evil_dice_max_amount > 0 or Global.evil_dice_current_amount > 0 or Global.evil_dice_bonus_amount > 0:
@@ -354,16 +375,38 @@ func _on_dice_bought(dice_type):
     add_dice_slot(dice_type)
 
 func _on_resize_dice_interface():
-    var different_dices_amount = Global.dice_inventory.size()
-    dice_panel.width = 1200
+    _resize_panel_for_dice_inventory()
+
+func _resize_panel_for_dice_inventory() -> void:
+    # Count slots that are actually visible right now (mirrors
+    # initialize_dices()'s own per-type conditions) rather than relying on
+    # Global.dice_inventory, which most temporary-dice-granting cards never
+    # update (only cogwork.gd does) and is therefore frequently stale.
+    var visible_dice_count := 2  # blue and red are always shown
+    if Global.evil_dice_max_amount > 0 or Global.evil_dice_current_amount > 0 or Global.evil_dice_bonus_amount > 0:
+        visible_dice_count += 1
+    if Global.giant_dice_max_amount > 0 or Global.giant_dice_current_amount > 0 or Global.giant_dice_bonus_amount > 0:
+        visible_dice_count += 1
+    if Global.magma_dice_max_amount > 0 or Global.magma_dice_current_amount > 0 or Global.magma_dice_bonus_amount > 0:
+        visible_dice_count += 1
+    if Global.even_dice_max_amount > 0 or Global.even_dice_current_amount > 0 or Global.even_dice_bonus_amount > 0:
+        visible_dice_count += 1
+    if Global.odd_dice_max_amount > 0 or Global.odd_dice_current_amount > 0 or Global.odd_dice_bonus_amount > 0:
+        visible_dice_count += 1
+    if Global.green_dice_max_amount > 0 or Global.green_dice_current_amount > 0 or Global.green_dice_bonus_amount > 0:
+        visible_dice_count += 1
+    if Global.mech_dice_max_amount > 0 or Global.mech_dice_current_amount > 0 or Global.mech_dice_bonus_amount > 0 or Global.mech_dice_bonus_amount_fight > 0:
+        visible_dice_count += 1
+    dice_panel.custom_minimum_size.x = (visible_dice_count * 65) + 20
 
 func _on_charge_dice_animation():
-    animation_player.play("charge")  # Play the 'charge' animation  
+    animation_player.play("charge")  # Play the 'charge' animation
     initialize_dices()
 
 func _on_temporary_dice_added(dice_type: String):
     print("adding dice")
     initialize_dices()  # Refresh the interface
+    _resize_panel_for_dice_inventory()
 
 func _show_tooltip(dice_node: VBoxContainer, dice_type: String) -> void:
     if tooltip_instance and is_instance_valid(tooltip_instance):
@@ -427,12 +470,36 @@ func _on_dice_9_mouse_exited() -> void:
     _hide_tooltip()
 
 
-func update_selected_highlight(selected_type: String) -> void:
+func update_selected_highlight(selected_type: String = Global.dice_type) -> void:
     for dice_type in DICE_TYPE_TO_NODE:
         var node = get(DICE_TYPE_TO_NODE[dice_type])
-        if dice_type == selected_type:
-            node.modulate = Color(1.3, 1.3, 1.3, 1.0)
-            node.scale = Vector2(1.1, 1.1)
-        else:
-            node.modulate = Color(0.6, 0.6, 0.6, 1.0)
+        var amount: int = Global.get(DICE_TYPE_TO_AMOUNT[dice_type])
+        var depleted := amount <= 0
+        if dice_type == selected_type and not depleted:
+            var base_color: Color = DICE_TYPE_COLOR.get(dice_type, Color.WHITE)
+            var highlight := base_color.lerp(Color.WHITE, 0.55)
+            node.modulate = Color(highlight.r * 1.3, highlight.g * 1.3, highlight.b * 1.3, 1.0)
+            node.scale = Vector2(1.15, 1.15)
+        elif depleted:
+            node.modulate = Color(0.32, 0.32, 0.32, 0.55)
             node.scale = Vector2(1.0, 1.0)
+        else:
+            node.modulate = Color(0.72, 0.72, 0.72, 1.0)
+            node.scale = Vector2(1.0, 1.0)
+
+
+# Small "back up!" punch played on a dice slot that just got refilled from
+# empty at the start of a turn. Plays after update_selected_highlight() has
+# "Dice are back!" punch played on the whole dice panel at the start of every
+# turn, regardless of what was depleted last turn — simpler and more readable
+# than animating individual slots, and reads as "your resources just refreshed."
+func _play_panel_refill_burst() -> void:
+    dice_panel.pivot_offset = dice_panel.size / 2.0
+    var resting_modulate: Color = dice_panel.modulate
+    var tween := create_tween()
+    tween.tween_property(dice_panel, "scale", Vector2(1.12, 1.12), 0.12) \
+        .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+    tween.parallel().tween_property(dice_panel, "modulate", Color(1.6, 1.6, 1.6, resting_modulate.a), 0.1)
+    tween.tween_property(dice_panel, "scale", Vector2(1.0, 1.0), 0.22) \
+        .set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+    tween.parallel().tween_property(dice_panel, "modulate", resting_modulate, 0.28)

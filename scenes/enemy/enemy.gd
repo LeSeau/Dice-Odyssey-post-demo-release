@@ -164,13 +164,19 @@ func take_damage(damage: int, which_modifier: Modifier.Type) -> void:
 
     tween.finished.connect(
         func():
-            sprite_2d.material = _base_sprite_material
-            
             if stats.health <= 0:
+                # Drop the outline shader entirely rather than restoring it:
+                # its fragment() ignores incoming modulate/alpha, so the
+                # death-fade below would have no visible effect on this
+                # sprite while it's assigned. The enemy is about to be
+                # freed anyway, so it no longer needs highlight capability.
+                sprite_2d.material = null
                 Events.enemy_died.emit(self)
                 var death_tween := create_tween()
                 death_tween.tween_property(self, "modulate:a", 0.0, 0.4)
                 death_tween.tween_callback(queue_free)
+            else:
+                sprite_2d.material = _base_sprite_material
     )
 
 

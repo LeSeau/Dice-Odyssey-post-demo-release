@@ -12,7 +12,7 @@ const TOOLTIP_SPACING = 1     # Space between tooltips
 
 enum PlayableGlow { NONE, AVAILABLE, HOT }
 
-const DamagePopupScript := preload("res://damage_popup.gd")
+const DiceInterfaceScript := preload("res://scenes/dices/dice_interface.gd")
 const GLOW_DEFAULT_COLOR := Color(0.184314, 0.917647, 0.843137)
 const GLOW_BORDER_WIDTH_HOT := 5
 const GLOW_BORDER_WIDTH_AVAILABLE := 3
@@ -502,7 +502,7 @@ func set_playable_visual(state: PlayableGlow) -> void:
             _hot_frame_stylebox.border_width_right = border_width
             _hot_frame_stylebox.border_width_bottom = border_width
             _hot_frame_stylebox.shadow_size = GLOW_SHADOW_SIZE_HOT if is_hot else GLOW_SHADOW_SIZE_AVAILABLE
-            var dice_color: Color = DamagePopupScript.DICE_TYPE_COLORS.get(Global.dice_type, GLOW_DEFAULT_COLOR)
+            var dice_color: Color = DiceInterfaceScript.DICE_TYPE_COLOR.get(Global.dice_type, GLOW_DEFAULT_COLOR)
             _hot_frame_stylebox.shadow_color = Color(dice_color.r, dice_color.g, dice_color.b, GLOW_SHADOW_ALPHA_HOT if is_hot else GLOW_SHADOW_ALPHA_AVAILABLE)
             card_frame.add_theme_stylebox_override("panel", _hot_frame_stylebox)
             if is_hot:
