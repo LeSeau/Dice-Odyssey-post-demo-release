@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b3o35svy3wvh2"
-path="res://.godot/imported/blue_alexina.PNG-af66532b8030fcf55bc6a393e32eba31.ctex"
+uid="uid://dlsa82dxlx04v"
+path="res://.godot/imported/medusa_perfect_v2.png-26d02e2bde0699e2b245750e73cfede8.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://blue_alexina.PNG"
-dest_files=["res://.godot/imported/blue_alexina.PNG-af66532b8030fcf55bc6a393e32eba31.ctex"]
+source_file="res://medusa_perfect_v2.png"
+dest_files=["res://.godot/imported/medusa_perfect_v2.png-26d02e2bde0699e2b245750e73cfede8.ctex"]
 
 [params]
 

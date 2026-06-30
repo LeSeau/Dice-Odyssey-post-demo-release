@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b3o35svy3wvh2"
-path="res://.godot/imported/blue_alexina.PNG-af66532b8030fcf55bc6a393e32eba31.ctex"
+uid="uid://deyc2gu6ufuki"
+path="res://.godot/imported/hound_perfect_v2.png-1a0168fb3ada1b38c5fbf2554f1b8adb.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://blue_alexina.PNG"
-dest_files=["res://.godot/imported/blue_alexina.PNG-af66532b8030fcf55bc6a393e32eba31.ctex"]
+source_file="res://hound_perfect_v2.png"
+dest_files=["res://.godot/imported/hound_perfect_v2.png-1a0168fb3ada1b38c5fbf2554f1b8adb.ctex"]
 
 [params]
 

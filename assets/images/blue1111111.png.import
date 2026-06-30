@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b3o35svy3wvh2"
-path="res://.godot/imported/blue_alexina.PNG-af66532b8030fcf55bc6a393e32eba31.ctex"
+uid="uid://ctkt0fdcup0e0"
+path="res://.godot/imported/blue1111111.png-c6dd1f9ef9b590a09f7c274e9f543b9d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://blue_alexina.PNG"
-dest_files=["res://.godot/imported/blue_alexina.PNG-af66532b8030fcf55bc6a393e32eba31.ctex"]
+source_file="res://assets/images/blue1111111.png"
+dest_files=["res://.godot/imported/blue1111111.png-c6dd1f9ef9b590a09f7c274e9f543b9d.ctex"]
 
 [params]
 

@@ -402,6 +402,13 @@ func _resize_panel_for_dice_inventory() -> void:
 func _on_charge_dice_animation():
     animation_player.play("charge")  # Play the 'charge' animation
     initialize_dices()
+    # initialize_dices() only refreshes the optional dice types' labels - blue (dice_1)
+    # and red (dice_2) are always-visible and skipped there, so charging a blue/red die
+    # (e.g. Disintegrate on the active blue die, Electrify, Spark, Blood Drop) wouldn't
+    # update its count. Refresh them here so the displayed amount stays correct.
+    dice_1_label.text = str(Global.blue_dice_current_amount, "/", Global.blue_dice_max_amount)
+    dice_2_label.text = str(Global.red_dice_current_amount, "/", Global.red_dice_max_amount)
+    update_selected_highlight()
 
 func _on_temporary_dice_added(dice_type: String):
     print("adding dice")

@@ -1,6 +1,7 @@
-[gd_scene load_steps=60 format=3 uid="uid://cahno8aso5net"]
+[gd_scene load_steps=61 format=3 uid="uid://cahno8aso5net"]
 
 [ext_resource type="Script" path="res://scenes/battle/battle.gd" id="1_4s751"]
+[ext_resource type="PackedScene" uid="uid://c0ywt0g0r1n8h" path="res://scenes/ui/turn_banner.tscn" id="turn_banner_scene"]
 [ext_resource type="PackedScene" uid="uid://d0efyathkfg74" path="res://scenes/enemy/enemy.tscn" id="2_02s5s"]
 [ext_resource type="Script" path="res://scenes/ui/hand.gd" id="2_uaw60"]
 [ext_resource type="AudioStream" uid="uid://bk71e7uje8mca" path="res://fight_music.ogg" id="3_7d1uf"]
@@ -212,6 +213,8 @@ player = NodePath("../Player")
 [node name="BattleUI" type="CanvasLayer" parent="." groups=["ui_layer"]]
 script = ExtResource("7_18vit")
 
+[node name="TurnBanner" parent="BattleUI" instance=ExtResource("turn_banner_scene")]
+
 [node name="DiceAnimationControl" type="Control" parent="BattleUI"]
 visible = false
 layout_mode = 3
@@ -327,21 +330,23 @@ anchor_top = 1.0
 anchor_bottom = 1.0
 offset_left = 43.0
 offset_top = -78.0
-offset_right = 103.0
-offset_bottom = -18.0
+offset_right = 121.0
+offset_bottom = -8.0
 grow_vertical = 0
 texture_normal = ExtResource("16_xu5rp")
 counter = NodePath("Counter")
 
 [node name="Counter" type="Label" parent="BattleUI/DrawPileButton"]
-layout_mode = 0
-offset_left = 39.0
-offset_top = 32.0
-offset_right = 72.0
-offset_bottom = 64.0
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 text = "10
 "
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="DiscardPileButton" parent="BattleUI" node_paths=PackedStringArray("counter") instance=ExtResource("15_b2kgl")]
 unique_name_in_owner = true
@@ -350,24 +355,26 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -80.0
+offset_left = -98.0
 offset_top = -78.0
 offset_right = -20.0
-offset_bottom = -18.0
+offset_bottom = -8.0
 grow_horizontal = 0
 grow_vertical = 0
 texture_normal = ExtResource("17_ke8nc")
 counter = NodePath("Counter")
 
 [node name="Counter" type="Label" parent="BattleUI/DiscardPileButton"]
-layout_mode = 0
-offset_left = 39.0
-offset_top = 32.0
-offset_right = 72.0
-offset_bottom = 64.0
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 text = "10
 "
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="DeckPileButton" parent="BattleUI" node_paths=PackedStringArray("counter") instance=ExtResource("15_b2kgl")]
 unique_name_in_owner = true

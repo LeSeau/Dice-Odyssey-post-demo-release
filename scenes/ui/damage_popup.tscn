@@ -20,4 +20,7 @@ offset_left = 27.0
 offset_top = -164.0
 offset_right = 67.0
 offset_bottom = -103.0
+pivot_offset = Vector2(20, 30)
 label_settings = SubResource("LabelSettings_8t4me")
+horizontal_alignment = 1
+vertical_alignment = 1

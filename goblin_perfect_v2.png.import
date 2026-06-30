@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b3o35svy3wvh2"
-path="res://.godot/imported/blue_alexina.PNG-af66532b8030fcf55bc6a393e32eba31.ctex"
+uid="uid://bd53g1gh5h6q"
+path="res://.godot/imported/goblin_perfect_v2.png-76fdbe2ba26c0e17c66d45e30347e1b0.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://blue_alexina.PNG"
-dest_files=["res://.godot/imported/blue_alexina.PNG-af66532b8030fcf55bc6a393e32eba31.ctex"]
+source_file="res://goblin_perfect_v2.png"
+dest_files=["res://.godot/imported/goblin_perfect_v2.png-76fdbe2ba26c0e17c66d45e30347e1b0.ctex"]
 
 [params]
 

@@ -1,11 +1,11 @@
 [gd_resource type="Resource" script_class="EnemyStats" load_steps=4 format=3 uid="uid://dk6dnpnblqvmh"]
 
 [ext_resource type="PackedScene" uid="uid://pjw2cfcstja6" path="res://enemies/hound/hound_enemy_ai.tscn" id="1_7phg0"]
-[ext_resource type="Texture2D" uid="uid://cfsik1xwf6y47" path="res://hound_perfect.png" id="2_a2hgw"]
+[ext_resource type="Texture2D" uid="uid://deyc2gu6ufuki" path="res://hound_perfect_v2.png" id="2_p5com"]
 [ext_resource type="Script" path="res://custom_resources/enemy_stats.gd" id="3_s0rci"]
 
 [resource]
 script = ExtResource("3_s0rci")
 ai = ExtResource("1_7phg0")
 max_health = 42
-art = ExtResource("2_a2hgw")
+art = ExtResource("2_p5com")

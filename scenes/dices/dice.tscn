@@ -1,6 +1,6 @@
-[gd_scene load_steps=57 format=3 uid="uid://drwjp5bi8wmx6"]
+[gd_scene load_steps=63 format=3 uid="uid://drwjp5bi8wmx6"]
 
-[ext_resource type="Texture2D" uid="uid://c17qq0sj25epy" path="res://assets/images/blue1.PNG" id="1_hxyyb"]
+[ext_resource type="Texture2D" uid="uid://c17qq0sj25epy" path="res://assets/images/blue1.png" id="1_hxyyb"]
 [ext_resource type="Script" path="res://scenes/dices/dice.gd" id="1_xhb7n"]
 [ext_resource type="Theme" uid="uid://c5ebdqhhhfy3i" path="res://scenes/button/base_button.tres" id="2_exd4y"]
 [ext_resource type="Theme" uid="uid://c8cqncsqlplyu" path="res://main_theme.tres" id="2_l0ni4"]
@@ -14,6 +14,9 @@
 [ext_resource type="LabelSettings" uid="uid://cy482afjc3tjk" path="res://scenes/card_ui/card_title.tres" id="6_mpv3d"]
 [ext_resource type="StyleBox" uid="uid://ba5f3gvin2wmm" path="res://scenes/card_ui/card_panel.tres" id="7_23bka"]
 [ext_resource type="FontFile" uid="uid://b1es4i7nr43mv" path="res://fonts/CinzelDecorative-Bold.otf" id="7_vre42"]
+[ext_resource type="FontFile" uid="uid://v7ibmopcuf0s" path="res://fonts/Cinzel-Black.otf" id="font_cinzel_black"]
+[ext_resource type="FontFile" uid="uid://cn5cvioavhfx1" path="res://Metamorphous-Regular.ttf" id="font_metamorphous"]
+[ext_resource type="FontFile" uid="uid://7xp641so2k1u" path="res://PirataOne-Regular.ttf" id="font_pirata_one"]
 [ext_resource type="StyleBox" uid="uid://cjypcaytp7ubr" path="res://scenes/card_ui/card_ui_normal.tres" id="9_3a5it"]
 [ext_resource type="StyleBox" uid="uid://bxyflqo45i4i4" path="res://scenes/card_ui/card_requirement_multiple.tres" id="12_dwjae"]
 [ext_resource type="StyleBox" uid="uid://djfmi1eok7bdc" path="res://scenes/dices/roll_button_style.tres" id="13_6hovg"]
@@ -26,6 +29,7 @@
 [ext_resource type="FontFile" uid="uid://dltntsanjiykq" path="res://fonts/LuckiestGuy-Regular.ttf" id="17_vnl2x"]
 [ext_resource type="LabelSettings" uid="uid://bhrpkq50bp811" path="res://scenes/card_ui/card_ui_bonus_requirement_label.tres" id="18_ngl5c"]
 [ext_resource type="LabelSettings" uid="uid://cu35utjlrjheh" path="res://scenes/card_ui/card_ui_bonus_effect_label.tres" id="19_fus44"]
+[ext_resource type="Shader" path="res://scenes/dices/power_float.gdshader" id="power_float_shader"]
 
 [sub_resource type="Theme" id="Theme_co3io"]
 
@@ -320,25 +324,45 @@ point_count = 4
 curve = SubResource("Curve_t8ahb")
 
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_c1lyy"]
-lifetime_randomness = 1.0
+lifetime_randomness = 0.3
 particle_flag_disable_z = true
-emission_shape = 3
-emission_box_extents = Vector3(70, 70, 70)
+emission_shape = 2
+emission_sphere_radius = 85.0
 direction = Vector3(0, -1, 0)
-spread = 20.0
-initial_velocity_min = 80.0
-initial_velocity_max = 100.0
-gravity = Vector3(0, 98, 0)
-scale_min = 2.0
-scale_max = 9.0
+spread = 0.0
+initial_velocity_min = 0.0
+initial_velocity_max = 0.0
+gravity = Vector3(0, 0, 0)
+radial_accel_min = -1700.0
+radial_accel_max = -1300.0
+scale_min = 3.0
+scale_max = 7.0
 scale_curve = SubResource("CurveTexture_ig0to")
-color = Color(1, 1, 0.227451, 1)
+color = Color(1, 0.9, 0.5, 1)
 alpha_curve = SubResource("CurveTexture_od2rw")
 anim_speed_curve = SubResource("CurveTexture_hiixt")
 
+[sub_resource type="Gradient" id="Gradient_power_glow"]
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_power_glow"]
+gradient = SubResource("Gradient_power_glow")
+width = 128
+height = 128
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_power_float"]
+shader = ExtResource("power_float_shader")
+shader_parameter/amplitude_x = 1.5
+shader_parameter/amplitude_y = 2.2
+shader_parameter/speed_x = 0.55
+shader_parameter/speed_y = 0.81
+
 [sub_resource type="LabelSettings" id="LabelSettings_mm8wg"]
 line_spacing = -2.0
-font = ExtResource("7_vre42")
+font = ExtResource("font_cinzel_black")
 font_size = 80
 outline_size = 5
 outline_color = Color(0.313726, 0.0823529, 0, 1)
@@ -461,17 +485,6 @@ shadow_offset = Vector2(1, 2)
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_w36f5"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
 
-[sub_resource type="Gradient" id="Gradient_power_glow"]
-colors = PackedColorArray(1, 1, 1, 0.9, 1, 1, 1, 0)
-
-[sub_resource type="GradientTexture2D" id="GradientTexture2D_power_glow"]
-gradient = SubResource("Gradient_power_glow")
-width = 128
-height = 128
-fill = 1
-fill_from = Vector2(0.5, 0.5)
-fill_to = Vector2(1, 0.5)
-
 [node name="ActiveDice" type="Control"]
 custom_minimum_size = Vector2(120, 120)
 layout_mode = 3
@@ -541,11 +554,11 @@ libraries = {
 [node name="GPUParticles2D" type="GPUParticles2D" parent="Panel/DiceDisplay"]
 position = Vector2(70, 70)
 emitting = false
-amount = 120
+amount = 50
 process_material = SubResource("ParticleProcessMaterial_c1lyy")
-lifetime = 1.5
+lifetime = 0.45
 one_shot = true
-explosiveness = 0.9
+explosiveness = 1.0
 
 [node name="Aura" type="ColorRect" parent="Panel"]
 z_as_relative = false
@@ -567,7 +580,7 @@ pivot_offset = Vector2(90, 90)
 color = Color(0.470117, 0.167668, 0.324535, 1)
 
 [node name="PowerGlow" type="TextureRect" parent="."]
-z_index = -1
+modulate = Color(0.35, 0.65, 1, 0.45)
 layout_mode = 1
 anchors_preset = 6
 anchor_left = 1.0
@@ -575,18 +588,18 @@ anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
 offset_left = -1.0
-offset_top = -44.0
+offset_top = -64.0
 offset_right = 109.0
-offset_bottom = 66.0
+offset_bottom = 46.0
 grow_horizontal = 0
 grow_vertical = 2
 mouse_filter = 2
 texture = SubResource("GradientTexture2D_power_glow")
 expand_mode = 1
 stretch_mode = 5
-modulate = Color(0.35, 0.65, 1.0, 0.45)
 
 [node name="CurrentPower" type="Label" parent="."]
+material = SubResource("ShaderMaterial_power_float")
 layout_mode = 1
 anchors_preset = 6
 anchor_left = 1.0
@@ -594,9 +607,9 @@ anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
 offset_left = 24.0
-offset_top = -34.0
+offset_top = -54.0
 offset_right = 114.0
-offset_bottom = 62.0
+offset_bottom = 42.0
 grow_horizontal = 0
 grow_vertical = 2
 pivot_offset = Vector2(30, 45)
@@ -880,6 +893,7 @@ stretch_mode = 5
 [node name="DiceRollPlayer" type="AudioStreamPlayer" parent="."]
 
 [node name="Button" type="Button" parent="."]
+z_index = 10
 layout_mode = 1
 anchors_preset = -1
 anchor_top = 1.0
@@ -970,11 +984,16 @@ text = "+4"
 
 [node name="RollHistory" type="RichTextLabel" parent="."]
 layout_mode = 0
-offset_left = 161.0
-offset_top = 3.0
-offset_right = 261.0
-offset_bottom = 43.0
-theme_override_font_sizes/normal_font_size = 12
+offset_left = 150.0
+offset_top = 128.0
+offset_right = 262.0
+offset_bottom = 162.0
+fit_content = true
+scroll_active = false
+autowrap_mode = 0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.9)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/normal_font_size = 14
 
 [connection signal="pressed" from="MechSection/MechIncrease" to="." method="_on_mech_increase_pressed"]
 [connection signal="pressed" from="MechSection/MechDecrease" to="." method="_on_mech_decrease_pressed"]

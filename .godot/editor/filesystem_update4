@@ -198,3 +198,5 @@ res://battles/battle_stats_pool_copy.tres
 res://enemies/goblin/goblin_enemy.tres
 res://enemies/hound/hound_enemy.tres
 res://scenes/dices/dice_interface.tscn
+res://scenes/dices/dice.tscn
+res://scenes/dices/power_float.gdshader

@@ -14,6 +14,14 @@ const TARGET_HIGHLIGHT_FADE_IN_DURATION := 0.1
 var _base_sprite_material: ShaderMaterial
 var _target_highlight_tween: Tween
 
+# Hit-reaction state (knockback + squash). Rest values captured once per hit-burst so
+# repeated hits in quick succession can't accumulate positional/scale drift.
+var _hit_pos_tween: Tween
+var _hit_squash_tween: Tween
+var _hit_rest_position: Vector2
+var _hit_rest_sprite_scale: Vector2
+var _hit_reaction_active := false
+
 @export var stats: EnemyStats : set = set_enemy_stats
 @export var width: int 
 @export var height: int
@@ -153,16 +161,20 @@ func do_turn() -> void:
 func take_damage(damage: int, which_modifier: Modifier.Type) -> void:
     if stats.health <= 0:
         return
-    
+
     sprite_2d.material = WHITE_SPRITE_MATERIAL
     var modified_damage := modifier_handler.get_modified_value(damage, which_modifier)
     Global.damage_to_display = modified_damage
-    var tween := create_tween()
-    tween.tween_callback(Shaker.shake.bind(self, 16, 0.15))
-    tween.tween_callback(stats.take_damage.bind(modified_damage))
-    tween.tween_interval(0.17)
 
-    tween.finished.connect(
+    _play_hit_reaction()
+    stats.take_damage(modified_damage)
+
+    # Short, sharp white flash. Was 0.17s, which left the enemy a featureless white
+    # silhouette long enough to erase its art and mask the hit reaction underneath.
+    # Decoupled from the death trigger below so the flash length is independent of it.
+    var flash_tween := create_tween()
+    flash_tween.tween_interval(0.06)
+    flash_tween.tween_callback(
         func():
             if stats.health <= 0:
                 # Drop the outline shader entirely rather than restoring it:
@@ -178,6 +190,35 @@ func take_damage(damage: int, which_modifier: Modifier.Type) -> void:
             else:
                 sprite_2d.material = _base_sprite_material
     )
+
+
+# Directional knockback + sprite squash on hit. Knockback rides self.position (the same
+# property Shaker.shake used safely - the idle animation owns SpriteRoot, not the root),
+# squash rides Sprite2D.scale directly (idle owns SpriteRoot's transform, not the sprite's).
+func _play_hit_reaction() -> void:
+    if not _hit_reaction_active:
+        _hit_rest_position = position
+        _hit_rest_sprite_scale = sprite_2d.scale
+        _hit_reaction_active = true
+
+    if _hit_pos_tween and _hit_pos_tween.is_valid():
+        _hit_pos_tween.kill()
+    if _hit_squash_tween and _hit_squash_tween.is_valid():
+        _hit_squash_tween.kill()
+
+    # Enemies sit to the right of the player, so they recoil rightward (+x).
+    _hit_pos_tween = create_tween()
+    _hit_pos_tween.tween_property(self, "position", _hit_rest_position + Vector2(16, 0), 0.05) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    _hit_pos_tween.tween_property(self, "position", _hit_rest_position, 0.3) \
+        .set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+    _hit_pos_tween.tween_callback(func(): _hit_reaction_active = false)
+
+    _hit_squash_tween = create_tween()
+    _hit_squash_tween.tween_property(sprite_2d, "scale", Vector2(_hit_rest_sprite_scale.x * 1.15, _hit_rest_sprite_scale.y * 0.85), 0.05) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    _hit_squash_tween.tween_property(sprite_2d, "scale", _hit_rest_sprite_scale, 0.28) \
+        .set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
 
 
 func _on_area_entered(_area: Area2D) -> void:

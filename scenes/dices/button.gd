@@ -1,18 +1,17 @@
 extends Button
 
-const IDLE_PULSE_DURATION := 1.2
-const IDLE_PULSE_MIN_GLOW := 0.85
-const IDLE_PULSE_MAX_GLOW := 1.25
-
 const HOVER_SCALE := Vector2(1.06, 1.06)
 const PRESS_SCALE := Vector2(0.88, 0.88)
 const RELEASE_OVERSHOOT_SCALE := Vector2(1.08, 1.08)
 const REST_SCALE := Vector2(1.0, 1.0)
 
+const ACTIVE_MODULATE := Color(1, 1, 1, 1)
+const DEPLETED_MODULATE := Color(0.5, 0.5, 0.5, 1.0)
+
 @onready var dice: Dice = $".."
 
 var _scale_tween: Tween
-var _idle_tween: Tween
+var _flash_tween: Tween
 
 
 func _ready() -> void:
@@ -21,19 +20,19 @@ func _ready() -> void:
     button_up.connect(_on_button_up)
     mouse_entered.connect(_on_mouse_entered)
     mouse_exited.connect(_on_mouse_exited)
-    _start_idle_pulse()
 
 
-# Gentle ambient brightness breathing so the main action of the game doesn't
-# sit there looking dead between rolls. Drives modulate (not scale), since
-# scale is already owned by the hover/press feedback below — keeping them on
-# separate properties means they can never fight each other for control.
-func _start_idle_pulse() -> void:
-    _idle_tween = create_tween().set_loops()
-    _idle_tween.tween_property(self, "modulate", Color(IDLE_PULSE_MAX_GLOW, IDLE_PULSE_MAX_GLOW, IDLE_PULSE_MAX_GLOW, 1.0), IDLE_PULSE_DURATION) \
-        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-    _idle_tween.tween_property(self, "modulate", Color(IDLE_PULSE_MIN_GLOW, IDLE_PULSE_MIN_GLOW, IDLE_PULSE_MIN_GLOW, 1.0), IDLE_PULSE_DURATION) \
-        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+# Dim the button toward "inactive" whenever the active dice type has no dice left, so it
+# reads as not-rollable. Checked per-frame (rather than wired to each of roll/charge/
+# type-change/turn-start) to stay correct regardless of signal ordering - it's a trivial
+# read. modulate is left to the press-flash while that tween is running so they don't fight.
+func _process(_delta: float) -> void:
+    if not (_flash_tween and _flash_tween.is_valid()):
+        modulate = DEPLETED_MODULATE if _is_depleted() else ACTIVE_MODULATE
+
+
+func _is_depleted() -> bool:
+    return int(Global.get(Global.dice_type + "_dice_current_amount")) <= 0
 
 
 func _animate_scale(target: Vector2, duration: float, trans: Tween.TransitionType, ease: Tween.EaseType) -> Tween:
@@ -45,6 +44,8 @@ func _animate_scale(target: Vector2, duration: float, trans: Tween.TransitionTyp
 
 
 func _on_mouse_entered() -> void:
+    if _is_depleted():
+        return
     _animate_scale(HOVER_SCALE, 0.1, Tween.TRANS_BACK, Tween.EASE_OUT)
 
 
@@ -54,6 +55,23 @@ func _on_mouse_exited() -> void:
 
 func _on_button_down() -> void:
     _animate_scale(PRESS_SCALE, 0.06, Tween.TRANS_EXPO, Tween.EASE_OUT)
+    _flash_press()
+
+
+# Neutral white flash on press - independent of active dice color on purpose, so the
+# button keeps its own identity instead of re-tinting per dice type. Skipped when the
+# dice type is depleted (no roll will happen), so the button stays visibly inactive.
+func _flash_press() -> void:
+    if _is_depleted():
+        return
+    if _flash_tween and _flash_tween.is_valid():
+        _flash_tween.kill()
+    _flash_tween = create_tween()
+    _flash_tween.tween_property(self, "modulate", Color(2.2, 2.2, 2.2, 1.0), 0.04) \
+        .set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+    _flash_tween.tween_interval(0.03)
+    _flash_tween.tween_property(self, "modulate", ACTIVE_MODULATE, 0.22) \
+        .set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
 
 
 func _on_button_up() -> void:

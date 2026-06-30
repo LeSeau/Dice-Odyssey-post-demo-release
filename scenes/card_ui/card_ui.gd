@@ -152,7 +152,52 @@ func play() -> void:
     if not card:
         return
     card.play(targets, char_stats, player_modifiers)
-    queue_free()
+    _fly_to_discard_and_free()
+
+
+# Instead of vanishing instantly, the played card flies to the discard pile (Slay-the-Spire
+# style) shrinking + spinning + fading on the way. The effect already fired above, so this
+# is purely the visual send-off. By play() time the card lives on the ui_layer (the drag
+# state reparented it there), so it can move freely above the hand.
+func _fly_to_discard_and_free() -> void:
+    set_process_input(false)  # stop routing input into the now-discarding state machine
+    mouse_filter = Control.MOUSE_FILTER_IGNORE
+    disabled = true
+    z_index = 100
+    if tween and tween.is_valid():
+        tween.kill()  # stop any in-progress positioning tween (e.g. the aim move-up) from fighting the fly
+
+    var target_pos := global_position + Vector2(0, 220)  # fallback if discard pile not found
+    var ui_layer := get_tree().get_first_node_in_group("ui_layer")
+    if ui_layer:
+        var discard: Node = ui_layer.get_node_or_null("DiscardPileButton")
+        if discard and discard is Control:
+            target_pos = (discard as Control).global_position
+
+    # Lift the card up first, then arc it down to the discard pile. Going straight from the
+    # aim position (just above the hand) to the bottom-right pile looked flat/weird; the
+    # little lift gives the toss an arc and reads like the card is "picked up" before flying.
+    var lift_pos := global_position + Vector2(0, -80)
+
+    # Movement: lift up, then arc down to the discard pile, shrinking + spinning on the way.
+    var fly_tween := create_tween()
+    fly_tween.tween_property(self, "global_position", lift_pos, 0.16) \
+        .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+    fly_tween.tween_property(self, "global_position", target_pos, 0.45) \
+        .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+    fly_tween.parallel().tween_property(self, "scale", Vector2(0.15, 0.15), 0.45) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+    fly_tween.parallel().tween_property(self, "rotation", deg_to_rad(randf_range(-35.0, 35.0)), 0.45) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+
+    # Fade out only near the END of the flight (separate tween), so the card stays visible
+    # long enough to read that it's travelling to the discard pile - fading it across the
+    # whole trip made the destination unclear. queue_free waits for the fade so it isn't cut.
+    var fade_tween := create_tween()
+    fade_tween.tween_interval(0.46)
+    fade_tween.tween_property(self, "modulate:a", 0.0, 0.2) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+    fade_tween.tween_callback(queue_free)
 
 # In your CardUI class:
 func apply_fan_rotation(angle: float) -> void:

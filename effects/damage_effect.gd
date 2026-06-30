@@ -16,7 +16,9 @@ func execute(targets: Array[Node]) -> void:
             
             var camera = target.get_tree().get_first_node_in_group("camera")
             if camera:
-                camera.shake(amount * 0.3, 0.15)
+                # Higher floor + steeper curve so bread-and-butter 6-8 dmg hits (previously
+                # only ~3-4px, imperceptible) actually register, while big hits still cap out.
+                camera.shake(clampf(amount * 0.7 + 2.5, 5.0, 18.0), 0.15)
 
             Shaker.hit_stop(clampf(amount * 0.004, 0.02, 0.08))
             

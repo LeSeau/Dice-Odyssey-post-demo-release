@@ -1,0 +1,43 @@
+[gd_scene load_steps=3 format=3 uid="uid://c0ywt0g0r1n8h"]
+
+[ext_resource type="Script" path="res://scenes/ui/turn_banner.gd" id="1_script"]
+[ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="2_font"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_turn_banner"]
+font = ExtResource("2_font")
+font_size = 64
+font_color = Color(0.972439, 0.866667, 0.541176, 1)
+outline_size = 6
+outline_color = Color(0.196078, 0.0823529, 0, 1)
+shadow_size = 8
+shadow_color = Color(0, 0, 0, 0.7)
+shadow_offset = Vector2(3, 3)
+
+[node name="TurnBanner" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_script")
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -260.0
+offset_top = -50.0
+offset_right = 260.0
+offset_bottom = 50.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+text = "YOUR TURN"
+label_settings = SubResource("LabelSettings_turn_banner")
+horizontal_alignment = 1
+vertical_alignment = 1
