@@ -1,4 +1,4 @@
-[gd_scene load_steps=28 format=3 uid="uid://b60egpxyditoc"]
+[gd_scene load_steps=29 format=3 uid="uid://b60egpxyditoc"]
 
 [ext_resource type="Material" uid="uid://bcdb8cbop4w8o" path="res://scenes/dices/blue_dice_shader.tres" id="1_n3kmb"]
 [ext_resource type="Script" path="res://scenes/card_ui/card_ui.gd" id="2_uam7p"]
@@ -194,8 +194,6 @@ justification_flags = 162
 [node name="DescriptionPanel" type="Panel" parent="CardBackground/CardFrame"]
 layout_mode = 1
 anchors_preset = -1
-anchor_top = 0.0
-anchor_bottom = 0.0
 offset_top = 144.0
 offset_right = 140.0
 offset_bottom = 188.0

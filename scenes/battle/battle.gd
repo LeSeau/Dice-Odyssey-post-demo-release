@@ -250,13 +250,36 @@ func _on_scout_dice_clicked(event: InputEvent, face: TextureRect) -> void:
         else:
             push_error("Failed to extract number from: %s" % tex_path)
 
-func _on_draw_pile_button_mouse_entered() -> void:
-    var tooltip_panel = tooltip.get_node("Tooltip")
-    tooltip_panel.show_tooltip(get_global_mouse_position())
+# Fixed screen-space anchors (design resolution 1280x720) instead of mouse
+# position: mouse-anchored placement was getting clipped by the screen edge.
+# Sitting just above their respective buttons; the discard one can overlap
+# EndTurnButton, that's fine since it disappears on mouse exit anyway.
+const DRAW_PILE_TOOLTIP_POS := Vector2(43, 510)
+const DISCARD_PILE_TOOLTIP_POS := Vector2(1056, 510)
 
-func _on_draw_pile_button_mouse_exited() -> void:
+func _show_pile_tooltip(title: String, text: String, pos: Vector2) -> void:
+    tooltip.visible = true
+    var tooltip_panel = tooltip.get_node("Tooltip")
+    tooltip_panel.tooltip_title.text = "[center][color=gold][b]%s[/b][/color][/center]" % title
+    tooltip_panel.tooltip_label.text = "[center]%s[/center]" % text
+    tooltip_panel.show_tooltip(pos)
+
+func _hide_pile_tooltip() -> void:
     var tooltip_panel = tooltip.get_node("Tooltip")
     tooltip_panel.hide_tooltip()
+    tooltip.visible = false
+
+func _on_draw_pile_button_mouse_entered() -> void:
+    _show_pile_tooltip("Draw Pile", "The cards left to draw. Refills from your Discard Pile once empty.", DRAW_PILE_TOOLTIP_POS)
+
+func _on_draw_pile_button_mouse_exited() -> void:
+    _hide_pile_tooltip()
+
+func _on_discard_pile_button_mouse_entered() -> void:
+    _show_pile_tooltip("Discard Pile", "Cards you've played. Shuffles back into your Draw Pile once it runs out.", DISCARD_PILE_TOOLTIP_POS)
+
+func _on_discard_pile_button_mouse_exited() -> void:
+    _hide_pile_tooltip()
 
 
 func _on_stop_battle_music() -> void:

@@ -36,5 +36,15 @@ func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
                 var player_targets: Array[Node] = [player]
                 print("Backfire! Hero loses 6 HP")
                 damage_effect.execute(player_targets)
-    
+
     Events.dice_roll_reset.emit()
+
+func get_dynamic_description(modifiers: ModifierHandler) -> String:
+    if is_inked():
+        return "Deal ? damage. If you roll a 1, lose 6HP instead"
+    if not has_active_roll():
+        return "Deal X3 damage. If you roll a 1, lose 6HP instead"
+    if Global.roll_value == 1:
+        return "Lose 6HP instead (rolled a 1)"
+    var total := modifiers.get_modified_value(Global.roll_value * 3, Modifier.Type.DMG_DEALT)
+    return "Deal %d damage. If you roll a 1, lose 6HP instead" % total

@@ -6,7 +6,7 @@
 shader = ExtResource("1_8h8kc")
 shader_parameter/magic_color = Color(0.341337, 0.0311172, 0.00146512, 0.941176)
 shader_parameter/accent_color = Color(0.682353, 0.129412, 0, 0.870588)
-shader_parameter/border_size = 0.133
+shader_parameter/border_size = 0.2
 shader_parameter/border_softness = 0.01
 shader_parameter/power_intensity = 2.0
 shader_parameter/wave_speed = 2.55
@@ -14,3 +14,5 @@ shader_parameter/noise_scale = 8.677
 shader_parameter/square_roundness = 0.3
 shader_parameter/edge_fade_softness = 0.094
 shader_parameter/use_texture_alpha = false
+shader_parameter/charge_heat = 0.0
+shader_parameter/glow_reach = 0.15

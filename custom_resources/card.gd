@@ -46,6 +46,52 @@ func is_single_targeted() -> bool:
     return target == Target.SINGLE_ENEMY
 
 
+# Global.roll_value == 0 is ambiguous: it's both the reset/no-roll-yet state
+# AND a legitimate outcome of rolling a 0 face (evil dice). roll_history is
+# cleared on every reset path and appended to on every real roll, so
+# emptiness reliably distinguishes "haven't rolled since last reset" from
+# "rolled and got exactly 0" — use this before resolving "X" in descriptions.
+func has_active_roll() -> bool:
+    return not Global.roll_history.is_empty()
+
+
+# While inked, the dice UI covers the resolved power number with an ink
+# splash (see scenes/dices/dice.gd _on_put_ink_on_dice) — the player genuinely
+# can't read their current power, so dynamic descriptions shouldn't leak the
+# resolved damage number either.
+func is_inked() -> bool:
+    return Global.ink_active
+
+
+# Whether the card's own primary requirement (the MIN/MAX/EXACT/etc. ribbon badge on the
+# card face) is currently satisfied by the active roll. `card.requirement` is otherwise
+# purely cosmetic (badge text + tooltip) - nothing actually blocks playing a card that fails
+# it, its apply_effects() just silently no-ops - so this is the one place that gives the enum
+# real meaning. Dynamic descriptions use this to avoid resolving to a live number computed
+# from a roll that wouldn't actually trigger the effect (e.g. showing "Deal 40 damage" on a
+# Max 12 card at 20 Power, when the card would do nothing if played right now).
+func meets_requirement() -> bool:
+    match requirement:
+        Requirement.NONE:
+            return true
+        Requirement.MIN:
+            return Global.roll_value >= requirement_number
+        Requirement.MAX:
+            return Global.roll_value <= requirement_number
+        Requirement.EVEN:
+            return int(Global.roll_value) % 2 == 0
+        Requirement.ODD:
+            return int(Global.roll_value) % 2 == 1
+        Requirement.RED:
+            return Global.dice_type == "red"
+        Requirement.MULTIPLE:
+            return requirement_number != 0 and int(Global.roll_value) % requirement_number == 0
+        Requirement.EXACT:
+            return Global.roll_value == requirement_number
+        _:
+            return true
+
+
 func _get_targets(targets: Array[Node]) -> Array[Node]:
     if not targets:
         return []

@@ -4,7 +4,7 @@ var testing_mode: bool = false
 var tutorial_on = false
 var tutorial_reset_power_warning = true
 
-var gold = 75
+var gold = 7575
 var player_hp = 66
 var player_max_hp = 66
 
@@ -62,6 +62,7 @@ var damage_to_display = 0
 var final_enemy_damage = 0
 var dice_inventory = ["blue", "red"]
 var roll_history = []
+var last_played_card_position: Vector2 = Vector2.ZERO  # global center of the most recently played card; used as the origin for the refuel "dice fly back" effect
 var shop_initialized = false  # Whether the shop has been initialized
 var shop_dice_selection = []  # Stores which dice are shown
 

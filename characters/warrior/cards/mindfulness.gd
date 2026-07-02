@@ -11,4 +11,10 @@ func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
     Events.dice_roll_reset.emit()
     Events.reset_charged_card.emit()
 
-        
+func get_dynamic_description(_modifiers: ModifierHandler) -> String:
+    if is_inked():
+        return "Block ?. Gain a Scout 3 card"
+    if not has_active_roll():
+        return "Block X. Gain a Scout 3 card"
+    return "Block %d. Gain a Scout 3 card" % Global.roll_value
+

@@ -9,3 +9,10 @@ func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
         block_effect.execute(targets)
         Events.dice_roll_reset.emit()
         Events.reset_charged_card.emit()
+
+func get_dynamic_description(_modifiers: ModifierHandler) -> String:
+    if is_inked():
+        return "Block ?"
+    if not has_active_roll() or not meets_requirement():
+        return "Block X3"
+    return "Block %d" % (Global.roll_value * 3)

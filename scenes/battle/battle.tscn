@@ -1,4 +1,4 @@
-[gd_scene load_steps=61 format=3 uid="uid://cahno8aso5net"]
+[gd_scene load_steps=63 format=3 uid="uid://cahno8aso5net"]
 
 [ext_resource type="Script" path="res://scenes/battle/battle.gd" id="1_4s751"]
 [ext_resource type="PackedScene" uid="uid://c0ywt0g0r1n8h" path="res://scenes/ui/turn_banner.tscn" id="turn_banner_scene"]
@@ -150,14 +150,34 @@ bg_color = Color(0.6, 0.6, 0.6, 0)
 bg_color = Color(0.6, 0.6, 0.6, 0)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_q7ine"]
-bg_color = Color(0.694118, 0.588235, 0.298039, 1)
-corner_radius_top_left = 40
-corner_radius_top_right = 40
-corner_radius_bottom_right = 40
-corner_radius_bottom_left = 40
+bg_color = Color(0.144787, 0.273985, 0.277578, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 1, 0.227451, 1)
+border_blend = true
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0, 0, 0, 0.4)
+shadow_size = 5
+shadow_offset = Vector2(0, 3)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_scout_exit_hover"]
+bg_color = Color(0.752941, 0.501961, 0.0627451, 0.4)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_afe52"]
 bg_color = Color(0, 0, 0, 0.431373)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_upauj"]
 bg_color = Color(0.144787, 0.273985, 0.277578, 1)
@@ -173,6 +193,14 @@ shadow_size = 2
 
 [sub_resource type="Theme" id="Theme_t77qr"]
 default_font_size = 11
+
+[sub_resource type="LabelSettings" id="LabelSettings_pile_counter"]
+font_size = 22
+font_color = Color(1, 1, 1, 1)
+outline_size = 5
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 3
+shadow_color = Color(0, 0, 0, 0.6)
 
 [node name="Battle" type="Node2D"]
 script = ExtResource("1_4s751")
@@ -329,8 +357,8 @@ anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
 offset_left = 43.0
-offset_top = -78.0
-offset_right = 121.0
+offset_top = -92.0
+offset_right = 139.0
 offset_bottom = -8.0
 grow_vertical = 0
 texture_normal = ExtResource("16_xu5rp")
@@ -338,11 +366,18 @@ counter = NodePath("Counter")
 
 [node name="Counter" type="Label" parent="BattleUI/DrawPileButton"]
 layout_mode = 1
-anchors_preset = 15
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+offset_left = -34.0
+offset_top = -30.0
+offset_right = -4.0
+offset_bottom = -4.0
+grow_horizontal = 0
+grow_vertical = 0
+label_settings = SubResource("LabelSettings_pile_counter")
 text = "10
 "
 horizontal_alignment = 1
@@ -355,8 +390,8 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -98.0
-offset_top = -78.0
+offset_left = -116.0
+offset_top = -92.0
 offset_right = -20.0
 offset_bottom = -8.0
 grow_horizontal = 0
@@ -366,11 +401,18 @@ counter = NodePath("Counter")
 
 [node name="Counter" type="Label" parent="BattleUI/DiscardPileButton"]
 layout_mode = 1
-anchors_preset = 15
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+offset_left = -34.0
+offset_top = -30.0
+offset_right = -4.0
+offset_bottom = -4.0
+grow_horizontal = 0
+grow_vertical = 0
+label_settings = SubResource("LabelSettings_pile_counter")
 text = "10
 "
 horizontal_alignment = 1
@@ -494,9 +536,9 @@ layer = 2
 [node name="BattleOverPanel" parent="BattleOverLayer" instance=ExtResource("17_xrby7")]
 visible = false
 
-[node name="DiceInterface" parent="." instance=ExtResource("19_lfnme")]
+[node name="DiceInterface" parent="." groups=["dice_interface"] instance=ExtResource("19_lfnme")]
 offset_left = 514.0
-offset_top = 226.0
+offset_top = 214.0
 offset_right = 674.0
 offset_bottom = 286.0
 
@@ -531,7 +573,7 @@ custom_minimum_size = Vector2(250, 50)
 offset_left = 437.0
 offset_top = 90.0
 offset_right = 773.0
-offset_bottom = 210.0
+offset_bottom = 218.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_q7ine")
 script = ExtResource("23_2rbv5")
 
@@ -541,43 +583,48 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -51.0
-offset_top = 9.0
-offset_right = -13.0
-offset_bottom = 47.0
+offset_left = -40.0
+offset_top = 10.0
+offset_right = -8.0
+offset_bottom = 42.0
 grow_horizontal = 0
 theme_override_colors/font_color = Color(0.144787, 0.273985, 0.277578, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("29_kb8h2")
-theme_override_font_sizes/font_size = 32
+theme_override_font_sizes/font_size = 20
+theme_override_styles/hover = SubResource("StyleBoxFlat_scout_exit_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_afe52")
 text = "X"
 
 [node name="RichTextLabel" type="RichTextLabel" parent="ScoutPanel"]
-custom_minimum_size = Vector2(0, 30)
+custom_minimum_size = Vector2(0, 36)
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_top = 15.0
-offset_bottom = 45.0
+offset_top = 8.0
+offset_left = 45.0
+offset_right = -45.0
+offset_bottom = 44.0
 grow_horizontal = 2
 mouse_filter = 2
-theme_override_fonts/normal_font = ExtResource("23_a6w84")
+theme_override_fonts/normal_font = ExtResource("12_e36uc")
+theme_override_fonts/bold_font = ExtResource("12_e36uc")
+theme_override_font_sizes/normal_font_size = 28
+theme_override_font_sizes/bold_font_size = 28
 bbcode_enabled = true
-text = "[center]Choose next roll[/center]"
+scroll_active = false
+text = "[center][color=gold][b]Choose next roll[/b][/color][/center]"
 
 [node name="HBoxContainer" type="HBoxContainer" parent="ScoutPanel"]
 layout_mode = 1
-anchors_preset = 8
+anchors_preset = 5
 anchor_left = 0.5
-anchor_top = 0.5
 anchor_right = 0.5
-anchor_bottom = 0.5
 offset_left = -90.0
-offset_top = -10.5
+offset_top = 52.0
 offset_right = 90.0
-offset_bottom = 39.5
+offset_bottom = 102.0
 grow_horizontal = 2
-grow_vertical = 2
 theme_override_constants/separation = 15
 
 [node name="ScoutDice1" type="TextureRect" parent="ScoutPanel/HBoxContainer"]
@@ -1325,6 +1372,8 @@ script = ExtResource("36_g4ffy")
 [connection signal="toggled" from="BattleUI/DiceAnimationControl/DiceAnimationOption/DiceAnimationCheck" to="." method="_on_dice_animation_check_toggled"]
 [connection signal="mouse_entered" from="BattleUI/DrawPileButton" to="." method="_on_draw_pile_button_mouse_entered"]
 [connection signal="mouse_exited" from="BattleUI/DrawPileButton" to="." method="_on_draw_pile_button_mouse_exited"]
+[connection signal="mouse_entered" from="BattleUI/DiscardPileButton" to="." method="_on_discard_pile_button_mouse_entered"]
+[connection signal="mouse_exited" from="BattleUI/DiscardPileButton" to="." method="_on_discard_pile_button_mouse_exited"]
 [connection signal="pressed" from="ScoutPanel/ExitButton" to="." method="_on_exit_button_pressed"]
 [connection signal="pressed" from="CanvasLayer/Tutorial/Tutorial1/Tutorial1Button" to="." method="_on_tutorial_1_button_pressed"]
 [connection signal="pressed" from="CanvasLayer/Tutorial/Tutorial3/Tutorial3Button" to="." method="_on_tutorial_3_button_pressed"]

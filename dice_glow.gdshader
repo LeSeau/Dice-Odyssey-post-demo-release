@@ -11,6 +11,14 @@ uniform float square_roundness : hint_range(0.0, 1.0) = 0.3;
 uniform float edge_fade_softness : hint_range(0.05, 0.5) = 0.2;
 uniform sampler2D dice_texture : hint_default_white;
 uniform bool use_texture_alpha = true;
+// Driven live from GDScript alongside power_intensity/wave_speed as banked power grows -
+// blends the glow toward a warm "hot/charged" highlight without erasing each die type's
+// own base hue (capped well under 1.0 in the blend below so some base color always shows).
+uniform float charge_heat : hint_range(0.0, 1.0) = 0.0;
+// How far outward the glow fades out (was a hardcoded +0.15). Driven with charge_heat so
+// the glow visibly widens as power grows WITHOUT moving where it starts (border_size, fixed -
+// that's what keeps it anchored to the die's edge instead of drifting away as it grows).
+uniform float glow_reach : hint_range(0.0, 0.5) = 0.15;
 
 // Simplex noise function for natural waves
 vec3 hash3(vec2 p) {
@@ -142,7 +150,7 @@ void fragment() {
 
     // Smooth falloff away from the dice
     float falloff_start = 0.5 - border_size;
-    float falloff_end = 0.5 + 0.15;
+    float falloff_end = 0.5 + glow_reach;
     float outward_falloff = smoothstep(falloff_start, falloff_end, dist);
 
     // Create noise-influenced edge fade to hide ColorRect boundaries
@@ -155,6 +163,11 @@ void fragment() {
 
     // Calculate final alpha with edge fade to hide boundaries
     float final_alpha = power_effect * final_color.a * mask * (1.0 - outward_falloff) * boundary_fade;
+
+    // Blend toward a warm white-gold highlight as charge builds - "heating up" rather than
+    // just getting brighter/bigger, while the 0.55 cap keeps each die's own hue recognizable.
+    vec3 heat_highlight = vec3(1.0, 0.76, 0.22);
+    final_color.rgb = mix(final_color.rgb, heat_highlight, charge_heat * 0.22);
 
     COLOR = vec4(final_color.rgb, final_alpha);
 }

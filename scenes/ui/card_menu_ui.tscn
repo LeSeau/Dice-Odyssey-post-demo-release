@@ -208,11 +208,11 @@ vertical_alignment = 1
 [node name="DescriptionPanel" type="Panel" parent="Visuals/CardBackground/CardFrame"]
 layout_mode = 1
 anchors_preset = -1
-anchor_top = 144.0
-anchor_bottom = 188.0
-offset_top = -30096.0
+anchor_top = 0.0
+anchor_bottom = 0.0
+offset_top = 144.0
 offset_right = 140.0
-offset_bottom = -39292.0
+offset_bottom = 188.0
 grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 2

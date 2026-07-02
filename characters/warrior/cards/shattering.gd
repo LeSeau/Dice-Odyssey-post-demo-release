@@ -20,3 +20,10 @@ func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
 
 func _on_dice_rolled():
     print("adding dice to damage")
+
+func get_dynamic_description(_modifiers: ModifierHandler) -> String:
+    if is_inked():
+        return "Block ?. Charge 3 Green Dice"
+    if not has_active_roll() or not meets_requirement():
+        return "Block X. Charge 3 Green Dice"
+    return "Block %d. Charge 3 Green Dice" % Global.roll_value

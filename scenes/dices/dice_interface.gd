@@ -422,7 +422,7 @@ func _show_tooltip(dice_node: VBoxContainer, dice_type: String) -> void:
     tooltip_instance = TooltipScene.instantiate()
     get_tree().root.add_child(tooltip_instance)
     tooltip_instance.get_tooltip_content(dice_type)
-    tooltip_instance.show_tooltip(Vector2(498, 148))  # adjust to taste
+    tooltip_instance.show_tooltip(Vector2(498, 123))  # adjust to taste
 
 func _hide_tooltip() -> void:
     if tooltip_instance and is_instance_valid(tooltip_instance):

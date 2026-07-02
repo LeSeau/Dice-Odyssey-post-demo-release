@@ -2,8 +2,7 @@
 
 [ext_resource type="StyleBox" uid="uid://ce8r01r8snw2g" path="res://scenes/ui/tooltip.tres" id="2_4gfl8"]
 [ext_resource type="Script" path="res://scenes/ui/tooltip.gd" id="2_ifbwr"]
-[ext_resource type="FontFile" uid="uid://t1kjnid0fq8h" path="res://assets/static/Roboto-Black.ttf" id="3_vvnhr"]
-[ext_resource type="FontFile" uid="uid://bm3deysyi2y55" path="res://Belwe Bold/Belwe Bold.otf" id="5_khjy8"]
+[ext_resource type="FontFile" uid="uid://b2y60c4274gkj" path="res://fonts/Cinzel-Bold.otf" id="3_vvnhr"]
 [ext_resource type="FontFile" uid="uid://dq4bmvx1ogtey" path="res://Noto_Sans/static/NotoSans-Medium.ttf" id="6_6k2h1"]
 
 [node name="CanvasLayer" type="CanvasLayer"]
@@ -41,8 +40,8 @@ layout_mode = 2
 size_flags_vertical = 0
 theme_override_constants/line_separation = 2
 theme_override_fonts/normal_font = ExtResource("3_vvnhr")
-theme_override_fonts/bold_font = ExtResource("5_khjy8")
-theme_override_font_sizes/normal_font_size = 14
+theme_override_fonts/bold_font = ExtResource("3_vvnhr")
+theme_override_font_sizes/normal_font_size = 16
 theme_override_font_sizes/bold_font_size = 16
 bbcode_enabled = true
 text = "[center][color=\"gold\"][b]Max[/b][/color]"

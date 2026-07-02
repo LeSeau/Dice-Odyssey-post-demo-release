@@ -4,16 +4,16 @@ Roguelike deckbuilder en Godot 4 (GDScript) où les dés remplacent l'énergie c
 
 L'auteur (Julien) n'est pas développeur de formation — le code a beaucoup de duplication / spaghetti. Ne pas supposer une cohérence architecturale qui n'existe pas ; vérifier le code réel avant d'agir, surtout pour les mécaniques de power/dés où plusieurs variables se chevauchent.
 
-## TL;DR — où on en est (fin de session du 2026-06-24)
+## TL;DR — où on en est (fin de session du 2026-07-02)
 
 Lire ceci avant de re-creuser quoi que ce soit — ça évite de redécouvrir des choses déjà établies.
 
-- **Cette session a couvert** : équilibrage ennemis (2 bugs corrigés), game feel (popups, hit-stop, arc de visée), exploration/nettoyage complet du pool de cartes warrior (65→57 + reworks), nouveau système de carte **RITE** (équivalent Powers de Slay the Spire, nom pas définitif), 9 nouvelles cartes RITE implémentées et ajoutées au pool, repricing boutique (dés/cartes/reliques).
-- **Pour le détail complet des cartes (pool, coupes, RITE, bugs)** → lire `card_pool_analysis.md` à la racine, pas besoin de re-explorer `warrior_draftable_cards.tres` à la main.
-- **Julien est en train de tester en jeu** les 9 nouvelles cartes RITE au moment où cette session s'est arrêtée — si une prochaine session commence par un retour de playtest dessus, c'est la suite logique, pas une nouvelle demande à analyser depuis zéro.
-- **Décisions encore ouvertes** (voir section dédiée plus bas) : nom final de RITE (pas "Rite", trop religieux — candidats : Cast, Pip, Mantle, Ward), icône visuelle RITE (en attente d'asset de Julien), 1-2 cartes "Keep" à couper jamais précisées, texture des 8 dés non-Blue.
-- **Piège à connaître avant de toucher à l'UI de carte** : il y a deux implémentations dupliquées (`card_ui.gd` et `card_menu_ui.gd`) sans classe de base commune — toute modif visuelle doit être faite dans les deux.
-- **Note technique** : les `.tres` créés par Claude pendant cette session ont des `uid` inventés (pas générés par l'éditeur Godot) ; Godot les corrige/retire automatiquement à l'ouverture du projet (comportement normal, pas un bug à corriger).
+- **Cette session a couvert** : (1) refonte visuelle des tooltips (relic/dice/status) et du ScoutPanel, (2) refonte des vues Draw/Discard/Deck pile (header, séparateur, bouton Back, tooltips manquants), (3) plusieurs bugs de bordure/couleur sur les cartes (voir section dédiée `get_dynamic_description` plus bas et "Bugs récurrents"), (4) **nouveau système de description dynamique de carte** (`get_dynamic_description`) déployé sur ~31 cartes warrior (starters + pool draftable), (5) animation de vol carte-socketée→défausse pour les cartes jouées au dé rouge, (6) polish visuel de `dice_interface.tscn` (espacement des compteurs de dés).
+- **Le gros morceau de cette session** : le système `get_dynamic_description()` — voir section dédiée sous "Cartes" ci-dessous avant de toucher à une carte existante ou d'en ajouter une nouvelle avec un "X" dans sa description.
+- **Piège à connaître avant de toucher à l'UI de carte** : il y a deux implémentations dupliquées (`card_ui.gd` et `card_menu_ui.gd`) sans classe de base commune — toute modif visuelle doit être faite dans les deux. `get_dynamic_description` n'est câblé QUE dans `card_ui.gd` (voir section dédiée) — c'est intentionnel, pas un oubli, mais à garder en tête si Julien demande un jour la même chose en boutique/récompense.
+- **Découverte importante** : `card.requirement` (l'enum MIN/MAX/EXACT/etc.) était **purement cosmétique** avant cette session — uniquement utilisé pour le badge visuel et le tooltip, jamais vérifié pour bloquer le jeu d'une carte. `CharacterStats.can_play_card()` est un stub qui renvoie toujours `true`. Chaque carte gère elle-même sa condition via un `if` dans `apply_effects()` ; si la condition n'est pas remplie, la carte se joue quand même mais son effet ne fait rien (dé "gaspillé"). Le nouveau helper `Card.meets_requirement()` est la première utilisation réelle de cet enum pour de la logique (uniquement pour savoir si la description doit se résoudre, pas pour bloquer le jeu de la carte).
+- **Décisions encore ouvertes** (héritées de sessions précédentes, voir section dédiée plus bas) : nom final de RITE (pas "Rite", trop religieux — candidats : Cast, Pip, Mantle, Ward), icône visuelle RITE (en attente d'asset de Julien), 1-2 cartes "Keep" à couper jamais précisées, texture des 8 dés non-Blue.
+- **Note technique** : les `.tres` créés par Claude ont des `uid` inventés (pas générés par l'éditeur Godot) ; Godot les corrige/retire automatiquement à l'ouverture du projet (comportement normal, pas un bug à corriger).
 
 ## Structure des dossiers
 
@@ -72,6 +72,27 @@ Les cartes RITE ont une bannière violette (`scenes/card_ui/card_banner_rite.tre
 **Toute modification visuelle d'une carte (nouveau style, nouveau tooltip, nouvelle condition d'affichage) doit être appliquée dans CES DEUX fichiers séparément**, sinon un des deux contextes (typiquement boutique/récompense) ne reflète pas le changement. Le style Celestial (`can_play_without_dice`) souffre du même pattern dupliqué — c'est la norme ici, pas l'exception. Si une 3e vue de carte apparaît un jour, vérifier si elle a sa propre copie aussi avant de supposer qu'un fix est complet.
 
 **Tooltips de statut sur les cartes** : le système de tooltip au survol (`_on_card_frame_mouse_entered` dans les deux fichiers ci-dessus) lit `card.tags` (string séparée par virgules) et cherche une correspondance dans `scenes/ui/tooltip.gd::get_tooltip_content()`. **Si une carte accorde un statut (Blessed, Strength, Exposed, etc.) via son script, il faut ajouter le nom de ce statut dans le champ `tags` de la `.tres`, sinon son tooltip explicatif n'apparaît jamais** — ce n'est pas déduit automatiquement de l'effet du script. Confirmé par Julien sur Gang Up (qui accorde Blessed via script mais nécessitait `tags = "Charge, Blessed"` pour que le tooltip Blessed s'affiche).
+
+### Descriptions dynamiques (`get_dynamic_description`, ajouté 2026-07-02)
+
+Une carte peut optionnellement implémenter `func get_dynamic_description(modifiers: ModifierHandler) -> String` qui remplace le texte statique `card.description` par un texte résolu en direct (le "X" devient le vrai nombre). Détecté via duck-typing (`card.has_method("get_dynamic_description")`), appelé depuis `scenes/card_ui/card_ui.gd::_on_dice_rolled_update_description()`, câblé sur les signaux `Events.dice_rolled`, `dice_roll_reset`, `change_current_power`, `red_dice_rolled`.
+
+**⚠️ Câblé uniquement dans `card_ui.gd`, pas dans `card_menu_ui.gd`** — encore un exemple du piège de duplication documenté plus haut. Volontaire pour l'instant (boutique/récompense n'ont pas de dé actif à résoudre), mais à refaire si Julien demande la même chose ailleurs.
+
+Trois helpers sur `Card` (`custom_resources/card.gd`) à utiliser dans l'ordre, avant de résoudre quoi que ce soit :
+1. **`is_inked()`** → `Global.ink_active`. Si vrai, remplacer le nombre par `"?"` (le splash d'encre cache le nombre de Power ailleurs dans l'UI, donc la carte ne doit pas le révéler non plus).
+2. **`has_active_roll()`** → `not Global.roll_history.is_empty()`. `Global.roll_value == 0` est ambigu (reset OU vrai résultat sur un dé evil) ; `roll_history` est vidé à chaque reset et rempli à chaque vrai roll, donc fiable pour distinguer "pas encore roll" de "roll et obtenu 0".
+3. **`meets_requirement()`** → compare `Global.roll_value`/`Global.dice_type` au `requirement`/`requirement_number` de la carte (MIN/MAX/EVEN/ODD/RED/MULTIPLE/EXACT). Si faux, garder le texte statique — sinon une carte "Max 12" afficherait un nombre absurde à 20 Power, alors qu'elle ne ferait rien si jouée. Règle validée par Julien : pour les cartes EXACT (roll doit être exactement N), ne résoudre QUE si l'exact est atteint ; pour MIN/MAX/MULTIPLE/EVEN/ODD, même principe (ne pas résoudre si hors-condition).
+
+Format retenu (validé par Julien) : le nombre résolu passe **en premier**, la formule/règle reste en texte **ensuite entre parenthèses** — ex. Diceslap : `"Deal 11 damage (5 + 3 per consecutive dice rolled)"` plutôt que `"Deal 5 damage + 3 for each..."`. Objectif : le joueur voit le total sans calculer, sans perdre la règle du mécanisme.
+
+**Cartes Block** : utilisent `Global.roll_value` brut, **jamais** `modifiers.get_modified_value(..., DMG_DEALT)` — il n'existe pas de `Modifier.Type` pour le Block dans le code actuel, et les cartes Block elles-mêmes n'appellent jamais ce modifier. Appliquer Strength (un modifier de dégâts) à un montant de Block serait mécaniquement faux.
+
+**Carte socketée sur dé rouge** : l'affichage du dé chargé (`scenes/dices/dice.gd`, nodes `charged_card_texture`/`charged_card_description`) est une UI statique séparée, PAS le vrai `CardUI` (qui reste caché — `card_ui.hide()` — tant que la carte est socketée). A nécessité son propre hook de rafraîchissement, `dice.gd::_update_charged_card_description()`, câblé aux mêmes 4 signaux + `_on_card_charged`.
+
+**Cas particulier confirmé avec Julien** : Kamikaze a `requirement = RED` mais son `apply_effects()` ne vérifie jamais le type de dé (seulement `roll_value == 1` pour la branche backfire) — ce badge RED semble ne rien bloquer réellement. Sa description ignore donc `meets_requirement()` volontairement (le gating aurait affiché "X3" alors que l'effet se résoudrait normalement sur dé non-rouge).
+
+**Cartes qui ont le pattern** (~31, dont les starters Strike/`warrior_axe_attack.gd`, Block/`warrior_block.gd`, Low Blow/`low_blow.gd`) : grep `get_dynamic_description` dans `characters/warrior/cards/` pour la liste à jour plutôt que la garder synchronisée ici. **Cartes volontairement sans ce pattern** : tout ce qui n'a pas de "X" dans sa `description` (cartes RITE passives, manipulation de dés/Power sans dégâts/block, `bonus_requirement`-only comme Catalyst) — pas la peine de le rajouter dessus.
 
 ## Statuts (`Status`, `custom_resources/status.gd`)
 
@@ -189,6 +210,10 @@ Cas confirmés et corrigés cette session :
 - `enemies/goblin/goblin_attack_action.gd` et `goblin_attack_action_2.gd` référençaient `"defender_block"`/`"defender_single_attack"` (copié de Temple Defender) au lieu des `action_id` propres à Goblin — son combo ne se déclenchait jamais. Corrigé.
 - `enemies/oculus/oculus_attack_action.gd` et `oculus_attack_action_2.gd` référençaient `"plant_attack"`/`"plant_buff"` (copié de Plant) au lieu de ses propres `action_id` — sa deuxième attaque ne se déclenchait jamais. Corrigé.
 - `statuses/status_berserk.tres` avait le champ `tooltip` qui contenait le texte d'Emanation ("Gain one more Blue Dice...") au lieu de décrire son vrai effet (double dégâts Red). Confirmé mais pas corrigé (tooltip cosmétique, pas prioritaire).
+
+**Bugs de bordure/couleur sur les cartes trouvés le 2026-07-02** (pattern à surveiller si un futur bug de bordure/couleur de carte apparaît) :
+- `card_ui.gd::set_playable_visual()` cache lazily `_base_frame_stylebox` (le style "au repos" de `CardFrame`) au premier appel — si cet appel arrive avant que `_set_card()` applique le style céleste, le cache reste bloqué sur le style normal (maron) pour toujours, même après un `card_frame.add_theme_stylebox_override(...)` explicite ailleurs. D'où des cartes célestes qui redevenaient marron au repos. Fix : `_set_card()` resynchronise `_base_frame_stylebox`/`_hot_frame_stylebox` explicitement quand `can_play_without_dice` est vrai.
+- `card_background.tres` (le fond statique derrière `CardFrame`) avait un `corner_radius` (5) différent de celui de `CardFrame` (6), et le glow "jouable" (`GLOW_BORDER_WIDTH_HOT/AVAILABLE`) changeait `border_width` sans changer `expand_margin` en conséquence — dans certains états (surtout le glow "hot"), la bordure intruse à l'intérieur du rect au lieu de border déborder vers l'extérieur, ce qui la faisait passer sous `RequirementPanel`/`DescriptionPanel`/`BonusEffect` (dessinés par-dessus). Fix définitif : `set_playable_visual()` fait maintenant `expand_margin = border_width` à chaque changement, donc la bordure ne rentre jamais dans le rect — pas besoin d'inset compensatoire sur les panels enfants (une tentative avec un inset de 3-5px a été essayée puis retirée, corriger à la source était la bonne approche).
 
 ## Économie boutique (état au 2026-06-24)
 

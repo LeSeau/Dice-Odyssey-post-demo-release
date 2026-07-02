@@ -15,3 +15,10 @@ func apply_effects(targets: Array [Node], _modifiers: ModifierHandler) -> void:
 
     Events.dice_roll_reset.emit()
     Events.reset_charged_card.emit()
+
+func get_dynamic_description(_modifiers: ModifierHandler) -> String:
+    if is_inked():
+        return "Block ?. If you rolled more than 1 Dice, deal 5 damage to all enemies"
+    if not has_active_roll():
+        return "Block X. If you rolled more than 1 Dice, deal 5 damage to all enemies"
+    return "Block %d. If you rolled more than 1 Dice, deal 5 damage to all enemies" % Global.roll_value

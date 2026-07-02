@@ -1,4 +1,4 @@
-[gd_scene load_steps=63 format=3 uid="uid://drwjp5bi8wmx6"]
+[gd_scene load_steps=61 format=3 uid="uid://drwjp5bi8wmx6"]
 
 [ext_resource type="Texture2D" uid="uid://c17qq0sj25epy" path="res://assets/images/blue1.png" id="1_hxyyb"]
 [ext_resource type="Script" path="res://scenes/dices/dice.gd" id="1_xhb7n"]
@@ -342,16 +342,6 @@ color = Color(1, 0.9, 0.5, 1)
 alpha_curve = SubResource("CurveTexture_od2rw")
 anim_speed_curve = SubResource("CurveTexture_hiixt")
 
-[sub_resource type="Gradient" id="Gradient_power_glow"]
-colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
-
-[sub_resource type="GradientTexture2D" id="GradientTexture2D_power_glow"]
-gradient = SubResource("Gradient_power_glow")
-width = 128
-height = 128
-fill = 1
-fill_from = Vector2(0.5, 0.5)
-fill_to = Vector2(1, 0.5)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_power_float"]
 shader = ExtResource("power_float_shader")
@@ -508,6 +498,7 @@ theme = SubResource("Theme_co3io")
 theme_override_styles/panel = SubResource("StyleBoxFlat_tlawf")
 
 [node name="DiceDisplay" type="TextureRect" parent="Panel"]
+z_index = 1
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -578,25 +569,6 @@ grow_horizontal = 2
 grow_vertical = 2
 pivot_offset = Vector2(90, 90)
 color = Color(0.470117, 0.167668, 0.324535, 1)
-
-[node name="PowerGlow" type="TextureRect" parent="."]
-modulate = Color(0.35, 0.65, 1, 0.45)
-layout_mode = 1
-anchors_preset = 6
-anchor_left = 1.0
-anchor_top = 0.5
-anchor_right = 1.0
-anchor_bottom = 0.5
-offset_left = -1.0
-offset_top = -64.0
-offset_right = 109.0
-offset_bottom = 46.0
-grow_horizontal = 0
-grow_vertical = 2
-mouse_filter = 2
-texture = SubResource("GradientTexture2D_power_glow")
-expand_mode = 1
-stretch_mode = 5
 
 [node name="CurrentPower" type="Label" parent="."]
 material = SubResource("ShaderMaterial_power_float")

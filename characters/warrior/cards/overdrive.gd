@@ -19,3 +19,11 @@ func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
         damage_effect.execute(targets)
         Events.dice_roll_reset.emit()
     Events.reset_charged_card.emit()
+
+func get_dynamic_description(modifiers: ModifierHandler) -> String:
+    if is_inked():
+        return "Deal ? damage. Get Depleted 1"
+    if not has_active_roll() or not meets_requirement():
+        return "Deal X2 damage. Get Depleted 1"
+    var total := modifiers.get_modified_value(Global.roll_value * 2, Modifier.Type.DMG_DEALT)
+    return "Deal %d damage. Get Depleted 1" % total

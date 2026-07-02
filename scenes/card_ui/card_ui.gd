@@ -131,8 +131,10 @@ func _ready() -> void:
     Events.card_aim_ended.connect(_on_card_drag_or_aim_ended)
     card_state_machine.init(self)
     Events.red_dice_rolled.connect(_on_red_dice_rolled)
+    Events.red_dice_rolled.connect(_on_dice_rolled_update_description)
     Events.dice_rolled.connect(_on_dice_rolled_update_description)
     Events.dice_roll_reset.connect(_on_dice_rolled_update_description)
+    Events.change_current_power.connect(_on_dice_rolled_update_description)
     if card:
         card_instance_id = card.instance_id
     
@@ -151,6 +153,10 @@ func animate_to_position(new_position: Vector2, duration: float) -> void:
 func play() -> void:
     if not card:
         return
+    # Record where the card was played from, so effects like refuel can launch their "dice
+    # fly back to the die" visual from the card itself. Set before card.play() because that's
+    # what fires the effect (and the refuel signal) synchronously.
+    Global.last_played_card_position = global_position + size / 2.0
     card.play(targets, char_stats, player_modifiers)
     _fly_to_discard_and_free()
 
@@ -159,6 +165,16 @@ func play() -> void:
 # style) shrinking + spinning + fading on the way. The effect already fired above, so this
 # is purely the visual send-off. By play() time the card lives on the ui_layer (the drag
 # state reparented it there), so it can move freely above the hand.
+#
+# Single-targeted (aimed) cards and everything else take different paths, mirroring how the
+# state machine itself already treats them differently (card_aiming_state.gd only runs for
+# is_single_targeted() cards - everything else, including AoE attacks, never gets aimed and
+# is released from wherever the drag happened to end, usually still near the hand):
+#   - Single-targeted: unchanged - lifts from wherever it was released (near the enemy it was
+#     aimed at) and arcs straight to discard. Julien confirmed this already reads well.
+#   - Everything else (Block, support, AoE...): ALWAYS routes through a staging point near the
+#     dice interface first, regardless of where it was actually released - like Slay the Spire
+#     2, where non-attack cards visually resolve at the center before heading to discard.
 func _fly_to_discard_and_free() -> void:
     set_process_input(false)  # stop routing input into the now-discarding state machine
     mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -174,27 +190,60 @@ func _fly_to_discard_and_free() -> void:
         if discard and discard is Control:
             target_pos = (discard as Control).global_position
 
-    # Lift the card up first, then arc it down to the discard pile. Going straight from the
-    # aim position (just above the hand) to the bottom-right pile looked flat/weird; the
-    # little lift gives the toss an arc and reads like the card is "picked up" before flying.
-    var lift_pos := global_position + Vector2(0, -80)
-
-    # Movement: lift up, then arc down to the discard pile, shrinking + spinning on the way.
     var fly_tween := create_tween()
-    fly_tween.tween_property(self, "global_position", lift_pos, 0.16) \
-        .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-    fly_tween.tween_property(self, "global_position", target_pos, 0.45) \
-        .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
-    fly_tween.parallel().tween_property(self, "scale", Vector2(0.15, 0.15), 0.45) \
-        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-    fly_tween.parallel().tween_property(self, "rotation", deg_to_rad(randf_range(-35.0, 35.0)), 0.45) \
-        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+    var fade_delay: float
+
+    if card.is_single_targeted():
+        # Lift the card up first, then arc it down to the discard pile. Going straight from
+        # the aim position (just above the hand) to the bottom-right pile looked flat/weird;
+        # the little lift gives the toss an arc and reads like the card is "picked up" before
+        # flying.
+        var lift_pos := global_position + Vector2(0, -80)
+        var lift_time := 0.16
+        # Slower + floatier final leg to the discard pile (was 0.45s with an accelerating
+        # TRANS_BACK/EASE_IN, read as "very fast" per Julien) - TRANS_SINE/EASE_IN_OUT drifts
+        # rather than dashes.
+        var arc_time := 0.7
+        fly_tween.tween_property(self, "global_position", lift_pos, lift_time) \
+            .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+        fly_tween.tween_property(self, "global_position", target_pos, arc_time) \
+            .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+        fly_tween.parallel().tween_property(self, "scale", Vector2(0.15, 0.15), arc_time) \
+            .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+        fly_tween.parallel().tween_property(self, "rotation", deg_to_rad(randf_range(-35.0, 35.0)), arc_time) \
+            .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+        fade_delay = lift_time + arc_time - 0.2  # fade in during the arc's last ~0.2s
+    else:
+        var stage_pos := global_position  # fallback if dice interface not found
+        var dice_interface := get_tree().get_first_node_in_group("dice_interface")
+        if dice_interface and dice_interface is Control:
+            # Offset above the dice interface's own center - floating at dead-center (roughly
+            # the ROLL button/power number) sat too low/cramped against the dice UI.
+            stage_pos = (dice_interface as Control).get_global_rect().get_center() + Vector2(0, -140)
+
+        var stage_time := 0.22
+        var hold_time := 0.08
+        # Slower + floatier final leg to the discard pile (was 0.4s with an accelerating
+        # TRANS_BACK/EASE_IN) - TRANS_SINE/EASE_IN_OUT drifts rather than dashes.
+        var arc_time := 0.65
+        fly_tween.tween_property(self, "global_position", stage_pos, stage_time) \
+            .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+        fly_tween.parallel().tween_property(self, "rotation", deg_to_rad(randf_range(-6.0, 6.0)), stage_time) \
+            .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+        fly_tween.tween_interval(hold_time)  # brief hold at the staging point before continuing on
+        fly_tween.tween_property(self, "global_position", target_pos, arc_time) \
+            .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+        fly_tween.parallel().tween_property(self, "scale", Vector2(0.15, 0.15), arc_time) \
+            .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+        fly_tween.parallel().tween_property(self, "rotation", deg_to_rad(randf_range(-35.0, 35.0)), arc_time) \
+            .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+        fade_delay = stage_time + hold_time + arc_time - 0.2
 
     # Fade out only near the END of the flight (separate tween), so the card stays visible
     # long enough to read that it's travelling to the discard pile - fading it across the
     # whole trip made the destination unclear. queue_free waits for the fade so it isn't cut.
     var fade_tween := create_tween()
-    fade_tween.tween_interval(0.46)
+    fade_tween.tween_interval(fade_delay)
     fade_tween.tween_property(self, "modulate:a", 0.0, 0.2) \
         .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
     fade_tween.tween_callback(queue_free)
@@ -267,6 +316,12 @@ func _set_card(value: Card) -> void:
         description_panel.add_theme_stylebox_override("panel", CELESTIAL_DESC_STYLEBOX)
         card_banner.add_theme_stylebox_override("panel", CELESTIAL_BANNER_STYLEBOX)
         card_frame.add_theme_stylebox_override("panel", SUPPORT_STYLEBOX)
+        # Keep the playable-glow cache in sync: set_playable_visual() lazily caches
+        # whatever CardFrame's stylebox was on first call, which can happen before
+        # this celestial override runs and would otherwise permanently re-apply the
+        # stale maroon base every time the card returns to its resting glow state.
+        _base_frame_stylebox = SUPPORT_STYLEBOX
+        _hot_frame_stylebox = null
         requirement_panel.add_theme_stylebox_override("panel", CELESTIAL_REQUIREMENT_NONE_STYLEBOX)
         description.label_settings = CELESTIAL_DESC_LABEL_SETTINGS
     # Fixed bonus requirement logic
@@ -546,6 +601,14 @@ func set_playable_visual(state: PlayableGlow) -> void:
             _hot_frame_stylebox.border_width_top = border_width
             _hot_frame_stylebox.border_width_right = border_width
             _hot_frame_stylebox.border_width_bottom = border_width
+            # Keep expand_margin >= border_width so the thicker glow border only
+            # bleeds outward past the card's edge instead of intruding inward into
+            # the rect, where it would get painted over by RequirementPanel /
+            # DescriptionPanel / BonusEffect (siblings drawn on top of CardFrame).
+            _hot_frame_stylebox.expand_margin_left = border_width
+            _hot_frame_stylebox.expand_margin_top = border_width
+            _hot_frame_stylebox.expand_margin_right = border_width
+            _hot_frame_stylebox.expand_margin_bottom = border_width
             _hot_frame_stylebox.shadow_size = GLOW_SHADOW_SIZE_HOT if is_hot else GLOW_SHADOW_SIZE_AVAILABLE
             var dice_color: Color = DiceInterfaceScript.DICE_TYPE_COLOR.get(Global.dice_type, GLOW_DEFAULT_COLOR)
             _hot_frame_stylebox.shadow_color = Color(dice_color.r, dice_color.g, dice_color.b, GLOW_SHADOW_ALPHA_HOT if is_hot else GLOW_SHADOW_ALPHA_AVAILABLE)
@@ -575,4 +638,4 @@ func reapply_playable_visual() -> void:
 
 func _on_dice_rolled_update_description(_a = null, _b = null) -> void:
     if card and card.has_method("get_dynamic_description"):
-        description.text = card.get_dynamic_description()
+        description.text = card.get_dynamic_description(player_modifiers)

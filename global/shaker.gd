@@ -26,7 +26,14 @@ func shake(thing: Node2D, strength: float, duration: float = 0.2) -> void:
     )
 
 
-func hit_stop(duration: float = 0.05, time_scale: float = 0.05) -> void:
+func hit_stop(duration: float = 0.05, time_scale: float = 0.02) -> void:
+    # Confirmed 2026-07-01 via a loud diagnostic (duration=0.5, time_scale=0.02) that Julien
+    # could clearly see - at the ORIGINAL defaults (0.05 duration, 0.05 time_scale) it was
+    # imperceptible. time_scale (how HARD the freeze is, not just how long) was the bigger
+    # factor for visibility, so the default here now matches the diagnostic's time_scale
+    # rather than the original softer 0.05 - only duration comes back down from the extreme
+    # 0.5s diagnostic value to something that won't feel laggy at gameplay pace (rolls happen
+    # every few seconds; call sites still scale their own duration by damage/roll value).
     Engine.time_scale = time_scale
     await get_tree().create_timer(duration, true, false, true).timeout
     Engine.time_scale = 1.0

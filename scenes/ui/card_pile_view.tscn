@@ -1,14 +1,50 @@
-[gd_scene load_steps=5 format=3 uid="uid://jg7s3ul6gyqj"]
+[gd_scene load_steps=7 format=3 uid="uid://jg7s3ul6gyqj"]
 
 [ext_resource type="Script" path="res://scenes/ui/card_pile_view.gd" id="1_byypi"]
 [ext_resource type="PackedScene" uid="uid://d2vlobkkv27hu" path="res://scenes/ui/card_menu_ui.tscn" id="1_gt0jo"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_6m3id"]
 font_size = 36
+font_color = Color(0.941176, 0.752941, 0.188235, 1)
+outline_size = 8
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 4
+shadow_color = Color(0, 0, 0, 0.6)
+shadow_offset = Vector2(0, 2)
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_fat5r"]
 content_margin_left = 14.0
 content_margin_top = 20.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_back_normal"]
+bg_color = Color(0.144787, 0.273985, 0.277578, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.752941, 0.501961, 0.0627451, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.4)
+shadow_size = 4
+shadow_offset = Vector2(0, 2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_back_hover"]
+bg_color = Color(0.144787, 0.273985, 0.277578, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.941176, 0.752941, 0.188235, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0.941176, 0.752941, 0.188235, 0.5)
+shadow_size = 5
+shadow_offset = Vector2(0, 2)
 
 [node name="CardPileView" type="Control"]
 z_index = 120
@@ -37,7 +73,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/margin_left = 50
-theme_override_constants/margin_top = 50
+theme_override_constants/margin_top = 95
 theme_override_constants/margin_right = 50
 theme_override_constants/margin_bottom = 50
 
@@ -52,6 +88,12 @@ text = "Discard pile
 "
 label_settings = SubResource("LabelSettings_6m3id")
 horizontal_alignment = 1
+
+[node name="TitleDivider" type="ColorRect" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 2)
+size_flags_horizontal = 3
+color = Color(0.752941, 0.501961, 0.0627451, 0.6)
 
 [node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
@@ -144,17 +186,24 @@ size_flags_vertical = 6
 
 [node name="BackButton" type="Button" parent="."]
 unique_name_in_owner = true
-z_index = 16
+z_index = 200
+mouse_filter = 0
+custom_minimum_size = Vector2(92, 48)
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -190.0
-offset_top = 65.0
+offset_top = 93.0
 offset_right = -98.0
-offset_bottom = 113.0
+offset_bottom = 141.0
 grow_horizontal = 0
-text = "Back
-"
+theme_override_colors/font_color = Color(0.941176, 0.752941, 0.188235, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxFlat_back_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_back_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_back_hover")
+text = "Back"
 
 [connection signal="pressed" from="BackButton" to="." method="_on_back_button_pressed"]

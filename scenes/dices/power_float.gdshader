@@ -25,6 +25,11 @@ uniform vec2 local_pivot = vec2(45.0, 48.0);
 // crackle feel; smoothstep between samples keeps it nervous without hard strobing.
 uniform float crackle_amplitude : hint_range(0.0, 8.0) = 1.5;
 uniform float crackle_freq : hint_range(0.0, 40.0) = 11.0;
+// Driven from GDScript separately from float_intensity: scales the crackle specifically
+// (not the ambient breathe/drift) with banked power this turn - barely perceptible at low
+// power, reaching the crackle_amplitude above (the existing always-on look) at ~12+ power,
+// so a low roll feels calm and a big turn feels like it's about to go off.
+uniform float crackle_charge : hint_range(0.0, 2.0) = 0.0;
 
 float hash11(float p) {
     return fract(sin(p * 127.1) * 43758.5453);
@@ -48,7 +53,8 @@ void vertex() {
     VERTEX.x += sin(t * speed_x) * amplitude_x * float_intensity;
     VERTEX.y += sin(t * speed_y + 1.4) * amplitude_y * float_intensity;
 
-    // Fast crackle tremor (decorrelated seeds per axis).
-    VERTEX.x += crackle(0.0) * crackle_amplitude * float_intensity;
-    VERTEX.y += crackle(31.0) * crackle_amplitude * float_intensity;
+    // Fast crackle tremor (decorrelated seeds per axis) - scaled by crackle_charge, not
+    // float_intensity, so it ramps with banked power rather than snapping fully on/off.
+    VERTEX.x += crackle(0.0) * crackle_amplitude * crackle_charge;
+    VERTEX.y += crackle(31.0) * crackle_amplitude * crackle_charge;
 }

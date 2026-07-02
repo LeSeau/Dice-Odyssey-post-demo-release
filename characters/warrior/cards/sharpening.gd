@@ -16,3 +16,10 @@ func apply_effects(targets: Array [Node], _modifiers: ModifierHandler) -> void:
         Events.temporary_dice_added.emit(active_dice)
         Events.dice_roll_reset.emit()
     Events.reset_charged_card.emit()
+
+func get_dynamic_description(_modifiers: ModifierHandler) -> String:
+    if is_inked():
+        return "Block ?. Charge 1"
+    if not has_active_roll() or not meets_requirement():
+        return "Block X. Charge 1"
+    return "Block %d. Charge 1" % Global.roll_value

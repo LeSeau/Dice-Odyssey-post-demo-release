@@ -1,13 +1,14 @@
-[gd_scene load_steps=5 format=3 uid="uid://ci8owbh0nd2ja"]
+[gd_scene load_steps=6 format=3 uid="uid://ci8owbh0nd2ja"]
 
 [ext_resource type="Theme" uid="uid://c8cqncsqlplyu" path="res://main_theme.tres" id="1_fwjqx"]
 [ext_resource type="StyleBox" uid="uid://ce8r01r8snw2g" path="res://scenes/ui/tooltip.tres" id="2_84ury"]
 [ext_resource type="Script" path="res://scenes/ui/dice_tooltip.gd" id="3_8dw8k"]
 [ext_resource type="FontFile" uid="uid://daeyoqlqsy1q8" path="res://assets/static/Roboto_Condensed-Bold.ttf" id="4_p6vb4"]
+[ext_resource type="FontFile" uid="uid://b2y60c4274gkj" path="res://fonts/Cinzel-Bold.otf" id="5_cinzel"]
 
 [node name="DiceTooltip" type="Panel"]
 offset_right = 204.0
-offset_bottom = 74.0
+offset_bottom = 88.0
 theme = ExtResource("1_fwjqx")
 theme_override_styles/panel = ExtResource("2_84ury")
 script = ExtResource("3_8dw8k")
@@ -17,28 +18,41 @@ layout_mode = 0
 offset_left = 2.0
 offset_top = 2.0
 offset_right = 202.0
-offset_bottom = 72.0
+offset_bottom = 86.0
 theme_override_constants/margin_left = 10
-theme_override_constants/margin_top = 10
+theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 10
-theme_override_constants/margin_bottom = 10
+theme_override_constants/margin_bottom = 6
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
-visible = false
-custom_minimum_size = Vector2(180, 45)
+custom_minimum_size = Vector2(180, 60)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 alignment = 1
 
-[node name="TooltipText" type="RichTextLabel" parent="MarginContainer"]
+[node name="TooltipTitle" type="RichTextLabel" parent="MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(80, 50)
+custom_minimum_size = Vector2(80, 20)
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_constants/line_separation = 2
+theme_override_fonts/normal_font = ExtResource("5_cinzel")
+theme_override_fonts/bold_font = ExtResource("5_cinzel")
+theme_override_font_sizes/normal_font_size = 16
+theme_override_font_sizes/bold_font_size = 16
+bbcode_enabled = true
+text = "[center][color=gold][b]Blue Dice[/b][/color][/center]"
+scroll_active = false
+
+[node name="TooltipText" type="RichTextLabel" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 40)
 layout_mode = 2
 size_flags_vertical = 4
 theme_override_constants/line_separation = 2
 theme_override_fonts/normal_font = ExtResource("4_p6vb4")
-theme_override_font_sizes/normal_font_size = 14
+theme_override_font_sizes/normal_font_size = 12
 bbcode_enabled = true
 text = "[center]charge X: gain X active dice[/center]"
 scroll_active = false

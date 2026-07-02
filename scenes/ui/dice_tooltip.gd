@@ -2,6 +2,7 @@ extends Panel
 
 
 @onready var tooltip_label: RichTextLabel = %TooltipText
+@onready var tooltip_title: RichTextLabel = %TooltipTitle
 @onready var vbox: VBoxContainer = $MarginContainer/VBoxContainer
 
 func show_tooltip(global_pos: Vector2) -> void:
@@ -29,9 +30,10 @@ func get_tooltip_content(dice):
     elif dice == "blue":
         text = "Faces: 1-6"
     elif dice == "red":
-        text = "Faces: 1-6"
+        text = "Faces: 1-6. Select a card before rolling the Dice."
     elif dice == "green":
         text = "Faces: 1-3"
     elif dice == "mech":
         text = "Faces: 1-6. After each roll, you can add or substract 1 Power."
     tooltip_label.text = text
+    tooltip_title.text = "[center][color=gold][b]%s Dice[/b][/color][/center]" % dice.capitalize()

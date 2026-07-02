@@ -12,5 +12,12 @@ func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
     damage_effect.sound = sound
     damage_effect.execute(targets)
     Events.dice_roll_reset.emit()
-        
-    
+
+func get_dynamic_description(modifiers: ModifierHandler) -> String:
+    if is_inked():
+        return "Deal ? damage"
+    if not has_active_roll():
+        return "Deal X damage"
+    var total := modifiers.get_modified_value(Global.roll_value, Modifier.Type.DMG_DEALT)
+    return "Deal %d damage" % total
+

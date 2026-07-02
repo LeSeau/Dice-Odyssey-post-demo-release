@@ -22,10 +22,10 @@ border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
 border_color = Color(0.788235, 0.635294, 0.152941, 0.55)
-corner_radius_top_left = 28
-corner_radius_top_right = 28
-corner_radius_bottom_right = 28
-corner_radius_bottom_left = 28
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
 expand_margin_top = 2.0
 shadow_color = Color(0, 0, 0, 0.35)
 shadow_size = 5
@@ -129,9 +129,9 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 theme_override_constants/margin_left = 8
-theme_override_constants/margin_top = 6
+theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 8
-theme_override_constants/margin_bottom = 6
+theme_override_constants/margin_bottom = 10
 
 [node name="HBoxContainer" type="HBoxContainer" parent="DicePanel/MarginContainer"]
 layout_mode = 2
@@ -145,7 +145,7 @@ layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 mouse_filter = 0
-theme_override_constants/separation = 0
+theme_override_constants/separation = 3
 alignment = 1
 
 [node name="Dice1Texture" type="TextureRect" parent="DicePanel/MarginContainer/HBoxContainer/Dice1"]
@@ -172,7 +172,7 @@ custom_minimum_size = Vector2(40, 45)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
-theme_override_constants/separation = 0
+theme_override_constants/separation = 3
 alignment = 1
 
 [node name="Dice2Texture" type="TextureRect" parent="DicePanel/MarginContainer/HBoxContainer/Dice2"]
@@ -198,7 +198,7 @@ custom_minimum_size = Vector2(40, 45)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
-theme_override_constants/separation = 0
+theme_override_constants/separation = 3
 alignment = 1
 
 [node name="Dice3Texture" type="TextureRect" parent="DicePanel/MarginContainer/HBoxContainer/Dice3"]
@@ -224,7 +224,7 @@ custom_minimum_size = Vector2(40, 45)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
-theme_override_constants/separation = 0
+theme_override_constants/separation = 3
 alignment = 1
 
 [node name="Dice4Texture" type="TextureRect" parent="DicePanel/MarginContainer/HBoxContainer/Dice4"]
@@ -250,7 +250,7 @@ custom_minimum_size = Vector2(40, 45)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
-theme_override_constants/separation = 0
+theme_override_constants/separation = 3
 alignment = 1
 
 [node name="Dice5Texture" type="TextureRect" parent="DicePanel/MarginContainer/HBoxContainer/Dice5"]
@@ -276,7 +276,7 @@ custom_minimum_size = Vector2(40, 45)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
-theme_override_constants/separation = 0
+theme_override_constants/separation = 3
 alignment = 1
 
 [node name="Dice6Texture" type="TextureRect" parent="DicePanel/MarginContainer/HBoxContainer/Dice6"]
@@ -302,7 +302,7 @@ custom_minimum_size = Vector2(40, 45)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
-theme_override_constants/separation = 0
+theme_override_constants/separation = 3
 alignment = 1
 
 [node name="Dice7Texture" type="TextureRect" parent="DicePanel/MarginContainer/HBoxContainer/Dice7"]
@@ -328,7 +328,7 @@ custom_minimum_size = Vector2(40, 45)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
-theme_override_constants/separation = 0
+theme_override_constants/separation = 3
 alignment = 1
 
 [node name="Dice8Texture" type="TextureRect" parent="DicePanel/MarginContainer/HBoxContainer/Dice8"]
@@ -354,7 +354,7 @@ custom_minimum_size = Vector2(40, 45)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
-theme_override_constants/separation = 0
+theme_override_constants/separation = 3
 alignment = 1
 
 [node name="Dice9Texture" type="TextureRect" parent="DicePanel/MarginContainer/HBoxContainer/Dice9"]

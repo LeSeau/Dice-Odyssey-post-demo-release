@@ -26,3 +26,11 @@ func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
     
 func _on_dice_rolled():
     print("adding dice to damage")
+
+func get_dynamic_description(modifiers: ModifierHandler) -> String:
+    if is_inked():
+        return "Deal ? damage. Apply Exposed 2"
+    if not has_active_roll() or not meets_requirement():
+        return "Deal X damage. Apply Exposed 2"
+    var total := modifiers.get_modified_value(Global.roll_value, Modifier.Type.DMG_DEALT)
+    return "Deal %d damage. Apply Exposed 2" % total
