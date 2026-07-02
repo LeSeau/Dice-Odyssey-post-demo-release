@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://btktlydklchb4"]
+[gd_scene load_steps=18 format=3 uid="uid://btktlydklchb4"]
 
 [ext_resource type="Script" path="res://main_menu.gd" id="1_vi5tj"]
 [ext_resource type="Texture2D" uid="uid://d4nx6s75m7oci" path="res://main_menu_v3.jpg" id="2_2uw4g"]
@@ -69,7 +69,7 @@ border_width_left = 3
 border_width_top = 3
 border_width_right = 3
 border_width_bottom = 3
-border_color = Color(0.227451, 0.541176, 0.431373, 1)
+border_color = Color(0.752941, 0.501961, 0.0627451, 1)
 corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
@@ -80,13 +80,87 @@ shadow_offset = Vector2(0, 4)
 
 [sub_resource type="LabelSettings" id="LabelSettings_5kukv"]
 font_size = 24
-font_color = Color(1, 1, 0.137255, 1)
+font_color = Color(0.941176, 0.752941, 0.188235, 1)
 outline_size = 2
 outline_color = Color(0, 0, 0, 1)
 
 [sub_resource type="LabelSettings" id="LabelSettings_ud1vm"]
 font = ExtResource("3_lj8do")
 font_size = 22
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_enable_normal"]
+bg_color = Color(0.144787, 0.273985, 0.277578, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.227451, 0.541176, 0.431373, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.4)
+shadow_size = 3
+shadow_offset = Vector2(0, 2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_enable_hover"]
+bg_color = Color(0.144787, 0.273985, 0.277578, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.3, 0.9, 0.4, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0.3, 0.9, 0.4, 0.5)
+shadow_size = 4
+shadow_offset = Vector2(0, 2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_skip_normal"]
+bg_color = Color(0.144787, 0.273985, 0.277578, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.6, 0.2, 0.2, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.4)
+shadow_size = 3
+shadow_offset = Vector2(0, 2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_skip_hover"]
+bg_color = Color(0.144787, 0.273985, 0.277578, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.9, 0.3, 0.3, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0.9, 0.3, 0.3, 0.5)
+shadow_size = 4
+shadow_offset = Vector2(0, 2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cancel_normal"]
+bg_color = Color(0, 0, 0, 0.431373)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cancel_hover"]
+bg_color = Color(0.752941, 0.501961, 0.0627451, 0.4)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -118,32 +192,6 @@ theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_mqnf8")
 theme_override_styles/hover = SubResource("StyleBoxFlat_eiscl")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_pktf8")
 theme_override_styles/normal = SubResource("StyleBoxFlat_r22wc")
-
-[node name="Button" type="Button" parent="."]
-visible = false
-custom_minimum_size = Vector2(20, 20)
-layout_mode = 0
-offset_left = 56.0
-offset_top = 534.0
-offset_right = 353.0
-offset_bottom = 594.0
-text = "tutorial:"
-alignment = 0
-
-[node name="CheckBox" type="CheckButton" parent="Button"]
-layout_mode = 1
-anchors_preset = 6
-anchor_left = 1.0
-anchor_top = 0.5
-anchor_right = 1.0
-anchor_bottom = 0.5
-offset_left = -108.0
-offset_top = -28.0
-offset_right = -11.0
-offset_bottom = 30.0
-grow_horizontal = 0
-grow_vertical = 2
-text = "on"
 
 [node name="EnableTutorialPanel" type="Panel" parent="."]
 visible = false
@@ -192,6 +240,9 @@ offset_top = 170.0
 offset_right = 313.0
 offset_bottom = 222.0
 theme_override_colors/font_color = Color(0, 0.854902, 0, 1)
+theme_override_colors/font_hover_color = Color(0.7, 1, 0.75, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_enable_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_enable_hover")
 text = "Enable tutorial"
 
 [node name="StartWithoutTutorial" type="Button" parent="EnableTutorialPanel"]
@@ -201,8 +252,30 @@ offset_top = 170.0
 offset_right = 574.0
 offset_bottom = 222.0
 theme_override_colors/font_color = Color(0.856481, 0.000105334, 5.87195e-05, 0.941176)
+theme_override_colors/font_hover_color = Color(1, 0.7, 0.7, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_skip_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_skip_hover")
 text = "Skip tutorial"
+
+[node name="CancelButton" type="Button" parent="EnableTutorialPanel"]
+z_index = 10
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -40.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = 40.0
+grow_horizontal = 0
+theme_override_colors/font_color = Color(0.752941, 0.501961, 0.0627451, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_cancel_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_cancel_hover")
+text = "X"
 
 [connection signal="pressed" from="NewRun" to="." method="_on_new_run_pressed"]
 [connection signal="pressed" from="EnableTutorialPanel/StartWithTutorial" to="." method="_on_start_with_tutorial_pressed"]
 [connection signal="pressed" from="EnableTutorialPanel/StartWithoutTutorial" to="." method="_on_start_without_tutorial_pressed"]
+[connection signal="pressed" from="EnableTutorialPanel/CancelButton" to="." method="_on_cancel_tutorial_panel_pressed"]

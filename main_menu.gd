@@ -1,6 +1,5 @@
 extends Control
 
-@onready var new_run: Button = $VBoxContainer/NewRun
 @onready var enable_tutorial_panel: Panel = $EnableTutorialPanel
 
 
@@ -13,6 +12,10 @@ func _ready()  -> void:
     
 func _on_new_run_pressed() -> void:
     enable_tutorial_panel.show()
+
+
+func _on_cancel_tutorial_panel_pressed() -> void:
+    enable_tutorial_panel.hide()
 
 
 func _on_start_with_tutorial_pressed() -> void:
