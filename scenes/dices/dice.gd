@@ -1081,7 +1081,8 @@ func _on_change_current_power():
     # Capture BEFORE _set_power_text (which overwrites _last_shown_power): did this emit
     # actually change the power value, or is a card just refreshing its display after
     # charging dice / blocking / dealing damage? Only a real change earns the clang.
-    var power_changed := Global.roll_value != _last_shown_power
+    var old_power := _last_shown_power
+    var power_changed := Global.roll_value != old_power
 
     _set_power_text(Global.roll_value)
     _check_sigil_trigger()
@@ -1094,6 +1095,11 @@ func _on_change_current_power():
     # refresh their display (and the dice-type-switch reset to 0) stay quiet.
     if power_changed and Global.roll_value > 0:
         _play_power_clang()
+        # Small hit-stop for support/power cards (Reinforce, Blaze...) - these never call
+        # DamageEffect so they had no hit-stop at all before. Scaled by how much the power
+        # actually changed, not a flat value - Blaze's +5 should land harder than Reinforce's +1.
+        var power_delta := absf(Global.roll_value - old_power)
+        Shaker.hit_stop(clampf(power_delta * 0.01, 0.03, 0.1))
     else:
         animation_player_power.play("power_change")
     _update_charged_card_description()

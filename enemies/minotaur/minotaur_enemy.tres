@@ -9,3 +9,4 @@ script = ExtResource("2_i5021")
 ai = ExtResource("1_1vi4p")
 max_health = 10
 art = ExtResource("1_ldyal")
+enemy_name = "Minotaur"

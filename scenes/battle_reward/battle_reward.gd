@@ -13,6 +13,15 @@ const CARD_TEXT := "Add New Card"
 var relic_tooltip_instance: CanvasLayer
 const TooltipScene = preload("res://scenes/ui/tooltip.tscn")
 
+# Secondary keyword tooltips (e.g. "Scout" next to a relic's own description) - this screen
+# never had these at all before, unlike relic_ui.gd's hover (a separate, simpler tooltip system
+# for reward buttons specifically). Mirrors relic_ui.gd's pattern.
+const TOOLTIP_OFFSET_X = 8
+const TOOLTIP_HEIGHT = 108
+const TOOLTIP_SPACING = 1
+var relic_tooltip_instances_tags: Array = []
+var _relic_hover_id := 0
+
 var warning_dismissed := false
 
 @export var run_stats: RunStats
@@ -80,17 +89,33 @@ func add_relic_reward(relic: Relic) -> void:
     rewards.add_child.call_deferred(relic_reward)
 
 
+# Tooltips live under get_tree().root, not this node - free them explicitly whenever this
+# screen itself is torn down, otherwise a still-hovered tooltip can leak into whatever screen
+# comes next (same bug class as relic_ui.gd's, see its _exit_tree() comment).
+func _exit_tree() -> void:
+    _cleanup_relic_tooltips()
+
+func _cleanup_relic_tooltips() -> void:
+    if relic_tooltip_instance and is_instance_valid(relic_tooltip_instance):
+        relic_tooltip_instance.queue_free()
+        relic_tooltip_instance = null
+    for tooltip in relic_tooltip_instances_tags:
+        if tooltip and is_instance_valid(tooltip):
+            tooltip.queue_free()
+    relic_tooltip_instances_tags.clear()
+
 # Called when mouse enters a relic reward button
 func _on_relic_reward_mouse_entered(relic: Relic, button: Control) -> void:
-    if relic_tooltip_instance and is_instance_valid(relic_tooltip_instance):
-        return # Already showing
+    _cleanup_relic_tooltips()
+    _relic_hover_id += 1
+    var my_id := _relic_hover_id
 
     relic_tooltip_instance = TooltipScene.instantiate()
     get_tree().root.add_child(relic_tooltip_instance)
 
     # Get the Tooltip panel child
     var tooltip_panel = relic_tooltip_instance.get_node("Tooltip")
-    
+
     # Set tooltip title + text
     tooltip_panel.tooltip_title.text = "[color=gold][b]%s[/b][/color]" % relic.relic_name
     tooltip_panel.tooltip_label.text = relic.get_colorized_description(relic.tooltip)
@@ -99,12 +124,59 @@ func _on_relic_reward_mouse_entered(relic: Relic, button: Control) -> void:
     var pos = button.get_global_position() + Vector2(button.get_size().x + 8, 0)
     tooltip_panel.show_tooltip(pos)
 
+    # Secondary keyword tooltips (e.g. "Scout") - same tags + tag-free dice-type detection as
+    # relic_ui.gd, just never wired up on this screen before.
+    var tags_to_show: Array = []
+    if relic.tags != "":
+        for tag in relic.tags.split(","):
+            var trimmed: String = tag.strip_edges()
+            if trimmed != "":
+                tags_to_show.append(trimmed)
+    for dice_keyword in KeywordColorizer.find_dice_keywords_in_text(relic.tooltip):
+        if not tags_to_show.has(dice_keyword):
+            tags_to_show.append(dice_keyword)
+
+    if tags_to_show.is_empty():
+        return
+
+    # Wait a frame so the main tooltip panel has its real size before positioning off of it
+    # (same gotcha relic_ui.gd already worked around).
+    await get_tree().create_timer(0.5).timeout
+    if my_id != _relic_hover_id:
+        return
+
+    var total_height = (tags_to_show.size() * TOOLTIP_HEIGHT) + ((tags_to_show.size() - 1) * TOOLTIP_SPACING)
+    var center_y = pos.y + (tooltip_panel.size.y / 2.0)
+    var start_y = center_y - (total_height / 2.0)
+
+    var screen_height = get_viewport_rect().size.y
+    if start_y + total_height > screen_height - 20:
+        start_y = screen_height - total_height - 20
+    if start_y < 20:
+        start_y = 20
+
+    var base_pos = Vector2(pos.x + tooltip_panel.size.x + TOOLTIP_OFFSET_X, start_y)
+    var captured_id := my_id
+
+    for i in range(tags_to_show.size()):
+        var tag_tooltip = TooltipScene.instantiate()
+        get_tree().root.add_child(tag_tooltip)
+        var tag_panel = tag_tooltip.get_node("Tooltip")
+        tag_panel.get_tooltip_content(tags_to_show[i])
+        var tag_pos = (base_pos + Vector2(0, i * (TOOLTIP_HEIGHT + TOOLTIP_SPACING))).round()
+        tag_panel.show_tooltip(tag_pos)
+        relic_tooltip_instances_tags.append(tag_tooltip)
+
+    get_tree().create_timer(6.0).timeout.connect(func():
+        if captured_id == _relic_hover_id:
+            _cleanup_relic_tooltips()
+    )
+
 # Called when mouse exits the relic reward button
 func _on_relic_reward_mouse_exited() -> void:
-    if relic_tooltip_instance and is_instance_valid(relic_tooltip_instance):
-        relic_tooltip_instance.queue_free()
-        relic_tooltip_instance = null
-    
+    _relic_hover_id += 1
+    _cleanup_relic_tooltips()
+
 func _show_card_rewards() -> void:
     if not run_stats or not character_stats:
         return

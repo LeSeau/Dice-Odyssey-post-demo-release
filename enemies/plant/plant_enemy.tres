@@ -9,3 +9,4 @@ script = ExtResource("3_4fptl")
 ai = ExtResource("1_lr1j8")
 max_health = 35
 art = ExtResource("2_u2alm")
+enemy_name = "Plant"

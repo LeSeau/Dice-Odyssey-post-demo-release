@@ -144,6 +144,20 @@ offset_bottom = 151.0
 grow_vertical = 0
 mouse_filter = 2
 
+[node name="NameLabel" type="Label" parent="."]
+visible = false
+z_index = 5
+mouse_filter = 2
+offset_left = 17.0
+offset_top = 155.0
+offset_right = 223.0
+offset_bottom = 177.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 14
+horizontal_alignment = 1
+
 [node name="IntentUI" parent="." instance=ExtResource("5_xytk4")]
 z_index = 10
 offset_left = 63.0
@@ -174,3 +188,5 @@ autoplay = "idle"
 
 [connection signal="area_entered" from="." to="." method="_on_area_entered"]
 [connection signal="area_exited" from="." to="." method="_on_area_exited"]
+[connection signal="mouse_entered" from="." to="." method="_on_mouse_entered"]
+[connection signal="mouse_exited" from="." to="." method="_on_mouse_exited"]

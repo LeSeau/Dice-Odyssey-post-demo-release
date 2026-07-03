@@ -26,6 +26,8 @@ func shake(thing: Node2D, strength: float, duration: float = 0.2) -> void:
     )
 
 
+var _hit_stop_active := 0
+
 func hit_stop(duration: float = 0.05, time_scale: float = 0.02) -> void:
     # Confirmed 2026-07-01 via a loud diagnostic (duration=0.5, time_scale=0.02) that Julien
     # could clearly see - at the ORIGINAL defaults (0.05 duration, 0.05 time_scale) it was
@@ -34,6 +36,16 @@ func hit_stop(duration: float = 0.05, time_scale: float = 0.02) -> void:
     # rather than the original softer 0.05 - only duration comes back down from the extreme
     # 0.5s diagnostic value to something that won't feel laggy at gameplay pace (rolls happen
     # every few seconds; call sites still scale their own duration by damage/roll value).
+    #
+    # Reference-counted (2026-07-04) so overlapping calls compose safely - e.g. an AoE card
+    # hitting several enemies (one hit_stop per target already) or a damage hit + an EXACT-
+    # requirement bonus hit_stop firing around the same moment. Without this, each call reset
+    # Engine.time_scale to 1.0 independently on ITS OWN timer, so the SHORTER of two overlapping
+    # calls could snap speed back to normal early and cut the longer one off prematurely. Now
+    # only the last still-active call (the one whose timer ends last) actually restores speed.
+    _hit_stop_active += 1
     Engine.time_scale = time_scale
     await get_tree().create_timer(duration, true, false, true).timeout
-    Engine.time_scale = 1.0
+    _hit_stop_active -= 1
+    if _hit_stop_active <= 0:
+        Engine.time_scale = 1.0

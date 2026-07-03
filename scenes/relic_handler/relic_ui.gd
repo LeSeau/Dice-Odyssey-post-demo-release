@@ -33,6 +33,16 @@ func set_relic(new_relic: Relic) -> void:
 func flash() -> void:
     animation_player.play("flash")
 
+# Tooltip instances are added under get_tree().root (not this node), so they don't get freed
+# automatically for free when RelicUI leaves the tree (e.g. exiting the shop while still
+# hovering a relic - the RelicUI node is destroyed, but mouse_exited never gets a chance to
+# fire, and the still-running _on_mouse_entered() coroutine gets silently cancelled along with
+# it, so its own safety timeout below never even runs). This is the same "tooltip stuck
+# forever" bug class as intent_ui.gd's, just surfacing on a scene transition instead of rapid
+# re-hover - clean up explicitly whenever this node itself is removed from the tree.
+func _exit_tree() -> void:
+    _cleanup_tooltips()
+
 func _cleanup_tooltips() -> void:
     if tooltip_instance and is_instance_valid(tooltip_instance):
         tooltip_instance.queue_free()

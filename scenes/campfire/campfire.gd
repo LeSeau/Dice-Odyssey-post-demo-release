@@ -26,8 +26,6 @@ func _on_heal_zone_mouse_entered() -> void:
     _hover_id += 1
     var my_id := _hover_id
 
-    await get_tree().create_timer(0.5).timeout
-
     if my_id != _hover_id:
         return
     if not get_global_rect().has_point(get_global_mouse_position()):
@@ -57,8 +55,6 @@ func _on_heal_button_mouse_entered() -> void:
 
     _hover_id += 1
     var my_id := _hover_id
-
-    await get_tree().create_timer(0.5).timeout
 
     if my_id != _hover_id:
         return

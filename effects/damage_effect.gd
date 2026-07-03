@@ -20,10 +20,11 @@ func execute(targets: Array[Node]) -> void:
                 # only ~3-4px, imperceptible) actually register, while big hits still cap out.
                 camera.shake(clampf(amount * 0.7 + 2.5, 5.0, 18.0), 0.15)
 
-            # Roughly doubled (was 0.02-0.08) now that hit_stop()'s time_scale default is a
-            # harder freeze - the old duration was tuned for the old, softer time_scale and
-            # was imperceptible either way.
-            Shaker.hit_stop(clampf(amount * 0.008, 0.04, 0.16))
+            # Steepened + raised the ceiling (2026-07-04, was clampf(amount*0.008, 0.04, 0.16))
+            # so a genuinely big hit (~12+ damage early-run) reads as a noticeably bigger freeze
+            # than a routine one, rather than everything past ~20 damage feeling the same. Floor
+            # kept at 0.04 - small hits weren't the complaint.
+            Shaker.hit_stop(clampf(amount * 0.014, 0.04, 0.24))
             
             var damage_popup = DAMAGE_POPUP_SCENE.instantiate()
             target.get_parent().add_child(damage_popup)

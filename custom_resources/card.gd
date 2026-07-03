@@ -147,6 +147,17 @@ func play(targets: Array[Node], char_stats: CharacterStats, modifiers: ModifierH
     else:
         apply_effects(_get_targets(targets), modifiers)
 
+    # Bonus hit-stop for meeting a strict EXACT requirement - a "you nailed it" beat, on top
+    # of whatever hit-stop the effect itself triggered (safe to overlap now that Shaker.hit_stop
+    # is reference-counted). Deliberately a flat duration rather than scaled by damage: it's
+    # sized to matter on a modest hit (e.g. Duo's 8 damage would only earn ~0.11s on its own)
+    # without piling onto an already-huge hit (Doomsday's own damage-based hit-stop is already
+    # bigger than this on its own, so the bonus just gets absorbed/ignored there - no double-
+    # counting needed). Also fires on EXACT cards with no damage at all (e.g. Eruption), which
+    # otherwise get zero hit-stop today. EXACT only for now, not MIN/MAX/MULTIPLE/EVEN/ODD.
+    if requirement == Requirement.EXACT and meets_requirement():
+        Shaker.hit_stop(0.16)
+
 
 func apply_effects(_targets: Array[Node], modifiers: ModifierHandler) -> void:
     pass

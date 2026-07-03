@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://di2ac0a4bs8c0"]
+[gd_scene load_steps=12 format=3 uid="uid://di2ac0a4bs8c0"]
 
 [ext_resource type="Script" path="res://scenes/campfire/campfire.gd" id="1_k0oop"]
 [ext_resource type="FontFile" uid="uid://b1es4i7nr43mv" path="res://fonts/CinzelDecorative-Bold.otf" id="2_eiajw"]
@@ -8,9 +8,57 @@
 [ext_resource type="Theme" uid="uid://c8cqncsqlplyu" path="res://main_theme.tres" id="5_2wawc"]
 [ext_resource type="FontFile" uid="uid://dq4bmvx1ogtey" path="res://Noto_Sans/static/NotoSans-Medium.ttf" id="7_vmtd8"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rest_normal"]
+bg_color = Color(0.164706, 0.262745, 0.235294, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.752941, 0.501961, 0.0627451, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.4)
+shadow_size = 3
+shadow_offset = Vector2(0, 2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rest_hover"]
+bg_color = Color(0.219608, 0.34902, 0.313726, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.843137, 0, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 3
+shadow_offset = Vector2(0, 2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rest_pressed"]
+bg_color = Color(0.117647, 0.196078, 0.176471, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.752941, 0.501961, 0.0627451, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_size = 0
+
 [sub_resource type="LabelSettings" id="LabelSettings_2svc2"]
 font = ExtResource("2_eiajw")
 font_size = 30
+font_color = Color(1, 0.843137, 0, 1)
+outline_size = 3
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 2
+shadow_color = Color(0, 0, 0, 0.6)
 
 [node name="Campfire" type="Control"]
 layout_mode = 3
@@ -56,8 +104,7 @@ offset_bottom = -134.0
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 4
-text = "Campfire
-"
+text = "Campfire"
 label_settings = SubResource("LabelSettings_2svc2")
 
 [node name="HealZone" type="Control" parent="."]
@@ -106,6 +153,9 @@ grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 1
 theme = ExtResource("5_2wawc")
+theme_override_styles/normal = SubResource("StyleBoxFlat_rest_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_rest_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_rest_pressed")
 
 [node name="RichTextLabel" type="RichTextLabel" parent="HealZone/HealButton"]
 layout_mode = 1

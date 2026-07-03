@@ -44,27 +44,39 @@ func _get_tooltip_text_for_icon() -> String:
             return "This enemy is preparing something."
 
 func _on_mouse_entered() -> void:
+    # Free any tooltip still hanging around from a previous hover before making a new one -
+    # otherwise the old instance gets silently overwritten below without ever being freed,
+    # leaking it on screen (see the safety-timeout fix below for why that leak was permanent).
+    if tooltip_instance and is_instance_valid(tooltip_instance):
+        tooltip_instance.queue_free()
+        tooltip_instance = null
+
     await get_tree().create_timer(0.01).timeout
     if not get_global_rect().has_point(get_global_mouse_position()):
         return
     var text = _get_tooltip_text_for_icon()
     if text == "":
         return
-    
+
     tooltip_instance = TooltipScene.instantiate()
     get_tree().root.add_child(tooltip_instance)
     var tooltip_panel = tooltip_instance.get_node("Tooltip")
     tooltip_panel.get_node("%TooltipText").text = text
     tooltip_panel.show_tooltip(global_position + Vector2(-40, -80))
-    
+
     _start_tooltip_safety_timeout(tooltip_instance)
 
 func _start_tooltip_safety_timeout(this_tooltip) -> void:
     await get_tree().create_timer(8.0).timeout
-    # Only free it if it's still the active one and hasn't already been freed.
-    if is_instance_valid(this_tooltip) and tooltip_instance == this_tooltip:
-        this_tooltip.queue_free()
+    if not is_instance_valid(this_tooltip):
+        return
+    # Always free THIS specific instance once its time is up, even if a newer tooltip has
+    # since replaced it in `tooltip_instance` - the old check (`tooltip_instance == this_tooltip`)
+    # meant a superseded tooltip could never match anymore and would never get freed by its own
+    # timeout, i.e. it would sit on screen permanently. That's exactly the "stuck forever" bug.
+    if tooltip_instance == this_tooltip:
         tooltip_instance = null
+    this_tooltip.queue_free()
 
 func _on_mouse_exited() -> void:
     if tooltip_instance and is_instance_valid(tooltip_instance):

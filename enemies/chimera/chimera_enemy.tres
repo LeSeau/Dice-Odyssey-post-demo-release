@@ -9,3 +9,4 @@ script = ExtResource("1_28lpb")
 ai = ExtResource("1_mes38")
 max_health = 40
 art = ExtResource("2_4dvn3")
+enemy_name = "Chimera"

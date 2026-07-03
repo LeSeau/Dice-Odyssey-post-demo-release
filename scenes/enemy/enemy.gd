@@ -32,6 +32,7 @@ var _hit_reaction_active := false
 @export var intent_ui_y_offset: int = 0
 @onready var arrow: Sprite2D = $Arrow
 @onready var stats_ui: StatsUI = $StatsUI
+@onready var name_label: Label = $NameLabel
 @onready var intent_ui: IntentUI = $IntentUI
 @export var status_handler_y_offset: int = 0
 @onready var status_handler: StatusHandler = $StatusHandler
@@ -45,6 +46,11 @@ var last_action: String = ""
 var last_action_count: int = 0
 var blocked_last_turn: bool = false
 
+# Captured at set_enemy_stats() time, BEFORE create_instance()'s duplicate() call - a
+# duplicated Resource doesn't reliably keep the original's resource_path, so deriving the
+# fallback name from the file later (once `stats` only holds the duplicate) wouldn't work.
+var _display_name := ""
+
 
 func _ready() -> void:
     _base_sprite_material = sprite_2d.material as ShaderMaterial
@@ -57,6 +63,7 @@ func set_current_action(value: EnemyAction) -> void:
 
 
 func set_enemy_stats(value: EnemyStats) -> void:
+    _display_name = _compute_display_name(value)
     stats = value.create_instance()
     
     if not stats.stats_changed.is_connected(update_stats):
@@ -128,6 +135,7 @@ func update_enemy() -> void:
         var sprite_display_height = tex_size.y * final_scale
         intent_ui.position.y = -sprite_display_height / 2 - 30 - intent_ui_y_offset
         stats_ui.position.y = (tex_size.y * final_scale / 2) + stats_ui_y_offset
+        name_label.position.y = stats_ui.position.y + stats_ui.size.y + 4
         status_handler.position.y = (tex_size.y * final_scale / 2) + stats_ui.size.y + status_handler_y_offset - 8
     sprite_2d.position.y = sprite_y_offset
     arrow.position = Vector2.RIGHT * (sprite_2d.get_rect().size.x * sprite_2d.scale.x / 2 + ARROW_OFFSET)
@@ -227,6 +235,29 @@ func _on_area_entered(_area: Area2D) -> void:
 
 func _on_area_exited(_area: Area2D) -> void:
     arrow.hide()
+
+
+func _on_mouse_entered() -> void:
+    name_label.text = _display_name
+    name_label.show()
+
+
+func _on_mouse_exited() -> void:
+    name_label.hide()
+
+
+# EnemyStats.enemy_name wins if set; otherwise derive a readable name from the .tres filename
+# (e.g. "goblin_enemy.tres" -> "Goblin", "temple_defender_enemy.tres" -> "Temple Defender" -
+# String.capitalize() already turns snake_case into Title Case). Only wrong for the one enemy
+# whose file name doesn't match its design name (crab.tres is the design's "Skeleton") - set
+# enemy_name explicitly on that one .tres rather than trying to special-case it here.
+func _compute_display_name(source_stats: EnemyStats) -> String:
+    if source_stats.enemy_name != "":
+        return source_stats.enemy_name
+    if source_stats.resource_path == "":
+        return "Enemy"
+    var file_name := source_stats.resource_path.get_file().get_basename()
+    return file_name.trim_suffix("_enemy").capitalize()
 
 
 func set_target_highlight(active: bool) -> void:

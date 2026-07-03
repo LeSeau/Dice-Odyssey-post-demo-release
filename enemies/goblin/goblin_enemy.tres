@@ -9,3 +9,4 @@ script = ExtResource("3_vmw20")
 ai = ExtResource("1_5sym6")
 max_health = 25
 art = ExtResource("2_1okek")
+enemy_name = "Goblin"

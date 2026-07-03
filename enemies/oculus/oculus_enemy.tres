@@ -9,3 +9,4 @@ script = ExtResource("3_1kvni")
 ai = ExtResource("1_aw66x")
 max_health = 22
 art = ExtResource("2_tu8sy")
+enemy_name = "Oculus"

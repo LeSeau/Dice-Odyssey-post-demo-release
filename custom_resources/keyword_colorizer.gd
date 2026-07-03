@@ -96,32 +96,50 @@ const DICE_TOOLTIP_TEXT := {
 # redundant nested [color] tag, not a visible glitch), but sorting longest-first still avoids
 # even that redundancy in the common case.
 static func colorize(text: String, tags: String) -> String:
-    var keywords: Array[String] = []
-    for dice_keyword in DICE_KEYWORD_COLORS:
-        keywords.append(dice_keyword)
-
+    var other_keywords: Array[String] = []
     if not tags.is_empty():
         for raw_tag in tags.split(","):
             var keyword := raw_tag.strip_edges()
-            if keyword != "" and KEYWORDS.has(keyword) and not keywords.has(keyword):
-                keywords.append(keyword)
-
-    keywords.sort_custom(func(a, b): return a.length() > b.length())
+            if keyword != "" and KEYWORDS.has(keyword) and not DICE_KEYWORD_COLORS.has(keyword):
+                other_keywords.append(keyword)
+    other_keywords.sort_custom(func(a, b): return a.length() > b.length())
 
     var result := _put_exhaust_on_own_line(text)
-    for keyword in keywords:
+
+    # 1. Dice-type keywords go FIRST, and always grab a leading number ("1 Giant Dice" as one
+    # unit) - this groups the number with the die being referenced ("charge ONE Giant die")
+    # rather than with the preceding verb.
+    for keyword in DICE_KEYWORD_COLORS:
         var regex := RegEx.new()
-        # Whole-word, case-insensitive - $0 in the replacement preserves whatever casing the
-        # text actually used (e.g. mid-sentence lowercase "charge") instead of forcing the
-        # tag's own casing onto every match. Also grabs one adjacent number (see
-        # LEADING_NUMBER_KEYWORDS above for which side), so "Scout 3"/"Boost 4"/"Gain 2
-        # Strength" highlight as a single unit instead of leaving the number in plain text.
+        regex.compile("(?i)(\\d+\\s+)?\\b" + keyword + "\\b")
+        result = regex.sub(result, "[color=#%s]$0[/color]" % DICE_KEYWORD_COLORS[keyword], true)
+
+    # 2. If a generic keyword (Charge, Boost...) sits directly before a dice mention just
+    # colored above, pull it INTO that same [color] tag rather than giving it its own separate
+    # gold span - "Charge 2 Magma Dice" reads as one solid color instead of a two-tone split in
+    # such a short phrase (requested by Julien). This purely reorders text already produced by
+    # step 1: "Charge [color=#X]2 Magma Dice[/color]" becomes "[color=#X]Charge 2 Magma Dice[/color]".
+    for keyword in other_keywords:
+        var absorb_regex := RegEx.new()
+        absorb_regex.compile("(?i)\\b(" + keyword + ")(\\s+)(\\[color=#[0-9A-Fa-f]{6}\\])")
+        result = absorb_regex.sub(result, "$3$1$2", true)
+
+    # 3. Whatever's left of each keyword (i.e. NOT already absorbed into a dice color in step 2)
+    # gets the shared gold. The negative lookbehind skips a keyword that's already inside a
+    # [color] tag from step 2 - without it, "Charge" would get wrapped in gold a SECOND time,
+    # nested inside the dice's [color] tag, and the inner tag would win, turning it gold again
+    # instead of staying the dice color. $0 in the replacement preserves whatever casing the
+    # text actually used (e.g. mid-sentence lowercase "charge") instead of forcing the tag's
+    # own casing onto every match. Also grabs one adjacent number (see LEADING_NUMBER_KEYWORDS
+    # above for which side), so "Scout 3"/"Boost 4"/"Gain 2 Strength" highlight as a single unit
+    # instead of leaving the number in plain text.
+    for keyword in other_keywords:
+        var regex := RegEx.new()
         if LEADING_NUMBER_KEYWORDS.has(keyword):
-            regex.compile("(?i)(\\d+\\s+)?\\b" + keyword + "\\b")
+            regex.compile("(?i)(?<!\\[color=#[0-9A-Fa-f]{6}\\])(\\d+\\s+)?\\b" + keyword + "\\b")
         else:
-            regex.compile("(?i)\\b" + keyword + "\\b(\\s*\\d+)?")
-        var color: String = DICE_KEYWORD_COLORS.get(keyword, KEYWORD_HIGHLIGHT_COLOR)
-        result = regex.sub(result, "[color=#%s]$0[/color]" % color, true)
+            regex.compile("(?i)(?<!\\[color=#[0-9A-Fa-f]{6}\\])\\b" + keyword + "\\b(\\s*\\d+)?")
+        result = regex.sub(result, "[color=#%s]$0[/color]" % KEYWORD_HIGHLIGHT_COLOR, true)
     return result
 
 
