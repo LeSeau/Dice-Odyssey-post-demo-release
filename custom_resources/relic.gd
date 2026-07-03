@@ -29,8 +29,16 @@ func deactivate_relic(_owner: RelicUI) -> void:
     pass 
 
 func get_tooltip() -> String:
-    return tooltip 
-    
+    return tooltip
+
+
+# Wraps every keyword from this relic's `tags` (e.g. "Refuel, Strength") that appears in `text`
+# with a BBCode [color] tag - see KeywordColorizer for the keyword list/colors/regex logic
+# (shared with Card.get_colorized_description()).
+func get_colorized_description(text: String) -> String:
+    return KeywordColorizer.colorize(text, tags)
+
+
 func can_appear_as_reward(character: CharacterStats) -> bool:
     if starter_relic:
         return false

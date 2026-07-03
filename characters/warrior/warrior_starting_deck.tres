@@ -2,8 +2,8 @@
 
 [ext_resource type="Script" path="res://custom_resources/card.gd" id="1_3jhqt"]
 [ext_resource type="Script" path="res://custom_resources/card_pile.gd" id="1_ncslu"]
-[ext_resource type="Resource" uid="uid://c61utnbsmbv2d" path="res://characters/warrior/cards/card_scout3.tres" id="2_6ln54"]
 [ext_resource type="Resource" uid="uid://bx75rk8gt7tps" path="res://characters/warrior/cards/card_recombobulate.tres" id="2_8uutq"]
+[ext_resource type="Resource" uid="uid://ccfkop0vivwl4" path="res://characters/warrior/cards/card_calculations.tres" id="2_riodq"]
 [ext_resource type="Resource" uid="uid://ckn063ycj788w" path="res://characters/warrior/cards/card_diceslap.tres" id="3_m6ns7"]
 [ext_resource type="Resource" uid="uid://dspv7gyxpld63" path="res://characters/warrior/cards/warrior_axe_attack3.tres" id="4_4a81u"]
 [ext_resource type="Resource" uid="uid://bnk761lymhnou" path="res://characters/warrior/cards/warrior_block1.tres" id="4_oy516"]
@@ -16,4 +16,4 @@
 
 [resource]
 script = ExtResource("1_ncslu")
-cards = Array[ExtResource("1_3jhqt")]([ExtResource("2_6ln54"), ExtResource("3_m6ns7"), ExtResource("4_4a81u"), ExtResource("5_b6ceh"), ExtResource("4_oy516"), ExtResource("5_64eln"), ExtResource("6_fuqn2"), ExtResource("9_rxdx3"), ExtResource("9_atp66"), ExtResource("11_7as5q"), ExtResource("2_8uutq")])
+cards = Array[ExtResource("1_3jhqt")]([ExtResource("2_riodq"), ExtResource("3_m6ns7"), ExtResource("4_4a81u"), ExtResource("5_b6ceh"), ExtResource("4_oy516"), ExtResource("5_64eln"), ExtResource("6_fuqn2"), ExtResource("9_rxdx3"), ExtResource("9_atp66"), ExtResource("11_7as5q"), ExtResource("2_8uutq")])

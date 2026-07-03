@@ -9,12 +9,12 @@
 [ext_resource type="Texture2D" uid="uid://bn1oyc7jrh7sb" path="res://assets/images/duo.jpg" id="7_k7qr8"]
 [ext_resource type="StyleBox" uid="uid://bxyflqo45i4i4" path="res://scenes/card_ui/card_requirement_multiple.tres" id="8_gsqi8"]
 [ext_resource type="LabelSettings" uid="uid://begfebqtrbbkl" path="res://scenes/card_ui/card_ui_requirement_ribbon.tres" id="9_dvi7e"]
-[ext_resource type="LabelSettings" uid="uid://bl0evkb1ud5ic" path="res://scenes/card_ui/card_description_label.tres" id="10_lirjw"]
 [ext_resource type="StyleBox" uid="uid://48tau48u3kqx" path="res://scenes/card_ui/card_bonus_requirement_exact.tres" id="11_o2das"]
 [ext_resource type="Texture2D" uid="uid://dxm470owuxqc1" path="res://assets/images/swordicon.png" id="13_4njsp"]
 [ext_resource type="AudioStream" uid="uid://d01ekpfb76q8k" path="res://sounds/removecardsound.mp3" id="13_752k8"]
 [ext_resource type="LabelSettings" uid="uid://bhrpkq50bp811" path="res://scenes/card_ui/card_ui_bonus_requirement_label.tres" id="13_dr0ka"]
 [ext_resource type="LabelSettings" uid="uid://cu35utjlrjheh" path="res://scenes/card_ui/card_ui_bonus_effect_label.tres" id="14_6kgs7"]
+[ext_resource type="FontFile" uid="uid://c4mfyi0ta8qeq" path="res://fonts/MinionPro-Semibold.otf" id="15_desc_font"]
 
 [sub_resource type="Theme" id="Theme_fesrv"]
 
@@ -208,8 +208,6 @@ vertical_alignment = 1
 [node name="DescriptionPanel" type="Panel" parent="Visuals/CardBackground/CardFrame"]
 layout_mode = 1
 anchors_preset = -1
-anchor_top = 0.0
-anchor_bottom = 0.0
 offset_top = 144.0
 offset_right = 140.0
 offset_bottom = 188.0
@@ -220,19 +218,32 @@ theme = SubResource("Theme_87anf")
 theme_override_styles/panel = SubResource("StyleBoxFlat_cv4sc")
 metadata/_edit_use_anchors_ = true
 
-[node name="Description" type="Label" parent="Visuals/CardBackground/CardFrame/DescriptionPanel"]
-custom_minimum_size = Vector2(0, 45)
+[node name="DescriptionCenter" type="CenterContainer" parent="Visuals/CardBackground/CardFrame/DescriptionPanel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme = SubResource("Theme_4faku")
+mouse_filter = 2
+
+[node name="Description" type="RichTextLabel" parent="Visuals/CardBackground/CardFrame/DescriptionPanel/DescriptionCenter"]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+mouse_filter = 2
+scroll_active = false
+fit_content = true
+theme_override_colors/default_color = Color(0.909804, 0.878431, 0.815686, 1)
+theme_override_colors/font_outline_color = Color(0.22554, 1.57929e-07, 0.0404674, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/outline_size = 3
+theme_override_constants/line_separation = -1
+theme_override_fonts/normal_font = ExtResource("15_desc_font")
+theme_override_font_sizes/normal_font_size = 12
+bbcode_enabled = true
 text = "Deals X damage"
-label_settings = ExtResource("10_lirjw")
-horizontal_alignment = 1
-vertical_alignment = 1
 autowrap_mode = 2
 metadata/_edit_use_anchors_ = true
 
@@ -298,14 +309,23 @@ layout_mode = 2
 texture = ExtResource("13_4njsp")
 expand_mode = 1
 
-[node name="BonusEffectLabel" type="Label" parent="Visuals/CardBackground/CardFrame/BonusEffect"]
+[node name="BonusEffectLabel" type="RichTextLabel" parent="Visuals/CardBackground/CardFrame/BonusEffect"]
 custom_minimum_size = Vector2(82, 16)
 layout_mode = 2
 size_flags_horizontal = 4
-theme = SubResource("Theme_ws308")
+mouse_filter = 2
+scroll_active = false
+fit_content = true
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/outline_size = 3
+theme_override_constants/line_separation = -1
+theme_override_fonts/normal_font = ExtResource("15_desc_font")
+theme_override_font_sizes/normal_font_size = 10
+bbcode_enabled = true
 text = "Draw 2 "
-label_settings = ExtResource("14_6kgs7")
-vertical_alignment = 1
 autowrap_mode = 2
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]

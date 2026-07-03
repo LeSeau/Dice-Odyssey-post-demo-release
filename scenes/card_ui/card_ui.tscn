@@ -17,12 +17,12 @@
 [ext_resource type="Script" path="res://scenes/card_ui/card_states/card_aiming_state.gd" id="8_ew01p"]
 [ext_resource type="StyleBox" uid="uid://bxyflqo45i4i4" path="res://scenes/card_ui/card_requirement_multiple.tres" id="8_ys1jj"]
 [ext_resource type="LabelSettings" uid="uid://begfebqtrbbkl" path="res://scenes/card_ui/card_ui_requirement_ribbon.tres" id="11_7624y"]
-[ext_resource type="LabelSettings" uid="uid://bl0evkb1ud5ic" path="res://scenes/card_ui/card_description_label.tres" id="12_bhbcy"]
 [ext_resource type="Texture2D" uid="uid://bx326akbkj0gi" path="res://charge_dice_icon.png" id="12_ngjpn"]
 [ext_resource type="StyleBox" uid="uid://duq08xoimq50p" path="res://scenes/card_ui/card_ui_description_panel.tres" id="13_2hj1e"]
 [ext_resource type="StyleBox" uid="uid://48tau48u3kqx" path="res://scenes/card_ui/card_bonus_requirement_exact.tres" id="13_ihvil"]
 [ext_resource type="LabelSettings" uid="uid://bhrpkq50bp811" path="res://scenes/card_ui/card_ui_bonus_requirement_label.tres" id="14_kqhhb"]
 [ext_resource type="LabelSettings" uid="uid://cu35utjlrjheh" path="res://scenes/card_ui/card_ui_bonus_effect_label.tres" id="16_oujah"]
+[ext_resource type="FontFile" uid="uid://c4mfyi0ta8qeq" path="res://fonts/MinionPro-Semibold.otf" id="17_desc_font"]
 
 [sub_resource type="Theme" id="Theme_pln6u"]
 
@@ -202,18 +202,32 @@ grow_vertical = 2
 mouse_filter = 2
 theme_override_styles/panel = ExtResource("13_2hj1e")
 
-[node name="Description" type="Label" parent="CardBackground/CardFrame/DescriptionPanel"]
-custom_minimum_size = Vector2(0, 45)
+[node name="DescriptionCenter" type="CenterContainer" parent="CardBackground/CardFrame/DescriptionPanel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
+
+[node name="Description" type="RichTextLabel" parent="CardBackground/CardFrame/DescriptionPanel/DescriptionCenter"]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+mouse_filter = 2
+scroll_active = false
+fit_content = true
+theme_override_colors/default_color = Color(0.909804, 0.878431, 0.815686, 1)
+theme_override_colors/font_outline_color = Color(0.22554, 1.57929e-07, 0.0404674, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/outline_size = 3
+theme_override_constants/line_separation = -1
+theme_override_fonts/normal_font = ExtResource("17_desc_font")
+theme_override_font_sizes/normal_font_size = 12
+bbcode_enabled = true
 text = "Deals X damage"
-label_settings = ExtResource("12_bhbcy")
-horizontal_alignment = 1
-vertical_alignment = 1
 autowrap_mode = 2
 
 [node name="BonusSeparator" type="ColorRect" parent="CardBackground/CardFrame"]
@@ -278,14 +292,23 @@ texture = ExtResource("12_ngjpn")
 expand_mode = 1
 stretch_mode = 6
 
-[node name="BonusEffectLabel" type="Label" parent="CardBackground/CardFrame/BonusEffect"]
+[node name="BonusEffectLabel" type="RichTextLabel" parent="CardBackground/CardFrame/BonusEffect"]
 custom_minimum_size = Vector2(82, 16)
 layout_mode = 2
 size_flags_horizontal = 4
-theme = SubResource("Theme_j3xpc")
+mouse_filter = 2
+scroll_active = false
+fit_content = true
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/outline_size = 3
+theme_override_constants/line_separation = -1
+theme_override_fonts/normal_font = ExtResource("17_desc_font")
+theme_override_font_sizes/normal_font_size = 10
+bbcode_enabled = true
 text = "Draw 2 "
-label_settings = ExtResource("16_oujah")
-vertical_alignment = 1
 autowrap_mode = 2
 
 [node name="DropPointDetector" type="Area2D" parent="."]

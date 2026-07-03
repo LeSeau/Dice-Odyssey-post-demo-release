@@ -40,14 +40,8 @@ func get_tooltip_content(requirement):
         text += "Regain 1 Dice for each consecutive roll of the same Dice type"
     elif requirement == "Exhaust":
         text += "Can play this card only once per battle"
-    elif requirement == "Green Dice":
-        text += "Green Dice can roll 1-3"
-    elif requirement == "Magma Dice":
-        text += "Magma Dice can roll 1-6 and deals X damage to all enemies on each roll"
-    elif requirement == "Giant Dice":
-        text += "Giant Dice can roll 1-12"
-    elif requirement == "Evil Dice":
-        text += "Evil Dice can roll 6, 6, 6 and 0"
+    elif KeywordColorizer.DICE_TOOLTIP_TEXT.has(requirement):
+        text += KeywordColorizer.DICE_TOOLTIP_TEXT[requirement]
     elif requirement == "Lucky":
         text += "Your next roll will be the highest possible outcome."
     elif requirement == "Unlucky":

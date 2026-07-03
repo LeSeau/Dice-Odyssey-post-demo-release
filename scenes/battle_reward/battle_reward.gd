@@ -93,7 +93,7 @@ func _on_relic_reward_mouse_entered(relic: Relic, button: Control) -> void:
     
     # Set tooltip title + text
     tooltip_panel.tooltip_title.text = "[color=gold][b]%s[/b][/color]" % relic.relic_name
-    tooltip_panel.tooltip_label.text = relic.tooltip
+    tooltip_panel.tooltip_label.text = relic.get_colorized_description(relic.tooltip)
 
     # Position tooltip to the right of the button
     var pos = button.get_global_position() + Vector2(button.get_size().x + 8, 0)

@@ -64,6 +64,10 @@ var _power_resting_modulate := Color.WHITE
 # display after charging dice / blocking / dealing damage do not.
 var _last_shown_power := 0
 
+# Cached so the power-orb texture (a soft radial gradient) isn't rebuilt on every single roll -
+# this effect fires very frequently, unlike the one-off refuel/discard animations elsewhere.
+var _power_orb_texture: GradientTexture2D
+
 # Refuel "dice return" (Recombobulate, Enrage, Voodoo, Catalyst...) - see
 # _spawn_refuel_return(). The dice you rolled this turn pop out of the played card, rise to
 # hover above it (giving the player a moment to register "those are the dice I just rolled"),
@@ -74,6 +78,32 @@ const REFUEL_RETURN_HOVER := 0.4      # how long they float above the card befor
 const REFUEL_RETURN_HOVER_BOB := 7.0  # small vertical drift while hovering, so it reads as floating, not paused
 const REFUEL_RETURN_FLIGHT := 0.5     # hover position -> die, time
 const REFUEL_RETURN_STAGGER := 0.06   # delay between successive icons launching
+
+# Power orbs (2026-07-03): a small handful of glowing orbs travel from the die to the Power
+# label on every single roll, each along its own randomized curved path - guided (they always
+# land exactly on the Power label, so the "charging" story reads clearly) but bowed through a
+# randomized control point so several orbs fan out differently instead of tracing the same
+# line, reading as an emanating spray rather than a mechanical conveyor belt. This fires VERY
+# frequently (every roll of every dice type), so it must stay small/fast, especially on low
+# rolls - it's a complement to the roll's own landing juice (impact punch, aura pulse,
+# hit-stop, and on max rolls the existing gold flash + radial burst), never the main event.
+const POWER_ORB_MIN_COUNT := 3
+const POWER_ORB_MAX_COUNT := 11
+const POWER_ORB_MAX_ROLL_BONUS := 4      # extra orbs on a max roll, on top of the count formula below
+const POWER_ORB_SIZE_MIN := 12.0
+const POWER_ORB_SIZE_MAX := 22.0
+const POWER_ORB_SIZE_BIG_ROLL_BONUS := 10.0  # added to size on top rolls, so big hits read visibly chunkier
+const POWER_ORB_BRIGHTNESS := 1.5
+const POWER_ORB_MAX_ROLL_BRIGHTNESS := 2.1   # extra overbright punch specifically on max rolls
+const POWER_ORB_STAGGER := 0.035         # launch delay between orbs, so they read as a little stream
+const POWER_ORB_FLIGHT_MIN := 0.22
+const POWER_ORB_FLIGHT_MAX := 0.34
+# The die sits left of the Power label at roughly the same height - a straight line between
+# them reads as flat/boring. Orbs instead arc UP and over (a rough "rainbow" shape per Julien's
+# note - deliberately loose, not a precise math curve), landing on the Power label FROM ABOVE
+# rather than approaching it level, which reads as much more impactful.
+const POWER_ORB_ARC_HEIGHT_MIN := 60.0
+const POWER_ORB_ARC_HEIGHT_MAX := 110.0
 
 # Die-glow-charges-with-power tuning (see _update_dice_aura_charge()). All 9 per-dice-type
 # shaders (blue_dice_shader.tres etc.) share a "power_intensity" uniform (hint_range 0.1-2.0)
@@ -408,6 +438,8 @@ func roll_dice():
         var roll_val = values[roll_index]
         var is_max_roll = roll_val == values.max()
 
+        _spawn_power_orbs(roll_val, dice_type, is_max_roll)
+
         var punch_scale = 1.08 + (roll_val / 60.0)  # 1.09 on 1, 1.28 on 12
         if is_max_roll:
             punch_scale += 0.10
@@ -460,6 +492,126 @@ func _shake_dice_display() -> void:
         shake_tween.tween_property(dice_display, "position", orig_pos + offset, 0.025)
         strength *= 0.7
     shake_tween.tween_property(dice_display, "position", orig_pos, 0.03)
+
+
+# Soft white radial gradient, tinted per-orb via modulate - lets every dice-type color reuse
+# one shared texture instead of generating a new gradient per roll.
+func _get_power_orb_texture() -> GradientTexture2D:
+    if _power_orb_texture:
+        return _power_orb_texture
+    var gradient := Gradient.new()
+    gradient.set_color(0, Color(1, 1, 1, 1))
+    gradient.set_color(1, Color(1, 1, 1, 0))
+    var tex := GradientTexture2D.new()
+    tex.gradient = gradient
+    tex.width = 32
+    tex.height = 32
+    tex.fill = GradientTexture2D.FILL_RADIAL
+    tex.fill_from = Vector2(0.5, 0.5)
+    tex.fill_to = Vector2(1.0, 0.5)
+    _power_orb_texture = tex
+    return _power_orb_texture
+
+
+# Matches card_particles.gd's palette (kept in sync by eye - both are small per-dice-type color
+# tables, not worth a shared resource for two call sites) but brighter, since these orbs are
+# small UI elements that need to pop against the dice panel background rather than a full-scale
+# particle burst.
+func _get_power_orb_color(type: String) -> Color:
+    match type:
+        "magma": return Color("ff5522")
+        "blue":  return Color("5a8bffff")
+        "red":   return Color("ff3322")
+        "green": return Color("33ff99")
+        "odd":   return Color("ffd60b")
+        "even":  return Color("ffaa55")
+        "evil":  return Color("dd55dd")
+        "giant": return Color("99ff55")
+        "mech":  return Color("bbbbbb")
+        _:       return Color(1, 1, 1)
+
+
+# tween_method's first parameter is always the interpolated value (t here) - bound args are
+# appended after it, so this stays a named function rather than a multi-statement inline lambda
+# (see reference-video-frame-analysis / the combat-juice-pass lessons on that gotcha).
+func _orb_bezier_step(t: float, orb: TextureRect, p0: Vector2, p1: Vector2, p2: Vector2) -> void:
+    var pos := p0.lerp(p1, t).lerp(p1.lerp(p2, t), t)
+    orb.global_position = pos - orb.size / 2.0
+
+
+# The "roll -> power" visual link: a few small orbs fly from the die to the Power label on
+# every roll, timed to launch in the same instant as the landing hit-stop (called from the same
+# tween_callback in roll_dice(), before Shaker.hit_stop() below) so they visibly pop right along
+# with the freeze rather than trailing in afterward.
+#
+# The Power number itself already updated instantly back in _apply_roll_result (no delay on the
+# actual value/text). What's chained onto the first orb's flight below is purely an ADDITIVE
+# reaction (_play_power_orb_arrival_reaction) - a second, smaller "delivery" beat on top of the
+# already-correct number, not a replacement for the immediate update.
+func _spawn_power_orbs(roll_val: int, type: String, is_max_roll: bool) -> void:
+    if roll_val <= 0:
+        return  # evil dice's 0 face (and any other zero-value roll) adds nothing - no orbs, no reaction
+    var origin := dice_display.get_global_rect().get_center()
+    var target := current_power.get_global_rect().get_center()
+    # Overbright multiply (same trick as the max-roll flash's Color(2.2, 2.0, 1.2, 1.0)) so the
+    # orbs pop against the panel rather than reading as a flat/dim tint - was too shy at 1.0.
+    # Max rolls get an extra punch on top, so the biggest hits read as visibly more electric.
+    var brightness := POWER_ORB_MAX_ROLL_BRIGHTNESS if is_max_roll else POWER_ORB_BRIGHTNESS
+    var color := _get_power_orb_color(type) * brightness
+    var texture := _get_power_orb_texture()
+
+    var count := clampi(POWER_ORB_MIN_COUNT + roll_val / 2, POWER_ORB_MIN_COUNT, POWER_ORB_MAX_COUNT)
+    if is_max_roll:
+        count += POWER_ORB_MAX_ROLL_BONUS
+
+    # Big rolls get chunkier orbs on top of the base random size, not just more of them.
+    var size_bonus := lerpf(0.0, POWER_ORB_SIZE_BIG_ROLL_BONUS, clampf(float(roll_val) / 12.0, 0.0, 1.0))
+
+    for i in count:
+        var orb := TextureRect.new()
+        orb.texture = texture
+        # Texture is a fixed 32x32 source - without EXPAND_IGNORE_SIZE, TextureRect renders at
+        # native resolution regardless of .size below (bit the refuel-return icons the same way).
+        orb.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+        orb.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+        orb.modulate = color
+        orb.modulate.a = 0.0
+        orb.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        orb.z_index = 60  # above Panel/DiceDisplay, still local to this Dice control
+        add_child(orb)
+
+        var size := randf_range(POWER_ORB_SIZE_MIN, POWER_ORB_SIZE_MAX) + size_bonus
+        orb.size = Vector2(size, size)
+        orb.pivot_offset = orb.size / 2.0
+
+        var start := origin + Vector2(randf_range(-10.0, 10.0), randf_range(-10.0, 10.0))
+        var end := target + Vector2(randf_range(-6.0, 6.0), randf_range(-6.0, 6.0))
+        orb.global_position = start - orb.size / 2.0
+
+        # Rough "rainbow" arc: control point sits well ABOVE the midpoint (and biased toward
+        # the target's x) so the path rises, sails over, and comes back down into the Power
+        # label from above - rather than the old perpendicular-random bow, which averaged out
+        # to a flat, straightforward line since it bowed up or down with equal odds.
+        var mid_x := lerpf(start.x, end.x, 0.55)
+        var apex_y := minf(start.y, end.y) - randf_range(POWER_ORB_ARC_HEIGHT_MIN, POWER_ORB_ARC_HEIGHT_MAX)
+        var control := Vector2(mid_x + randf_range(-15.0, 15.0), apex_y)
+
+        var flight_time := randf_range(POWER_ORB_FLIGHT_MIN, POWER_ORB_FLIGHT_MAX)
+        var tw := create_tween()
+        tw.tween_interval(POWER_ORB_STAGGER * i)
+        tw.tween_property(orb, "modulate:a", 1.0, flight_time * 0.3)
+        tw.parallel().tween_method(_orb_bezier_step.bind(orb, start, control, end), 0.0, 1.0, flight_time) \
+            .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+        # Shrinks to nothing exactly as it arrives, so it reads as being absorbed into the
+        # number rather than just stopping next to it.
+        tw.parallel().tween_property(orb, "scale", Vector2(0.2, 0.2), flight_time) \
+            .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+        # The first (unstaggered, i==0) orb is the earliest to land - that's the moment the
+        # Power number gets its "delivery" reaction, rather than waiting for the whole
+        # staggered swarm on big rolls (so the timing doesn't grow with orb count).
+        if i == 0:
+            tw.tween_callback(_play_power_orb_arrival_reaction.bind(type))
+        tw.tween_callback(orb.queue_free)
 
 
 # Drives the die's own per-dice-type aura shader (brightness, spread, swirl speed, color)
@@ -611,6 +763,27 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
     mech_adjustment_used = false
     _update_mech_buttons()
     _update_charged_card_description()
+
+
+# A second, smaller reaction on the Power number, purely additive - the number itself already
+# updated instantly back in _apply_roll_result (text/punch/flash/crackle all fire immediately,
+# same as before the orb feature existed - no lag on the actual value). This plays ON TOP when
+# the first power orb actually lands (chained from _spawn_power_orbs), as a distinct "delivery"
+# beat: a smaller pop (so it doesn't fight the roll's own bigger landing punch) plus a flash
+# tinted in the active dice's color (vs. the roll punch's white lighten) so the two beats read
+# as different things - "the roll landed" vs. "the orb just fed the number".
+func _play_power_orb_arrival_reaction(type: String) -> void:
+    var rest_scale := clampf(1.0 + Global.roll_value / 130.0, 1.0, 1.25)
+    var pop_tween := create_tween()
+    pop_tween.tween_property(current_power, "scale", Vector2(rest_scale, rest_scale) * 1.12, 0.05) \
+        .set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+    pop_tween.tween_property(current_power, "scale", Vector2(rest_scale, rest_scale), 0.12) \
+        .set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+
+    var base_color := current_power.modulate
+    var flash_tween := create_tween()
+    flash_tween.tween_property(current_power, "modulate", _get_power_orb_color(type), 0.05)
+    flash_tween.tween_property(current_power, "modulate", base_color, 0.15)
 
 
 func _on_active_dice_changed(new_dice_type):

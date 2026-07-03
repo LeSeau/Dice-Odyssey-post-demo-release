@@ -32,6 +32,12 @@ const CELESTIAL_DESC_STYLEBOX := preload("res://scenes/card_ui/card_ui_descripti
 const CELESTIAL_REQUIREMENT_NONE_STYLEBOX := preload("res://scenes/card_ui/card_requirement_none_celestial.tres")
 const CELESTIAL_ART_STYLEBOX := preload("res://scenes/card_ui/card_ui_celestial_art.tres")
 const HOVER_CELESTIAL_STYLEBOX := preload("res://scenes/card_ui/card_ui_hover_celestial.tres")
+# Description is now a RichTextLabel (converted so keyword colors from Card.get_colorized_
+# description() can render), which has no `label_settings` property. This LabelSettings
+# resource is kept preloaded anyway, purely as the source of truth for .outline_color below -
+# it's the only property that actually differs between the normal and Celestial description
+# styles; font/size/color/shadow are identical between the two, and now live as static theme
+# overrides directly on the Description node in card_menu_ui.tscn instead.
 const CELESTIAL_DESC_LABEL_SETTINGS := preload("res://scenes/card_ui/celestial_card_description_label.tres")
 
 const RITE_BANNER_STYLEBOX := preload("res://scenes/card_ui/card_banner_rite.tres")
@@ -47,14 +53,14 @@ const TooltipScene = preload("res://scenes/ui/tooltip.tscn")
 @onready var card_frame: Panel = $Visuals/CardBackground/CardFrame
 @onready var title: Label = $Visuals/CardBackground/CardFrame/CardBanner/Title
 @onready var icon: TextureRect = $Visuals/CardBackground/CardFrame/Panel/CardArt
-@onready var description: Label = $Visuals/CardBackground/CardFrame/DescriptionPanel/Description
+@onready var description: RichTextLabel = $Visuals/CardBackground/CardFrame/DescriptionPanel/DescriptionCenter/Description
 @onready var requirement_panel: Panel = $Visuals/CardBackground/CardFrame/RequirementPanel
 @onready var requirement_label: Label = $Visuals/CardBackground/CardFrame/RequirementPanel/RequirementLabel
 @onready var bonus_effect: HBoxContainer = $Visuals/CardBackground/CardFrame/BonusEffect
 @onready var bonus_requirement_panel: Panel = $Visuals/CardBackground/CardFrame/BonusEffect/BonusRequirementPanel
 @onready var bonus_requirement_label: Label = $Visuals/CardBackground/CardFrame/BonusEffect/BonusRequirementPanel/BonusRequirementLabel
 @onready var bonus_effect_texture: TextureRect = $Visuals/CardBackground/CardFrame/BonusEffect/BonusEffectTexture
-@onready var bonus_effect_label: Label = $Visuals/CardBackground/CardFrame/BonusEffect/BonusEffectLabel
+@onready var bonus_effect_label: RichTextLabel = $Visuals/CardBackground/CardFrame/BonusEffect/BonusEffectLabel
 @onready var animation_player: AnimationPlayer = $AnimationPlayer
 @onready var removal_sound_player: AudioStreamPlayer2D = $AnimationPlayer/RemovalSoundPlayer
 @onready var description_panel: Panel = $Visuals/CardBackground/CardFrame/DescriptionPanel
@@ -83,7 +89,7 @@ func set_card(value: Card) -> void:
     card = value 
     icon.texture = card.icon
     title.text = card.name
-    description.text = card.description
+    _apply_description(card.description)
     requirement_label.label_settings = REQUIREMENT_LABEL_SETTINGS
 
     if card.requirement == Card.Requirement.NONE:
@@ -118,8 +124,8 @@ func set_card(value: Card) -> void:
         description_panel.add_theme_stylebox_override("panel", CELESTIAL_DESC_STYLEBOX)
         card_banner.add_theme_stylebox_override("panel", CELESTIAL_BANNER_STYLEBOX)
         card_frame.add_theme_stylebox_override("panel", SUPPORT_STYLEBOX)
-        requirement_panel.add_theme_stylebox_override("panel", CELESTIAL_REQUIREMENT_NONE_STYLEBOX)    
-        description.label_settings = CELESTIAL_DESC_LABEL_SETTINGS
+        requirement_panel.add_theme_stylebox_override("panel", CELESTIAL_REQUIREMENT_NONE_STYLEBOX)
+        description.add_theme_color_override("font_outline_color", CELESTIAL_DESC_LABEL_SETTINGS.outline_color)
     # Make sure to show the bonus_effect container if it has a requirement
     if card.bonus_requirement == Card.Requirement.NONE:
         bonus_effect.hide()
@@ -128,8 +134,8 @@ func set_card(value: Card) -> void:
         # Important: Show the container if there is a bonus requirement
         bonus_effect.show()
         bonus_separator.show()
-        bonus_effect_label.text = str(card.bonus_description_text)
-        bonus_effect_texture.texture = card.bonus_description_icon      
+        bonus_effect_label.text = card.get_colorized_description(str(card.bonus_description_text))
+        bonus_effect_texture.texture = card.bonus_description_icon
         if card.bonus_requirement == Card.Requirement.MAX:
             bonus_requirement_panel.add_theme_stylebox_override("panel", BONUS_MAX_STYLEBOX)
             bonus_requirement_label.text = "Max %d" % card.bonus_requirement_number
@@ -151,7 +157,14 @@ func set_card(value: Card) -> void:
         elif card.bonus_requirement == Card.Requirement.MULTIPLE:
             bonus_requirement_panel.add_theme_stylebox_override("panel", BONUS_MULTIPLE_STYLEBOX)
             bonus_requirement_label.text = "Mult %d" % card.bonus_requirement_number
-    
+
+
+# Single chokepoint for writing to the Description RichTextLabel: applies keyword coloring
+# (Card.get_colorized_description(), driven off card.tags) and re-centers the text via BBCode,
+# since RichTextLabel has no horizontal_alignment property the way Label did.
+func _apply_description(text: String) -> void:
+    description.text = "[center]%s[/center]" % card.get_colorized_description(text)
+
 
 func _on_card_frame_gui_input(event: InputEvent) -> void:
     if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
@@ -208,7 +221,14 @@ func _on_card_frame_mouse_entered() -> void:
             var trimmed_tag = tag.strip_edges()
             if trimmed_tag != "":
                 tooltips_to_show.append(trimmed_tag)
-    
+
+    # Dice-type mentions don't need an explicit tag (see KeywordColorizer.colorize()) - detect
+    # them straight from the description text so their tooltip still shows even on cards that
+    # were never tagged with the dice type they mention.
+    for dice_keyword in KeywordColorizer.find_dice_keywords_in_text(card.description):
+        if not tooltips_to_show.has(dice_keyword):
+            tooltips_to_show.append(dice_keyword)
+
     if tooltips_to_show.is_empty():
         return
     

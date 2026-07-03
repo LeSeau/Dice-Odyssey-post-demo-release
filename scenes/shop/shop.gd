@@ -260,7 +260,7 @@ func _on_dice_1_mouse_entered() -> void:
     if not is_mouse_over_dice():
         return
 
-    var dice_pos = dice_1.global_position + Vector2(0, dice_1.size.y - 480)
+    var dice_pos = dice_1.global_position + Vector2(0, dice_1.size.y - 510)
 
     tooltip_instance_requirement = TooltipScene.instantiate()
     get_tree().root.add_child(tooltip_instance_requirement)
@@ -293,7 +293,7 @@ func _on_dice_2_mouse_entered() -> void:
     if not is_mouse_over_dice():
         return
 
-    var dice_pos = dice_2.global_position + Vector2(0, dice_2.size.y - 480)
+    var dice_pos = dice_2.global_position + Vector2(0, dice_2.size.y - 510)
 
     tooltip_instance_requirement = TooltipScene.instantiate()
     get_tree().root.add_child(tooltip_instance_requirement)
@@ -318,7 +318,7 @@ func _on_dice_3_mouse_entered() -> void:
     if not is_mouse_over_dice():
         return
 
-    var dice_pos = dice_3.global_position + Vector2(0, dice_3.size.y - 480)
+    var dice_pos = dice_3.global_position + Vector2(0, dice_3.size.y - 510)
 
     tooltip_instance_requirement = TooltipScene.instantiate()
     get_tree().root.add_child(tooltip_instance_requirement)
@@ -343,7 +343,7 @@ func _on_dice_4_mouse_entered() -> void:
     if not is_mouse_over_dice():
         return
 
-    var dice_pos = dice_4.global_position + Vector2(0, dice_4.size.y - 480)
+    var dice_pos = dice_4.global_position + Vector2(0, dice_4.size.y - 510)
 
     tooltip_instance_requirement = TooltipScene.instantiate()
     get_tree().root.add_child(tooltip_instance_requirement)
@@ -368,7 +368,7 @@ func _on_dice_5_mouse_entered() -> void:
     if not is_mouse_over_dice():
         return
 
-    var dice_pos = dice_5.global_position + Vector2(0, dice_5.size.y - 480)
+    var dice_pos = dice_5.global_position + Vector2(0, dice_5.size.y - 510)
 
     tooltip_instance_requirement = TooltipScene.instantiate()
     get_tree().root.add_child(tooltip_instance_requirement)
@@ -394,7 +394,7 @@ func _on_dice_6_mouse_entered() -> void:
     if not is_mouse_over_dice():
         return
 
-    var dice_pos = dice_6.global_position + Vector2(0, dice_6.size.y - 480)
+    var dice_pos = dice_6.global_position + Vector2(0, dice_6.size.y - 510)
 
     tooltip_instance_requirement = TooltipScene.instantiate()
     get_tree().root.add_child(tooltip_instance_requirement)
@@ -421,7 +421,7 @@ func _on_dice_7_mouse_entered() -> void:
     if not is_mouse_over_dice():
         return
 
-    var dice_pos = dice_7.global_position + Vector2(0, dice_7.size.y - 480)
+    var dice_pos = dice_7.global_position + Vector2(0, dice_7.size.y - 510)
 
     tooltip_instance_requirement = TooltipScene.instantiate()
     get_tree().root.add_child(tooltip_instance_requirement)
@@ -445,7 +445,7 @@ func _on_dice_8_mouse_entered() -> void:
     if not is_mouse_over_dice():
         return
 
-    var dice_pos = dice_8.global_position + Vector2(0, dice_8.size.y - 480)
+    var dice_pos = dice_8.global_position + Vector2(0, dice_8.size.y - 510)
 
     tooltip_instance_requirement = TooltipScene.instantiate()
     get_tree().root.add_child(tooltip_instance_requirement)
@@ -467,7 +467,7 @@ func _on_dice_9_mouse_entered() -> void:
     if not is_mouse_over_dice():
         return
 
-    var dice_pos = dice_9.global_position + Vector2(0, dice_9.size.y - 480)
+    var dice_pos = dice_9.global_position + Vector2(0, dice_9.size.y - 510)
 
     tooltip_instance_requirement = TooltipScene.instantiate()
     get_tree().root.add_child(tooltip_instance_requirement)

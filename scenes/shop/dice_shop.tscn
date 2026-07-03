@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://cib6v5vr2rvqj"]
+[gd_scene load_steps=20 format=3 uid="uid://cib6v5vr2rvqj"]
 
 [ext_resource type="Script" path="res://scenes/shop/shop.gd" id="1_4fjq1"]
 [ext_resource type="Texture2D" uid="uid://bc7ex1r6orvji" path="res://assets/images/shopbackground.jpg" id="2_meook"]
@@ -30,6 +30,49 @@ shadow_offset = Vector2(0, 4)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fty16"]
 bg_color = Color(0, 0.143815, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_buy_normal"]
+bg_color = Color(0.164706, 0.262745, 0.235294, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.752941, 0.501961, 0.0627451, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.4)
+shadow_size = 3
+shadow_offset = Vector2(0, 2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_buy_hover"]
+bg_color = Color(0.219608, 0.34902, 0.313726, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.843137, 0, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 3
+shadow_offset = Vector2(0, 2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_buy_pressed"]
+bg_color = Color(0.117647, 0.196078, 0.176471, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.752941, 0.501961, 0.0627451, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_size = 0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_s1di4"]
 bg_color = Color(0.246036, 0.403102, 0.363782, 1)
@@ -129,8 +172,7 @@ offset_right = 91.0
 offset_bottom = 16.0
 grow_horizontal = 2
 grow_vertical = 2
-text = "Evil Dice
-"
+text = "Evil Dice"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -145,6 +187,9 @@ expand_mode = 1
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 size_flags_vertical = 8
+theme_override_styles/normal = SubResource("StyleBoxFlat_buy_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_buy_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_buy_pressed")
 
 [node name="BuyDice1Label" type="RichTextLabel" parent="MarginContainer/Panel/HBoxContainer/Dice1/BuyDice1"]
 layout_mode = 1
@@ -199,6 +244,9 @@ expand_mode = 1
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 size_flags_vertical = 8
+theme_override_styles/normal = SubResource("StyleBoxFlat_buy_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_buy_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_buy_pressed")
 
 [node name="BuyDice2Label" type="RichTextLabel" parent="MarginContainer/Panel/HBoxContainer/Dice2/BuyDice2"]
 layout_mode = 1
@@ -253,6 +301,9 @@ expand_mode = 1
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 size_flags_vertical = 8
+theme_override_styles/normal = SubResource("StyleBoxFlat_buy_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_buy_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_buy_pressed")
 
 [node name="BuyDice3Label" type="RichTextLabel" parent="MarginContainer/Panel/HBoxContainer/Dice3/BuyDice3"]
 layout_mode = 1
@@ -292,8 +343,7 @@ offset_right = 91.0
 offset_bottom = 16.0
 grow_horizontal = 2
 grow_vertical = 2
-text = "Even Dice
-"
+text = "Even Dice"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -308,6 +358,9 @@ expand_mode = 1
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 size_flags_vertical = 8
+theme_override_styles/normal = SubResource("StyleBoxFlat_buy_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_buy_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_buy_pressed")
 
 [node name="BuyDice4Label" type="RichTextLabel" parent="MarginContainer/Panel/HBoxContainer/Dice4/BuyDice4"]
 layout_mode = 1
@@ -347,8 +400,7 @@ offset_right = 91.0
 offset_bottom = 16.0
 grow_horizontal = 2
 grow_vertical = 2
-text = "Odd Dice
-"
+text = "Odd Dice"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -363,6 +415,9 @@ expand_mode = 1
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 size_flags_vertical = 8
+theme_override_styles/normal = SubResource("StyleBoxFlat_buy_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_buy_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_buy_pressed")
 
 [node name="BuyDice5Label" type="RichTextLabel" parent="MarginContainer/Panel/HBoxContainer/Dice5/BuyDice5"]
 layout_mode = 1
@@ -402,8 +457,7 @@ offset_right = 91.0
 offset_bottom = 16.0
 grow_horizontal = 2
 grow_vertical = 2
-text = "Blue Dice
-"
+text = "Blue Dice"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -418,6 +472,9 @@ expand_mode = 1
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 size_flags_vertical = 8
+theme_override_styles/normal = SubResource("StyleBoxFlat_buy_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_buy_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_buy_pressed")
 
 [node name="BuyDice6Label" type="RichTextLabel" parent="MarginContainer/Panel/HBoxContainer/Dice6/BuyDice6"]
 layout_mode = 1
@@ -457,8 +514,7 @@ offset_right = 91.0
 offset_bottom = 16.0
 grow_horizontal = 2
 grow_vertical = 2
-text = "Red Dice
-"
+text = "Red Dice"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -473,6 +529,9 @@ expand_mode = 1
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 size_flags_vertical = 8
+theme_override_styles/normal = SubResource("StyleBoxFlat_buy_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_buy_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_buy_pressed")
 
 [node name="BuyDice7Label" type="RichTextLabel" parent="MarginContainer/Panel/HBoxContainer/Dice7/BuyDice7"]
 layout_mode = 1
@@ -512,8 +571,7 @@ offset_right = 91.0
 offset_bottom = 16.0
 grow_horizontal = 2
 grow_vertical = 2
-text = "Green Dice
-"
+text = "Green Dice"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -528,6 +586,9 @@ expand_mode = 1
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 size_flags_vertical = 8
+theme_override_styles/normal = SubResource("StyleBoxFlat_buy_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_buy_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_buy_pressed")
 
 [node name="BuyDice8Label" type="RichTextLabel" parent="MarginContainer/Panel/HBoxContainer/Dice8/BuyDice8"]
 layout_mode = 1
@@ -567,8 +628,7 @@ offset_right = 91.0
 offset_bottom = 16.0
 grow_horizontal = 2
 grow_vertical = 2
-text = "Mech Dice
-"
+text = "Mech Dice"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -583,6 +643,9 @@ expand_mode = 1
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 size_flags_vertical = 8
+theme_override_styles/normal = SubResource("StyleBoxFlat_buy_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_buy_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_buy_pressed")
 
 [node name="BuyDice9Label" type="RichTextLabel" parent="MarginContainer/Panel/HBoxContainer/Dice9/BuyDice9"]
 layout_mode = 1
@@ -636,6 +699,9 @@ offset_bottom = -137.0
 grow_horizontal = 2
 grow_vertical = 0
 size_flags_vertical = 8
+theme_override_styles/normal = SubResource("StyleBoxFlat_buy_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_buy_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_buy_pressed")
 
 [node name="RichTextLabel" type="RichTextLabel" parent="RerollButton"]
 layout_mode = 1

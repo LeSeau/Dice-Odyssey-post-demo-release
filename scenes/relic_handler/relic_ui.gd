@@ -63,18 +63,23 @@ func _on_mouse_entered() -> void:
     get_tree().root.add_child(tooltip_instance)
     var tooltip_panel = tooltip_instance.get_node("Tooltip")
     tooltip_panel.tooltip_title.text = "[color=gold][b]%s[/b][/color]" % relic.relic_name
-    tooltip_panel.tooltip_label.text = relic.tooltip
+    tooltip_panel.tooltip_label.text = relic.get_colorized_description(relic.tooltip)
     var pos = get_global_mouse_position() + Vector2(24, 24)
     tooltip_panel.show_tooltip(pos)
 
-    if relic.tags == "":
-        return
-
     var tags_to_show := []
-    for tag in relic.tags.split(","):
-        var trimmed: String = tag.strip_edges()
-        if trimmed != "":
-            tags_to_show.append(trimmed)
+    if relic.tags != "":
+        for tag in relic.tags.split(","):
+            var trimmed: String = tag.strip_edges()
+            if trimmed != "":
+                tags_to_show.append(trimmed)
+
+    # Dice-type mentions don't need an explicit tag (see KeywordColorizer.colorize()) - detect
+    # them straight from the tooltip text so their tooltip still shows even on relics that were
+    # never tagged with the dice type they mention (e.g. Dice Bag's `tags` field is empty).
+    for dice_keyword in KeywordColorizer.find_dice_keywords_in_text(relic.tooltip):
+        if not tags_to_show.has(dice_keyword):
+            tags_to_show.append(dice_keyword)
 
     if tags_to_show.is_empty():
         return

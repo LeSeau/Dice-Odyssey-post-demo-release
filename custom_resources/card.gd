@@ -7,7 +7,7 @@ enum Rarity {NORMAL, SUPPORT}
 enum Requirement {NONE, MIN, MAX, EVEN, ODD, RED, MULTIPLE, EXACT, PANDORA}
 
 const RARITY_COLORS := {
-    Card.Rarity.NORMAL: Color.GRAY, 
+    Card.Rarity.NORMAL: Color.GRAY,
     Card.Rarity.SUPPORT: Color.GOLD
 }
 
@@ -90,6 +90,13 @@ func meets_requirement() -> bool:
             return Global.roll_value == requirement_number
         _:
             return true
+
+
+# Wraps every keyword from this card's `tags` (e.g. "Charge, Blessed") that appears in `text`
+# with a BBCode [color] tag - see KeywordColorizer for the keyword list/colors/regex logic
+# (shared with Relic.get_colorized_description(), the other real consumer of this).
+func get_colorized_description(text: String) -> String:
+    return KeywordColorizer.colorize(text, tags)
 
 
 func _get_targets(targets: Array[Node]) -> Array[Node]:
