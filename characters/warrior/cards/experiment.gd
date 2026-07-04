@@ -62,8 +62,8 @@ func get_random_support_card() -> Card:
 
 func get_dynamic_description(modifiers: ModifierHandler) -> String:
     if is_inked():
-        return "Deal ? damage. Get a random Support Card"
+        return "Deal ? damage. Gain a random Support card"
     if not has_active_roll():
-        return "Deal X damage. Get a random Support Card"
+        return "Deal X damage. Gain a random Support card"
     var total := modifiers.get_modified_value(Global.roll_value, Modifier.Type.DMG_DEALT)
-    return "Deal %d damage. Get a random Support Card" % total
+    return "Deal %d damage. Gain a random Support card" % total

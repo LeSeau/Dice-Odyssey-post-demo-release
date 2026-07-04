@@ -19,6 +19,6 @@ func get_dynamic_description(modifiers: ModifierHandler) -> String:
     if is_inked():
         return "Deal ? damage"
     if not has_active_roll() or not meets_requirement():
-        return "Deal X3 Damage"
+        return "Deal X3 damage"
     var total := modifiers.get_modified_value(floor(Global.roll_value * 3), Modifier.Type.DMG_DEALT)
     return "Deal %d damage" % total

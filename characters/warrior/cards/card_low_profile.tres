@@ -7,10 +7,10 @@
 [resource]
 script = ExtResource("1_goob3")
 id = "card_low_profile"
-name = "Low profile"
+name = "Low Profile"
 type = 1
 target = 0
-description = "Lower your power by 1 and gain 5 Block"
+description = "Lower your Power by 1 and gain 5 block"
 rarity = 1
 red_only = false
 can_play_without_dice = false

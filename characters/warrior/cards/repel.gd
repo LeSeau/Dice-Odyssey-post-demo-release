@@ -15,7 +15,7 @@ func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
 
 func get_dynamic_description(_modifiers: ModifierHandler) -> String:
     if is_inked():
-        return "Block ? damage. Draw 2 cards"
+        return "Block ?. Draw 2 cards"
     if not has_active_roll():
-        return "Block X damage. Draw 2 cards"
-    return "Block %d damage. Draw 2 cards" % Global.roll_value
+        return "Block X. Draw 2 cards"
+    return "Block %d. Draw 2 cards" % Global.roll_value
