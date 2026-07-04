@@ -5,7 +5,7 @@ const INK_STATUS = preload("res://statuses/ink.tres")
 const WEAK_STATUS = preload("res://statuses/weak.tres")
 
 var exposed_duration := 2
-var ink_duration := 2
+var ink_duration := 3
 
 @export var damage := 18
 var base_damage = damage

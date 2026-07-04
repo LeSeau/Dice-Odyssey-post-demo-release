@@ -1,6 +1,6 @@
 # Dice Odyssey — Combat Balance Analysis & Rebalance Plan (2026-07-04)
 
-**Status: analysis + agreed direction only. NOTHING implemented yet.** This doc is the single source of truth for the upcoming balance work session. Everything in §1–§3 was verified by reading the actual code/data on 2026-07-04 (file paths given). §4–§8 record the analysis and what Julien approved / rejected / left open.
+**Status: ALL 5 IMPLEMENTATION STEPS DONE (2026-07-04, same day as the analysis).** This doc remains the single source of truth for the balance work — §1–§3 are the original code-verified analysis, §4–§8 record what was approved/rejected/implemented, and §9 has the playtest findings + fixes from testing the changes. Next step is further playtesting (tier 2 / elites / boss numbers haven't been played yet) — read §9 and the implementation checkmarks in §6 before assuming anything still needs doing.
 
 Companion doc: `card_pool_analysis.md` (card pool audit, 2026-06-24).
 
@@ -205,24 +205,34 @@ Implementation notes: Crab's spike uses `Global.fight_turn % 4 == 3` (fires on t
 
 For each, kept the enemy's lowest-appearing tier as the original `.tres` (unchanged path/uid, nothing else breaks), and added a `_tier1`/`_tier2` duplicate (same `ai` PackedScene, same `art`, same `enemy_name`, only `max_health` can now diverge) for every higher tier it also appears in — e.g. `plant_enemy.tres` (tier 0, home) + new `plant_enemy_tier1.tres` + `plant_enemy_tier2.tres`. 14 new `.tres` files total, 11 battle `.tscn` files repointed to the correct variant. Verified after the fact: every enemy resource in the active pool now maps to exactly one tier, zero cross-tier sharing left. **All new duplicates currently hold the SAME HP as their source — this was a pure decoupling refactor, no numbers changed.** Tier-1 (and any tier-2 revision) numeric tuning is now safe to do per-enemy without side effects elsewhere, whenever Julien wants to lock in real values.
 
-### Tier 2 (fl. 9–13)
+### Tier 2 (fl. 9–13) — DONE 2026-07-04
 | Enemy | HP → proposed | Notes |
 |---|---|---|
-| Medusa | 50 → **62** | keep 12/15 — real spikes at this depth |
-| Hound | 42 → **55** | Exposed once per FIGHT (flag fix); Exposed-3 window is the identity |
-| Vortex | 45 → **58** | Chaos + alternation unchanged |
-| comps | ~+30–40% totals | identity via native-kit interactions (see §4.5) |
+| Medusa | 50 → **62** ✅ | keep 12/15 — real spikes at this depth |
+| Hound | 42 → **55** ✅ | Exposed once per FIGHT (flag fix); Exposed-3 window is the identity |
+| Vortex | 45 → **58** ✅ | Chaos + alternation unchanged |
+| comps | **+30% totals ✅** (Julien picked the low end) | identity via native-kit interactions (see §4.5) |
+
+**Comp totals applied (uniform 1.3× per-member scaling, so any enemy shared across multiple tier-2 fights gets one consistent number everywhere — verified no conflicts since every tier-2 enemy is already decoupled per-tier)**:
+| Fight | Old total | New total | Per-member HP |
+|---|---|---|---|
+| Plant + Crab | 58 | **76** | Plant 42, Crab 34 |
+| Octopus×2+Satyr×2 (4-body, `tier_1_octopus_2_satyrs_2`) | 52 | **66** | small Octopus 10, big Octopus 23, big Satyr 23, small Satyr 10 |
+| Machopeur + 2×Octopus | 67 | **86** | Machopeur 40, Octopus 23 each |
+| Defender + Machopeur | 69 | **89** | Defender 49, Machopeur 40 |
+| Defender + 2×Satyr | 74 | **95** | Defender 49, Satyr 23 each |
+| Lurker + Crab | 66 | **86** | Lurker 52, Crab 34 |
 
 Target: 4–6 turns, 12–22 HP lost per fight — where "please let me reach a campfire" lives.
 
-### Elites: **85–95 HP**
-- **Dragonpriest 90**: HP bump only. Canalize mechanic stays exactly as-is (guaranteed turn-0 trigger, once-ever +3 Muscle, not a standing rule) — **Julien rejected the "standing rule" rework on 2026-07-04, keep current behavior.** The `has_blocked_last_turn` spaghetti condition is already deleted (step 1 bug pass); Canalize itself untouched. 13/turn otherwise.
-- **Lich 85**: Absorb unchanged (best design in the game), **no per-turn cap** — **Julien rejected the Giant-dice cap on 2026-07-04, keep current uncapped behavior.**
-- **Gargantua 95**: as-is + flag fix. Greedy untouched.
+### Elites: **85–95 HP — DONE 2026-07-04**
+- **Dragonpriest 60 → 90 ✅**. Canalize mechanic stays exactly as-is (guaranteed turn-0 trigger, once-ever +3 Muscle, not a standing rule) — **Julien rejected the "standing rule" rework on 2026-07-04, keep current behavior.** Confirmed in code the same day: `consume_stack()` re-arms (`threshold_triggered = false`) whenever power drops back to ≤9, so Canalize genuinely CAN fire more than once per fight (even multiple times in one turn) if power dips and climbs back above 9 — but never re-fires while continuously sitting above 9 in one unbroken streak. Matches Julien's expectation exactly, no fix needed.
+- **Lich 60 → 85 ✅**. Absorb unchanged (best design in the game), no per-turn cap — Julien rejected the Giant-dice cap on 2026-07-04, keep current uncapped behavior.
+- **Gargantua 60 → 95 ✅**. Greedy untouched, flag fix already done in step 1.
 - Target: 25–35% HP cost → elite-vs-relic becomes a real decision.
 
-### Boss: **Leviathan 85 → ~140**
-Kit unchanged + ONE anti-burst valve below 50% HP (options: gains Muscle = half player's last roll — Absorb-flavored but it's HIS phase 2, discuss vs "no status copying" preference; OR +8 passive block/turn; OR Ink duration 2→3). Target: 6–9 turns, 30–45% HP cost, so the guaranteed campfire reads as necessary.
+### Boss: **Leviathan 85 → 140 ✅ — DONE 2026-07-04**
+Kit unchanged + anti-burst valve chosen: **Ink duration 2→3** on his Ink-inflicting attack (`enemies/leviathan/1.gd::ink_duration`), not the Absorb-flavored Muscle option (kept clear of "his own kit only" per the no-copying preference) or the flat passive block option. Target: 6–9 turns, 30–45% HP cost, so the guaranteed campfire reads as necessary.
 
 ### Player-side (light touch)
 - **Reinforce +1 → +2: AGREED to try, Julien enthusiastic.** Rationale: a rolled 1 becomes a guaranteed max Low Blow (1→3 → 9 dmg) — floor-raiser for exactly the early-RNG-nightmare concern; general smoothing doubles. Documented trade-offs: the 2→3 Low Blow line dies (2+2=4 > MAX 3; play LB directly at 2 for 6 instead), and **+2 preserves parity** — +1 could step to ANY number (universal EXACT/EVEN/ODD fixer, e.g. 12→13 Doomsday), +2 skips every other value (11→13 yes, 12→13 no). Julien originally chose +1 for parity-fixing but has since cut most parity requirements → +2 likely right now.
@@ -245,7 +255,7 @@ Kit unchanged + ONE anti-burst valve below 50% HP (options: gains Muscle = half 
 2. **Tier restructure**: run.gd thresholds + .tres relabels + pool additions (§5).
 3. **Tier 0/1 micro-bumps + Crab spike wiring + Reinforce +2** (§6).
 4. **Playtest checkpoint — IN PROGRESS 2026-07-04.** Julien ran a full test run through tier 1 + first elites. See §9 below for findings (bugs fixed same day + open balance questions still needing a call before step 5).
-5. Tier-2 numbers, elite HP bumps (Canalize/Absorb mechanics untouched per Julien), boss EHP + valve.
+5. **DONE 2026-07-04.** Tier-2 numbers, elite HP bumps (Canalize/Absorb mechanics untouched per Julien), boss EHP + valve. See §9 addendum below for exact numbers applied.
 6. Later: new archetypes (§7), campfire option, Act-2-era pool rethink.
 
 ---
@@ -260,6 +270,7 @@ Kit unchanged + ONE anti-burst valve below 50% HP (options: gains Muscle = half 
 
 ### Balance signal — needs a decision before tier-1 numbers get locked in
 - **Lurker+Crab (tier 1, gateway fight) felt like a wall relative to tier 0**: ~66 combined EHP, Flux (anti-bank) from turn 1, ~15 dmg turn-1 burst. Julien: "much much harder than tier 0 fights... I can tell right away I'm gonna lose a ton of HP." He won but called it lucky/close (~15 HP lost). This is exactly the kind of data the deferred tier-1 numeric pass needs — current pool has no "soft landing" fight between tier 0 and this. **Machopeur+Octopus (tier 1) right after, by contrast, felt "MUCH more manageable" / "Good outcome & balance."** So the tier-1 pool likely needs internal difficulty ordering/smoothing, not just a flat retune.
+  - **RESOLVED 2026-07-04**: root issue was worse than "hard fight" — tier 1 had both `tier_1_lurker` (solo Flux) and `tier_1_lurker_crab` (the SAME Lurker/Flux plus a Crab bolted on) in the same tier. Julien: *"the main problem is that the same tier had a fight that's literally the same, but harder! This is not good balance."* A strict "same enemy, same tier, just add a body" pairing isn't real variety, it's a padded reskin of the solo fight — no new identity, just more numbers. **Moved `tier_1_lurker_crab` → tier 2** (`battle_tier` 1→2). Since Lurker now spans tier 1 (solo) and tier 2 (this pair), gave it the same per-tier decoupling treatment as the other cross-tier enemies: new `enemies/lurker/lurker_enemy_tier2.tres`, and repointed the Crab in that scene from `crab_enemy_tier1.tres` to the already-existing `crab_enemy_tier2.tres`. Pool is now tier0:12, tier1:9, tier2:9, elites:3, boss:1 — every enemy resource still maps to exactly one tier. **General principle for future pool composition: don't put a solo enemy and "that same enemy + a partner" in the same tier — the pairing needs its own reason to exist (composition dynamics, per §4.5), not just be the harder mode of the solo.**
 - **Machopeur is showing up very often** — solo (tier 0), two tier-1 pairs, two tier-2 pairs, PLUS he's eligible via random combat events too (Julien hit a 3-enemy event fight with him mid-run). Julien: "that's starting to be a lot of Machopeur... you can get him 3+ times in a run?" A real variety/identity concern, not paranoia — worth capping his effective pool weight or reconsidering how many of his 5 fight slots stay active.
 - **Economy pacing note**: reached 222-228 gold multiple times by mid-run, enough to consider a 2nd escalated dice purchase. Julien flagged this himself as "probably too early, that'd make me insanely strong."
 - **Positive signals worth preserving**: real HP attrition finally showing up post-tier-0 (37/66, 50/66 mid-run) and influencing real deck choices (drafted a Block card for the first time all run); Lich and Dragonpriest elites read as genuinely dangerous but fair with good play (lost 4 HP vs Lich with "pretty good luck", said Dragonpriest "was definitely getting dangerous" if not killed on time).

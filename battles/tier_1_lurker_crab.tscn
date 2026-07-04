@@ -1,10 +1,10 @@
 [gd_scene load_steps=6 format=3 uid="uid://3xbe7qpnc1yb"]
 
 [ext_resource type="PackedScene" uid="uid://d0efyathkfg74" path="res://scenes/enemy/enemy.tscn" id="1_vexuw"]
-[ext_resource type="Resource" uid="uid://c7qhuk5xx6jry" path="res://enemies/lurker/lurker_enemy.tres" id="2_f4yr3"]
+[ext_resource type="Resource" uid="uid://lurkerenemytier2" path="res://enemies/lurker/lurker_enemy_tier2.tres" id="2_f4yr3"]
 [ext_resource type="Script" path="res://custom_resources/status.gd" id="3_x82ac"]
 [ext_resource type="Resource" uid="uid://dc23kw40dyovr" path="res://statuses/flux.tres" id="4_51lbi"]
-[ext_resource type="Resource" uid="uid://crab1enemytier1a" path="res://enemies/crab/crab_enemy_tier1.tres" id="5_4n0uk"]
+[ext_resource type="Resource" uid="uid://crab1enemytier2a" path="res://enemies/crab/crab_enemy_tier2.tres" id="5_4n0uk"]
 
 [node name="Tier1LurkerGoblin" type="Node2D"]
 

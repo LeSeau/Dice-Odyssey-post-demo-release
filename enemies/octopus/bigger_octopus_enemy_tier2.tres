@@ -8,5 +8,5 @@
 script = ExtResource("3_mym0t")
 ai = ExtResource("1_qllcn")
 enemy_name = "Octopus"
-max_health = 18
+max_health = 23
 art = ExtResource("2_1yk4q")
