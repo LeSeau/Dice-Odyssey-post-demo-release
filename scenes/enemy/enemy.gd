@@ -68,7 +68,7 @@ func set_enemy_stats(value: EnemyStats) -> void:
     
     if not stats.stats_changed.is_connected(update_stats):
         stats.stats_changed.connect(update_stats)
-        stats.stats_changed.connect(update_action)
+        stats.stats_changed.connect(update_intent)
         Events.enemy_strength_changed.connect(update_intent)
         
     
@@ -98,14 +98,8 @@ func update_stats() -> void:
 func update_action() -> void:
     if not enemy_action_picker:
         return
-    
-    if not current_action:
-        current_action = enemy_action_picker.get_action()
-        return
-    
-    var new_conditional_action := enemy_action_picker.get_first_conditional_action()
-    if new_conditional_action and current_action != new_conditional_action:
-        current_action = new_conditional_action
+
+    current_action = enemy_action_picker.get_action()
 
 
 const MAX_ENEMY_WIDTH := 256.0

@@ -286,8 +286,8 @@ func _get_tier_for_room(room: Room) -> int:
         return 4
     elif room.type == Room.Type.ELITE:
         return 3
-    elif room.row > 8:
-        return 1
+    elif room.row > 7:
+        return 2
     elif room.row > 2:
         return 1
     else:

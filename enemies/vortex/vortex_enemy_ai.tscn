@@ -40,6 +40,7 @@ script = ExtResource("2_v8qc0")
 intent = SubResource("Resource_rl7c7")
 sound = ExtResource("5_qabut")
 type = 1
+chance_weight = 10.0
 action_id = "vortex_attack"
 
 [node name="VortexBuff" type="Node" parent="."]
@@ -47,4 +48,5 @@ script = ExtResource("6_hpext")
 intent = SubResource("Resource_e865r")
 sound = ExtResource("10_baxgj")
 type = 1
+chance_weight = 10.0
 action_id = "vortex_buff"

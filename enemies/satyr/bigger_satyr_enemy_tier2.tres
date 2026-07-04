@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="EnemyStats" load_steps=4 format=3 uid="uid://sggulmun2aob"]
+[gd_resource type="Resource" script_class="EnemyStats" load_steps=4 format=3 uid="uid://bigsatyrtier2aaa"]
 
 [ext_resource type="PackedScene" uid="uid://bwaaq3fd2vuwg" path="res://enemies/satyr/bigger_satyr_enemy_ai.tscn" id="1_qrmsf"]
 [ext_resource type="Texture2D" uid="uid://c4hkrkmc6yyir" path="res://medium_satyr_jenya.png" id="2_3b2mv"]

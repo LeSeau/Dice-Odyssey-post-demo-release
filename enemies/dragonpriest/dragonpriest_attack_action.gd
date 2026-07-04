@@ -4,7 +4,7 @@ extends EnemyAction
 var base_damage = damage
 
 func is_performable() -> bool:
-    return Global.fight_turn==0 or Global.has_blocked_last_turn
+    return Global.fight_turn==0
 
 
 func perform_action() -> void:
@@ -18,7 +18,6 @@ func perform_action() -> void:
     damage_effect.amount = modifiers.get_modified_value(base_damage, Modifier.Type.DMG_DEALT)
     var target_array: Array[Node] = [target]
     damage_effect.sound = sound
-    Global.has_blocked_last_turn = false
     tween.tween_property(enemy, "global_position", end, 0.4)
     tween.tween_callback(damage_effect.execute.bind(target_array))
     tween.tween_interval(0.25)

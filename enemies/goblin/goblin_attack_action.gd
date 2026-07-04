@@ -7,6 +7,10 @@ extends EnemyAction
 var base_damage = 7
 
 func is_performable() -> bool:
+    if enemy.last_action == "goblin_attack":
+        return false
+    if enemy.last_action == "goblin_attack_2":
+        return false
     return true
 
 func perform_action() -> void:

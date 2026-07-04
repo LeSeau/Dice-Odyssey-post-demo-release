@@ -12,4 +12,5 @@ has_counter = false
 counter = 0
 starter_relic = false
 icon = ExtResource("1_aml6q")
-tooltip = "Your red Dice rolls gain 2 bonus Power"
+tooltip = "Your Red Dice rolls gain 2 bonus Power"
+tags = ""

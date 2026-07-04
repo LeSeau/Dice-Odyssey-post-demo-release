@@ -10,7 +10,7 @@ const TOOLTIP_OFFSET_X = 2  # Horizontal distance from card
 const TOOLTIP_HEIGHT = 108    # Approximate height of each tooltip
 const TOOLTIP_SPACING = 1     # Space between tooltips
 
-enum PlayableGlow { NONE, AVAILABLE, HOT }
+enum PlayableGlow { NONE, AVAILABLE, HOT, NEUTRAL }
 
 const DiceInterfaceScript := preload("res://scenes/dices/dice_interface.gd")
 const GLOW_DEFAULT_COLOR := Color(0.184314, 0.917647, 0.843137)
@@ -659,6 +659,14 @@ func set_playable_visual(state: PlayableGlow) -> void:
                 _glow_tween.kill()
             card_frame.add_theme_stylebox_override("panel", _base_frame_stylebox)
             modulate = UNPLAYABLE_MODULATE_HAS_POWER if Global.roll_value > 0 else UNPLAYABLE_MODULATE_NO_POWER
+        PlayableGlow.NEUTRAL:
+            # Used while Inked: we can't tell if a card is playable (power is hidden), and
+            # dimming it like a genuinely-blocked card is misleading since it's still playable.
+            # Full brightness, no glow border - just the card's plain undecorated look.
+            if _glow_tween and _glow_tween.is_valid():
+                _glow_tween.kill()
+            card_frame.add_theme_stylebox_override("panel", _base_frame_stylebox)
+            modulate = Color.WHITE
 
 # Re-applies whatever glow state was last set. Needed because other systems
 # (e.g. card hover) can overwrite CardFrame's stylebox override directly.

@@ -92,6 +92,9 @@ func start_battle() -> void:
     Global.fight_turn = 0
     Global.fight_dice_rolled = 0
     Global.dice_type = "blue"
+    Global.hound_debuff_attack_done = false
+    Global.gargantua_debuff_attack_done = false
+    Global.ink_active = false
     Events.battle_started.emit()
 
 

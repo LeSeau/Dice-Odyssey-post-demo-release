@@ -82,11 +82,15 @@ Companion doc: `card_pool_analysis.md` (card pool audit, 2026-06-24).
 3. **Starter deck .tres contains test cards** (Dice Slap, Calculations) — restore 4 Strikes before any balance testing, results are skewed otherwise.
 4. **Tier-2 data mess**: `run.gd::_get_tier_for_room` maps rows>2 all to tier 1; tier_2_medusa/hound/vortex/plant_crab/defender_satyr have battle_tier=1; real tier-2 files unreachable; map_generator's tier-2 & boss-room requests are dead code. (Becomes the tier-restructure work item, §6.)
 5. **Hound & Gargantua Exposed once per SESSION** (`Global.hound_debuff_attack_done` / `gargantua_debuff_attack_done` never reset — not on battle start, not on run start). Reset both in `_on_battle_won`/run start. (Julien: known, lower priority since sessions currently restart often.)
-6. **Dragonpriest spaghetti**: the "or has_blocked_last_turn" condition + `Global.has_blocked_last_turn` (only set by Crab's block action!) — Julien confirms never a designed feature. Simplify to plain attack; Canalize rework is the interesting replacement (§6).
+6. **Dragonpriest spaghetti**: the "or has_blocked_last_turn" condition + `Global.has_blocked_last_turn` (only set by Crab's block action!) — Julien confirms never a designed feature. Simplify to plain attack. ~~Canalize rework~~ — **rejected by Julien (2026-07-04), Canalize mechanic itself stays untouched.**
 7. **Vortex chance weights = 0** — alternation only works via fallback ordering; set real weights or make the cycle explicitly conditional so a scene edit can't silently break it.
 8. **Oculus buff condition** copied from Plant (`last_action != "plant_attack"` — always true). Current cycle is fine in practice; make the condition its own ids for robustness.
 9. Cosmetic/dead: satyr/octopus/vortex debuff scripts declare `exposed_duration` never applied (delete vars, check intent icons don't over-promise); Hound "double attack" is a single 6 (rename or make it actually 2×); `machopeur_attack_action_2.gd`, crab `attack_action_2.gd` (12 dmg), octopus chaos attack ("NOT USED" node) are unwired content worth rescuing (§6).
 10. Docs drift: CLAUDE.md says 70 HP / "4 Strike 4 Defend + Diceslap" starter — code says 66 HP, and the .tres is currently the test variant.
+
+**Found and fixed during step-3 playtesting (2026-07-04, not in the original code-audit pass):**
+11. **Enemy intent could silently desync from what actually executed.** `Enemy.set_enemy_stats()` wired `stats.stats_changed` to `update_action()`, which can override the already-decided `current_action` with a freshly-qualifying CONDITIONAL. `do_turn()`'s block reset (`stats.block = 0`) fires that signal right before the cached action executes — by which point `Global.fight_turn` has already been bumped by `end_turn()` (fires the instant the player clicks End Turn, before the enemy turn runs). Caught live via the new Crab spike firing a round earlier than its own intent showed. Fixed: rewired `stats_changed` to `update_intent` (safe, display-only) instead; simplified `update_action()` since its override branch is now unreachable. No currently-active AI relied on the old wiring (only the unwired `crab_mega_block_action.gd` reads its own HP/block in a condition).
+12. **Enemy attacks didn't apply their own Strength/Muscle to actual damage, only to the displayed intent number.** Systemic — 19 of ~39 enemy attack scripts computed `modifiers.get_modified_value(base_damage, DMG_DEALT)` in `update_intent_text()` but set `damage_effect.amount = damage` (raw) in `perform_action()`. Affected: all of Satyr/Bigger Satyr, all of Octopus/Bigger Octopus, all of Crab (including the new spike), all of Vortex, Minotaur, and one of Medusa's three attacks (her 15-dmg hit). Fixed all 19 to match the already-correct pattern used elsewhere (Dragonpriest, Gargantua, Goblin, Hound, Leviathan, Lich, Lurker, Machopeur, Oculus, Plant, Sigil Slug, Temple Defender). Confirmed no double-application risk: the player's own `DMG_TAKEN` modifier (Exposed etc.) is applied separately inside `Player.take_damage()`.
 
 ---
 
@@ -152,10 +156,18 @@ STS act-1: hallway fights 4–8 player turns, ~12% HP cost avg; elites 25–30%;
 
 Implementation: adjust thresholds in `run.gd::_get_tier_for_room()` (currently `row > 2 → 1` twice; make `row > 7 → 2`, `row > 2 → 1`), relabel `battle_tier` in the .tres files per the pools below, add missing fights to `battle_stats_pool.tres`, clean leftover weight=10 values. map_generator's own tier requests could be aligned too (or left, since run.gd overrides — but cleaner to fix).
 
-### Agreed pool assignments
-**Tier 0 (fl. 1–3):** Crab solo (spike wired in, see §6) • Satyrs×3 • Octopus×3 • the 4 mixed 3-packs • bigger-pair fights (currently unused — add) • Chimera solo (unused — add, HP 40→~30, the "big dumb intro solo") • Plant solo (ramp softened to +3/cycle).
+**STATUS: DONE 2026-07-04.** Every fight named in the pool assignments below already had a working `.tres`/`.tscn` — nothing had to be built from scratch, only relabeled/added. Left map_generator's own (dead/overridden) tier requests untouched, out of scope. Final pool: 34 entries (was 25) — tier 0: 11, tier 1: 11, tier 2: 8, elites: 3, boss: 1.
+- `run.gd::_get_tier_for_room()`: `row > 7 → 2`, `row > 2 → 1`, else 0 (done).
+- Relabeled `battle_tier`: `tier_0_machopeur` 0→1 (also bumped its gold_reward 20-30→30-40 to match its new tier-1 siblings, since that field doesn't auto-follow the tier label), `tier_1_octopus_2_satyrs_2` 1→2, `tier_2_hound`/`tier_2_medusa`/`tier_2_plant_crab`/`tier_2_vortex` 1→2, `tier_2_defender_satyr` 1→2.
+- Added to pool (already correctly tiered, just never referenced): `tier_0_bigger_octopus_2`, `tier_0_bigger_satyrs_2`, `tier_0_bigger_satyrs_octopus`, `tier_1_crab_satyr`, `tier_1_lurker_crab`, `tier_1_machopeur_octopus`, `tier_2_defender_machopeur`, `tier_2_machopeur_octopus`, `tier_2_defender_satyr`.
+- Left dead/unused on disk (not part of the agreed plan): `tier_0_chimera` (Julien: no art, don't add), `tier_0_machopeur_satyr` (regular-satyr variant, redundant with the bigger-satyr one already in tier 1), `tier_0_crab_satyr.tscn` (no `.tres`, exact duplicate of `tier_1_crab_satyr`), `tier_1_bat_crab`/`tier_1_bats3` (misnamed leftovers using Crab/Minotaur, not Bat).
 
-**Tier 1 (fl. 4–8):** Goblin+Oculus (goblin FIXED) • Defender solo • Sigil Slug • Lurker (Flux) • Plant+Octopus • Machopeur+B.Satyr • Plant+Goblin • **Machopeur solo promoted from tier 0** (its ramp belongs against a 16-P player) • rescue Crab+Satyr / Lurker+Crab / Machopeur+Octopus from unused files. (~10 entries)
+### Agreed pool assignments — IMPLEMENTED 2026-07-04 (see status note below)
+**Tier 0 (fl. 1–3):** Crab solo (spike wired in, see §6) • Satyrs×3 • Octopus×3 • the 4 mixed 3-packs • bigger-pair fights (`tier_0_bigger_octopus_2`, `tier_0_bigger_satyrs_2`, `tier_0_bigger_satyrs_octopus`, added to pool) • ~~Chimera solo~~ **excluded — Julien: no art yet, old/unfinished enemy, do not add** • Plant solo (ramp softened to +3/cycle, not yet applied — step 3).
+
+**Tier 1 (fl. 4–8):** Goblin+Oculus (goblin FIXED) • Defender solo • Sigil Slug • Lurker (Flux) • Plant+Octopus • Machopeur+B.Satyr • Plant+Goblin • rescue Crab+Satyr / Lurker+Crab / Machopeur+Octopus from unused files. (~10 entries)
+
+~~Machopeur solo promoted from tier 0~~ — **REVERTED 2026-07-04.** Julien's counter-argument: Machopeur's kit (turn-0 buff → every-turn Muscle ramp) is structurally the same as STS's Cultist, which stays an early/cheap enemy specifically to teach "kill ramps fast" while stakes are low and the player still has their full starter deck — moving it later doesn't teach anything new once Plant has already taught the lesson, and it thins tier 0 down to a single ramp archetype right when the lesson matters most. Machopeur solo stays in **tier 0** at its original 31 HP / 20-30g reward (not softened like Plant — no HP change agreed for it).
 
 **Tier 2 (fl. 9–13):** Medusa • Hound (flag fixed) • Vortex • Plant+Crab • **Defender+Satyr** (unused → add) • **Defender+Machopeur** (unreachable → add; "race the ramp while respecting the spike cycle" — composition dynamics, no new mechanics needed) • **Machopeur+2×Octopus** (unreachable → add) • 2Oct+2Satyrs promoted from tier 1 (turn-1 burst plays better vs a 22-P player). (~8 entries)
 
@@ -163,19 +175,35 @@ Implementation: adjust thresholds in `run.gd::_get_tier_for_room()` (currently `
 
 ## 6. AGREED: numeric retune (starting values for playtesting, not gospel)
 
-### Tier 0 — nearly untouched (protect early pacing)
+### Tier 0 — nearly untouched (protect early pacing) — DONE 2026-07-04
 | Enemy | HP now → proposed | Other |
 |---|---|---|
 | Satyr / Octopus | 6–7 → **8** | dmg unchanged |
 | Bigger variants | 16–17 → **18** | |
 | Crab | 25 → **26** | **wire the unused 12-dmg attack as a telegraphed every-4th-turn spike** — tier 0's "learn to block" teacher |
 | Plant | 35 → **32**, ramp +5 → **+3**/cycle | tier-0 teacher version |
-| Chimera | 40 → **~30** | enters pool as flat solo |
-| Machopeur | — | **moves to tier 1 at ~38 HP** |
+| Chimera | 40 → **~30** | enters pool as flat solo — **excluded for now, no art (see §5 status note)** |
+| Machopeur | 31 (unchanged) | **stays in tier 0** — reverted from the tier-1 promotion, see §5 |
 
 Expected: same 3–4 turn fights; solos 0–6 HP lost, swarms 6–12.
 
-### Tier 1 (fl. 4–8): solos **44–52 EHP**, pairs **55–65 total**; base D 6–9 + one **13–15 telegraphed spike** per cycle each.
+Implementation notes: Crab's spike uses `Global.fight_turn % 4 == 3` (fires on the enemy's 4th physical turn, then every 4th after) as a plain CONDITIONAL action — no separate telegraph mechanism needed since intents are already shown one turn ahead by the existing UI, so a deterministic trigger is automatically "telegraphed" for free. Wired via `enemies/crab/attack_action_2.gd` (was dead code) + a new `SpikeAttackAction` node in `crab_enemy_ai.tscn`. Reinforce +1→+2 also done (`reinforce.gd` + `.tres` description).
+
+### Tier 1 (fl. 4–8): solos **44–52 EHP**, pairs **55–65 total**; base D 6–9 + one **13–15 telegraphed spike** per cycle each. **NOT YET APPLIED — see status note.**
+
+**STATUS 2026-07-04: only the aggregate band above exists, no concrete per-enemy numbers were ever agreed for tier 1, unlike tier 0/tier 2 which both got real tables.** Held off implementing rather than inventing numbers.
+
+**The shared-resource blocker described here is now FIXED (2026-07-04, same day).** A full audit found the cross-tier sharing was wider than first flagged — not just Plant/Defender/Machopeur/Bigger-Satyr/Bigger-Octopus, but also plain Satyr and plain Octopus (both got dragged into tier 2 via the promoted 4-body `tier_1_octopus_2_satyrs_2` pack). Full map of every affected enemy and every fight it touched:
+- **Crab**: tier0 (`tier_0_crab`), tier1 (`tier_1_crab_satyr`, `tier_1_lurker_crab`), tier2 (`tier_2_plant_crab`)
+- **Machopeur**: tier0 (`tier_0_machopeur`), tier1 (`tier_1_machopeur_octopus`, `tier_1_machopeur_satyr`), tier2 (`tier_2_defender_machopeur`, `tier_2_machopeur_octopus`)
+- **Plant**: tier0 (`tier_0_plant`), tier1 (`tier_1_plant_goblin`, `tier_1_plant_octopus`), tier2 (`tier_2_plant_crab`)
+- **Bigger Satyr**: tier0 (multiple packs), tier1 (`tier_1_machopeur_satyr`), tier2 (`tier_1_octopus_2_satyrs_2` [relabeled 2], `tier_2_defender_satyr`)
+- **Bigger Octopus**: tier0 (multiple packs), tier1 (`tier_1_machopeur_octopus`, `tier_1_plant_octopus`), tier2 (`tier_1_octopus_2_satyrs_2`, `tier_2_machopeur_octopus`)
+- **Satyr (small)**: tier0 (multiple packs), tier1 (`tier_1_crab_satyr`), tier2 (`tier_1_octopus_2_satyrs_2`)
+- **Octopus (small)**: tier0 (multiple packs), tier2 (`tier_1_octopus_2_satyrs_2`) — skips tier 1
+- **Defender**: tier1 (`tier_1_defender`), tier2 (`tier_2_defender_machopeur`, `tier_2_defender_satyr`)
+
+For each, kept the enemy's lowest-appearing tier as the original `.tres` (unchanged path/uid, nothing else breaks), and added a `_tier1`/`_tier2` duplicate (same `ai` PackedScene, same `art`, same `enemy_name`, only `max_health` can now diverge) for every higher tier it also appears in — e.g. `plant_enemy.tres` (tier 0, home) + new `plant_enemy_tier1.tres` + `plant_enemy_tier2.tres`. 14 new `.tres` files total, 11 battle `.tscn` files repointed to the correct variant. Verified after the fact: every enemy resource in the active pool now maps to exactly one tier, zero cross-tier sharing left. **All new duplicates currently hold the SAME HP as their source — this was a pure decoupling refactor, no numbers changed.** Tier-1 (and any tier-2 revision) numeric tuning is now safe to do per-enemy without side effects elsewhere, whenever Julien wants to lock in real values.
 
 ### Tier 2 (fl. 9–13)
 | Enemy | HP → proposed | Notes |
@@ -188,8 +216,8 @@ Expected: same 3–4 turn fights; solos 0–6 HP lost, swarms 6–12.
 Target: 4–6 turns, 12–22 HP lost per fight — where "please let me reach a campfire" lives.
 
 ### Elites: **85–95 HP**
-- **Dragonpriest 90**: delete spaghetti condition; make Canalize the fight RULE — "whenever you end your turn holding >9 banked power → +3 Muscle" (from once-ever to every-turn threat). 13/turn otherwise.
-- **Lich 85**: Absorb unchanged (best design in the game) but **cap per-turn gain at ~6** (Giant dice would otherwise feed +12s).
+- **Dragonpriest 90**: HP bump only. Canalize mechanic stays exactly as-is (guaranteed turn-0 trigger, once-ever +3 Muscle, not a standing rule) — **Julien rejected the "standing rule" rework on 2026-07-04, keep current behavior.** The `has_blocked_last_turn` spaghetti condition is already deleted (step 1 bug pass); Canalize itself untouched. 13/turn otherwise.
+- **Lich 85**: Absorb unchanged (best design in the game), **no per-turn cap** — **Julien rejected the Giant-dice cap on 2026-07-04, keep current uncapped behavior.**
 - **Gargantua 95**: as-is + flag fix. Greedy untouched.
 - Target: 25–35% HP cost → elite-vs-relic becomes a real decision.
 
@@ -216,9 +244,28 @@ Kit unchanged + ONE anti-burst valve below 50% HP (options: gains Muscle = half 
 1. **Bug pass**: gold 75, starter deck .tres restore, goblin picker, vortex weights, oculus condition ids, dragonpriest condition removal, hound/gargantua flag resets, dead exposed vars. (Small, zero design risk.)
 2. **Tier restructure**: run.gd thresholds + .tres relabels + pool additions (§5).
 3. **Tier 0/1 micro-bumps + Crab spike wiring + Reinforce +2** (§6).
-4. **Playtest checkpoint** — Julien runs it, judge fight lengths + HP attrition against the targets in §4.1 before touching anything below.
-5. Tier-2 numbers, elite rework (Canalize rule, Absorb cap), boss EHP + valve.
+4. **Playtest checkpoint — IN PROGRESS 2026-07-04.** Julien ran a full test run through tier 1 + first elites. See §9 below for findings (bugs fixed same day + open balance questions still needing a call before step 5).
+5. Tier-2 numbers, elite HP bumps (Canalize/Absorb mechanics untouched per Julien), boss EHP + valve.
 6. Later: new archetypes (§7), campfire option, Act-2-era pool rethink.
+
+---
+
+## 9. Playtest findings (2026-07-04, first full run through tier 1 + Lich/Dragonpriest)
+
+### Bugs found and fixed same day
+- **Ink stuck active across fights, sometimes for the rest of the run.** `Global.ink_active` (read by `Card.is_inked()` for the "?" power display, and by `hand.gd::_get_glow_state()` to force every card to the unplayable dim) was never reset between battles. Fixed: `battle.gd::start_battle()` now resets it to `false` alongside the other per-fight flags.
+- **Lurker overlapped the player's hand / obscured its own status icons in the Lurker+Crab fight.** Its node in `tier_1_lurker_crab.tscn` had no `scale`/`width`/`height` override (copy-pasted straight from its solo fight, unlike Crab in the same scene which was properly sized down). Set to `scale=0.75`, `width/height=280` to match how every other paired enemy in the pool is set up. **Not visually re-verified (no Godot runtime access) — please confirm it actually looks right.**
+- **Relic tooltips inconsistently cased vs. cards.** Cards always write keywords capitalized ("Charge 1", "Gain 2 Strength"); 6 relic tooltips didn't: Blood Sword ("red Dice"→"Red Dice"), Fuel-o-meter ("refuel"/"strength"), Runic Bones ("charge"/"block"), Sledgehammer ("strength"), Volcanic Rock ("charge"), Crown ("charges"). All fixed. Scoped to relics only per what was asked — cards weren't swept (spot-checked a couple, they're already fine).
+- **Status icon spacing was inconsistent row-to-row.** `status_ui.gd` reported a different `custom_minimum_size` depending on whether a status shows a Duration/Stacks number badge (48×39) or not (30×30, icon only) — `GridContainer` sized cells off that, so mixed rows got uneven gaps. Fixed: always report the icon's own 30×30 footprint; the number badge overlays the icon corner rather than inflating the cell.
+
+### Balance signal — needs a decision before tier-1 numbers get locked in
+- **Lurker+Crab (tier 1, gateway fight) felt like a wall relative to tier 0**: ~66 combined EHP, Flux (anti-bank) from turn 1, ~15 dmg turn-1 burst. Julien: "much much harder than tier 0 fights... I can tell right away I'm gonna lose a ton of HP." He won but called it lucky/close (~15 HP lost). This is exactly the kind of data the deferred tier-1 numeric pass needs — current pool has no "soft landing" fight between tier 0 and this. **Machopeur+Octopus (tier 1) right after, by contrast, felt "MUCH more manageable" / "Good outcome & balance."** So the tier-1 pool likely needs internal difficulty ordering/smoothing, not just a flat retune.
+- **Machopeur is showing up very often** — solo (tier 0), two tier-1 pairs, two tier-2 pairs, PLUS he's eligible via random combat events too (Julien hit a 3-enemy event fight with him mid-run). Julien: "that's starting to be a lot of Machopeur... you can get him 3+ times in a run?" A real variety/identity concern, not paranoia — worth capping his effective pool weight or reconsidering how many of his 5 fight slots stay active.
+- **Economy pacing note**: reached 222-228 gold multiple times by mid-run, enough to consider a 2nd escalated dice purchase. Julien flagged this himself as "probably too early, that'd make me insanely strong."
+- **Positive signals worth preserving**: real HP attrition finally showing up post-tier-0 (37/66, 50/66 mid-run) and influencing real deck choices (drafted a Block card for the first time all run); Lich and Dragonpriest elites read as genuinely dangerous but fair with good play (lost 4 HP vs Lich with "pretty good luck", said Dragonpriest "was definitely getting dangerous" if not killed on time).
+
+### Design question — RESOLVED 2026-07-04
+- **Ink's forced full-dim on every card** was flagged as misleading (cards look unplayable while inked, even though they're mechanically still playable — just power is hidden). Julien's call: while inked, card visuals should be **as neutral as possible** — no signal either way, not even a fake "available" glow. Added a new `CardUI.PlayableGlow.NEUTRAL` state (full brightness, no glow border, distinct from both `NONE`'s dim and `HOT`/`AVAILABLE`'s glow) and wired it into `hand.gd::_get_glow_state()`'s ink branch.
 
 ---
 

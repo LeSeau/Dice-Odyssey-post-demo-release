@@ -14,7 +14,7 @@ func perform_action() -> void:
     var target_array: Array[Node] = [target]
     var status_effect := StatusEffect.new()
     var muscle := MUSCLE_STATUS.duplicate()
-    muscle.stacks = 5
+    muscle.stacks = 3
     status_effect.status = muscle
     status_effect.sound = sound
     status_effect.execute([enemy])

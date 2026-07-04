@@ -2,7 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://d0efyathkfg74" path="res://scenes/enemy/enemy.tscn" id="1_jl2pd"]
 [ext_resource type="Resource" uid="uid://bkbnyc3ymuyj" path="res://enemies/goblin/goblin_enemy.tres" id="2_wis8d"]
-[ext_resource type="Resource" uid="uid://boa1u200jkm38" path="res://enemies/plant/plant_enemy.tres" id="3_882qe"]
+[ext_resource type="Resource" uid="uid://plantenemytier1a" path="res://enemies/plant/plant_enemy_tier1.tres" id="3_882qe"]
 
 [node name="Tier1PlantGoblin" type="Node2D"]
 

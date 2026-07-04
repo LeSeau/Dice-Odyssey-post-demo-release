@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="EnemyStats" load_steps=4 format=3 uid="uid://defenderenemytr2"]
+
+[ext_resource type="PackedScene" uid="uid://d3b23v3dpsd60" path="res://enemies/temple_defender/defender_enemy_ai.tscn" id="1_14ure"]
+[ext_resource type="Texture2D" uid="uid://l37ivvinrecn" path="res://defender_perfect.png" id="2_1dnwt"]
+[ext_resource type="Script" path="res://custom_resources/enemy_stats.gd" id="3_fjngj"]
+
+[resource]
+script = ExtResource("3_fjngj")
+ai = ExtResource("1_14ure")
+enemy_name = "Temple Defender"
+max_health = 38
+art = ExtResource("2_1dnwt")

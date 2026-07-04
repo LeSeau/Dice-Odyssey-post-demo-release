@@ -226,7 +226,7 @@ func _get_glow_state(card: Card) -> CardUI.PlayableGlow:
     if card.can_play_without_dice:
         return CardUI.PlayableGlow.HOT
     if Global.ink_active:
-        return CardUI.PlayableGlow.NONE
+        return CardUI.PlayableGlow.NEUTRAL
     if Global.dice_type == "red":
         if Global.red_dice_current_amount <= 0:
             return CardUI.PlayableGlow.NONE

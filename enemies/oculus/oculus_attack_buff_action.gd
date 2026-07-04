@@ -3,7 +3,7 @@ extends EnemyAction
 const MUSCLE_STATUS = preload("res://statuses/muscle.tres")
 
 func is_performable() -> bool:
-    if enemy.last_action != "plant_attack":
+    if enemy.last_action != "oculus_attack":
         return false
     return true
     

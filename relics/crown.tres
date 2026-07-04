@@ -12,5 +12,5 @@ has_counter = true
 counter = 0
 starter_relic = false
 icon = ExtResource("1_sv381")
-tooltip = "The tenth Dice you roll each fight charges 1"
+tooltip = "The tenth Dice you roll each fight Charges 1"
 tags = "Charge"

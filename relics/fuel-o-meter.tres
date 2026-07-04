@@ -12,5 +12,5 @@ has_counter = false
 counter = 0
 starter_relic = false
 icon = ExtResource("1_fx6qp")
-tooltip = "If you refuel more than 9 power, gain 2 strength"
+tooltip = "If you Refuel more than 9 power, gain 2 Strength"
 tags = "Refuel, Strength"

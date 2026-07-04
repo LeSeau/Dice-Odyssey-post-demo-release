@@ -1107,7 +1107,7 @@ func _on_change_current_power():
         _play_power_clang()
         # Small hit-stop for support/power cards (Reinforce, Blaze...) - these never call
         # DamageEffect so they had no hit-stop at all before. Scaled by how much the power
-        # actually changed, not a flat value - Blaze's +5 should land harder than Reinforce's +1.
+        # actually changed, not a flat value - Blaze's +5 should land harder than Reinforce's +2.
         var power_delta := absf(Global.roll_value - old_power)
         Shaker.hit_stop(clampf(power_delta * 0.01, 0.03, 0.1))
     else:

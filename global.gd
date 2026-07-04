@@ -4,7 +4,7 @@ var testing_mode: bool = false
 var tutorial_on = false
 var tutorial_reset_power_warning = true
 
-var gold = 7575
+var gold = 75
 var player_hp = 66
 var player_max_hp = 66
 

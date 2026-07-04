@@ -16,14 +16,14 @@ func set_status(new_status: Status) -> void:
     status = new_status 
     icon.texture = status.icon 
     duration.visible = status.stack_type == Status.StackType.DURATION
-    stacks.visible = status.stack_type == Status.StackType.INTENSITY 
+    stacks.visible = status.stack_type == Status.StackType.INTENSITY
+    # Always the icon's own footprint, regardless of whether a Duration/Stacks badge is
+    # showing - the badge overlays the icon corner, it shouldn't inflate the grid cell.
+    # It used to grow to fit the label (48x39 vs 30x30), which made GridContainer give
+    # numbered and un-numbered statuses different cell sizes in the same row - inconsistent
+    # spacing between icons depending on which statuses happened to land next to each other.
     custom_minimum_size = icon.size
-    
-    if duration.visible:
-        custom_minimum_size = duration.size + duration.position 
-    elif stacks.visible:
-        custom_minimum_size = stacks.size + stacks.position 
-    
+
     if not status.status_changed.is_connected(_on_status_changed):
         status.status_changed.connect(_on_status_changed)
 

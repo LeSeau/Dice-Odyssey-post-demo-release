@@ -37,6 +37,7 @@ action_id = "goblin_attack"
 script = ExtResource("3_2234q")
 intent = SubResource("Resource_r1nat")
 sound = ExtResource("5_4f5xi")
+action_id = "goblin_attack_2"
 
 [node name="GoblinDebuffAction" type="Node" parent="."]
 script = ExtResource("4_jupco")
@@ -44,3 +45,4 @@ intent = SubResource("Resource_e2kur")
 sound = ExtResource("5_4f5xi")
 type = 1
 chance_weight = 10.0
+action_id = "goblin_debuff"
