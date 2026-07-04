@@ -22,8 +22,8 @@ func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
 
 func get_dynamic_description(modifiers: ModifierHandler) -> String:
     if is_inked():
-        return "Deal ? damage. Get Depleted 1"
+        return "Deal ? damage. Gain Depleted 1"
     if not has_active_roll() or not meets_requirement():
-        return "Deal X2 damage. Get Depleted 1"
+        return "Deal X2 damage. Gain Depleted 1"
     var total := modifiers.get_modified_value(Global.roll_value * 2, Modifier.Type.DMG_DEALT)
-    return "Deal %d damage. Get Depleted 1" % total
+    return "Deal %d damage. Gain Depleted 1" % total
