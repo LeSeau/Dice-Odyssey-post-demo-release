@@ -50,7 +50,7 @@ func get_tooltip_content(requirement):
         text += "You have X less Blue Dice next turn for each stack."
     elif requirement == "Energized":
         text += "You have X more Blue Dice next turn."
-    elif requirement == "Blessed":
+    elif requirement == "Infused":
         text += "Your dice rolls gain 2 power"
     elif requirement == "Exposed":
         text += "Take 50% more damage."
@@ -66,7 +66,7 @@ func get_tooltip_content(requirement):
         text += "Cards that don't attack or block but instead manipulate Power"
     elif requirement == "REST":
         text += "Heal 22 HP"
-    elif requirement == "Rite":
+    elif requirement == "Blessing":
         text += "A lasting effect for the rest of the combat. Exhausts when played."
     #if bonus_requirement == "MAX":
         #text += "Your power cannot exceed this value\n"

@@ -1,4 +1,4 @@
-[gd_scene load_steps=38 format=3 uid="uid://b56wvanf6u6h7"]
+[gd_scene load_steps=40 format=3 uid="uid://b56wvanf6u6h7"]
 
 [ext_resource type="Script" path="res://scenes/run/run.gd" id="1_sgoer"]
 [ext_resource type="PackedScene" uid="uid://deprxl041o8nn" path="res://scenes/map/map.tscn" id="2_1mcea"]
@@ -17,6 +17,7 @@
 [ext_resource type="Texture2D" uid="uid://bgwa4qau0i542" path="res://dice shop clean outline.png" id="10_wacie"]
 [ext_resource type="Texture2D" uid="uid://ye2g85fpdt1y" path="res://deck.png" id="13_pm2lc"]
 [ext_resource type="FontFile" uid="uid://dltntsanjiykq" path="res://fonts/LuckiestGuy-Regular.ttf" id="20_hicqd"]
+[ext_resource type="LabelSettings" uid="uid://c8x4k2n9wq3rt" path="res://scenes/ui/topbar_label_settings.tres" id="21_topbarlbl"]
 [ext_resource type="Texture2D" uid="uid://des7u80d2851r" path="res://discord_logo_test.png" id="25_5yr4f"]
 [ext_resource type="Texture2D" uid="uid://debpwfe3e4476" path="res://assets/images/shop.jpg" id="30_a4wio"]
 [ext_resource type="FontFile" uid="uid://dujsng7qdioan" path="res://assets/static/Roboto_Condensed-SemiBold.ttf" id="32_hr3b7"]
@@ -30,6 +31,14 @@ colors = PackedColorArray(0.101961, 0.227451, 0.235294, 1, 0.0588235, 0.133333, 
 [sub_resource type="GradientTexture2D" id="GradientTexture2D_l7gh7"]
 gradient = SubResource("Gradient_ajfrf")
 fill_to = Vector2(0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_topbar_bg"]
+bg_color = Color(0.101961, 0.227451, 0.235294, 1)
+border_width_bottom = 3
+border_color = Color(0.784314, 0.658824, 0.294118, 1)
+shadow_color = Color(0, 0, 0, 0.35)
+shadow_size = 6
+shadow_offset = Vector2(0, 3)
 
 [sub_resource type="StyleBoxLine" id="StyleBoxLine_6aa02"]
 color = Color(0.784314, 0.662745, 0.431373, 1)
@@ -53,7 +62,12 @@ content_margin_left = 0.0
 content_margin_top = 9.0
 content_margin_right = 0.0
 content_margin_bottom = 0.0
-bg_color = Color(0.568627, 0.137255, 0.137255, 1)
+bg_color = Color(0.176471, 0.501961, 0.215686, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 0, 0, 0.5)
 corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
@@ -75,6 +89,11 @@ content_margin_top = 0.0
 content_margin_right = 4.0
 content_margin_bottom = 0.0
 bg_color = Color(0.784314, 0.658824, 0.294118, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 0, 0, 0.5)
 corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
@@ -97,6 +116,10 @@ border_width_right = 3
 border_width_bottom = 3
 border_color = Color(1, 1, 0.227451, 1)
 border_blend = true
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 shadow_size = 2
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_x2rwe"]
@@ -187,12 +210,12 @@ icon_alignment = 1
 [node name="TopBar" type="CanvasLayer" parent="."]
 layer = 3
 
-[node name="Background" type="ColorRect" parent="TopBar"]
+[node name="Background" type="Panel" parent="TopBar"]
 custom_minimum_size = Vector2(50, 80)
 anchors_preset = 10
 anchor_right = 1.0
 grow_horizontal = 2
-color = Color(0.101961, 0.227451, 0.235294, 1)
+theme_override_styles/panel = SubResource("StyleBoxFlat_topbar_bg")
 
 [node name="TextureRect" type="TextureRect" parent="TopBar/Background"]
 visible = false
@@ -201,17 +224,6 @@ layout_mode = 0
 offset_right = 1280.0
 offset_bottom = 80.0
 texture = SubResource("GradientTexture2D_l7gh7")
-
-[node name="ColorRect" type="ColorRect" parent="TopBar/Background"]
-custom_minimum_size = Vector2(0, 3)
-layout_mode = 1
-anchors_preset = 12
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 0
-color = Color(0.784314, 0.658824, 0.294118, 1)
 
 [node name="BarItems" type="HBoxContainer" parent="TopBar"]
 custom_minimum_size = Vector2(0, 80)
@@ -240,7 +252,7 @@ stretch_mode = 5
 [node name="HealthLabel" type="Label" parent="TopBar/BarItems/HBoxContainer"]
 custom_minimum_size = Vector2(65, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 22
+label_settings = ExtResource("21_topbarlbl")
 text = "66/66"
 
 [node name="VSeparator" type="VSeparator" parent="TopBar/BarItems"]
@@ -526,4 +538,6 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_qqn0b")
 theme_override_styles/normal = SubResource("StyleBoxFlat_oy5q6")
 
 [connection signal="pressed" from="TopBar/BarItems/DiceShop" to="TopBar/BarItems/DiceShop" method="_on_pressed"]
+[connection signal="mouse_entered" from="TopBar/BarItems/DiceShop" to="TopBar/BarItems/DiceShop" method="_on_mouse_entered"]
+[connection signal="mouse_exited" from="TopBar/BarItems/DiceShop" to="TopBar/BarItems/DiceShop" method="_on_mouse_exited"]
 [connection signal="pressed" from="CanvasLayer/JoinDiscordControl/JoinDiscordButton" to="." method="_on_join_discord_button_pressed"]

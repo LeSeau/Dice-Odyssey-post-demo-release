@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://chf3urm1jm2wf"]
+[gd_scene load_steps=15 format=3 uid="uid://chf3urm1jm2wf"]
 
 [ext_resource type="PackedScene" uid="uid://d2vlobkkv27hu" path="res://scenes/ui/card_menu_ui.tscn" id="1_1w0ra"]
 [ext_resource type="Script" path="res://scenes/ui/card_rewards.gd" id="1_s1lqh"]
@@ -9,6 +9,7 @@
 [ext_resource type="Texture2D" uid="uid://b1my7ua56jx7t" path="res://tutorial_arrow.png" id="6_nflis"]
 [ext_resource type="FontFile" uid="uid://dltntsanjiykq" path="res://fonts/LuckiestGuy-Regular.ttf" id="8_0m1kg"]
 [ext_resource type="Texture2D" uid="uid://c47ru55nwc6vr" path="res://focus_illustration.png" id="9_w8dp1"]
+[ext_resource type="Resource" uid="uid://bx4ddyc6uumk5" path="res://characters/warrior/cards/card_emanation.tres" id="10_blsgcard"]
 
 [sub_resource type="Theme" id="Theme_xppm6"]
 
@@ -285,5 +286,69 @@ theme_override_fonts/font = ExtResource("5_kq4aa")
 theme_override_font_sizes/font_size = 16
 text = "Got it"
 
+[node name="BlessingExplanationBox" type="Panel" parent="VBoxContainer/CanvasLayer"]
+visible = false
+custom_minimum_size = Vector2(275, 134)
+offset_left = 21.0
+offset_top = 134.0
+offset_right = 296.0
+offset_bottom = 588.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_ejl2v")
+
+[node name="ContentBox" type="VBoxContainer" parent="VBoxContainer/CanvasLayer/BlessingExplanationBox"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -64.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 14
+
+[node name="RichTextLabel2" type="RichTextLabel" parent="VBoxContainer/CanvasLayer/BlessingExplanationBox/ContentBox"]
+layout_mode = 2
+theme_override_fonts/normal_font = ExtResource("5_kq4aa")
+theme_override_font_sizes/normal_font_size = 14
+bbcode_enabled = true
+text = "[center]Some [color=purple]Cards[/color] are [color=#B983C9]Blessings.[/color] You can recognize them from their plum background.
+
+Unlike other [color=purple]Cards[/color], [color=#B983C9]Blessings[/color] have a lasting effect for the rest of the fight.
+
+They exhaust when played, so you won't draw them again this fight."
+fit_content = true
+
+[node name="CardCenter" type="CenterContainer" parent="VBoxContainer/CanvasLayer/BlessingExplanationBox/ContentBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ExampleCard" parent="VBoxContainer/CanvasLayer/BlessingExplanationBox/ContentBox/CardCenter" instance=ExtResource("1_1w0ra")]
+layout_mode = 2
+pivot_offset = Vector2(70, 105)
+scale = Vector2(1.0, 1.0)
+mouse_filter = 2
+disable_hover_tooltip = true
+card = ExtResource("10_blsgcard")
+
+[node name="Button3" type="Button" parent="VBoxContainer/CanvasLayer/BlessingExplanationBox"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 17.3333
+offset_top = -58.3337
+offset_right = -16.6667
+offset_bottom = -19.3337
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_fonts/font = ExtResource("5_kq4aa")
+theme_override_font_sizes/font_size = 16
+text = "Got it"
+
 [connection signal="pressed" from="VBoxContainer/CanvasLayer/BonusExplanationBox/Button" to="." method="_on_button_pressed"]
 [connection signal="pressed" from="VBoxContainer/CanvasLayer/BonusExplanationBox2/Button2" to="." method="_on_button_2_pressed"]
+[connection signal="pressed" from="VBoxContainer/CanvasLayer/BlessingExplanationBox/Button3" to="." method="_on_button_3_pressed"]

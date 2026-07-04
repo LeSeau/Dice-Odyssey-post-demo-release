@@ -5,7 +5,7 @@ const RELIC_UI = preload("res://scenes/relic_handler/relic_ui.tscn")
 
 @export var relic: Relic : set = set_relic
 
-@onready var relic_container: CenterContainer = $RelicContainer
+@onready var relic_container: CenterContainer = $RelicVisual/RelicContainer
 @onready var price: HBoxContainer = %Price
 @onready var price_label: RichTextLabel = %PriceLabel
 @onready var buy_button: Button = %BuyButton

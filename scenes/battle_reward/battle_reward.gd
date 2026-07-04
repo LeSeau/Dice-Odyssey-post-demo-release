@@ -247,6 +247,7 @@ func on_gold_reward_taken(amount: int) -> void:
     Global.gold += amount  # <- This uses Global system directly
     if run_stats:
         run_stats.gold = Global.gold  # Sync RunStats to match
+    Events.gold_changed.emit()
 
 
 func _on_back_button_pressed() -> void:

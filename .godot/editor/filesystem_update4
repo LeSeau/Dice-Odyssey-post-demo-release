@@ -200,3 +200,16 @@ res://characters/warrior/cards/sharpening.gd
 res://scenes/card_ui/card_ui.tscn
 res://scenes/card_ui/card_drag_stylebox.tres
 res://scenes/card_ui/card_drag_celestial_stylebox.tres
+res://scenes/ui/card_menu_ui.tscn
+res://characters/warrior/cards/slash.gd
+res://enemies/plant/plant_enemy.tres
+res://enemies/machopeur/machopeur_enemy.tres
+res://enemies/lich/lich_enemy.tres
+res://enemies/lurker/lurker_enemy.tres
+res://enemies/gargantua/gargantua_enemy.tres
+res://characters/warrior/cards/warrior_axe_attack1.tres
+res://scenes/ui/gold_ui.gd
+res://scenes/card_ui/card_banner_blessing.tres
+res://scenes/card_ui/card_ui_blessing.tres
+res://scenes/card_ui/card_ui_description_panel_blessing.tres
+res://scenes/card_ui/blessing_card_description_label.tres

@@ -102,9 +102,10 @@ var tutorial_end_turn = false
 var tutorial_blue_dice = false
 var tutorial_second_turn = false
 var tutorial_recombobulate = false
-var tutorial_bonus_requirement_explanation_needed = true 
-var tutorial_transcendent_explanation_needed = true 
-var tutorial_dice_shop_explanation_needed = false 
+var tutorial_bonus_requirement_explanation_needed = true
+var tutorial_transcendent_explanation_needed = true
+var tutorial_dice_shop_explanation_needed = false
+var tutorial_blessing_explanation_needed = true
 
 var is_final_boss_fight = false
 var game_over_state = false

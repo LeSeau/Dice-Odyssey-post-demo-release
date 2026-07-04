@@ -5,8 +5,8 @@ const MODIFIER := 0.5
 
 # In weak.gd
 func initialize_status(target: Node) -> void:
-    if not Events.check_blessed_status.is_connected(consume_stack):
-        Events.check_blessed_status.connect(consume_stack)
+    if not Events.check_chaos_status.is_connected(consume_stack):
+        Events.check_chaos_status.connect(consume_stack)
 
 func consume_stack() -> void:
     if duration > 0:

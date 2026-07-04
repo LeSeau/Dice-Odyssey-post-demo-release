@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://deprxl041o8nn"]
+[gd_scene load_steps=14 format=3 uid="uid://deprxl041o8nn"]
 
 [ext_resource type="Script" path="res://scenes/map/map.gd" id="1_bw6fj"]
 [ext_resource type="Script" path="res://scenes/map/map_generator.gd" id="2_biuuq"]
@@ -11,6 +11,7 @@
 [ext_resource type="Texture2D" uid="uid://dfr8frhmlno8r" path="res://event_icon_v9.png" id="9_dtsx0"]
 [ext_resource type="Texture2D" uid="uid://8t5hsrgvdtxg" path="res://treasurenobg.png" id="10_cfghj"]
 [ext_resource type="Texture2D" uid="uid://ds5q0r5yw8u82" path="res://shop_icon_nano3.png" id="10_xuouu"]
+[ext_resource type="Texture2D" uid="uid://c8pcs472pq0ai" path="res://campfire_icon.png" id="11_campf"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7evpp"]
 content_margin_left = 16.0
@@ -66,11 +67,11 @@ expand_mode = 1
 layer = 5
 
 [node name="Control" type="Control" parent="MapLegend"]
-custom_minimum_size = Vector2(161, 200)
+custom_minimum_size = Vector2(130, 195)
 layout_mode = 3
 anchors_preset = 0
-offset_left = 1112.0
-offset_top = 504.0
+offset_left = 1143.0
+offset_top = 519.0
 offset_right = 1273.0
 offset_bottom = 714.0
 mouse_filter = 2
@@ -81,9 +82,9 @@ anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = -4.0
-offset_top = -62.0
+offset_top = 0.0
 offset_right = -4.0
-offset_bottom = -2.0
+offset_bottom = 0.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_7evpp")
@@ -93,15 +94,20 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/separation = 2
 
 [node name="HBoxContainer" type="HBoxContainer" parent="MapLegend/Control/Panel/VBoxContainer"]
-custom_minimum_size = Vector2(0, 48)
+custom_minimum_size = Vector2(0, 26)
 layout_mode = 2
 
 [node name="TextureRect" type="TextureRect" parent="MapLegend/Control/Panel/VBoxContainer/HBoxContainer"]
-custom_minimum_size = Vector2(48, 48)
+custom_minimum_size = Vector2(24, 24)
 layout_mode = 2
 size_flags_vertical = 3
 texture = ExtResource("6_fwmwk")
@@ -112,15 +118,15 @@ stretch_mode = 5
 layout_mode = 2
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("7_0tp22")
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 13
 text = "Fight"
 
 [node name="HBoxContainer2" type="HBoxContainer" parent="MapLegend/Control/Panel/VBoxContainer"]
-custom_minimum_size = Vector2(0, 48)
+custom_minimum_size = Vector2(0, 26)
 layout_mode = 2
 
 [node name="TextureRect" type="TextureRect" parent="MapLegend/Control/Panel/VBoxContainer/HBoxContainer2"]
-custom_minimum_size = Vector2(48, 48)
+custom_minimum_size = Vector2(24, 24)
 layout_mode = 2
 size_flags_vertical = 3
 texture = ExtResource("8_ft5nu")
@@ -131,15 +137,15 @@ stretch_mode = 5
 layout_mode = 2
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("7_0tp22")
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 13
 text = "Elite"
 
 [node name="HBoxContainer3" type="HBoxContainer" parent="MapLegend/Control/Panel/VBoxContainer"]
-custom_minimum_size = Vector2(0, 48)
+custom_minimum_size = Vector2(0, 26)
 layout_mode = 2
 
 [node name="TextureRect" type="TextureRect" parent="MapLegend/Control/Panel/VBoxContainer/HBoxContainer3"]
-custom_minimum_size = Vector2(48, 48)
+custom_minimum_size = Vector2(24, 24)
 layout_mode = 2
 size_flags_vertical = 3
 texture = ExtResource("9_dtsx0")
@@ -150,15 +156,15 @@ stretch_mode = 5
 layout_mode = 2
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("7_0tp22")
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 13
 text = "Event"
 
 [node name="HBoxContainer5" type="HBoxContainer" parent="MapLegend/Control/Panel/VBoxContainer"]
-custom_minimum_size = Vector2(0, 48)
+custom_minimum_size = Vector2(0, 26)
 layout_mode = 2
 
 [node name="TextureRect" type="TextureRect" parent="MapLegend/Control/Panel/VBoxContainer/HBoxContainer5"]
-custom_minimum_size = Vector2(48, 48)
+custom_minimum_size = Vector2(24, 24)
 layout_mode = 2
 size_flags_vertical = 3
 texture = ExtResource("10_xuouu")
@@ -169,15 +175,15 @@ stretch_mode = 5
 layout_mode = 2
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("7_0tp22")
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 13
 text = "Shop"
 
 [node name="HBoxContainer4" type="HBoxContainer" parent="MapLegend/Control/Panel/VBoxContainer"]
-custom_minimum_size = Vector2(0, 48)
+custom_minimum_size = Vector2(0, 26)
 layout_mode = 2
 
 [node name="TextureRect" type="TextureRect" parent="MapLegend/Control/Panel/VBoxContainer/HBoxContainer4"]
-custom_minimum_size = Vector2(44, 44)
+custom_minimum_size = Vector2(22, 22)
 layout_mode = 2
 size_flags_vertical = 3
 texture = ExtResource("10_cfghj")
@@ -188,5 +194,24 @@ stretch_mode = 5
 layout_mode = 2
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("7_0tp22")
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 13
 text = "Treasure"
+
+[node name="HBoxContainer6" type="HBoxContainer" parent="MapLegend/Control/Panel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 26)
+layout_mode = 2
+
+[node name="TextureRect" type="TextureRect" parent="MapLegend/Control/Panel/VBoxContainer/HBoxContainer6"]
+custom_minimum_size = Vector2(24, 24)
+layout_mode = 2
+size_flags_vertical = 3
+texture = ExtResource("11_campf")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="MapLegend/Control/Panel/VBoxContainer/HBoxContainer6"]
+layout_mode = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("7_0tp22")
+theme_override_font_sizes/font_size = 13
+text = "Campfire"

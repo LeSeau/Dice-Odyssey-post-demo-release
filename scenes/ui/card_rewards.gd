@@ -16,6 +16,7 @@ const CARD_MENU_UI = preload("res://scenes/ui/card_menu_ui.tscn")
 
 @onready var bonus_explanation_box: Panel = $VBoxContainer/CanvasLayer/BonusExplanationBox
 @onready var bonus_explanation_box_2: Panel = $VBoxContainer/CanvasLayer/BonusExplanationBox2
+@onready var blessing_explanation_box: Panel = $VBoxContainer/CanvasLayer/BlessingExplanationBox
 
 @onready var button: Button = $BonusExplanationBox/Button
 @onready var button_2: Button = $BonusExplanationBox2/Button2
@@ -35,18 +36,20 @@ func clear_rewards() -> void:
     for card in cards.get_children():
         card.queue_free()
         bonus_explanation_box.visible = false
-        
-        
+        blessing_explanation_box.visible = false
+
+
 func set_rewards(new_cards: Array[Card]) -> void:
     rewards = new_cards
-    
+
     if not is_node_ready():
         await ready
-        
+
     clear_rewards()
-    
+
     var has_bonus_requirement := false
     var has_transcendent_card := false
+    var has_blessing_card := false
     for card: Card in rewards:
         var new_card := CARD_MENU_UI.instantiate() as CardMenuUI
         cards.add_child(new_card)
@@ -58,31 +61,42 @@ func set_rewards(new_cards: Array[Card]) -> void:
         # Connect click
         new_card.get_node("Visuals").gui_input.connect(_on_card_menu_clicked.bind(new_card, card))
         print("Connected gui_input for card: ", card.name)
-        
-        
+
+
         # Check if this card has a bonus requirement
         if card.can_play_without_dice:
             has_transcendent_card = true
         if card.bonus_requirement != Card.Requirement.NONE:
             has_bonus_requirement = true
-    
-    # Show the explanation box if any card has a bonus requirement
-    if has_bonus_requirement and bonus_explanation_box and Global.tutorial_bonus_requirement_explanation_needed:
-        bonus_explanation_box.visible = true
-        Global.tutorial_bonus_requirement_explanation_needed = false
-        
+        if card.type == Card.Type.BLESSING:
+            has_blessing_card = true
+
+    # Bonus-effect tutorial disabled for now (kept below, commented out, not deleted) - only
+    # 3-4 draftable cards currently use bonus_requirement, so this rarely triggers anyway.
+    # Julien plans to make more bonus-effect cards draftable in a future pass; re-enable this
+    # once that's done rather than deleting it.
+    #if has_bonus_requirement and bonus_explanation_box and Global.tutorial_bonus_requirement_explanation_needed:
+        #bonus_explanation_box.visible = true
+        #Global.tutorial_bonus_requirement_explanation_needed = false
+
     if has_transcendent_card and bonus_explanation_box_2 and Global.tutorial_transcendent_explanation_needed:
         bonus_explanation_box_2.visible = true
         Global.tutorial_transcendent_explanation_needed = false
-        
 
-    
+    # Same pattern as the two explanation boxes above, applied to Blessing cards - shown once,
+    # the first time a Blessing shows up in a reward pick.
+    if has_blessing_card and blessing_explanation_box and Global.tutorial_blessing_explanation_needed:
+        blessing_explanation_box.visible = true
+        Global.tutorial_blessing_explanation_needed = false
+
+
+
 
 func _on_card_menu_clicked(event: InputEvent, card_menu: CardMenuUI, card: Card) -> void:
     if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
         card_reward_selected.emit(card)
         print("drafted %s" % card.name)
-        queue_free()    
+        queue_free()
 
 
 func _on_button_pressed() -> void:
@@ -91,3 +105,7 @@ func _on_button_pressed() -> void:
 
 func _on_button_2_pressed() -> void:
     bonus_explanation_box_2.hide()
+
+
+func _on_button_3_pressed() -> void:
+    blessing_explanation_box.hide()

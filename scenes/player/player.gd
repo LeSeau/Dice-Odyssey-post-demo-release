@@ -22,9 +22,9 @@ func _ready() -> void:
     Global.player = self  # now your card knows who the player is
     status_handler.status_owner = self
     Events.event_damage.connect(_on_event_damage)
-    #var blessed := preload("res://statuses//blessed.tres")
-    #blessed.duration = 1
-    #status_handler.add_status(blessed)
+    #var infused := preload("res://statuses//infused.tres")
+    #infused.duration = 1
+    #status_handler.add_status(infused)
 
 
 

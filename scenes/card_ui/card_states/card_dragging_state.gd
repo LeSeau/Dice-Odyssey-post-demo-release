@@ -24,6 +24,8 @@ func enter() -> void:
     if card_ui.card.can_play_without_dice:
         card_ui.panel.set("theme_override_styles/panel", card_ui.DRAG_CELESTIAL_STYLEBOX)
         card_ui.card_frame.add_theme_stylebox_override("panel", card_ui.SUPPORT_STYLEBOX)
+    elif card_ui.card.type == Card.Type.BLESSING:
+        card_ui.card_frame.add_theme_stylebox_override("panel", card_ui.BLESSING_STYLEBOX)
     else:
         card_ui.panel.set("theme_override_styles/panel", card_ui.DRAG_STYLEBOX)
     card_ui.reapply_playable_visual()

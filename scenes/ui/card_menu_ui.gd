@@ -40,7 +40,10 @@ const HOVER_CELESTIAL_STYLEBOX := preload("res://scenes/card_ui/card_ui_hover_ce
 # overrides directly on the Description node in card_menu_ui.tscn instead.
 const CELESTIAL_DESC_LABEL_SETTINGS := preload("res://scenes/card_ui/celestial_card_description_label.tres")
 
-const RITE_BANNER_STYLEBOX := preload("res://scenes/card_ui/card_banner_rite.tres")
+const BLESSING_BANNER_STYLEBOX := preload("res://scenes/card_ui/card_banner_blessing.tres")
+const BLESSING_STYLEBOX := preload("res://scenes/card_ui/card_ui_blessing.tres")
+const BLESSING_DESC_STYLEBOX := preload("res://scenes/card_ui/card_ui_description_panel_blessing.tres")
+const BLESSING_DESC_LABEL_SETTINGS := preload("res://scenes/card_ui/blessing_card_description_label.tres")
 
 const REQUIREMENT_LABEL_SETTINGS := preload("res://scenes/card_ui/card_ui_requirement_ribbon.tres")
 const NO_REQUIREMENT_LABEL_SETTINGS := preload("res://scenes/card_ui/card_ui_no_requirement_ribbon.tres")
@@ -49,6 +52,9 @@ const TooltipScene = preload("res://scenes/ui/tooltip.tscn")
 
 
 @export var card: Card : set = set_card
+# Opt-out for contexts showing this card purely as a static illustration (e.g. the Blessing
+# tutorial popup's example card) - default false preserves hover tooltips everywhere else.
+@export var disable_hover_tooltip: bool = false
 
 @onready var card_frame: Panel = $Visuals/CardBackground/CardFrame
 @onready var title: Label = $Visuals/CardBackground/CardFrame/CardBanner/Title
@@ -72,12 +78,16 @@ const TooltipScene = preload("res://scenes/ui/tooltip.tscn")
 func _on_visuals_mouse_entered() -> void:
     if card and card.can_play_without_dice:
         card_frame.set("theme_override_styles/panel", HOVER_CELESTIAL_STYLEBOX)
+    elif card and card.type == Card.Type.BLESSING:
+        card_frame.set("theme_override_styles/panel", BLESSING_STYLEBOX)
     else:
         card_frame.set("theme_override_styles/panel", HOVER_STYLEBOX)
 
 func _on_visuals_mouse_exited() -> void:
     if card and card.can_play_without_dice:
         card_frame.set("theme_override_styles/panel", BASE_CELESTIAL_STYLEBOX)
+    elif card and card.type == Card.Type.BLESSING:
+        card_frame.set("theme_override_styles/panel", BLESSING_STYLEBOX)
     else:
         card_frame.set("theme_override_styles/panel", BASE_STYLEBOX)
 
@@ -117,8 +127,11 @@ func set_card(value: Card) -> void:
     elif card.requirement == Card.Requirement.MULTIPLE:
         requirement_panel.add_theme_stylebox_override("panel", MULTIPLE_STYLEBOX)
         requirement_label.text = "Mult %d" % card.requirement_number
-    if card.type == Card.Type.RITE:
-        card_banner.add_theme_stylebox_override("panel", RITE_BANNER_STYLEBOX)
+    if card.type == Card.Type.BLESSING:
+        card_banner.add_theme_stylebox_override("panel", BLESSING_BANNER_STYLEBOX)
+        description_panel.add_theme_stylebox_override("panel", BLESSING_DESC_STYLEBOX)
+        card_frame.add_theme_stylebox_override("panel", BLESSING_STYLEBOX)
+        description.add_theme_color_override("font_outline_color", BLESSING_DESC_LABEL_SETTINGS.outline_color)
 
     if card.can_play_without_dice:
         description_panel.add_theme_stylebox_override("panel", CELESTIAL_DESC_STYLEBOX)
@@ -190,6 +203,8 @@ var tooltip_instances_tags: Array = []
 var _card_hover_id := 0
 
 func _on_card_frame_mouse_entered() -> void:
+    if disable_hover_tooltip:
+        return
     _card_hover_id += 1
     var my_id := _card_hover_id
     
@@ -212,8 +227,8 @@ func _on_card_frame_mouse_entered() -> void:
     if bonus_requirement_string != "NONE":
         tooltips_to_show.append(bonus_requirement_string)
 
-    if card.type == Card.Type.RITE:
-        tooltips_to_show.append("Rite")
+    if card.type == Card.Type.BLESSING:
+        tooltips_to_show.append("Blessing")
 
     if card.tags != "":
         var tags_array = card.tags.split(",")

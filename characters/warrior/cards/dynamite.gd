@@ -1,10 +1,8 @@
 extends Card
 
 
-func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void: 
-    Global.next_roll_modifier+=4
-    if Global.dice_type == "red":
-        Global.next_roll_modifier+=2
+func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
+    Global.next_roll_modifier+=5
     Events.display_next_roll_modifier.emit()
     var support_effect := SupportEffect.new()
     support_effect.sound = sound

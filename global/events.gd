@@ -68,7 +68,7 @@ signal weak_effect_consumed
 signal check_lucky_status
 signal check_unlucky_status
 signal check_weak_status
-signal check_blessed_status
+signal check_infused_status
 signal check_canalize_status
 signal check_ink_status
 signal check_chaos_status

@@ -2,7 +2,7 @@ class_name KeywordColorizer
 extends RefCounted
 
 # Shared by Card.get_colorized_description() and Relic.get_colorized_description() - both
-# resources have their own `tags` string field (comma-separated, e.g. "Charge, Blessed") that
+# resources have their own `tags` string field (comma-separated, e.g. "Charge, Infused") that
 # the hover-tooltip system already reads (tooltip.gd::get_tooltip_content(), card_ui.gd/
 # relic_ui.gd's hover handlers), so this was pulled out here rather than duplicated once a
 # second real consumer (relics) needed the exact same keyword/color/regex logic as cards.
@@ -21,7 +21,7 @@ const KEYWORD_HIGHLIGHT_COLOR := "FFD700"
 # system already reads in tooltip.gd::get_tooltip_content(), so tagging a card/relic for
 # tooltip purposes also makes it eligible for colorized keywords, with no separate bookkeeping.
 const KEYWORDS: Array[String] = [
-    "Charge", "Refuel", "Scout", "Boost", "Blessed", "Weak", "Exposed", "Lucky", "Unlucky",
+    "Charge", "Refuel", "Scout", "Boost", "Infused", "Weak", "Exposed", "Lucky", "Unlucky",
     "Depleted", "Energized", "Strength", "Muscle", "Exhaust", "Support", "REST",
     "Blue Dice", "Red Dice", "Green Dice", "Odd Dice", "Even Dice", "Evil Dice",
     "Giant Dice", "Magma Dice", "Mech Dice",
@@ -29,7 +29,7 @@ const KEYWORDS: Array[String] = [
 
 # Checked every card description in characters/warrior/cards/ and every relic tooltip in
 # relics/: every keyword above is written as "Keyword N" (Charge 1, Boost 4, Scout 3, Weak 1,
-# Depleted 1, Blessed 1...) with exactly one exception - Strength/Muscle is written as
+# Depleted 1, Infused 1...) with exactly one exception - Strength/Muscle is written as
 # "N Strength" (e.g. card Bolster: "Gain 2 Strength", relic Sledgehammer: "gain 1 strength"),
 # the number BEFORE the word instead of after. colorize() below picks which side to grab the
 # adjacent number from based on this list, so "Gain 2 Strength" highlights as one unit instead
@@ -74,7 +74,7 @@ const DICE_TOOLTIP_TEXT := {
 }
 
 
-# Wraps every keyword from `tags` (e.g. "Charge, Blessed") that appears in `text` with a BBCode
+# Wraps every keyword from `tags` (e.g. "Charge, Infused") that appears in `text` with a BBCode
 # [color] tag. Data-driven off the same `tags` field the hover-tooltip system reads - tagging a
 # card/relic for tooltip purposes automatically makes it eligible for colorized keywords too, no
 # per-card/per-relic wiring needed beyond that existing string.

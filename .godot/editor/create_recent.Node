@@ -1,3 +1,4 @@
+RichTextLabel
 Label
 ColorRect
 Control
@@ -11,4 +12,3 @@ Sprite2D
 CheckButton
 CheckBox
 AnimationPlayer
-TextureButton

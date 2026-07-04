@@ -1,7 +1,7 @@
 class_name Card
 extends Resource
 
-enum Type {ATTACK, SKILL, RITE}
+enum Type {ATTACK, SKILL, BLESSING}
 enum Target {SELF, SINGLE_ENEMY, ALL_ENEMIES, EVERYONE}
 enum Rarity {NORMAL, SUPPORT}
 enum Requirement {NONE, MIN, MAX, EVEN, ODD, RED, MULTIPLE, EXACT, PANDORA}
@@ -92,7 +92,7 @@ func meets_requirement() -> bool:
             return true
 
 
-# Wraps every keyword from this card's `tags` (e.g. "Charge, Blessed") that appears in `text`
+# Wraps every keyword from this card's `tags` (e.g. "Charge, Infused") that appears in `text`
 # with a BBCode [color] tag - see KeywordColorizer for the keyword list/colors/regex logic
 # (shared with Relic.get_colorized_description(), the other real consumer of this).
 func get_colorized_description(text: String) -> String:

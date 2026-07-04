@@ -11,6 +11,8 @@ const DICE_SHOP_SCENE = preload("res://scenes/shop/dice_shop.tscn")
 
 const SHOP_SCENE := preload ("res://scenes/shop/card_shop.tscn")
 
+const TREASURE_GOLD_REWARD := 50
+
 @onready var current_view: Node = $CurrentView
 @onready var map_button: Button = %MapButton
 @onready var battle_button: Button = %BattleButton
@@ -261,8 +263,9 @@ func _on_treasure_room_exited(relic: Relic) -> void:
     reward_scene.run_stats = stats
     reward_scene.character_stats = character 
     reward_scene.relic_handler= relic_handler
-    
+
     reward_scene.add_relic_reward(relic)
+    reward_scene.add_gold_reward(TREASURE_GOLD_REWARD)
     
 func _on_campfire_room_entered() -> Node:
     var campfire_scene := _change_view(CAMPFIRE_SCENE)
@@ -495,8 +498,10 @@ func _on_check_if_can_purchase_dice() -> void:
     if Global.cheapest_dice_price!=null:
         if Global.gold >= Global.cheapest_dice_price:
             affordable_indicator.show()
+            dice_shop.set_blinking(true)
         elif Global.gold < Global.cheapest_dice_price:
             affordable_indicator.hide()
+            dice_shop.set_blinking(false)
 
 # New function to handle relic rewards from events
 func _on_show_reward_with_relic(relic: Relic) -> void:

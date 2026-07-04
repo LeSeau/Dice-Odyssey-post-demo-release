@@ -15,6 +15,8 @@ extends Control
 @onready var bonus_requirement_label: Label = $CardDropArea/CardBackground/CardFrame/BonusEffect/BonusRequirementPanel/BonusRequirementLabel
 @onready var bonus_effect_label: Label = $CardDropArea/CardBackground/CardFrame/BonusEffect/BonusEffectLabel
 @onready var mech_section: Control = $MechSection
+@onready var mech_increase: TextureButton = $MechSection/MechIncrease
+@onready var mech_decrease: TextureButton = $MechSection/MechDecrease
 @onready var bonus_effect_texture: TextureRect = $CardDropArea/CardBackground/CardFrame/BonusEffect/BonusEffectTexture
 @onready var bonus_separator: ColorRect = $CardDropArea/CardBackground/CardFrame/BonusSeparator
 
@@ -49,6 +51,14 @@ extends Control
 
 var ink_is_on = false
 var mech_adjustment_used := false
+
+const MECH_ARROW_HOVER_SCALE := Vector2(1.2, 1.2)
+const MECH_ARROW_HOVER_DURATION := 0.1
+const MECH_ARROW_PUNCH_SCALE := Vector2(0.8, 0.8)
+const MECH_ARROW_PUNCH_DURATION := 0.08
+
+var _mech_increase_tween: Tween
+var _mech_decrease_tween: Tween
 
 # Power "clang" impact (power-manipulation cards - see _play_power_clang). Tracked so rapid
 # re-triggers kill the prior tweens instead of compounding. _power_resting_modulate is
@@ -714,7 +724,7 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
 
     # Status checks
     Events.check_canalize_status.emit()
-    Events.check_blessed_status.emit()
+    Events.check_infused_status.emit()
 
     Events.weak_effect_consumed.emit()
     Events.check_chaos_status.emit()
@@ -1338,6 +1348,7 @@ func _on_mech_increase_pressed() -> void:
     Global.roll_value += 1
     SFXPlayer.play(load("res://sounds/blacksmithsound.wav"))
     Events.change_current_power.emit()
+    _mech_increase_tween = _play_mech_arrow_punch(mech_increase, _mech_increase_tween)
     _update_mech_buttons()
 
 func _on_mech_decrease_pressed() -> void:
@@ -1347,11 +1358,63 @@ func _on_mech_decrease_pressed() -> void:
     Global.roll_value -= 1
     SFXPlayer.play(load("res://sounds/blacksmithsound.wav"))
     Events.change_current_power.emit()
+    _mech_decrease_tween = _play_mech_arrow_punch(mech_decrease, _mech_decrease_tween)
     _update_mech_buttons()
 
 func _update_mech_buttons() -> void:
     var usable = not mech_adjustment_used and Global.roll_value > 0
     mech_section.modulate.a = 1.0 if usable else 0.3
+    mech_increase.disabled = not usable
+    mech_decrease.disabled = not usable
+
+
+# Quick squash-and-recover "punch" on a successful ±1 adjustment - the only feedback before
+# this was the click SFX, nothing on the arrow itself.
+func _play_mech_arrow_punch(button: TextureButton, existing_tween: Tween) -> Tween:
+    if existing_tween and existing_tween.is_valid():
+        existing_tween.kill()
+    var tween := create_tween()
+    tween.tween_property(button, "scale", MECH_ARROW_PUNCH_SCALE, MECH_ARROW_PUNCH_DURATION) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+    tween.tween_property(button, "scale", Vector2.ONE, MECH_ARROW_PUNCH_DURATION) \
+        .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+    return tween
+
+
+# Hover pop, matching the flat/punchy timing already used for the map room and dice shop
+# hover feedback - gated on `disabled` so a spent arrow (dimmed, non-clickable) doesn't still
+# pop up on hover, which would misleadingly suggest it's still usable.
+func _on_mech_increase_mouse_entered() -> void:
+    if mech_increase.disabled:
+        return
+    if _mech_increase_tween and _mech_increase_tween.is_valid():
+        _mech_increase_tween.kill()
+    _mech_increase_tween = create_tween()
+    _mech_increase_tween.tween_property(mech_increase, "scale", MECH_ARROW_HOVER_SCALE, MECH_ARROW_HOVER_DURATION) \
+        .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+func _on_mech_increase_mouse_exited() -> void:
+    if _mech_increase_tween and _mech_increase_tween.is_valid():
+        _mech_increase_tween.kill()
+    _mech_increase_tween = create_tween()
+    _mech_increase_tween.tween_property(mech_increase, "scale", Vector2.ONE, MECH_ARROW_HOVER_DURATION) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+func _on_mech_decrease_mouse_entered() -> void:
+    if mech_decrease.disabled:
+        return
+    if _mech_decrease_tween and _mech_decrease_tween.is_valid():
+        _mech_decrease_tween.kill()
+    _mech_decrease_tween = create_tween()
+    _mech_decrease_tween.tween_property(mech_decrease, "scale", MECH_ARROW_HOVER_SCALE, MECH_ARROW_HOVER_DURATION) \
+        .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+func _on_mech_decrease_mouse_exited() -> void:
+    if _mech_decrease_tween and _mech_decrease_tween.is_valid():
+        _mech_decrease_tween.kill()
+    _mech_decrease_tween = create_tween()
+    _mech_decrease_tween.tween_property(mech_decrease, "scale", Vector2.ONE, MECH_ARROW_HOVER_DURATION) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
 func _spawn_roll_popup(value: int) -> void:
     if ink_is_on:

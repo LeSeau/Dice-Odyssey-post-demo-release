@@ -33,6 +33,8 @@ func on_mouse_entered() -> void:
     if card_ui.card.can_play_without_dice:
         card_ui.panel.set("theme_override_styles/panel", card_ui.HOVER_CELESTIAL_STYLEBOX)
         card_ui.card_frame.add_theme_stylebox_override("panel", card_ui.SUPPORT_STYLEBOX)
+    elif card_ui.card.type == Card.Type.BLESSING:
+        card_ui.card_frame.add_theme_stylebox_override("panel", card_ui.BLESSING_STYLEBOX)
     card_ui.reapply_playable_visual()
     #Events.card_tooltip_requested.emit(card_ui.card.icon, card_ui.card.tooltip_text)
 
@@ -43,6 +45,8 @@ func on_mouse_exited() -> void:
     if card_ui.card.can_play_without_dice:
         card_ui.panel.set("theme_override_styles/panel", card_ui.BASE_CELESTIAL_STYLEBOX)
         card_ui.card_frame.add_theme_stylebox_override("panel", card_ui.SUPPORT_STYLEBOX)
+    elif card_ui.card.type == Card.Type.BLESSING:
+        card_ui.card_frame.add_theme_stylebox_override("panel", card_ui.BLESSING_STYLEBOX)
     else:
         card_ui.panel.set("theme_override_styles/panel", card_ui.BASE_STYLEBOX)
     card_ui.reapply_playable_visual()

@@ -1,6 +1,6 @@
 extends Card
 
-const BLESSED_STATUS = preload("res://statuses/blessed.tres")
+const INFUSED_STATUS = preload("res://statuses/infused.tres")
 
 func apply_effects(targets: Array [Node], _modifiers: ModifierHandler) -> void:
     #Events.reset_charged_card.emit()
@@ -14,9 +14,9 @@ func apply_effects(targets: Array [Node], _modifiers: ModifierHandler) -> void:
     #status_effect.execute(targets)
     if Global.roll_value % 3 == 0:
         var status_effect := StatusEffect.new()
-        var blessed := BLESSED_STATUS.duplicate()
-        blessed.duration = 1
-        status_effect.status = blessed
+        var infused := INFUSED_STATUS.duplicate()
+        infused.duration = 1
+        status_effect.status = infused
         status_effect.execute(targets)
 
         

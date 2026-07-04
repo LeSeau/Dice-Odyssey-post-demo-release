@@ -1,22 +1,56 @@
-[gd_scene load_steps=3 format=3 uid="uid://by8dt1onfbykt"]
+[gd_scene load_steps=7 format=3 uid="uid://by8dt1onfbykt"]
 
 [ext_resource type="Script" path="res://scenes/shop/shop_relic.gd" id="1_wqxco"]
 [ext_resource type="PackedScene" uid="uid://djrenoyp58mtl" path="res://scenes/relic_handler/relic_ui.tscn" id="2_2saq4"]
+[ext_resource type="StyleBox" uid="uid://c8k2n5xr9j7wq" path="res://scenes/shop/shop_button_normal.tres" id="3_btn_n"]
+[ext_resource type="StyleBox" uid="uid://dqm3v7x8k2n5w" path="res://scenes/shop/shop_button_hover.tres" id="4_btn_h"]
+[ext_resource type="StyleBox" uid="uid://bx6v9n3k8q2wr" path="res://scenes/shop/shop_button_pressed.tres" id="5_btn_p"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_table_shadow"]
+bg_color = Color(0, 0, 0, 0.35)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
 
 [node name="ShopRelic" type="VBoxContainer"]
-custom_minimum_size = Vector2(80, 140)
+custom_minimum_size = Vector2(120, 150)
 offset_right = 100.0
 offset_bottom = 140.0
-scale = Vector2(2, 2)
+scale = Vector2(3.2, 3.2)
 alignment = 1
+theme_override_constants/separation = 2
 script = ExtResource("1_wqxco")
 
-[node name="RelicContainer" type="CenterContainer" parent="."]
-custom_minimum_size = Vector2(56, 56)
+[node name="RelicVisual" type="Control" parent="."]
+custom_minimum_size = Vector2(60, 68)
 layout_mode = 2
 size_flags_vertical = 4
 
-[node name="RelicUI" parent="RelicContainer" instance=ExtResource("2_2saq4")]
+[node name="Shadow" type="Panel" parent="RelicVisual"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -22.0
+offset_top = -12.0
+offset_right = 22.0
+offset_bottom = 2.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_table_shadow")
+
+[node name="RelicContainer" type="CenterContainer" parent="RelicVisual"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="RelicUI" parent="RelicVisual/RelicContainer" instance=ExtResource("2_2saq4")]
 layout_mode = 2
 
 [node name="Price" type="HBoxContainer" parent="."]
@@ -29,6 +63,10 @@ alignment = 1
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_styles/normal = ExtResource("3_btn_n")
+theme_override_styles/hover = ExtResource("4_btn_h")
+theme_override_styles/pressed = ExtResource("5_btn_p")
+theme_override_styles/disabled = ExtResource("5_btn_p")
 
 [node name="PriceLabel" type="RichTextLabel" parent="Price/BuyButton"]
 unique_name_in_owner = true

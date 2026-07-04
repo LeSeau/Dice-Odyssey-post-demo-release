@@ -5,6 +5,20 @@ const SCROLL_SPEED := 200.0
 const MAP_ROOM = preload("res://scenes/map/map_room.tscn")
 const MAP_LINE = preload("res://scenes/map/map_line.tscn")
 
+# Path-clarity recolor for connection lines (see _refresh_line_visibility): lines you actually
+# walked turn gold to match the per-room selected ring; everything else either stays the normal
+# rope color (if it's a live choice right now) or fades way down (if it's neither your trail nor
+# currently reachable) - cuts the full always-on lattice down to "your path" + "your options".
+# Dimmed lines use their own darker color rather than just LINE_DEFAULT_COLOR at low alpha -
+# a lighter brown at low alpha washed out to near-invisible against the parchment's lighter
+# patches (Julien: "barely visible against lighter parchment"); a darker base color holds up
+# at low alpha instead of relying on alpha alone for contrast.
+const LINE_TRAIL_COLOR := Color("#f0c040")
+const LINE_DEFAULT_COLOR := Color("#8B5E1A")
+const LINE_DIM_COLOR := Color("#4A3210")
+const LINE_DIM_ALPHA := 0.45
+const LINE_BRIGHT_ALPHA := 1.0
+
 @onready var map_generator: MapGenerator = $MapGenerator
 @onready var lines: Node2D = %Lines
 @onready var rooms: Node2D = %Rooms
@@ -16,6 +30,13 @@ var map_data: Array[Array]
 var floors_climbed: int
 var last_room: Room
 var camera_edge_y: float
+
+# (from Room, to Room, Line2D) triples for every connection drawn, kept around so line color/
+# alpha can be re-evaluated any time availability changes instead of only once at map generation.
+var _line_edges: Array[Dictionary] = []
+# Room -> MapRoom, so _refresh_line_visibility can check a Room's live `available` state without
+# every edge needing its own node reference.
+var _room_lookup: Dictionary = {}
 
 # Drag scrolling
 var dragging := false
@@ -136,6 +157,8 @@ func _spawn_room(room: Room) -> void:
 
     new_map_room.selected.connect(_on_map_room_selected)
 
+    _room_lookup[room] = new_map_room
+
     _connect_lines(room)
 
 
@@ -155,8 +178,11 @@ func _connect_lines(room: Room) -> void:
         new_map_line.add_point(room.position)
         new_map_line.add_point(next.position)
         lines.add_child(new_map_line)
-        new_map_line.default_color = Color("#8B5E1A")
+        new_map_line.default_color = LINE_DIM_COLOR
         new_map_line.width = 30.0
+        new_map_line.modulate.a = LINE_DIM_ALPHA
+
+        _line_edges.append({"line": new_map_line, "from": room, "to": next})
 
 
 # =========================================================
@@ -170,6 +196,8 @@ func unlock_floor(which_floor: int = floors_climbed) -> void:
         if map_room.room.row == which_floor:
             map_room.available = true
 
+    _refresh_line_visibility()
+
 
 func unlock_next_rooms() -> void:
 
@@ -180,6 +208,39 @@ func unlock_next_rooms() -> void:
 
         if last_room.next_rooms.has(map_room.room):
             map_room.available = true
+
+    _refresh_line_visibility()
+
+
+# =========================================================
+# PATH CLARITY (connection line dimming)
+# =========================================================
+
+# A line is bright if it's either the exact edge you walked (both ends selected - safe even on
+# diamond crossings where a room has two possible parents, since at most one parent per row can
+# ever be selected in a single run) or it leads INTO a room you can pick right now (`to`, not
+# `from` - the fix for a one-row-ahead bug: checking `from.available` instead lit the edges going
+# OUT of your current choices, i.e. one row further than the actual live frontier). Everything
+# else - alternate branches from rooms you've already passed, or anything further out than your
+# current choices - fades down instead of competing with those for attention.
+func _refresh_line_visibility() -> void:
+    for edge: Dictionary in _line_edges:
+        var from: Room = edge["from"]
+        var to: Room = edge["to"]
+        var line: Line2D = edge["line"]
+
+        if from.selected and to.selected:
+            line.default_color = LINE_TRAIL_COLOR
+            line.modulate.a = LINE_BRIGHT_ALPHA
+            continue
+
+        var to_map_room: MapRoom = _room_lookup.get(to)
+        if to_map_room and to_map_room.available:
+            line.default_color = LINE_DEFAULT_COLOR
+            line.modulate.a = LINE_BRIGHT_ALPHA
+        else:
+            line.default_color = LINE_DIM_COLOR
+            line.modulate.a = LINE_DIM_ALPHA
 
 
 # =========================================================

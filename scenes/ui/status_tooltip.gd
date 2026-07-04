@@ -24,7 +24,7 @@ func get_tooltip_content(status: Status) -> void:
     match status.id:
         "absorb":
             text = "At the end of their turn, gain strength equal to your last roll."
-        "blessed":
+        "infused":
             text = "Your dice rolls gain 2 power."
         "canalize":
             text = "If your power exceeds 9, gain 3 strength."

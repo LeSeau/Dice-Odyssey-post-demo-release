@@ -28,7 +28,12 @@ const GLOW_PULSE_DURATION := 1.1
 # reducing alpha. Alpha-dimming bleeds the background through and dims
 # unevenly because the card is built from several stacked opaque layers;
 # a full-alpha brightness multiply is uniform regardless of layer stacking.
-const UNPLAYABLE_MODULATE := Color(0.86, 0.86, 0.86, 1.0)
+# Two dim levels depending on WHY the card can't be played right now: a lighter dim when
+# there's simply no power banked yet (roll_value <= 0, "haven't rolled"), and a darker dim
+# when power IS banked but this specific card's requirement isn't met by it - the darker
+# level reads as more "definitely no" than the lighter "not yet" state.
+const UNPLAYABLE_MODULATE_NO_POWER := Color(0.75, 0.75, 0.75, 1.0)
+const UNPLAYABLE_MODULATE_HAS_POWER := Color(0.6, 0.6, 0.6, 1.0)
 
 var current_glow_state: PlayableGlow = PlayableGlow.NONE
 
@@ -76,7 +81,10 @@ const CELESTIAL_REQUIREMENT_NONE_STYLEBOX := preload("res://scenes/card_ui/card_
 # overrides directly on the Description node in card_ui.tscn instead.
 const CELESTIAL_DESC_LABEL_SETTINGS := preload("res://scenes/card_ui/celestial_card_description_label.tres")
 
-const RITE_BANNER_STYLEBOX := preload("res://scenes/card_ui/card_banner_rite.tres")
+const BLESSING_BANNER_STYLEBOX := preload("res://scenes/card_ui/card_banner_blessing.tres")
+const BLESSING_STYLEBOX := preload("res://scenes/card_ui/card_ui_blessing.tres")
+const BLESSING_DESC_STYLEBOX := preload("res://scenes/card_ui/card_ui_description_panel_blessing.tres")
+const BLESSING_DESC_LABEL_SETTINGS := preload("res://scenes/card_ui/blessing_card_description_label.tres")
 
 @export var card: Card : set = _set_card
 @export var char_stats: CharacterStats : set = _set_char_stats
@@ -314,8 +322,16 @@ func _set_card(value: Card) -> void:
     elif card.requirement == Card.Requirement.MULTIPLE:
         requirement_panel.add_theme_stylebox_override("panel", MULTIPLE_STYLEBOX)
         requirement_label.text = "Mult %d" % card.requirement_number
-    if card.type == Card.Type.RITE:
-        card_banner.add_theme_stylebox_override("panel", RITE_BANNER_STYLEBOX)
+    if card.type == Card.Type.BLESSING:
+        card_banner.add_theme_stylebox_override("panel", BLESSING_BANNER_STYLEBOX)
+        description_panel.add_theme_stylebox_override("panel", BLESSING_DESC_STYLEBOX)
+        card_frame.add_theme_stylebox_override("panel", BLESSING_STYLEBOX)
+        # Resync the glow cache same as the Celestial branch below - otherwise the first
+        # playable-glow pass caches whatever stylebox was on CardFrame before this override
+        # ran, and set_playable_visual() would keep re-applying that stale look at rest.
+        _base_frame_stylebox = BLESSING_STYLEBOX
+        _hot_frame_stylebox = null
+        description.add_theme_color_override("font_outline_color", BLESSING_DESC_LABEL_SETTINGS.outline_color)
 
     if card.can_play_without_dice:
 
@@ -519,8 +535,8 @@ func _on_card_frame_mouse_entered() -> void:
     if bonus_requirement_string != "NONE":
         tooltips_to_show.append(bonus_requirement_string)
 
-    if card.type == Card.Type.RITE:
-        tooltips_to_show.append("Rite")
+    if card.type == Card.Type.BLESSING:
+        tooltips_to_show.append("Blessing")
 
     if card.tags != "":
         var tags_array = card.tags.split(",")
@@ -642,7 +658,7 @@ func set_playable_visual(state: PlayableGlow) -> void:
             if _glow_tween and _glow_tween.is_valid():
                 _glow_tween.kill()
             card_frame.add_theme_stylebox_override("panel", _base_frame_stylebox)
-            modulate = UNPLAYABLE_MODULATE
+            modulate = UNPLAYABLE_MODULATE_HAS_POWER if Global.roll_value > 0 else UNPLAYABLE_MODULATE_NO_POWER
 
 # Re-applies whatever glow state was last set. Needed because other systems
 # (e.g. card hover) can overwrite CardFrame's stylebox override directly.

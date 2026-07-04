@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3 uid="uid://bgkue8tsbpylp"]
+[gd_scene load_steps=25 format=3 uid="uid://bgkue8tsbpylp"]
 
 [ext_resource type="Script" path="res://scenes/shop/card_shop.gd" id="1_sj8q3"]
 [ext_resource type="Script" path="res://custom_resources/relic.gd" id="2_hlcxd"]
@@ -21,6 +21,9 @@
 [ext_resource type="Resource" uid="uid://c08xty5w4xohd" path="res://relics/fuel-o-meter.tres" id="16_35415"]
 [ext_resource type="Resource" uid="uid://dn5pcdeedr816" path="res://relics/the_one.tres" id="17_016lr"]
 [ext_resource type="Resource" uid="uid://ciglk4bcovgic" path="res://relics/crown.tres" id="18_08up8"]
+[ext_resource type="StyleBox" uid="uid://c8k2n5xr9j7wq" path="res://scenes/shop/shop_button_normal.tres" id="19_btn_n"]
+[ext_resource type="StyleBox" uid="uid://dqm3v7x8k2n5w" path="res://scenes/shop/shop_button_hover.tres" id="20_btn_h"]
+[ext_resource type="StyleBox" uid="uid://bx6v9n3k8q2wr" path="res://scenes/shop/shop_button_pressed.tres" id="21_btn_p"]
 
 [node name="CardShop" type="Control"]
 layout_mode = 3
@@ -60,6 +63,9 @@ offset_left = 1024.0
 offset_top = 587.0
 offset_right = 1236.0
 offset_bottom = 645.0
+theme_override_styles/normal = ExtResource("19_btn_n")
+theme_override_styles/hover = ExtResource("20_btn_h")
+theme_override_styles/pressed = ExtResource("21_btn_p")
 text = "Leave"
 
 [node name="ShopContent" type="VBoxContainer" parent="."]
@@ -75,7 +81,7 @@ offset_right = 294.0
 offset_bottom = 418.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 30
+theme_override_constants/separation = 15
 
 [node name="Cards" type="HBoxContainer" parent="ShopContent"]
 unique_name_in_owner = true
@@ -106,7 +112,6 @@ theme_override_constants/separation = 10
 alignment = 1
 
 [node name="ShopRelic" parent="ShopContent/Relics" instance=ExtResource("4_wjtdx")]
-custom_minimum_size = Vector2(80, 120)
 layout_mode = 2
 alignment = 0
 
