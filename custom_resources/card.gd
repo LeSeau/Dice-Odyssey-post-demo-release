@@ -28,6 +28,8 @@ const RARITY_COLORS := {
 @export var bonus_description_icon: Texture
 @export var bonus_description_text: String
 @export var tags: String
+@export var upgraded: bool = false
+@export var upgraded_version: Card
 
 
 @export_group("Card Visuals")
@@ -44,6 +46,10 @@ func _init():
 
 func is_single_targeted() -> bool:
     return target == Target.SINGLE_ENEMY
+
+
+func can_be_upgraded() -> bool:
+    return upgraded_version != null and not upgraded
 
 
 # Global.roll_value == 0 is ambiguous: it's both the reset/no-roll-yet state

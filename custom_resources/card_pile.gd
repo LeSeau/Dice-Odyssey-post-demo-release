@@ -25,6 +25,13 @@ func remove_card(card: Card) -> void:
     card_pile_size_changed.emit(cards.size())
 
 
+func replace_card(old_card: Card, new_card: Card) -> void:
+    var index := cards.find(old_card)
+    if index != -1:
+        cards[index] = new_card
+    card_pile_size_changed.emit(cards.size())
+
+
 
 func shuffle() -> void:
     cards.shuffle()

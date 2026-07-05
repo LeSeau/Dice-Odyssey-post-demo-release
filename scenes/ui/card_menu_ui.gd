@@ -55,6 +55,9 @@ const TooltipScene = preload("res://scenes/ui/tooltip.tscn")
 # Opt-out for contexts showing this card purely as a static illustration (e.g. the Blessing
 # tutorial popup's example card) - default false preserves hover tooltips everywhere else.
 @export var disable_hover_tooltip: bool = false
+# Opt-out for display-only instances (e.g. the before/after preview in the upgrade confirm
+# dialog) so clicking them doesn't re-trigger the removing/upgrading click logic below.
+@export var interactive: bool = true
 
 @onready var card_frame: Panel = $Visuals/CardBackground/CardFrame
 @onready var title: Label = $Visuals/CardBackground/CardFrame/CardBanner/Title
@@ -181,18 +184,20 @@ func _apply_description(text: String) -> void:
 
 func _on_card_frame_gui_input(event: InputEvent) -> void:
     if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-        print("Left click detected!")
-        print(card)
+        if not interactive:
+            return
 
         if Global.removing_card:
             animation_player.play("removal")
             removal_sound_player.play()
             # Wait for the animation to finish (optional: check the name)
             await animation_player.animation_finished
-            
+
             Events.card_removed.emit(card)
             queue_free()
-            
+        elif Global.upgrading_card:
+            Events.card_upgrade_requested.emit(card)
+
 
 
 var tooltip_instance_requirement: Panel

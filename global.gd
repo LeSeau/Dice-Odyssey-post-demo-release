@@ -71,6 +71,7 @@ var has_blocked_last_turn = false
 var starting_power_next_turn = 0
 var is_removing_card = true
 var removing_card: bool = false
+var upgrading_card: bool = false
 var power_generated_this_turn = 0
 
 var purchased_dice_counts = {

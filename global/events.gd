@@ -84,6 +84,8 @@ signal enemy_strength_changed
 signal display_next_roll_modifier
 signal card_removed(card)
 signal open_deck_view
+signal open_deck_view_for_upgrade
+signal card_upgrade_requested(card)
 
 signal check_if_can_purchase_dice
 

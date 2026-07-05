@@ -68,6 +68,7 @@ func _late_init() -> void:
     Events.hp_changed.connect(_on_hp_changed)
     Events.card_removed.connect(_on_card_removed)
     Events.open_deck_view.connect(_on_open_deck_view)
+    Events.open_deck_view_for_upgrade.connect(_on_open_deck_view_for_upgrade)
     Events.show_map_requested.connect(_on_show_map_requested)
     Events.stop_map_music.connect(_on_stop_map_music)
     Events.start_map_music.connect(_on_start_map_music)
@@ -482,6 +483,11 @@ func _on_card_removed(card) -> void:
 func _on_open_deck_view() -> void:
     Global.removing_card = true
     deck_view.show_current_view("Deck")
+    SFXPlayer.play(sfx_click)
+
+func _on_open_deck_view_for_upgrade() -> void:
+    Global.upgrading_card = true
+    deck_view.show_current_view("Upgrade a Card")
     SFXPlayer.play(sfx_click)
 
 func _on_show_map_requested() -> void:

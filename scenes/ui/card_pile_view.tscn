@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://jg7s3ul6gyqj"]
+[gd_scene load_steps=10 format=3 uid="uid://jg7s3ul6gyqj"]
 
 [ext_resource type="Script" path="res://scenes/ui/card_pile_view.gd" id="1_byypi"]
 [ext_resource type="PackedScene" uid="uid://d2vlobkkv27hu" path="res://scenes/ui/card_menu_ui.tscn" id="1_gt0jo"]
@@ -45,6 +45,49 @@ corner_radius_bottom_left = 8
 shadow_color = Color(0.941176, 0.752941, 0.188235, 0.5)
 shadow_size = 5
 shadow_offset = Vector2(0, 2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_confirm_normal"]
+bg_color = Color(0.164706, 0.262745, 0.235294, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.752941, 0.501961, 0.0627451, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.4)
+shadow_size = 3
+shadow_offset = Vector2(0, 2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_confirm_hover"]
+bg_color = Color(0.219608, 0.34902, 0.313726, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.843137, 0, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 3
+shadow_offset = Vector2(0, 2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_confirm_pressed"]
+bg_color = Color(0.117647, 0.196078, 0.176471, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.752941, 0.501961, 0.0627451, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_size = 0
 
 [node name="CardPileView" type="Control"]
 z_index = 120
@@ -205,5 +248,92 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_back_normal")
 theme_override_styles/hover = SubResource("StyleBoxFlat_back_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_back_hover")
 text = "Back"
+
+[node name="UpgradeConfirmPanel" type="Control" parent="."]
+unique_name_in_owner = true
+visible = false
+z_index = 200
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+
+[node name="Dimmer" type="ColorRect" parent="UpgradeConfirmPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.75)
+
+[node name="CenterContainer" type="CenterContainer" parent="UpgradeConfirmPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UpgradeConfirmPanel/CenterContainer"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="Title" type="Label" parent="UpgradeConfirmPanel/CenterContainer/VBoxContainer"]
+layout_mode = 2
+text = "Upgrade this card?"
+label_settings = SubResource("LabelSettings_6m3id")
+horizontal_alignment = 1
+
+[node name="CardsRow" type="HBoxContainer" parent="UpgradeConfirmPanel/CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 50
+alignment = 1
+
+[node name="BeforeCard" parent="UpgradeConfirmPanel/CenterContainer/VBoxContainer/CardsRow" instance=ExtResource("1_gt0jo")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Arrow" type="Label" parent="UpgradeConfirmPanel/CenterContainer/VBoxContainer/CardsRow"]
+layout_mode = 2
+size_flags_vertical = 4
+text = "→"
+label_settings = SubResource("LabelSettings_6m3id")
+
+[node name="AfterCard" parent="UpgradeConfirmPanel/CenterContainer/VBoxContainer/CardsRow" instance=ExtResource("1_gt0jo")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="ButtonsRow" type="HBoxContainer" parent="UpgradeConfirmPanel/CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="ConfirmUpgradeButton" type="Button" parent="UpgradeConfirmPanel/CenterContainer/VBoxContainer/ButtonsRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(140, 48)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.941176, 0.752941, 0.188235, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxFlat_confirm_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_confirm_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_confirm_pressed")
+text = "Upgrade"
+
+[node name="CancelUpgradeButton" type="Button" parent="UpgradeConfirmPanel/CenterContainer/VBoxContainer/ButtonsRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(140, 48)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.941176, 0.752941, 0.188235, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxFlat_back_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_back_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_back_hover")
+text = "Cancel"
 
 [connection signal="pressed" from="BackButton" to="." method="_on_back_button_pressed"]
