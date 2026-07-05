@@ -35,6 +35,12 @@ const GLOW_PULSE_DURATION := 1.1
 const UNPLAYABLE_MODULATE_NO_POWER := Color(0.75, 0.75, 0.75, 1.0)
 const UNPLAYABLE_MODULATE_HAS_POWER := Color(0.6, 0.6, 0.6, 1.0)
 
+# Shared across every CardUI/CardMenuUI instance via the .tscn (sub-resources aren't
+# resource_local_to_scene by default) - never mutate this one directly, duplicate() it first
+# (see set_upgraded_title_color below), same pattern as MUSCLE_STATUS.duplicate() in bolster.gd.
+const TITLE_LABEL_SETTINGS := preload("res://scenes/card_ui/card_title.tres")
+const UPGRADED_TITLE_COLOR := Color(0.36, 0.85, 0.36)
+
 var current_glow_state: PlayableGlow = PlayableGlow.NONE
 
 const TooltipScene = preload("res://scenes/ui/tooltip.tscn")
@@ -293,6 +299,7 @@ func _set_card(value: Card) -> void:
     _apply_description(str(card.description))
     icon.texture = card.icon
     title.text = str(card.name)
+    _apply_title_color()
     requirement_label.label_settings = REQUIREMENT_LABEL_SETTINGS
     #support_icon.visible = card.rarity == Card.Rarity.SUPPORT
 
@@ -377,6 +384,18 @@ func _set_card(value: Card) -> void:
         elif card.bonus_requirement == Card.Requirement.MULTIPLE:
             bonus_requirement_panel.add_theme_stylebox_override("panel", BONUS_MULTIPLE_STYLEBOX)
             bonus_requirement_label.text = "Mult %d" % card.bonus_requirement_number
+
+
+# Green title on upgraded cards (STS2-style). Duplicates the shared LabelSettings only when
+# needed so non-upgraded cards never touch (and can't accidentally tint) the shared resource.
+func _apply_title_color() -> void:
+    if card.upgraded:
+        var upgraded_settings := TITLE_LABEL_SETTINGS.duplicate()
+        upgraded_settings.font_color = UPGRADED_TITLE_COLOR
+        title.label_settings = upgraded_settings
+    else:
+        title.label_settings = TITLE_LABEL_SETTINGS
+
 
 func _set_playable(value: bool) -> void:
     playable = value

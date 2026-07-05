@@ -21,6 +21,7 @@ bonus_requirement = 0
 bonus_requirement_number = 0
 bonus_description_text = ""
 tags = "Charge, Green Dice"
+upgraded = false
 icon = ExtResource("1_7h428")
 tooltip_text = ""
 sound = ExtResource("2_phi13")

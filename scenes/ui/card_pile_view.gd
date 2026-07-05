@@ -2,6 +2,8 @@ class_name CardPileView
 extends Control
 
 const CARD_MENU_UI_SCENE := preload("res://scenes/ui/card_menu_ui.tscn")
+# Same "cling" sound Reinforce/mech-dice-adjustment already use for a metal/forge feel.
+const UPGRADE_SOUND := preload("res://sounds/blacksmithsound.wav")
 
 @export var card_pile: CardPile
 
@@ -92,10 +94,14 @@ func _on_card_upgrade_requested(card: Card) -> void:
 func _on_confirm_upgrade_pressed() -> void:
     if _card_pending_upgrade and card_pile:
         card_pile.replace_card(_card_pending_upgrade, _card_pending_upgrade.upgraded_version)
+        SFXPlayer.play(UPGRADE_SOUND)
     _card_pending_upgrade = null
     Global.upgrading_card = false
     upgrade_confirm_panel.hide()
     hide()
+    # Upgrading is only ever reachable from the campfire today (same as Rest, which also
+    # exits via this signal) - mirror that so you can't linger and Rest afterward too.
+    Events.campfire_exited.emit()
 
 
 func _on_cancel_upgrade_pressed() -> void:

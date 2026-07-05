@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://jg7s3ul6gyqj"]
+[gd_scene load_steps=11 format=3 uid="uid://jg7s3ul6gyqj"]
 
 [ext_resource type="Script" path="res://scenes/ui/card_pile_view.gd" id="1_byypi"]
 [ext_resource type="PackedScene" uid="uid://d2vlobkkv27hu" path="res://scenes/ui/card_menu_ui.tscn" id="1_gt0jo"]
@@ -88,6 +88,15 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 shadow_size = 0
+
+[sub_resource type="LabelSettings" id="LabelSettings_arrow"]
+font_size = 180
+font_color = Color(0.941176, 0.752941, 0.188235, 1)
+outline_size = 14
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 6
+shadow_color = Color(0, 0, 0, 0.6)
+shadow_offset = Vector2(0, 3)
 
 [node name="CardPileView" type="Control"]
 z_index = 120
@@ -282,30 +291,28 @@ grow_vertical = 2
 layout_mode = 2
 theme_override_constants/separation = 24
 
-[node name="Title" type="Label" parent="UpgradeConfirmPanel/CenterContainer/VBoxContainer"]
-layout_mode = 2
-text = "Upgrade this card?"
-label_settings = SubResource("LabelSettings_6m3id")
-horizontal_alignment = 1
-
 [node name="CardsRow" type="HBoxContainer" parent="UpgradeConfirmPanel/CenterContainer/VBoxContainer"]
 layout_mode = 2
-theme_override_constants/separation = 50
+theme_override_constants/separation = 20
 alignment = 1
 
 [node name="BeforeCard" parent="UpgradeConfirmPanel/CenterContainer/VBoxContainer/CardsRow" instance=ExtResource("1_gt0jo")]
 unique_name_in_owner = true
 layout_mode = 2
+scale = Vector2(2, 2)
+pivot_offset = Vector2(70, 105)
 
 [node name="Arrow" type="Label" parent="UpgradeConfirmPanel/CenterContainer/VBoxContainer/CardsRow"]
 layout_mode = 2
 size_flags_vertical = 4
 text = "→"
-label_settings = SubResource("LabelSettings_6m3id")
+label_settings = SubResource("LabelSettings_arrow")
 
 [node name="AfterCard" parent="UpgradeConfirmPanel/CenterContainer/VBoxContainer/CardsRow" instance=ExtResource("1_gt0jo")]
 unique_name_in_owner = true
 layout_mode = 2
+scale = Vector2(2, 2)
+pivot_offset = Vector2(70, 105)
 
 [node name="ButtonsRow" type="HBoxContainer" parent="UpgradeConfirmPanel/CenterContainer/VBoxContainer"]
 layout_mode = 2

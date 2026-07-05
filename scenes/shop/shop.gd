@@ -41,6 +41,12 @@ var mech_dice_base_price = 200
 
 var reroll_price = 20
 
+# Every dice purchase (ANY type) raises ALL dice prices by this factor. Replaces the old
+# per-type-only escalation, which almost never fired in practice (players diversify types,
+# so each new type came at base price and a 2nd die was affordable too early mid-run).
+# Die #1 at base = the happy milestone; die #2 at ~1.4x = late-run stretch; die #3 = trophy.
+const GLOBAL_DICE_PRICE_ESCALATION := 1.4
+
 var evil_dice_price = evil_dice_base_price
 var giant_dice_price = giant_dice_base_price
 var magma_dice_price = magma_dice_base_price
@@ -162,15 +168,19 @@ func _on_buy_dice_5_pressed() -> void:
         update_dice_price()
         
 func update_dice_price() -> void:
-    evil_dice_price  = int(evil_dice_base_price  * pow(1.35, Global.purchased_dice_counts["evil"]))
-    giant_dice_price = int(giant_dice_base_price * pow(1.35, Global.purchased_dice_counts["giant"]))
-    magma_dice_price = int(magma_dice_base_price * pow(1.35, Global.purchased_dice_counts["magma"]))
-    even_dice_price  = int(even_dice_base_price  * pow(1.35, Global.purchased_dice_counts["even"]))
-    odd_dice_price   = int(odd_dice_base_price   * pow(1.35, Global.purchased_dice_counts["odd"]))
-    blue_dice_price  = int(blue_dice_base_price  * pow(1.35, Global.purchased_dice_counts["blue"]))
-    red_dice_price   = int(red_dice_base_price   * pow(1.35, Global.purchased_dice_counts["red"]))
-    green_dice_price = int(green_dice_base_price * pow(1.35, Global.purchased_dice_counts["green"]))
-    mech_dice_price = int(mech_dice_base_price * pow(1.35, Global.purchased_dice_counts["mech"]))
+    var total_dice_purchased := 0
+    for count in Global.purchased_dice_counts.values():
+        total_dice_purchased += count
+    var escalation := pow(GLOBAL_DICE_PRICE_ESCALATION, total_dice_purchased)
+    evil_dice_price  = int(evil_dice_base_price  * escalation)
+    giant_dice_price = int(giant_dice_base_price * escalation)
+    magma_dice_price = int(magma_dice_base_price * escalation)
+    even_dice_price  = int(even_dice_base_price  * escalation)
+    odd_dice_price   = int(odd_dice_base_price   * escalation)
+    blue_dice_price  = int(blue_dice_base_price  * escalation)
+    red_dice_price   = int(red_dice_base_price   * escalation)
+    green_dice_price = int(green_dice_base_price * escalation)
+    mech_dice_price  = int(mech_dice_base_price  * escalation)
 
 
     buy_dice_1_label.text = "[center]Buy ([color=#FFD700]" + str(evil_dice_price) + "G[/color])[/center]"

@@ -9,7 +9,7 @@ const FLOORS := 15
 const MAP_WIDTH := 7
 const PATHS := 6
 const MONSTER_ROOM_WEIGHT := 5.5
-const ELITE_ROOM_WEIGHT := 1.0
+const ELITE_ROOM_WEIGHT := 1.2
 const CAMPFIRE_ROOM_WEIGHT := 1.5
 const SHOP_ROOM_WEIGHT := 0.8
 const BOSS_ROOM_WEIGHT := 0.0
@@ -20,37 +20,29 @@ const EVENT_FIGHT_CHANCE := 0.1
 @export var battle_stats_pool: BattleStatsPool
 @export var event_stats_pool: EventStatsPool
 
-var random_room_type_weights = {
-    Room.Type.MONSTER: 0.0,
-    Room.Type.ELITE: 0.0,
-    Room.Type.CAMPFIRE: 0.0,
-    Room.Type.TREASURE: 0.0,
-    Room.Type.SHOP: 0.0,
-    Room.Type.BOSS: 0.0,
-    Room.Type.EVENT: 0.0
-}
-
-var random_room_type_total_weight := 0
 var map_data: Array [Array]
 
 func generate_map() -> Array[Array]:
     map_data = _generate_initial_grid()
-    var starting_points := _get_random_starting_points() 
-    
+    var starting_points := _get_random_starting_points()
+
     for j in starting_points:
-        var current_j := j 
+        var current_j := j
         for i in FLOORS - 1:
             current_j = _setup_connection(i, current_j)
-        
+
     battle_stats_pool.setup()
     event_stats_pool.setup()
-           
+
     _setup_boss_room()
-    _setup_random_room_weights()
-    _setup_room_types()
-    _setup_treasure_floor()  
+    # Fixed floors are assigned BEFORE the random rooms (used to be after) so the
+    # quota bag below is computed over exactly the rooms that stay random - dealing
+    # a type onto row 7/13 only for the treasure/campfire pass to overwrite it would
+    # silently skew the map's composition.
+    _setup_treasure_floor()
     _setup_campfire_floor()
-        
+    _setup_room_types()
+
     return map_data
 
 func _generate_initial_grid() -> Array[Array]:
@@ -156,94 +148,155 @@ func _setup_campfire_floor() -> void:
             room.type = Room.Type.CAMPFIRE
 
 
-func _setup_random_room_weights() -> void:
-    random_room_type_weights[Room.Type.MONSTER] = MONSTER_ROOM_WEIGHT
-    random_room_type_weights[Room.Type.ELITE] = MONSTER_ROOM_WEIGHT + ELITE_ROOM_WEIGHT
-    random_room_type_weights[Room.Type.CAMPFIRE] = MONSTER_ROOM_WEIGHT + ELITE_ROOM_WEIGHT + CAMPFIRE_ROOM_WEIGHT    
-    random_room_type_weights[Room.Type.SHOP] = MONSTER_ROOM_WEIGHT + ELITE_ROOM_WEIGHT + CAMPFIRE_ROOM_WEIGHT  + SHOP_ROOM_WEIGHT
-    random_room_type_weights[Room.Type.BOSS] = MONSTER_ROOM_WEIGHT + ELITE_ROOM_WEIGHT + CAMPFIRE_ROOM_WEIGHT  + SHOP_ROOM_WEIGHT + BOSS_ROOM_WEIGHT
-    random_room_type_weights[Room.Type.EVENT] = MONSTER_ROOM_WEIGHT + ELITE_ROOM_WEIGHT + CAMPFIRE_ROOM_WEIGHT  + SHOP_ROOM_WEIGHT + BOSS_ROOM_WEIGHT + EVENT_ROOM_WEIGHT
-    random_room_type_total_weight = random_room_type_weights[Room.Type.EVENT]
-
-
+# STS-style assignment (replaced the old per-node independent weighted rolls, 2026-07-05):
+# 1. Count the on-path rooms that need a random type, build a fixed "bag" of room types
+#    matching the weight proportions exactly, shuffle it, and deal it onto the map. Every
+#    map therefore has (nearly) the SAME composition - the randomness is only in the
+#    arrangement. The old i.i.d. rolls produced wild per-map swings (shopless maps, elite
+#    droughts, event floods) with the same average.
+# 2. Sibling diversity: when dealing, a room avoids taking the same type as an
+#    already-assigned sibling (child of a shared parent) as long as the bag can offer an
+#    alternative - so a fork almost always presents a real choice between different room
+#    types instead of monster-vs-monster.
+# Hard rules (never relaxed) are unchanged from the old roller: no elite/campfire before
+# row 5, no campfire on row 12, no same-type parent->child for shop/elite/campfire.
 func _setup_room_types() -> void:
     for room: Room in map_data[0]:
         if room.next_rooms.size() > 0:
             room.type = Room.Type.MONSTER
             room.battle_stats = battle_stats_pool.get_random_battle_for_tier(0)
-            
-    #add more
-    
-    #REST OF ROOMS#
-    for current_floor in map_data:
-        for room: Room in current_floor:
-            for next_room: Room in room.next_rooms:
-                if next_room.type == Room.Type.NOT_ASSIGNED:
-                    _set_room_randomly(next_room)
-    
-func _set_room_randomly(room_to_set: Room) -> void:
-    var consecutive_shop := true
-    var consecutive_elite := true
-    var consecutive_campfire := true
-    var elite_before_floor5 := true
-    var campfire_before_floor5 := true
-    var campfire_on_floor12 := true   # 🔥 added declaration here
 
-    var type_candidate: Room.Type
+    # Every on-path room in rows 1..13 that the fixed passes (treasure row 7,
+    # campfire row 13, boss) haven't already typed. Row-ordered top-down, which
+    # matters: early rows legally can't take elite/campfire, so dealing top-down
+    # lets those types survive in the bag until the rows that can host them.
+    var assignable: Array[Room] = []
+    for i in range(1, FLOORS - 1):
+        for room: Room in map_data[i]:
+            if room.next_rooms.size() > 0 and room.type == Room.Type.NOT_ASSIGNED:
+                assignable.append(room)
 
-    while consecutive_shop \
-        or consecutive_elite \
-        or consecutive_campfire \
-        or elite_before_floor5 \
-        or campfire_before_floor5 \
-        or campfire_on_floor12:   # 🔥 include in while condition
+    var bag := _build_room_type_bag(assignable.size())
 
-        type_candidate = _get_random_room_type_by_weight()
+    for room in assignable:
+        var dealt := _deal_type_from_bag(room, bag, true)
+        if not dealt:
+            # No bag entry satisfies sibling diversity - relax it (hard rules still apply).
+            dealt = _deal_type_from_bag(room, bag, false)
+        if not dealt:
+            # Nothing legal at all (e.g. only elites left for an early row) - filler
+            # monster, without consuming the bag. Same fallback STS uses.
+            room.type = Room.Type.MONSTER
+        _finalize_room(room)
 
-        # Shop check
-        var is_shop := type_candidate == Room.Type.SHOP
-        var has_shop_parent := _room_has_parent_of_type(room_to_set, Room.Type.SHOP)
-        consecutive_shop = is_shop and has_shop_parent
 
-        # Elite checks
-        var is_elite := type_candidate == Room.Type.ELITE
-        var has_elite_parent := _room_has_parent_of_type(room_to_set, Room.Type.ELITE)
-        consecutive_elite = is_elite and has_elite_parent
-        elite_before_floor5 = is_elite and room_to_set.row < 5
+# Fixed quota of each type from the same weight constants as before (weight / total
+# = share of the map). Monster is the remainder, so the bag always matches the room
+# count exactly.
+func _build_room_type_bag(room_count: int) -> Array:
+    var total_weight := MONSTER_ROOM_WEIGHT + ELITE_ROOM_WEIGHT + CAMPFIRE_ROOM_WEIGHT \
+        + SHOP_ROOM_WEIGHT + EVENT_ROOM_WEIGHT
+    var bag := []
 
-        # Campfire checks
-        var is_campfire := type_candidate == Room.Type.CAMPFIRE
-        var has_campfire_parent := _room_has_parent_of_type(room_to_set, Room.Type.CAMPFIRE)
-        consecutive_campfire = is_campfire and has_campfire_parent
-        campfire_before_floor5 = is_campfire and room_to_set.row < 5
+    for type_and_weight in [
+        [Room.Type.ELITE, ELITE_ROOM_WEIGHT],
+        [Room.Type.CAMPFIRE, CAMPFIRE_ROOM_WEIGHT],
+        [Room.Type.SHOP, SHOP_ROOM_WEIGHT],
+        [Room.Type.EVENT, EVENT_ROOM_WEIGHT],
+    ]:
+        var count := int(round(float(room_count) * float(type_and_weight[1]) / total_weight))
+        for i in count:
+            bag.append(type_and_weight[0])
 
-        # 🔥 New restriction: no campfire on floor 12 (row 12)
-        campfire_on_floor12 = is_campfire and room_to_set.row == 12
+    while bag.size() < room_count:
+        bag.append(Room.Type.MONSTER)
+    while bag.size() > room_count:
+        bag.pop_back()
 
-    # Once we get here, type_candidate is valid
-    room_to_set.type = type_candidate
+    bag.shuffle()
+    return bag
 
-    if type_candidate == Room.Type.MONSTER:
-        var tier_for_monster_rooms := 0
-        if room_to_set.row > 2:
-            tier_for_monster_rooms = 1
-        if room_to_set.row > 8:
-            tier_for_monster_rooms = 2
-        room_to_set.battle_stats = battle_stats_pool.get_random_battle_for_tier(tier_for_monster_rooms)
 
-    elif type_candidate == Room.Type.ELITE:
-        room_to_set.battle_stats = battle_stats_pool.get_random_battle_for_tier(3)
-    elif type_candidate == Room.Type.BOSS:
-        room_to_set.battle_stats = battle_stats_pool.get_random_battle_for_tier(4)
+# Assign the first bag entry this room may legally take (bag is shuffled, so "first
+# fitting" = uniform among the remaining quota). Returns false if none fits.
+func _deal_type_from_bag(room: Room, bag: Array, avoid_sibling_duplicates: bool) -> bool:
+    for idx in bag.size():
+        var candidate: Room.Type = bag[idx]
+        if _is_type_allowed(room, candidate, avoid_sibling_duplicates):
+            room.type = candidate
+            bag.remove_at(idx)
+            return true
+    return false
 
-    elif type_candidate == Room.Type.EVENT:
-        if randf() < EVENT_FIGHT_CHANCE:
-            room_to_set.is_secret_fight = true
-        else:
-            var tier_for_event_rooms := 0
-            if room_to_set.row > 2:
-                tier_for_event_rooms = 1
-            room_to_set.event_stats = event_stats_pool.get_random_event_for_tier(tier_for_event_rooms)
+
+func _is_type_allowed(room: Room, candidate: Room.Type, avoid_sibling_duplicates: bool) -> bool:
+    match candidate:
+        Room.Type.ELITE:
+            if room.row < 5:
+                return false
+            if _room_has_parent_of_type(room, Room.Type.ELITE):
+                return false
+        Room.Type.CAMPFIRE:
+            if room.row < 5:
+                return false
+            if room.row == 12:
+                return false
+            if _room_has_parent_of_type(room, Room.Type.CAMPFIRE):
+                return false
+        Room.Type.SHOP:
+            if _room_has_parent_of_type(room, Room.Type.SHOP):
+                return false
+
+    if avoid_sibling_duplicates and _get_assigned_sibling_types(room).has(candidate):
+        return false
+
+    return true
+
+
+# Types already assigned to this room's siblings (other children of any shared parent).
+# Only already-assigned siblings count - rooms are dealt in row/column order, so a left
+# sibling constrains its right neighbour, same as STS.
+func _get_assigned_sibling_types(room: Room) -> Array:
+    var types := []
+    if room.row == 0:
+        return types
+
+    for dj in [-1, 0, 1]:
+        var pj: int = room.column + dj
+        if pj < 0 or pj >= MAP_WIDTH:
+            continue
+        var parent := map_data[room.row - 1][pj] as Room
+        if not parent.next_rooms.has(room):
+            continue
+        for sibling: Room in parent.next_rooms:
+            if sibling != room and sibling.type != Room.Type.NOT_ASSIGNED:
+                types.append(sibling.type)
+
+    return types
+
+
+# Post-assignment side effects, unchanged from the old roller. The battle_stats /
+# event_stats pre-assignments are overridden by run.gd at room entry (run.gd is
+# authoritative for tiers) - kept for safety; is_secret_fight however IS live.
+func _finalize_room(room: Room) -> void:
+    match room.type:
+        Room.Type.MONSTER:
+            var tier_for_monster_rooms := 0
+            if room.row > 2:
+                tier_for_monster_rooms = 1
+            if room.row > 7:
+                tier_for_monster_rooms = 2
+            room.battle_stats = battle_stats_pool.get_random_battle_for_tier(tier_for_monster_rooms)
+        Room.Type.ELITE:
+            room.battle_stats = battle_stats_pool.get_random_battle_for_tier(3)
+        Room.Type.EVENT:
+            if randf() < EVENT_FIGHT_CHANCE:
+                room.is_secret_fight = true
+            else:
+                var tier_for_event_rooms := 0
+                if room.row > 2:
+                    tier_for_event_rooms = 1
+                room.event_stats = event_stats_pool.get_random_event_for_tier(tier_for_event_rooms)
 
 
 func _room_has_parent_of_type(room: Room, type: Room.Type) -> bool:
@@ -266,16 +319,7 @@ func _room_has_parent_of_type(room: Room, type: Room.Type) -> bool:
                        
     for parent: Room in parents:
         if parent.type == type:
-            return true     
-               
-    return false      
-    
-func _get_random_room_type_by_weight() -> Room.Type:
-    var roll := randf_range(0.0, random_room_type_total_weight)
-    
-    for type: Room.Type in random_room_type_weights:
-        if random_room_type_weights[type] > roll:
-            return type
-            
-    return Room.Type.MONSTER
-    
+            return true
+
+    return false
+

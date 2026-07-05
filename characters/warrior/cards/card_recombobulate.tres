@@ -21,6 +21,7 @@ bonus_requirement = 0
 bonus_requirement_number = 0
 bonus_description_text = ""
 tags = "Refuel"
+upgraded = false
 icon = ExtResource("1_xyt74")
 tooltip_text = "Refuel your active Dice"
 sound = ExtResource("3_hdrx6")

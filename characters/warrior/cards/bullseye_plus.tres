@@ -1,17 +1,16 @@
-[gd_resource type="Resource" load_steps=5 format=3 uid="uid://b8uiqtmbc7bsy"]
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://bgsv7oud7bh3h"]
 
 [ext_resource type="Texture2D" uid="uid://2ikh0yv5jo36" path="res://bullseye.png" id="1_hbdgu"]
-[ext_resource type="Script" path="res://characters/warrior/cards/bullseye.gd" id="2_gs8sh"]
+[ext_resource type="Script" path="res://characters/warrior/cards/bullseye_plus.gd" id="2_gs8sh"]
 [ext_resource type="AudioStream" uid="uid://cvjv56ti6hkis" path="res://impact1.ogg" id="3_q51qe"]
-[ext_resource type="Resource" path="res://characters/warrior/cards/bullseye_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_gs8sh")
-id = "card_bullseye"
-name = "Bullseye"
+id = "card_bullseye_plus"
+name = "Bullseye+"
 type = 0
 target = 1
-description = "Deal X3 damage"
+description = "Deal X4 damage"
 rarity = 0
 red_only = false
 can_play_without_dice = false
@@ -22,8 +21,7 @@ bonus_requirement = 0
 bonus_requirement_number = 0
 bonus_description_text = ""
 tags = ""
-upgraded = false
-upgraded_version = ExtResource("4_plus")
+upgraded = true
 icon = ExtResource("1_hbdgu")
 tooltip_text = ""
 sound = ExtResource("3_q51qe")

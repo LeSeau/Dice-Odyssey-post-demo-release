@@ -48,6 +48,12 @@ const BLESSING_DESC_LABEL_SETTINGS := preload("res://scenes/card_ui/blessing_car
 const REQUIREMENT_LABEL_SETTINGS := preload("res://scenes/card_ui/card_ui_requirement_ribbon.tres")
 const NO_REQUIREMENT_LABEL_SETTINGS := preload("res://scenes/card_ui/card_ui_no_requirement_ribbon.tres")
 
+# Shared across every CardUI/CardMenuUI instance via the .tscn (sub-resources aren't
+# resource_local_to_scene by default) - never mutate this one directly, duplicate() it first
+# (see _apply_title_color below), same pattern as MUSCLE_STATUS.duplicate() in bolster.gd.
+const TITLE_LABEL_SETTINGS := preload("res://scenes/card_ui/card_title.tres")
+const UPGRADED_TITLE_COLOR := Color(0.36, 0.85, 0.36)
+
 const TooltipScene = preload("res://scenes/ui/tooltip.tscn")
 
 
@@ -99,9 +105,10 @@ func _on_visuals_mouse_exited() -> void:
 func set_card(value: Card) -> void:
     if not is_node_ready():
         await ready 
-    card = value 
+    card = value
     icon.texture = card.icon
     title.text = card.name
+    _apply_title_color()
     _apply_description(card.description)
     requirement_label.label_settings = REQUIREMENT_LABEL_SETTINGS
 
@@ -173,6 +180,17 @@ func set_card(value: Card) -> void:
         elif card.bonus_requirement == Card.Requirement.MULTIPLE:
             bonus_requirement_panel.add_theme_stylebox_override("panel", BONUS_MULTIPLE_STYLEBOX)
             bonus_requirement_label.text = "Mult %d" % card.bonus_requirement_number
+
+
+# Green title on upgraded cards (STS2-style). Duplicates the shared LabelSettings only when
+# needed so non-upgraded cards never touch (and can't accidentally tint) the shared resource.
+func _apply_title_color() -> void:
+    if card.upgraded:
+        var upgraded_settings := TITLE_LABEL_SETTINGS.duplicate()
+        upgraded_settings.font_color = UPGRADED_TITLE_COLOR
+        title.label_settings = upgraded_settings
+    else:
+        title.label_settings = TITLE_LABEL_SETTINGS
 
 
 # Single chokepoint for writing to the Description RichTextLabel: applies keyword coloring

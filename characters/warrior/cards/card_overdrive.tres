@@ -21,6 +21,7 @@ bonus_requirement = 0
 bonus_requirement_number = 0
 bonus_description_text = ""
 tags = "Depleted"
+upgraded = false
 icon = ExtResource("1_reodk")
 tooltip_text = ""
 sound = ExtResource("3_ggn5c")
