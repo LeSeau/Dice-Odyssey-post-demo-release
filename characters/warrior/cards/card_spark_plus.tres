@@ -1,0 +1,27 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5sk00000041"]
+
+[ext_resource type="Texture2D" uid="uid://cg5k1jiu0alvr" path="res://spark.png" id="1_bt0nf"]
+[ext_resource type="Script" path="res://characters/warrior/cards/spark_plus.gd" id="2_mhnqx"]
+[ext_resource type="AudioStream" uid="uid://cy6owtfbf8sfv" path="res://sounds/fountainheal.wav" id="3_drwcp"]
+
+[resource]
+script = ExtResource("2_mhnqx")
+id = "card_spark_plus"
+name = "Spark+"
+type = 1
+target = 0
+description = "Charge 1 Blue Dice and gain a Scout 5 card"
+rarity = 1
+red_only = false
+can_play_without_dice = true
+requirement = 0
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Charge, Scout"
+upgraded = true
+icon = ExtResource("1_bt0nf")
+tooltip_text = ""
+sound = ExtResource("3_drwcp")

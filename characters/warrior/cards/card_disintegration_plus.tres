@@ -1,0 +1,27 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5di00000029"]
+
+[ext_resource type="Texture2D" uid="uid://5l42vbu3nvva" path="res://disintegration.png" id="1_f7qh4"]
+[ext_resource type="Script" path="res://characters/warrior/cards/disintegration_plus.gd" id="1_rqilr"]
+[ext_resource type="AudioStream" uid="uid://bnoudyk1my2eh" path="res://impact1ok.mp3" id="2_whbe5"]
+
+[resource]
+script = ExtResource("1_rqilr")
+id = "card_disintegration_plus"
+name = "Disintegrate+"
+type = 0
+target = 1
+description = "Deal X damage. Charge 1"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 0
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Charge"
+upgraded = true
+icon = ExtResource("1_f7qh4")
+tooltip_text = ""
+sound = ExtResource("2_whbe5")

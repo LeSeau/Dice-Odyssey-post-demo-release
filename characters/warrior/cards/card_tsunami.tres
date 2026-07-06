@@ -1,8 +1,9 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://bd8tgv3vr1n00"]
+[gd_resource type="Resource" load_steps=5 format=3 uid="uid://bd8tgv3vr1n00"]
 
 [ext_resource type="Texture2D" uid="uid://bjxekh6bu8o8q" path="res://tsunami.png" id="1_df1cf"]
 [ext_resource type="Script" path="res://characters/warrior/cards/tsunami.gd" id="2_os3hy"]
 [ext_resource type="AudioStream" uid="uid://csxs8784ydfwg" path="res://kamikazesound.mp3" id="3_nrprh"]
+[ext_resource type="Resource" path="res://characters/warrior/cards/card_tsunami_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_os3hy")
@@ -22,6 +23,7 @@ bonus_requirement_number = 0
 bonus_description_text = ""
 tags = ""
 upgraded = false
+upgraded_version = ExtResource("4_plus")
 icon = ExtResource("1_df1cf")
 tooltip_text = ""
 sound = ExtResource("3_nrprh")

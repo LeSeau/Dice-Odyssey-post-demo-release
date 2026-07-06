@@ -1,0 +1,27 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5eg00000033"]
+
+[ext_resource type="Texture2D" uid="uid://cnigvxd7lt03y" path="res://emergency_v2.png" id="1_ie5ic"]
+[ext_resource type="Script" path="res://characters/warrior/cards/emergency_plus.gd" id="2_w6hlm"]
+[ext_resource type="AudioStream" uid="uid://knqxepryrqf3" path="res://tensionsound.mp3" id="3_ngtqk"]
+
+[resource]
+script = ExtResource("2_w6hlm")
+id = "card_emergency_plus"
+name = "Emergency+"
+type = 1
+target = 0
+description = "Gain 13 block and end your turn"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 0
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = ""
+upgraded = true
+icon = ExtResource("1_ie5ic")
+tooltip_text = ""
+sound = ExtResource("3_ngtqk")

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="MarionettePlusStatus" load_steps=3 format=3 uid="uid://c4mspplus54p"]
+
+[ext_resource type="Texture2D" uid="uid://bn84cmxr0l60" path="res://marionette_status_icon.png" id="1_krxjk"]
+[ext_resource type="Script" path="res://statuses/status_marionette_plus.gd" id="2_hm63f"]
+
+[resource]
+script = ExtResource("2_hm63f")
+id = "marionette_plus"
+type = 0
+stack_type = 2
+can_expire = false
+duration = 1
+stacks = 1
+icon = ExtResource("1_krxjk")
+tooltip = "At the start of each turn, gain a Scout 5 card"

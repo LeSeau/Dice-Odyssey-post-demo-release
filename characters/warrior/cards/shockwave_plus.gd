@@ -1,0 +1,19 @@
+extends Card
+
+
+func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
+    if Global.roll_value <= 12:
+        var damage_effect := DamageEffect.new()
+        var base_damage = Global.roll_value
+        damage_effect.amount = modifiers.get_modified_value(base_damage, Modifier.Type.DMG_DEALT)
+        damage_effect.sound = sound
+        damage_effect.execute(targets)
+    Events.reset_charged_card.emit()
+
+func get_dynamic_description(modifiers: ModifierHandler) -> String:
+    if is_inked():
+        return "Deal ? damage. Does not reset your Power"
+    if not has_active_roll() or not meets_requirement():
+        return "Deal X damage. Does not reset your Power"
+    var total := modifiers.get_modified_value(Global.roll_value, Modifier.Type.DMG_DEALT)
+    return "Deal %d damage. Does not reset your Power" % total

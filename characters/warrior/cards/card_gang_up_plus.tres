@@ -1,0 +1,27 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c3gu9plusaa01"]
+
+[ext_resource type="Script" path="res://characters/warrior/cards/gang_up_plus.gd" id="1_5mkbf"]
+[ext_resource type="Texture2D" uid="uid://db4pmraqg2qds" path="res://gptgangup.png" id="1_14asw"]
+[ext_resource type="AudioStream" uid="uid://d66mkrcpmfir" path="res://chargedicesound.mp3" id="3_06vo6"]
+
+[resource]
+script = ExtResource("1_5mkbf")
+id = "card_gang_up_plus"
+name = "Gang Up+"
+type = 1
+target = 0
+description = "Charge 5 Blue Dice"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 7
+requirement_number = 6
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Charge"
+upgraded = true
+icon = ExtResource("1_14asw")
+tooltip_text = ""
+sound = ExtResource("3_06vo6")

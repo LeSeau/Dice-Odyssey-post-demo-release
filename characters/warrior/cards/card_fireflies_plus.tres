@@ -1,0 +1,27 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5ff00000039"]
+
+[ext_resource type="Texture2D" uid="uid://dulwe7hmldibr" path="res://fireflies_ok.png" id="1_qvmsn"]
+[ext_resource type="Script" path="res://characters/warrior/cards/fireflies_plus.gd" id="2_cms6e"]
+[ext_resource type="AudioStream" uid="uid://68q2f8fotq13" path="res://sounds/blocksound.mp3" id="3_ftywo"]
+
+[resource]
+script = ExtResource("2_cms6e")
+id = "card_fireflies_plus"
+name = "Fireflies+"
+type = 1
+target = 0
+description = "Block X. Boost 7"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 0
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Boost"
+upgraded = true
+icon = ExtResource("1_qvmsn")
+tooltip_text = ""
+sound = ExtResource("3_ftywo")

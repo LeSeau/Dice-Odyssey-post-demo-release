@@ -1,0 +1,27 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c3rp9plusaa05"]
+
+[ext_resource type="Texture2D" uid="uid://d0sqx1k0kk4am" path="res://rupture_v2.png" id="1_5f3hb"]
+[ext_resource type="Script" path="res://characters/warrior/cards/rupture_plus.gd" id="2_o6txs"]
+[ext_resource type="AudioStream" uid="uid://csxs8784ydfwg" path="res://kamikazesound.mp3" id="3_61mxr"]
+
+[resource]
+script = ExtResource("2_o6txs")
+id = "card_rupture_plus"
+name = "Rupture+"
+type = 0
+target = 1
+description = "Deal X damage. Apply Exposed 3"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 1
+requirement_number = 6
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Exposed"
+upgraded = true
+icon = ExtResource("1_5f3hb")
+tooltip_text = ""
+sound = ExtResource("3_61mxr")

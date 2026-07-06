@@ -1,0 +1,24 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://c3sc9plusaa07"]
+
+[ext_resource type="Texture2D" uid="uid://brl4p4svfvlun" path="res://gptoracle.png" id="1_t1uxw"]
+[ext_resource type="Script" path="res://characters/warrior/cards/oracle_scout5.gd" id="2_miulw"]
+
+[resource]
+script = ExtResource("2_miulw")
+id = "card_oracle5"
+name = "Scout 5"
+type = 1
+target = 0
+description = "Scout 5. Exhaust"
+rarity = 1
+red_only = false
+can_play_without_dice = true
+requirement = 0
+requirement_number = 0
+exhausts = true
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Scout, Exhaust"
+icon = ExtResource("1_t1uxw")
+tooltip_text = ""

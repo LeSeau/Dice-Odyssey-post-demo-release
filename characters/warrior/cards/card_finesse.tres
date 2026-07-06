@@ -1,8 +1,9 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://ddxtqhwi5q22e"]
+[gd_resource type="Resource" load_steps=5 format=3 uid="uid://ddxtqhwi5q22e"]
 
 [ext_resource type="Texture2D" uid="uid://be6it5bysmvpg" path="res://finesse.png" id="1_r2byt"]
 [ext_resource type="Script" path="res://characters/warrior/cards/finesse.gd" id="2_rcu7s"]
 [ext_resource type="AudioStream" uid="uid://cy6owtfbf8sfv" path="res://sounds/fountainheal.wav" id="3_idewr"]
+[ext_resource type="Resource" path="res://characters/warrior/cards/card_finesse_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_rcu7s")
@@ -22,6 +23,7 @@ bonus_requirement_number = 0
 bonus_description_text = ""
 tags = "Boost"
 upgraded = false
+upgraded_version = ExtResource("4_plus")
 icon = ExtResource("1_r2byt")
 tooltip_text = ""
 sound = ExtResource("3_idewr")

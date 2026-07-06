@@ -1,0 +1,16 @@
+extends Card
+
+
+func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
+
+    Global.blue_dice_current_amount+=4
+    Events.change_current_power.emit()
+    var support_effect := SupportEffect.new()
+    support_effect.sound = sound
+    support_effect.execute(targets)
+    Events.dice_roll_reset.emit()
+    Events.dice_amount_changed.emit()
+    Events.charge_dice_animation.emit()
+    Events.reset_charged_card.emit()
+func _on_dice_rolled():
+    print("adding dice to damage")

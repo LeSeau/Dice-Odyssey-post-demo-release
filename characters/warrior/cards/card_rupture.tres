@@ -1,8 +1,9 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://bbn0gc6vjjja1"]
+[gd_resource type="Resource" load_steps=5 format=3 uid="uid://bbn0gc6vjjja1"]
 
 [ext_resource type="Texture2D" uid="uid://d0sqx1k0kk4am" path="res://rupture_v2.png" id="1_5f3hb"]
 [ext_resource type="Script" path="res://characters/warrior/cards/rupture.gd" id="2_o6txs"]
 [ext_resource type="AudioStream" uid="uid://csxs8784ydfwg" path="res://kamikazesound.mp3" id="3_61mxr"]
+[ext_resource type="Resource" path="res://characters/warrior/cards/card_rupture_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_o6txs")
@@ -22,6 +23,7 @@ bonus_requirement_number = 0
 bonus_description_text = ""
 tags = "Exposed"
 upgraded = false
+upgraded_version = ExtResource("4_plus")
 icon = ExtResource("1_5f3hb")
 tooltip_text = ""
 sound = ExtResource("3_61mxr")

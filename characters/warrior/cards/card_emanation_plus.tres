@@ -1,0 +1,27 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5em00000023"]
+
+[ext_resource type="Texture2D" uid="uid://bl3vn0j2olda7" path="res://emanation_v2.png" id="1_jmcpc"]
+[ext_resource type="Script" path="res://characters/warrior/cards/emanation_plus.gd" id="2_okgbf"]
+[ext_resource type="AudioStream" uid="uid://cy6owtfbf8sfv" path="res://sounds/fountainheal.wav" id="3_l5mj1"]
+
+[resource]
+script = ExtResource("2_okgbf")
+id = "card_emanation_plus"
+name = "Emanation+"
+type = 2
+target = 0
+description = "Gain 1 more Blue Dice each turn"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 1
+requirement_number = 4
+exhausts = true
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = ""
+upgraded = true
+icon = ExtResource("1_jmcpc")
+tooltip_text = ""
+sound = ExtResource("3_l5mj1")

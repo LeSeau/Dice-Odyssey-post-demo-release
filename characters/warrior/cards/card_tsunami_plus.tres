@@ -1,0 +1,27 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5ts00000042"]
+
+[ext_resource type="Texture2D" uid="uid://bjxekh6bu8o8q" path="res://tsunami.png" id="1_df1cf"]
+[ext_resource type="Script" path="res://characters/warrior/cards/tsunami_plus.gd" id="2_os3hy"]
+[ext_resource type="AudioStream" uid="uid://csxs8784ydfwg" path="res://kamikazesound.mp3" id="3_nrprh"]
+
+[resource]
+script = ExtResource("2_os3hy")
+id = "card_tsunami_plus"
+name = "Tsunami+"
+type = 0
+target = 1
+description = "Deal X damage + 3 for each Dice rolled this turn"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 0
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = ""
+upgraded = true
+icon = ExtResource("1_df1cf")
+tooltip_text = ""
+sound = ExtResource("3_nrprh")

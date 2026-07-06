@@ -1,8 +1,9 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://ds5j6l3p54oxv"]
+[gd_resource type="Resource" load_steps=5 format=3 uid="uid://ds5j6l3p54oxv"]
 
 [ext_resource type="Texture2D" uid="uid://r8mo4fvhnlxs" path="res://kamikaze_nano_new.png" id="1_2nfjr"]
 [ext_resource type="Script" path="res://characters/warrior/cards/kamikaze.gd" id="1_ybx4e"]
 [ext_resource type="AudioStream" uid="uid://csxs8784ydfwg" path="res://kamikazesound.mp3" id="3_wbbjt"]
+[ext_resource type="Resource" path="res://characters/warrior/cards/card_kamikaze_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("1_ybx4e")
@@ -22,6 +23,7 @@ bonus_requirement_number = 0
 bonus_description_text = ""
 tags = ""
 upgraded = false
+upgraded_version = ExtResource("4_plus")
 icon = ExtResource("1_2nfjr")
 tooltip_text = ""
 sound = ExtResource("3_wbbjt")

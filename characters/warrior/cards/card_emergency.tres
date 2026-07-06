@@ -1,8 +1,9 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://dpcld8y688tao"]
+[gd_resource type="Resource" load_steps=5 format=3 uid="uid://dpcld8y688tao"]
 
 [ext_resource type="Texture2D" uid="uid://cnigvxd7lt03y" path="res://emergency_v2.png" id="1_ie5ic"]
 [ext_resource type="Script" path="res://characters/warrior/cards/emergency.gd" id="2_w6hlm"]
 [ext_resource type="AudioStream" uid="uid://knqxepryrqf3" path="res://tensionsound.mp3" id="3_ngtqk"]
+[ext_resource type="Resource" path="res://characters/warrior/cards/card_emergency_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_w6hlm")
@@ -22,6 +23,7 @@ bonus_requirement_number = 0
 bonus_description_text = ""
 tags = ""
 upgraded = false
+upgraded_version = ExtResource("4_plus")
 icon = ExtResource("1_ie5ic")
 tooltip_text = ""
 sound = ExtResource("3_ngtqk")

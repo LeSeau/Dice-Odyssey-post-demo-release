@@ -1,0 +1,27 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5sk00000061"]
+
+[ext_resource type="Texture2D" uid="uid://6si7wrbk0cdd" path="res://strike_v3.png" id="1_3sdk2"]
+[ext_resource type="Script" path="res://characters/warrior/cards/warrior_axe_attack_plus.gd" id="2_tt3tf"]
+[ext_resource type="AudioStream" uid="uid://bnoudyk1my2eh" path="res://impact1ok.mp3" id="3_ixwhk"]
+
+[resource]
+script = ExtResource("2_tt3tf")
+id = "warrior_strike_plus"
+name = "Strike+"
+type = 0
+target = 1
+description = "Deal X+3 damage"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 0
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = ""
+upgraded = true
+icon = ExtResource("1_3sdk2")
+tooltip_text = ""
+sound = ExtResource("3_ixwhk")

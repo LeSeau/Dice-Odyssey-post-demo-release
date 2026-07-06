@@ -1,0 +1,27 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5lb00000063"]
+
+[ext_resource type="Texture2D" uid="uid://cv72ceuh17gln" path="res://nano_low_blow_ok.png" id="1_s3xu2"]
+[ext_resource type="Script" path="res://characters/warrior/cards/low_blow_plus.gd" id="2_62k0g"]
+[ext_resource type="AudioStream" uid="uid://benx6kt8eskgi" path="res://sounds/kamikazefail.mp3" id="3_p8l2t"]
+
+[resource]
+script = ExtResource("2_62k0g")
+id = "warrior_duo_plus"
+name = "Low Blow+"
+type = 0
+target = 1
+description = "Deal X4 damage"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 2
+requirement_number = 3
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = ""
+upgraded = true
+icon = ExtResource("1_s3xu2")
+tooltip_text = ""
+sound = ExtResource("3_p8l2t")

@@ -1,8 +1,9 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5kbrmax6t4uh"]
+[gd_resource type="Resource" load_steps=5 format=3 uid="uid://c5kbrmax6t4uh"]
 
 [ext_resource type="Texture2D" uid="uid://c16x17dds06k2" path="res://aegis.png" id="1_i4o73"]
 [ext_resource type="Script" path="res://characters/warrior/cards/aegis.gd" id="2_6vnve"]
 [ext_resource type="AudioStream" uid="uid://68q2f8fotq13" path="res://sounds/blocksound.mp3" id="3_vn3b4"]
+[ext_resource type="Resource" path="res://characters/warrior/cards/card_aegis_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_6vnve")
@@ -22,6 +23,7 @@ bonus_requirement_number = 0
 bonus_description_text = ""
 tags = ""
 upgraded = false
+upgraded_version = ExtResource("4_plus")
 icon = ExtResource("1_i4o73")
 tooltip_text = ""
 sound = ExtResource("3_vn3b4")

@@ -1,0 +1,27 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5cl00000027"]
+
+[ext_resource type="Texture2D" uid="uid://d2vbqajw1aqko" path="res://catalyst_v2.png" id="1_by36k"]
+[ext_resource type="Script" path="res://characters/warrior/cards/catalyst_plus.gd" id="2_axsma"]
+[ext_resource type="AudioStream" uid="uid://03pj37p20iou" path="res://sounds/recompose.wav" id="3_e3g2s"]
+
+[resource]
+script = ExtResource("2_axsma")
+id = "card_catalyst_plus"
+name = "Catalyst+"
+type = 1
+target = 0
+description = "Refuel your active Dice. Charge 1. Draw 1 card"
+rarity = 1
+red_only = false
+can_play_without_dice = false
+requirement = 0
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Refuel, Charge"
+upgraded = true
+icon = ExtResource("1_by36k")
+tooltip_text = "Refuel your active Dice"
+sound = ExtResource("3_e3g2s")

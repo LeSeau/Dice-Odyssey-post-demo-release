@@ -1,0 +1,27 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5sm00000026"]
+
+[ext_resource type="Texture2D" uid="uid://mytwqp3uoy55" path="res://smash_v2.png" id="1_pnvaa"]
+[ext_resource type="Script" path="res://characters/warrior/cards/smash_plus.gd" id="1_qpkr0"]
+[ext_resource type="AudioStream" uid="uid://csxs8784ydfwg" path="res://kamikazesound.mp3" id="3_7ksx0"]
+
+[resource]
+script = ExtResource("1_qpkr0")
+id = "card_smash_plus"
+name = "Smash+"
+type = 0
+target = 1
+description = "Deal X2 damage. Apply Exposed 2"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 1
+requirement_number = 10
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Exposed"
+upgraded = true
+icon = ExtResource("1_pnvaa")
+tooltip_text = ""
+sound = ExtResource("3_7ksx0")

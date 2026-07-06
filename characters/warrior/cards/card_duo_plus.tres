@@ -1,0 +1,27 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c3do9plusaa18"]
+
+[ext_resource type="Texture2D" uid="uid://cyp8x8e4c0wgi" path="res://gptduo.png" id="1_skqsk"]
+[ext_resource type="Script" path="res://characters/warrior/cards/duo_plus.gd" id="1_vxlt8"]
+[ext_resource type="AudioStream" uid="uid://bryyjsmk8fak6" path="res://detonationsound.mp3" id="3_l3vpg"]
+
+[resource]
+script = ExtResource("1_vxlt8")
+id = "card_duo_plus"
+name = "Duo+"
+type = 0
+target = 1
+description = "Deal X6 damage and gain X6 block"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 7
+requirement_number = 2
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = ""
+upgraded = true
+icon = ExtResource("1_skqsk")
+tooltip_text = ""
+sound = ExtResource("3_l3vpg")

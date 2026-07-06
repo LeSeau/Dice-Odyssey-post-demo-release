@@ -1,8 +1,9 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://cfeu6ccdvyhr2"]
+[gd_resource type="Resource" load_steps=5 format=3 uid="uid://cfeu6ccdvyhr2"]
 
 [ext_resource type="Texture2D" uid="uid://cvnnppo3we0vv" path="res://eclipse.png" id="1_sfpt2"]
 [ext_resource type="Script" path="res://characters/warrior/cards/eclipse.gd" id="2_57mlf"]
 [ext_resource type="AudioStream" uid="uid://dnh25fl6se86b" path="res://eclipse_sound.wav" id="3_tt3kv"]
+[ext_resource type="Resource" path="res://characters/warrior/cards/card_eclipse_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_57mlf")
@@ -22,6 +23,7 @@ bonus_requirement_number = 0
 bonus_description_text = ""
 tags = "Exhaust"
 upgraded = false
+upgraded_version = ExtResource("4_plus")
 icon = ExtResource("1_sfpt2")
 tooltip_text = ""
 sound = ExtResource("3_tt3kv")

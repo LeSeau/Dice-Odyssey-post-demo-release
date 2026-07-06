@@ -1,0 +1,27 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5ck00000030"]
+
+[ext_resource type="Script" path="res://characters/warrior/cards/clank_plus.gd" id="1_rwlve"]
+[ext_resource type="Texture2D" uid="uid://l33pmm34whjx" path="res://clank.png" id="1_uyjnr"]
+[ext_resource type="AudioStream" uid="uid://benx6kt8eskgi" path="res://sounds/kamikazefail.mp3" id="3_ndd0y"]
+
+[resource]
+script = ExtResource("1_rwlve")
+id = "card_clank_plus"
+name = "Clank+"
+type = 0
+target = 1
+description = "Deal X damage twice"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 2
+requirement_number = 10
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = ""
+upgraded = true
+icon = ExtResource("1_uyjnr")
+tooltip_text = ""
+sound = ExtResource("3_ndd0y")

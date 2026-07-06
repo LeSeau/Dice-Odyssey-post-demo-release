@@ -202,6 +202,26 @@ var dice_faces := {
 
 
 
+const SCOUT_DICE_SIZE := 50.0
+const SCOUT_DICE_SEPARATION := 15.0
+const SCOUT_PANEL_CENTER_X := 605.0  # (437 + 773) / 2 - the panel's original designed center, kept fixed so it doesn't drift across repeated resizes
+const SCOUT_PANEL_MIN_WIDTH := 336.0  # original panel width - floor so 3-option Scouts (and fewer) look exactly as before
+const SCOUT_PANEL_SIDE_PADDING := 60.0
+
+# Widens the panel/dice row for Scout variants with more than 3 options (e.g. Scout 5) so the
+# extra faces don't overflow the originally 3-option-sized layout. Centered on the panel's
+# original position rather than its current one to avoid drift across repeated calls.
+func _resize_scout_panel(visible_count: int) -> void:
+    var hbox := scout_panel.get_node("HBoxContainer") as HBoxContainer
+    var content_width: float = visible_count * SCOUT_DICE_SIZE + maxf(0, visible_count - 1) * SCOUT_DICE_SEPARATION
+    hbox.offset_left = -content_width / 2.0
+    hbox.offset_right = content_width / 2.0
+
+    var panel_width: float = maxf(SCOUT_PANEL_MIN_WIDTH, content_width + SCOUT_PANEL_SIDE_PADDING)
+    scout_panel.offset_left = SCOUT_PANEL_CENTER_X - panel_width / 2.0
+    scout_panel.offset_right = SCOUT_PANEL_CENTER_X + panel_width / 2.0
+
+
 func _on_scout_effect(amount: int) -> void:
     #audio_stream_player_2d.stream = load("res://sounds/fountainheal.wav")
     #audio_stream_player_2d.volume_db = 9
@@ -209,6 +229,7 @@ func _on_scout_effect(amount: int) -> void:
     var sfx_scout = preload("res://sfx/153724__carlos_vaquero__violoncello-snap-pizzicato-11.wav")
     SFXPlayer.play(sfx_scout)
     scout_panel.show()
+    _resize_scout_panel(min(amount, scout_faces.size()))
 
     var faces = dice_faces.get(Global.dice_type, [])
     if faces.is_empty():

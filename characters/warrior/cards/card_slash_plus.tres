@@ -1,0 +1,27 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c3sl9plusaa16"]
+
+[ext_resource type="Texture2D" uid="uid://goxackt3qnyb" path="res://slash_v2.png" id="1_yyevv"]
+[ext_resource type="Script" path="res://characters/warrior/cards/slash_plus.gd" id="2_fy3lp"]
+[ext_resource type="AudioStream" uid="uid://dixklg6g4jnsq" path="res://art/slash.ogg" id="3_jm0la"]
+
+[resource]
+script = ExtResource("2_fy3lp")
+id = "card_slash_plus"
+name = "Slash+"
+type = 0
+target = 1
+description = "Deal 8 damage"
+rarity = 0
+red_only = false
+can_play_without_dice = true
+requirement = 0
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = ""
+upgraded = true
+icon = ExtResource("1_yyevv")
+tooltip_text = ""
+sound = ExtResource("3_jm0la")

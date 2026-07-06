@@ -1,0 +1,27 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5fn00000040"]
+
+[ext_resource type="Texture2D" uid="uid://be6it5bysmvpg" path="res://finesse.png" id="1_r2byt"]
+[ext_resource type="Script" path="res://characters/warrior/cards/finesse_plus.gd" id="2_rcu7s"]
+[ext_resource type="AudioStream" uid="uid://cy6owtfbf8sfv" path="res://sounds/fountainheal.wav" id="3_idewr"]
+
+[resource]
+script = ExtResource("2_rcu7s")
+id = "card_finesse_plus"
+name = "Finesse+"
+type = 1
+target = 0
+description = "Boost 8"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 2
+requirement_number = 3
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Boost"
+upgraded = true
+icon = ExtResource("1_r2byt")
+tooltip_text = ""
+sound = ExtResource("3_idewr")

@@ -1,0 +1,27 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5fl00000049"]
+
+[ext_resource type="Texture2D" uid="uid://xi788rq6u78s" path="res://flurry.png" id="1_4koo4"]
+[ext_resource type="Script" path="res://characters/warrior/cards/flurry_plus.gd" id="2_shfxm"]
+[ext_resource type="AudioStream" uid="uid://b2l4kmoq5ivyx" path="res://whipsound.mp3" id="3_gsppk"]
+
+[resource]
+script = ExtResource("2_shfxm")
+id = "card_flurry_plus"
+name = "Flurry+"
+type = 0
+target = 1
+description = "Deal X3 damage"
+rarity = 0
+red_only = true
+can_play_without_dice = false
+requirement = 5
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = ""
+upgraded = true
+icon = ExtResource("1_4koo4")
+tooltip_text = ""
+sound = ExtResource("3_gsppk")

@@ -1,8 +1,9 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://crxhpqr4b4l1m"]
+[gd_resource type="Resource" load_steps=5 format=3 uid="uid://crxhpqr4b4l1m"]
 
 [ext_resource type="Texture2D" uid="uid://kcjvtkdjfj6x" path="res://bolster_v2.png" id="1_4tp04"]
 [ext_resource type="Script" path="res://characters/warrior/cards/bolster.gd" id="2_ld5fs"]
 [ext_resource type="AudioStream" uid="uid://cy6owtfbf8sfv" path="res://sounds/fountainheal.wav" id="3_se2qp"]
+[ext_resource type="Resource" path="res://characters/warrior/cards/card_bolster_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_ld5fs")
@@ -22,6 +23,7 @@ bonus_requirement_number = 0
 bonus_description_text = ""
 tags = "Strength"
 upgraded = false
+upgraded_version = ExtResource("4_plus")
 icon = ExtResource("1_4tp04")
 tooltip_text = ""
 sound = ExtResource("3_se2qp")

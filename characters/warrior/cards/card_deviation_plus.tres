@@ -1,0 +1,27 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5dv00000038"]
+
+[ext_resource type="Texture2D" uid="uid://cqglhw575i2b2" path="res://deviation.png" id="1_2u33o"]
+[ext_resource type="Script" path="res://characters/warrior/cards/deviation_plus.gd" id="1_u5mnk"]
+[ext_resource type="AudioStream" uid="uid://68q2f8fotq13" path="res://sounds/blocksound.mp3" id="3_rwtr7"]
+
+[resource]
+script = ExtResource("1_u5mnk")
+id = "card_deviation_plus"
+name = "Deviation+"
+type = 1
+target = 0
+description = "Block X. Charge a Giant Dice"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 3
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Charge, Giant Dice"
+upgraded = true
+icon = ExtResource("1_2u33o")
+tooltip_text = ""
+sound = ExtResource("3_rwtr7")

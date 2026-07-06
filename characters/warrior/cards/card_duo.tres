@@ -1,8 +1,9 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5cbkfhrtshlw"]
+[gd_resource type="Resource" load_steps=5 format=3 uid="uid://c5cbkfhrtshlw"]
 
 [ext_resource type="Texture2D" uid="uid://cyp8x8e4c0wgi" path="res://gptduo.png" id="1_skqsk"]
 [ext_resource type="Script" path="res://characters/warrior/cards/duo.gd" id="1_vxlt8"]
 [ext_resource type="AudioStream" uid="uid://bryyjsmk8fak6" path="res://detonationsound.mp3" id="3_l3vpg"]
+[ext_resource type="Resource" path="res://characters/warrior/cards/card_duo_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("1_vxlt8")
@@ -22,6 +23,7 @@ bonus_requirement_number = 0
 bonus_description_text = ""
 tags = ""
 upgraded = false
+upgraded_version = ExtResource("4_plus")
 icon = ExtResource("1_skqsk")
 tooltip_text = ""
 sound = ExtResource("3_l3vpg")

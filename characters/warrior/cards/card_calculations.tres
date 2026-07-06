@@ -1,8 +1,9 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://ccfkop0vivwl4"]
+[gd_resource type="Resource" load_steps=5 format=3 uid="uid://ccfkop0vivwl4"]
 
 [ext_resource type="Texture2D" uid="uid://chdes7gu4y4db" path="res://gptcalculations.png" id="1_3u8qr"]
 [ext_resource type="Script" path="res://characters/warrior/cards/calculations.gd" id="1_oattr"]
 [ext_resource type="AudioStream" uid="uid://cy6owtfbf8sfv" path="res://sounds/fountainheal.wav" id="3_6a1gu"]
+[ext_resource type="Resource" path="res://characters/warrior/cards/card_calculations_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("1_oattr")
@@ -22,6 +23,7 @@ bonus_requirement_number = 0
 bonus_description_text = ""
 tags = "Charge, Scout"
 upgraded = false
+upgraded_version = ExtResource("4_plus")
 icon = ExtResource("1_3u8qr")
 tooltip_text = ""
 sound = ExtResource("3_6a1gu")

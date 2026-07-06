@@ -1,8 +1,9 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://bn6mpgd3y8vg6"]
+[gd_resource type="Resource" load_steps=5 format=3 uid="uid://bn6mpgd3y8vg6"]
 
 [ext_resource type="Texture2D" uid="uid://bg804lxexmmdw" path="res://eyepoke_fixed.png" id="1_sx04d"]
 [ext_resource type="Script" path="res://characters/warrior/cards/eyepoke.gd" id="2_wusk6"]
 [ext_resource type="AudioStream" uid="uid://csxs8784ydfwg" path="res://kamikazesound.mp3" id="3_s7ges"]
+[ext_resource type="Resource" path="res://characters/warrior/cards/card_eyepoke_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_wusk6")
@@ -22,6 +23,7 @@ bonus_requirement_number = 0
 bonus_description_text = ""
 tags = ""
 upgraded = false
+upgraded_version = ExtResource("4_plus")
 icon = ExtResource("1_sx04d")
 tooltip_text = ""
 sound = ExtResource("3_s7ges")

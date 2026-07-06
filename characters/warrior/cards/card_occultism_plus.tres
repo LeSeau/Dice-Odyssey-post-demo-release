@@ -1,0 +1,27 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5oc00000046"]
+
+[ext_resource type="Texture2D" uid="uid://b7jhqxk5g6nid" path="res://occultism.png" id="1_idvlm"]
+[ext_resource type="Script" path="res://characters/warrior/cards/occultism_plus.gd" id="2_3opf4"]
+[ext_resource type="AudioStream" uid="uid://cy6owtfbf8sfv" path="res://sounds/fountainheal.wav" id="3_inuc7"]
+
+[resource]
+script = ExtResource("2_3opf4")
+id = "card_occultism_plus"
+name = "Occultism+"
+type = 1
+target = 0
+description = "Charge 1 Giant Dice"
+rarity = 1
+red_only = false
+can_play_without_dice = true
+requirement = 0
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Charge"
+upgraded = true
+icon = ExtResource("1_idvlm")
+tooltip_text = ""
+sound = ExtResource("3_inuc7")

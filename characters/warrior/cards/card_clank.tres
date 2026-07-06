@@ -1,8 +1,9 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://buot3va281ke8"]
+[gd_resource type="Resource" load_steps=5 format=3 uid="uid://buot3va281ke8"]
 
 [ext_resource type="Script" path="res://characters/warrior/cards/clank.gd" id="1_rwlve"]
 [ext_resource type="Texture2D" uid="uid://l33pmm34whjx" path="res://clank.png" id="1_uyjnr"]
 [ext_resource type="AudioStream" uid="uid://benx6kt8eskgi" path="res://sounds/kamikazefail.mp3" id="3_ndd0y"]
+[ext_resource type="Resource" path="res://characters/warrior/cards/card_clank_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("1_rwlve")
@@ -22,6 +23,7 @@ bonus_requirement_number = 0
 bonus_description_text = ""
 tags = ""
 upgraded = false
+upgraded_version = ExtResource("4_plus")
 icon = ExtResource("1_uyjnr")
 tooltip_text = ""
 sound = ExtResource("3_ndd0y")

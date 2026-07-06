@@ -1,8 +1,9 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://dhawnnt5h2xh8"]
+[gd_resource type="Resource" load_steps=5 format=3 uid="uid://dhawnnt5h2xh8"]
 
 [ext_resource type="Texture2D" uid="uid://mytwqp3uoy55" path="res://smash_v2.png" id="1_pnvaa"]
 [ext_resource type="Script" path="res://characters/warrior/cards/smash.gd" id="1_qpkr0"]
 [ext_resource type="AudioStream" uid="uid://csxs8784ydfwg" path="res://kamikazesound.mp3" id="3_7ksx0"]
+[ext_resource type="Resource" path="res://characters/warrior/cards/card_smash_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("1_qpkr0")
@@ -22,6 +23,7 @@ bonus_requirement_number = 0
 bonus_description_text = ""
 tags = ""
 upgraded = false
+upgraded_version = ExtResource("4_plus")
 icon = ExtResource("1_pnvaa")
 tooltip_text = ""
 sound = ExtResource("3_7ksx0")

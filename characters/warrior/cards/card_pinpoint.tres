@@ -1,8 +1,9 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://dw8hum84xltvb"]
+[gd_resource type="Resource" load_steps=5 format=3 uid="uid://dw8hum84xltvb"]
 
 [ext_resource type="Script" path="res://characters/warrior/cards/pinpoint.gd" id="2_7s1cn"]
 [ext_resource type="Texture2D" uid="uid://bepnw44pxhrdl" path="res://gptpinpoint.png" id="2_n3obm"]
 [ext_resource type="AudioStream" uid="uid://csxs8784ydfwg" path="res://kamikazesound.mp3" id="3_cd6v4"]
+[ext_resource type="Resource" path="res://characters/warrior/cards/card_pinpoint_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_7s1cn")
@@ -22,6 +23,7 @@ bonus_requirement_number = 0
 bonus_description_text = ""
 tags = ""
 upgraded = false
+upgraded_version = ExtResource("4_plus")
 icon = ExtResource("2_n3obm")
 tooltip_text = ""
 sound = ExtResource("3_cd6v4")

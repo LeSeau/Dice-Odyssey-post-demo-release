@@ -1,8 +1,9 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://cmfkht5nsktxu"]
+[gd_resource type="Resource" load_steps=5 format=3 uid="uid://cmfkht5nsktxu"]
 
 [ext_resource type="Texture2D" uid="uid://bvr4vbfb304nb" path="res://supplication.png" id="1_5r87j"]
 [ext_resource type="Script" path="res://characters/warrior/cards/supplication.gd" id="2_gd65b"]
 [ext_resource type="AudioStream" uid="uid://cy6owtfbf8sfv" path="res://sounds/fountainheal.wav" id="3_oxqu6"]
+[ext_resource type="Resource" path="res://characters/warrior/cards/card_supplication_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_gd65b")
@@ -22,6 +23,7 @@ bonus_requirement_number = 0
 bonus_description_text = ""
 tags = "Charge, Green Dice"
 upgraded = false
+upgraded_version = ExtResource("4_plus")
 icon = ExtResource("1_5r87j")
 tooltip_text = ""
 sound = ExtResource("3_oxqu6")

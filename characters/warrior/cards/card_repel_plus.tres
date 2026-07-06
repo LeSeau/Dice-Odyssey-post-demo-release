@@ -1,0 +1,27 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5rp00000044"]
+
+[ext_resource type="Texture2D" uid="uid://dxncnc34b3bpu" path="res://repel.png" id="1_gjpk0"]
+[ext_resource type="Script" path="res://characters/warrior/cards/repel_plus.gd" id="2_p7jew"]
+[ext_resource type="AudioStream" uid="uid://68q2f8fotq13" path="res://sounds/blocksound.mp3" id="3_icuhh"]
+
+[resource]
+script = ExtResource("2_p7jew")
+id = "card_repel_plus"
+name = "Repel+"
+type = 1
+target = 0
+description = "Block X. Draw 3 cards"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 0
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = ""
+upgraded = true
+icon = ExtResource("1_gjpk0")
+tooltip_text = ""
+sound = ExtResource("3_icuhh")

@@ -1,8 +1,9 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://5dbpyslgpkdh"]
+[gd_resource type="Resource" load_steps=5 format=3 uid="uid://5dbpyslgpkdh"]
 
 [ext_resource type="Texture2D" uid="uid://dpvc44440nqk3" path="res://gptdeflect.png" id="1_ecw4k"]
 [ext_resource type="Script" path="res://characters/warrior/cards/deflect.gd" id="1_ooq2m"]
 [ext_resource type="AudioStream" uid="uid://68q2f8fotq13" path="res://sounds/blocksound.mp3" id="3_ok06q"]
+[ext_resource type="Resource" path="res://characters/warrior/cards/card_deflect_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("1_ooq2m")
@@ -22,6 +23,7 @@ bonus_requirement_number = 0
 bonus_description_text = ""
 tags = ""
 upgraded = false
+upgraded_version = ExtResource("4_plus")
 icon = ExtResource("1_ecw4k")
 tooltip_text = ""
 sound = ExtResource("3_ok06q")

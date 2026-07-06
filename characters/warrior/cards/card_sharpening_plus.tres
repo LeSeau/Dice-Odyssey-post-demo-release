@@ -1,0 +1,27 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5sp00000021"]
+
+[ext_resource type="Texture2D" uid="uid://d4ff33nnsvwrl" path="res://sharpening_v2.png" id="1_ntnri"]
+[ext_resource type="AudioStream" uid="uid://df64e7qat73gs" path="res://art/block.ogg" id="2_nqo8b"]
+[ext_resource type="Script" path="res://characters/warrior/cards/sharpening_plus.gd" id="2_ys5xw"]
+
+[resource]
+script = ExtResource("2_ys5xw")
+id = "sharpening_plus"
+name = "Sharpening+"
+type = 1
+target = 0
+description = "Block X. Charge 1"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 1
+requirement_number = 4
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Charge"
+upgraded = true
+icon = ExtResource("1_ntnri")
+tooltip_text = ""
+sound = ExtResource("2_nqo8b")

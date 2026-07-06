@@ -1,8 +1,9 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://dk6nibemseofc"]
+[gd_resource type="Resource" load_steps=5 format=3 uid="uid://dk6nibemseofc"]
 
 [ext_resource type="Texture2D" uid="uid://5l42vbu3nvva" path="res://disintegration.png" id="1_f7qh4"]
 [ext_resource type="Script" path="res://characters/warrior/cards/disintegration.gd" id="1_rqilr"]
 [ext_resource type="AudioStream" uid="uid://bnoudyk1my2eh" path="res://impact1ok.mp3" id="2_whbe5"]
+[ext_resource type="Resource" path="res://characters/warrior/cards/card_disintegration_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("1_rqilr")
@@ -22,6 +23,7 @@ bonus_requirement_number = 0
 bonus_description_text = ""
 tags = "Charge"
 upgraded = false
+upgraded_version = ExtResource("4_plus")
 icon = ExtResource("1_f7qh4")
 tooltip_text = ""
 sound = ExtResource("2_whbe5")

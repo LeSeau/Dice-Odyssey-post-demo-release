@@ -32,6 +32,17 @@ const CELESTIAL_DESC_STYLEBOX := preload("res://scenes/card_ui/card_ui_descripti
 const CELESTIAL_REQUIREMENT_NONE_STYLEBOX := preload("res://scenes/card_ui/card_requirement_none_celestial.tres")
 const CELESTIAL_ART_STYLEBOX := preload("res://scenes/card_ui/card_ui_celestial_art.tres")
 const HOVER_CELESTIAL_STYLEBOX := preload("res://scenes/card_ui/card_ui_hover_celestial.tres")
+const HOVER_BLESSING_STYLEBOX := preload("res://scenes/card_ui/card_ui_hover_blessing.tres")
+
+# Explicit "normal card" values, matching what CardBanner/DescriptionPanel/Description already
+# had baked into card_menu_ui.tscn as their default theme_override_* properties. That baked
+# .tscn value IS the same per-node override storage add_theme_*_override()/remove_theme_*_
+# override() manipulate at runtime (there's no separate "scene default" layer to fall back to)
+# - so resetting a reused node to normal must re-apply these explicitly, not remove_*_override(),
+# which would strip the .tscn value entirely and fall through to the generic theme default.
+const NORMAL_BANNER_STYLEBOX := preload("res://scenes/card_ui/card_banner.tres")
+const NORMAL_DESC_STYLEBOX := preload("res://scenes/card_ui/card_ui_description_panel_normal.tres")
+const NORMAL_DESC_OUTLINE_COLOR := Color(0.22554, 1.57929e-07, 0.0404674, 1)
 # Description is now a RichTextLabel (converted so keyword colors from Card.get_colorized_
 # description() can render), which has no `label_settings` property. This LabelSettings
 # resource is kept preloaded anyway, purely as the source of truth for .outline_color below -
@@ -88,7 +99,7 @@ func _on_visuals_mouse_entered() -> void:
     if card and card.can_play_without_dice:
         card_frame.set("theme_override_styles/panel", HOVER_CELESTIAL_STYLEBOX)
     elif card and card.type == Card.Type.BLESSING:
-        card_frame.set("theme_override_styles/panel", BLESSING_STYLEBOX)
+        card_frame.set("theme_override_styles/panel", HOVER_BLESSING_STYLEBOX)
     else:
         card_frame.set("theme_override_styles/panel", HOVER_STYLEBOX)
 
@@ -137,18 +148,28 @@ func set_card(value: Card) -> void:
     elif card.requirement == Card.Requirement.MULTIPLE:
         requirement_panel.add_theme_stylebox_override("panel", MULTIPLE_STYLEBOX)
         requirement_label.text = "Mult %d" % card.requirement_number
-    if card.type == Card.Type.BLESSING:
-        card_banner.add_theme_stylebox_override("panel", BLESSING_BANNER_STYLEBOX)
-        description_panel.add_theme_stylebox_override("panel", BLESSING_DESC_STYLEBOX)
-        card_frame.add_theme_stylebox_override("panel", BLESSING_STYLEBOX)
-        description.add_theme_color_override("font_outline_color", BLESSING_DESC_LABEL_SETTINGS.outline_color)
-
+    # Celestial and Blessing each override CardFrame/CardBanner/DescriptionPanel/description
+    # outline - reset to the plain-card look in the else branch, otherwise a CardMenuUI node
+    # that's reused for multiple cards (e.g. the upgrade confirm dialog's before/after preview)
+    # keeps showing the PREVIOUS card's Celestial/Blessing styling forever, since nothing else
+    # in this file ever clears these overrides. Freshly-instantiated cards (shop/reward grids)
+    # never had an override to begin with, so this is a no-op for them.
     if card.can_play_without_dice:
         description_panel.add_theme_stylebox_override("panel", CELESTIAL_DESC_STYLEBOX)
         card_banner.add_theme_stylebox_override("panel", CELESTIAL_BANNER_STYLEBOX)
         card_frame.add_theme_stylebox_override("panel", SUPPORT_STYLEBOX)
         requirement_panel.add_theme_stylebox_override("panel", CELESTIAL_REQUIREMENT_NONE_STYLEBOX)
         description.add_theme_color_override("font_outline_color", CELESTIAL_DESC_LABEL_SETTINGS.outline_color)
+    elif card.type == Card.Type.BLESSING:
+        card_banner.add_theme_stylebox_override("panel", BLESSING_BANNER_STYLEBOX)
+        description_panel.add_theme_stylebox_override("panel", BLESSING_DESC_STYLEBOX)
+        card_frame.add_theme_stylebox_override("panel", BLESSING_STYLEBOX)
+        description.add_theme_color_override("font_outline_color", BLESSING_DESC_LABEL_SETTINGS.outline_color)
+    else:
+        description_panel.add_theme_stylebox_override("panel", NORMAL_DESC_STYLEBOX)
+        card_banner.add_theme_stylebox_override("panel", NORMAL_BANNER_STYLEBOX)
+        card_frame.add_theme_stylebox_override("panel", BASE_STYLEBOX)
+        description.add_theme_color_override("font_outline_color", NORMAL_DESC_OUTLINE_COLOR)
     # Make sure to show the bonus_effect container if it has a requirement
     if card.bonus_requirement == Card.Requirement.NONE:
         bonus_effect.hide()

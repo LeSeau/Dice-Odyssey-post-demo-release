@@ -1,8 +1,9 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://cvhv4307yh4j2"]
+[gd_resource type="Resource" load_steps=5 format=3 uid="uid://cvhv4307yh4j2"]
 
 [ext_resource type="Texture2D" uid="uid://ciuqp1saq2fjs" path="res://preparation_v2.png" id="1_ffi6j"]
 [ext_resource type="Script" path="res://characters/warrior/cards/preparation.gd" id="2_jlbnf"]
 [ext_resource type="AudioStream" uid="uid://cy6owtfbf8sfv" path="res://sounds/fountainheal.wav" id="3_ap5ep"]
+[ext_resource type="Resource" path="res://characters/warrior/cards/card_preparation_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_jlbnf")
@@ -22,6 +23,7 @@ bonus_requirement_number = 0
 bonus_description_text = ""
 tags = "Scout"
 upgraded = false
+upgraded_version = ExtResource("4_plus")
 icon = ExtResource("1_ffi6j")
 tooltip_text = ""
 sound = ExtResource("3_ap5ep")

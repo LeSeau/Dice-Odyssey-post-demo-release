@@ -1,0 +1,27 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5sv00000036"]
+
+[ext_resource type="Texture2D" uid="uid://15qdyodgr8l0" path="res://swipe.png" id="1_7au6t"]
+[ext_resource type="Script" path="res://characters/warrior/cards/swipe_plus.gd" id="2_kjta4"]
+[ext_resource type="AudioStream" uid="uid://csxs8784ydfwg" path="res://kamikazesound.mp3" id="3_1xe4c"]
+
+[resource]
+script = ExtResource("2_kjta4")
+id = "card_swipe_plus"
+name = "Swipe+"
+type = 0
+target = 1
+description = "Deal X damage. Gain a Scout 5 card"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 0
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Scout"
+upgraded = true
+icon = ExtResource("1_7au6t")
+tooltip_text = ""
+sound = ExtResource("3_1xe4c")

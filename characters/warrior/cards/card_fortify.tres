@@ -1,8 +1,9 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://d0q2wdpsqux6"]
+[gd_resource type="Resource" load_steps=5 format=3 uid="uid://d0q2wdpsqux6"]
 
 [ext_resource type="Texture2D" uid="uid://dfnlg8lb1f5la" path="res://fortify.png" id="1_kmhvb"]
 [ext_resource type="Script" path="res://characters/warrior/cards/fortify.gd" id="1_oq7mj"]
 [ext_resource type="AudioStream" uid="uid://68q2f8fotq13" path="res://sounds/blocksound.mp3" id="3_k6lv8"]
+[ext_resource type="Resource" path="res://characters/warrior/cards/card_fortify_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("1_oq7mj")
@@ -22,6 +23,7 @@ bonus_requirement_number = 0
 bonus_description_text = ""
 tags = "Strength"
 upgraded = false
+upgraded_version = ExtResource("4_plus")
 icon = ExtResource("1_kmhvb")
 tooltip_text = ""
 sound = ExtResource("3_k6lv8")

@@ -1,8 +1,9 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://cpqu8iv8mx7g"]
+[gd_resource type="Resource" load_steps=5 format=3 uid="uid://cpqu8iv8mx7g"]
 
 [ext_resource type="Texture2D" uid="uid://dxncnc34b3bpu" path="res://repel.png" id="1_gjpk0"]
 [ext_resource type="Script" path="res://characters/warrior/cards/repel.gd" id="2_p7jew"]
 [ext_resource type="AudioStream" uid="uid://68q2f8fotq13" path="res://sounds/blocksound.mp3" id="3_icuhh"]
+[ext_resource type="Resource" path="res://characters/warrior/cards/card_repel_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_p7jew")
@@ -22,6 +23,7 @@ bonus_requirement_number = 0
 bonus_description_text = ""
 tags = ""
 upgraded = false
+upgraded_version = ExtResource("4_plus")
 icon = ExtResource("1_gjpk0")
 tooltip_text = ""
 sound = ExtResource("3_icuhh")

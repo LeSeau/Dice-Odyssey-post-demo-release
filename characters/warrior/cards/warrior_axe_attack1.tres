@@ -1,8 +1,9 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://cyeasiqyaw7j1"]
+[gd_resource type="Resource" load_steps=5 format=3 uid="uid://cyeasiqyaw7j1"]
 
 [ext_resource type="Texture2D" uid="uid://6si7wrbk0cdd" path="res://strike_v3.png" id="1_3sdk2"]
 [ext_resource type="Script" path="res://characters/warrior/cards/warrior_axe_attack.gd" id="2_tt3tf"]
 [ext_resource type="AudioStream" uid="uid://bnoudyk1my2eh" path="res://impact1ok.mp3" id="3_ixwhk"]
+[ext_resource type="Resource" path="res://characters/warrior/cards/warrior_axe_attack_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_tt3tf")
@@ -21,6 +22,8 @@ bonus_requirement = 0
 bonus_requirement_number = 0
 bonus_description_text = ""
 tags = ""
+upgraded = false
+upgraded_version = ExtResource("4_plus")
 icon = ExtResource("1_3sdk2")
 tooltip_text = ""
 sound = ExtResource("3_ixwhk")

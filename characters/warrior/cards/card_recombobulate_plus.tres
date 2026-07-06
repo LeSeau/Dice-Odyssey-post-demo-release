@@ -1,0 +1,27 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5rc00000065"]
+
+[ext_resource type="Texture2D" uid="uid://co3uvnbbcftev" path="res://gptrecombobulate.png" id="1_xyt74"]
+[ext_resource type="Script" path="res://characters/warrior/cards/recombobulate_plus.gd" id="2_gx5y5"]
+[ext_resource type="AudioStream" uid="uid://03pj37p20iou" path="res://sounds/recompose.wav" id="3_hdrx6"]
+
+[resource]
+script = ExtResource("2_gx5y5")
+id = "card_recombobulate_plus"
+name = "Recombobulate+"
+type = 1
+target = 0
+description = "Refuel your active Dice. Draw 1 card"
+rarity = 1
+red_only = false
+can_play_without_dice = false
+requirement = 0
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Refuel"
+upgraded = true
+icon = ExtResource("1_xyt74")
+tooltip_text = "Refuel your active Dice"
+sound = ExtResource("3_hdrx6")

@@ -1,8 +1,9 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://ba8qphrt5lu44"]
+[gd_resource type="Resource" load_steps=5 format=3 uid="uid://ba8qphrt5lu44"]
 
 [ext_resource type="Texture2D" uid="uid://vor8pscwqsc5" path="res://electrify.png" id="1_3rygl"]
 [ext_resource type="Script" path="res://characters/warrior/cards/electrify.gd" id="2_jpcel"]
 [ext_resource type="AudioStream" uid="uid://bf1ik7wu4cvdb" path="res://electrify_sound.wav" id="3_0y5sh"]
+[ext_resource type="Resource" path="res://characters/warrior/cards/card_electrify_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_jpcel")
@@ -22,6 +23,7 @@ bonus_requirement_number = 0
 bonus_description_text = ""
 tags = "Charge, Depleted"
 upgraded = false
+upgraded_version = ExtResource("4_plus")
 icon = ExtResource("1_3rygl")
 tooltip_text = ""
 sound = ExtResource("3_0y5sh")
