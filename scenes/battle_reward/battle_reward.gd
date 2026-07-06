@@ -34,6 +34,10 @@ var warning_dismissed := false
 @onready var warning_panel: Panel = $WarningPanel
 @onready var confirm_button: Button = $WarningPanel/ConfirmButton
 @onready var gg_panel: Panel = $GGPanel
+@onready var gg_label_title: Label = $GGPanel/GGLabelTitle
+@onready var gg_label_text: RichTextLabel = $GGPanel/GGLabelText
+@onready var join_discord_control: Control = $GGPanel/JoinDiscordControl
+@onready var continue_act_2_button: Button = $GGPanel/ContinueAct2Button
 
 
 var card_reward_total_weight := 0.0
@@ -53,8 +57,12 @@ func _ready() -> void:
 
     audio_player.stream = load("res://success.mp3")
     audio_player.play()
-    # Show GG panel if final boss was defeated
+    # Show GG panel if a boss was defeated: after the act-1 boss it becomes the
+    # act-transition panel (retitled + Continue button), after the act-2 boss it
+    # stays the original final "thanks for playing" panel from the .tscn.
     if Global.is_final_boss_fight:
+        if Global.current_act == 1:
+            _setup_act_transition_panel()
         gg_panel.show()
         Global.is_final_boss_fight = false
     else:
@@ -279,3 +287,25 @@ func _on_confirm_button_pressed() -> void:
 
 func _on_join_discord_button_pressed() -> void:
     OS.shell_open("https://discord.gg/fah8A2qQx2")
+
+
+# Act-1-complete variant of the GG panel: same panel, retitled, Discord control
+# swapped out for the Continue button. The actual act switch is armed in run.gd
+# (_on_battle_won) and fires on the next return to the map - this button only
+# dismisses the panel, so the boss gold/card rewards underneath can still be
+# collected before leaving.
+func _setup_act_transition_panel() -> void:
+    gg_label_title.text = "Act 1 Complete!"
+    gg_label_text.text = "[color=pink]Looks like you know how to roll Dice![/color] But the dungeon runs deeper...
+
+Gather your rewards, then continue when you're ready.
+
+[color=gold]You will be fully healed upon entering Act 2.[/color]
+"
+    join_discord_control.hide()
+    continue_act_2_button.show()
+
+
+func _on_continue_act_2_button_pressed() -> void:
+    SFXPlayer.play(Global.sfx_click)
+    gg_panel.hide()

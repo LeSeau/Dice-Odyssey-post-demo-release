@@ -111,6 +111,11 @@ var tutorial_blessing_explanation_needed = true
 var is_final_boss_fight = false
 var game_over_state = false
 
+# Which act the run is currently in (1 or 2). Reset by run.gd::_start_run(), flipped
+# to 2 by run.gd::_enter_act_2() after the act-1 boss. Battle scaling (battle.gd) and
+# battle-pool selection (run.gd) both read this.
+var current_act := 1
+
 var no_reset: bool = false
 
 var pending_card_rewards = 1

@@ -13,6 +13,17 @@ const SHOP_SCENE := preload ("res://scenes/shop/card_shop.tscn")
 
 const TREASURE_GOLD_REWARD := 50
 
+# --- Act 2 (placeholder content) -----------------------------------------
+# Act 2 recycles act-1 fights: each act-local tier draws from a HIGHER act-1
+# pool (act-2 floors 1-3 serve act-1 tier-1 fights, everything deeper serves
+# act-1 tier-2 fights; elites/boss reuse themselves). The numeric scaling that
+# makes them act-2-sized happens at spawn time in battle.gd (ACT2_* constants
+# there), not here and not in any .tres file.
+const ACT2_SOURCE_TIER := {0: 1, 1: 2, 2: 2, 3: 3, 4: 4}
+# Act-2 fights pay more so a 2nd/3rd dice purchase stays reachable under the
+# global x1.4 dice-price escalation.
+const ACT2_GOLD_MULT := 1.5
+
 @onready var current_view: Node = $CurrentView
 @onready var map_button: Button = %MapButton
 @onready var battle_button: Button = %BattleButton
@@ -41,6 +52,7 @@ const TREASURE_GOLD_REWARD := 50
 
 @onready var affordable_indicator: Label = $TopBar/BarItems/DiceShop/AffordableIndicator
 @onready var dice_shop_explanation_box: Panel = $TopBar/DiceShopExplanationBox
+@onready var act_banner: CanvasLayer = $ActBanner
 
 
 @export var event_stats_pool: EventStatsPool
@@ -51,6 +63,13 @@ var stats: RunStats
 var character: CharacterStats
 var dice_displays = {}
 var used_battles: Array[BattleStats] = []  # Track used battles during this run
+
+# Armed by _on_battle_won when the act-1 boss falls; fires on the next return to
+# the map (i.e. after the boss reward screen), so boss gold/card aren't skipped.
+var act_transition_pending := false
+# Pristine copy of the event pool, snapshotted before act 1 consumes any of it -
+# restored on act 2 entry so act 2 can recycle the same events.
+var initial_event_pool: Array[EventStats] = []
 
 var sfx_click = preload("res://sfx/219069__annabloom__click1.wav")
 
@@ -181,6 +200,8 @@ func _on_update_dice_top_bar() -> void:
 
 func _start_run() -> void:
     stats = RunStats.new()
+    Global.current_act = 1
+    initial_event_pool = event_stats_pool.pool.duplicate()
     _setup_event_connections()
     _setup_top_bar()
     map.generate_new_map()
@@ -201,6 +222,8 @@ func _change_view(scene: PackedScene) -> Node:
     return new_view
     
 func _show_map() -> void:
+    if act_transition_pending:
+        _enter_act_2()
     if Global.tutorial_dice_shop_explanation_needed:
         dice_shop_explanation_box.show()
         Global.tutorial_dice_shop_explanation_needed = false
@@ -240,10 +263,14 @@ func _setup_top_bar():
     
 func _on_battle_room_entered(room: Room) ->  void:
     var battle_scene: Battle = _change_view(BATTLE_SCENE) as Battle
-    battle_scene.char_stats = character 
+    battle_scene.char_stats = character
     battle_scene.relics = relic_handler
     # Instead of using the battle from the room, get a unique one
     var tier = _get_tier_for_room(room)
+    # The act-LOCAL tier, not the source battle's own tier label - battle.gd's
+    # act-2 scaling keys off this (an act-2 floor-1 fight recycled from the act-1
+    # tier-1 pool must be scaled as act-2 tier 0, not as tier 1).
+    battle_scene.act_tier = tier
     var battle_stats = _get_unique_battle_for_tier(tier)
     
     # Store the selected battle on the room for reward logic
@@ -304,21 +331,27 @@ func _get_unique_battle_for_tier(tier: int) -> BattleStats:
         Global.tutorial_fight = false   # so only the first fight is forced
         Global.tutorial_dice_shop_explanation_needed = true
         return crab_fight
-    var available_battles = battle_stats_pool._get_all_battles_for_tier(tier)
-    
+    # In act 2 the act-local tier draws from a higher act-1 pool (see
+    # ACT2_SOURCE_TIER) - everything below works on the source tier, since that's
+    # what the .tres battle_tier labels hold.
+    var source_tier: int = tier
+    if Global.current_act >= 2:
+        source_tier = ACT2_SOURCE_TIER[tier]
+    var available_battles = battle_stats_pool._get_all_battles_for_tier(source_tier)
+
     # Filter out used battles
     var unused_battles: Array[BattleStats] = []
     for battle in available_battles:
         if not used_battles.has(battle):
             unused_battles.append(battle)
-    
+
     # If we've used all battles, reset for this tier
     if unused_battles.is_empty():
-        print("Warning: All battles for tier " + str(tier) + " have been used. Resetting used battles for this tier.")
+        print("Warning: All battles for tier " + str(source_tier) + " have been used. Resetting used battles for this tier.")
         # Clear out used battles of this tier
         var i = 0
         while i < used_battles.size():
-            if used_battles[i].battle_tier == tier:
+            if used_battles[i].battle_tier == source_tier:
                 used_battles.remove_at(i)
             else:
                 i += 1
@@ -373,20 +406,43 @@ func _on_battle_won() -> void:
     Global.next_roll_modifier = 0
     Global.dice_type = "blue"
     var reward_scene := _change_view(BATTLE_REWARD_SCENE) as BattleReward
-    reward_scene.run_stats = stats           
-    reward_scene.character_stats = character 
+    reward_scene.run_stats = stats
+    reward_scene.character_stats = character
     reward_scene.relic_handler = relic_handler
-    reward_scene.add_gold_reward(map.last_room.battle_stats.roll_gold_reward())
+    var gold_reward: int = map.last_room.battle_stats.roll_gold_reward()
+    if Global.current_act >= 2:
+        gold_reward = roundi(gold_reward * ACT2_GOLD_MULT)
+    reward_scene.add_gold_reward(gold_reward)
     reward_scene.add_card_reward()
-    
+
     # Add relic reward for elite fights
 
     if map.last_room.type == Room.Type.ELITE:
         var elite_relic = _generate_elite_relic()
         if elite_relic != null:
             reward_scene.add_relic_reward(elite_relic)
-    
+
+    # Beating the act-1 boss arms the act transition; _show_map performs it once
+    # the reward screen is exited (see _enter_act_2).
+    if map.last_room.type == Room.Type.BOSS and Global.current_act == 1:
+        act_transition_pending = true
+
     Global.fight_turn = 0
+
+# One-shot act transition. Deck, relics, gold and dice all carry over untouched -
+# only the map resets, plus the agreed free full heal (act transition = free
+# campfire) and a fresh event pool so act 2 can re-serve act-1 events.
+func _enter_act_2() -> void:
+    act_transition_pending = false
+    Global.current_act = 2
+    character.health = character.max_health
+    Events.hp_changed.emit()
+    used_battles.clear()
+    event_stats_pool.pool = initial_event_pool.duplicate()
+    map.generate_new_map()
+    map.unlock_floor(0)
+    act_banner.announce("ACT 2: THE CATACOMBS")
+
 
 func _on_map_exited(room: Room) -> void:
     dice_shop_explanation_box.hide()

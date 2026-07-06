@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3 uid="uid://c8jey0cxdu81o"]
+[gd_scene load_steps=26 format=3 uid="uid://c8jey0cxdu81o"]
 
 [ext_resource type="Script" path="res://scenes/battle_reward/battle_reward.gd" id="1_a043u"]
 [ext_resource type="Theme" uid="uid://c8cqncsqlplyu" path="res://main_theme.tres" id="1_q6qpk"]
@@ -14,6 +14,9 @@
 [ext_resource type="Texture2D" uid="uid://dq5o7hv31n0h7" path="res://gg.png" id="9_7bn3q"]
 [ext_resource type="FontFile" uid="uid://bm3deysyi2y55" path="res://Belwe Bold/Belwe Bold.otf" id="11_nmt2g"]
 [ext_resource type="Texture2D" uid="uid://c6w3p47gbm7w4" path="res://discordlogo.png" id="12_gb0mm"]
+[ext_resource type="StyleBox" uid="uid://c8k2n5xr9j7wq" path="res://scenes/shop/shop_button_normal.tres" id="13_act2n"]
+[ext_resource type="StyleBox" uid="uid://dqm3v7x8k2n5w" path="res://scenes/shop/shop_button_hover.tres" id="14_act2h"]
+[ext_resource type="StyleBox" uid="uid://bx6v9n3k8q2wr" path="res://scenes/shop/shop_button_pressed.tres" id="15_act2p"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_l7wgc"]
 font = ExtResource("3_otbk4")
@@ -337,6 +340,22 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_82g21")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_sgx8g")
 theme_override_styles/normal = SubResource("StyleBoxFlat_j1kkp")
 
+[node name="ContinueAct2Button" type="Button" parent="GGPanel"]
+visible = false
+layout_mode = 0
+offset_left = 333.0
+offset_top = 348.0
+offset_right = 757.0
+offset_bottom = 451.0
+theme_override_colors/font_color = Color(0.933333, 0.709804, 0.164706, 1)
+theme_override_fonts/font = ExtResource("11_nmt2g")
+theme_override_font_sizes/font_size = 40
+theme_override_styles/normal = ExtResource("13_act2n")
+theme_override_styles/hover = ExtResource("14_act2h")
+theme_override_styles/pressed = ExtResource("15_act2p")
+text = "Continue to Act 2"
+
 [connection signal="pressed" from="VBoxContainer/BackButton" to="." method="_on_back_button_pressed"]
 [connection signal="pressed" from="WarningPanel/ConfirmButton" to="." method="_on_confirm_button_pressed"]
 [connection signal="pressed" from="GGPanel/JoinDiscordControl/JoinDiscordButton" to="." method="_on_join_discord_button_pressed"]
+[connection signal="pressed" from="GGPanel/ContinueAct2Button" to="." method="_on_continue_act_2_button_pressed"]

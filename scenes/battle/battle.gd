@@ -4,6 +4,23 @@ extends Node2D
 var initialized= false
 const RUN_SCENE = preload("res://scenes/run/run.tscn")
 
+# --- Act 2 runtime scaling (placeholder) ----------------------------------
+# Act 2 recycles act-1 fights (run.gd draws them from higher act-1 pools); the
+# recycled enemies are scaled here at spawn time instead of duplicating ~40
+# .tres/.tscn files: an HP multiplier plus a flat starting Muscle grant per
+# enemy. Muscle feeds the DMG_DEALT modifier, which every enemy attack applies
+# to BOTH its real damage and its displayed intent (systemic fix of 2026-07-04),
+# so one status raises every hit honestly and visibly. Keyed by the act-LOCAL
+# tier (0-2 hallway by depth, 3 elite, 4 boss) that run.gd sets on `act_tier`.
+# Tune the whole act from these two tables.
+const ACT2_MUSCLE_STATUS := preload("res://statuses/muscle.tres")
+const ACT2_HP_MULT := {0: 1.55, 1: 1.3, 2: 1.75, 3: 1.75, 4: 1.6}
+const ACT2_MUSCLE_BASE := {0: 2, 1: 3, 2: 4, 3: 5, 4: 4}
+
+# Act-local tier set by run.gd at room entry; -1 (debug launches without run.gd)
+# falls back to the source battle's own tier label.
+var act_tier: int = -1
+
 @export var battle_stats: BattleStats
 @export var char_stats: CharacterStats
 @export var music: AudioStream
@@ -86,6 +103,7 @@ func start_battle() -> void:
     player.stats = char_stats
     player_handler.relics = relics
     enemy_handler.setup_enemies(battle_stats)
+    _apply_act2_scaling()
     enemy_handler.reset_enemy_actions()
     relics.relics_activated.connect(_on_relics_activated)
     relics.activate_relics_by_type(Relic.Type.START_OF_COMBAT)
@@ -96,6 +114,37 @@ func start_battle() -> void:
     Global.gargantua_debuff_attack_done = false
     Global.ink_active = false
     Events.battle_started.emit()
+
+
+# Must run BETWEEN setup_enemies() (stats instances exist - set_enemy_stats
+# duplicates the .tres via create_instance(), so mutating them here touches this
+# fight only, never the shared resource) and reset_enemy_actions() (so the very
+# first intent already displays the Muscle-boosted numbers).
+func _apply_act2_scaling() -> void:
+    if Global.current_act < 2 or not battle_stats:
+        return
+    var tier: int = act_tier if act_tier >= 0 else battle_stats.battle_tier
+    var hp_mult: float = ACT2_HP_MULT.get(tier, 1.0)
+    # setup_enemies() removes battle.tscn's editor-placed placeholder enemy (the
+    # CrabEnemy under EnemyHandler) with queue_free(), which is DEFERRED - it's
+    # still a child this frame, so it must be filtered out here or it inflates
+    # the body count below and eats one point of the Muscle budget (a solo act-2
+    # elite showed 4 stacks instead of 5 because of it).
+    var enemies := enemy_handler.get_children().filter(
+        func(child): return child is Enemy and not child.is_queued_for_deletion()
+    )
+    # The Muscle base is a per-FIGHT damage budget, not per-body: swarms already
+    # multiply their damage output by body count, so each extra body shrinks the
+    # per-enemy grant (solo gets the full base, a 4-pack gets base-3 each, min 1).
+    var muscle_per_enemy: int = maxi(1, int(ACT2_MUSCLE_BASE.get(tier, 0)) - (enemies.size() - 1))
+    for enemy in enemies:
+        if enemy.stats == null:
+            continue
+        enemy.stats.max_health = roundi(enemy.stats.max_health * hp_mult)
+        enemy.stats.health = enemy.stats.max_health
+        var muscle: Status = ACT2_MUSCLE_STATUS.duplicate()
+        muscle.stacks = muscle_per_enemy
+        enemy.status_handler.add_status(muscle)
 
 
 func _on_enemies_child_order_changed() -> void:

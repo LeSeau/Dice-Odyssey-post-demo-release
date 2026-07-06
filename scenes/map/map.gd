@@ -116,9 +116,24 @@ func generate_new_map() -> void:
     floors_climbed = 0
     last_room = null
 
+    _clear_map()
+
     map_data = map_generator.generate_map()
 
     create_map()
+
+
+# Regeneration support (act 2): the first generate_new_map() call runs on an empty
+# scene, but a second call (new act) must drop every node and lookup built for the
+# previous map, or rooms/lines double up and _refresh_line_visibility keeps reading
+# stale, freed edges.
+func _clear_map() -> void:
+    for child in rooms.get_children():
+        child.queue_free()
+    for child in lines.get_children():
+        child.queue_free()
+    _line_edges.clear()
+    _room_lookup.clear()
 
 
 func create_map() -> void:
