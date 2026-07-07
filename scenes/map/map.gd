@@ -25,6 +25,7 @@ const LINE_BRIGHT_ALPHA := 1.0
 @onready var visuals: Node2D = $Visuals
 @onready var camera_2d: Camera2D = $Camera2D
 @onready var map_legend: CanvasLayer = $MapLegend
+@onready var map_background: CanvasLayer = $MapBackground
 
 var map_data: Array[Array]
 var floors_climbed: int
@@ -264,11 +265,18 @@ func _refresh_line_visibility() -> void:
 func hide_map() -> void:
     hide()
     map_legend.hide()
+    # CanvasLayer children (map_legend above, map_background here) don't inherit visibility
+    # from a hidden Node2D parent - Map's own hide() above only affects normal 2D children
+    # (rooms/lines/visuals). map_background was never toggled at all before this fix, so its
+    # layer=-1 parchment kept rendering behind every other screen (battle/shop/campfire/...)
+    # for the rest of the run, bleeding through any tiny coverage gap in whatever sits on top.
+    map_background.hide()
     camera_2d.enabled = false
 
 func show_map() -> void:
     show()
     map_legend.show()
+    map_background.show()
     camera_2d.enabled = true
     _focus_camera_on_current_floor()
 

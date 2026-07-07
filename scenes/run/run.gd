@@ -35,6 +35,7 @@ const ACT2_GOLD_MULT := 1.5
 @onready var relic_handler: RelicHandler = %RelicHandler
 
 @onready var health_label: Label = $TopBar/BarItems/HBoxContainer/HealthLabel
+@onready var floor_label: Label = %FloorLabel
 
 
 @onready var map: Map = $Map
@@ -206,6 +207,16 @@ func _start_run() -> void:
     _setup_top_bar()
     map.generate_new_map()
     map.unlock_floor(0)
+    _update_floor_label()
+
+
+# floors_climbed is 0 before any room is picked (row 0 is the currently
+# available floor) and becomes N right after picking a room on row N-1 - in
+# both cases "floors_climbed + 1" is the floor the player is currently on/about
+# to enter. Clamped since floors_climbed can reach FLOORS right after picking
+# the boss room, one past the last real floor number.
+func _update_floor_label() -> void:
+    floor_label.text = "Floor: %d" % mini(map.floors_climbed + 1, MapGenerator.FLOORS)
 
 
 
@@ -441,11 +452,13 @@ func _enter_act_2() -> void:
     event_stats_pool.pool = initial_event_pool.duplicate()
     map.generate_new_map()
     map.unlock_floor(0)
+    _update_floor_label()
     act_banner.announce("ACT 2: THE CATACOMBS")
 
 
 func _on_map_exited(room: Room) -> void:
     dice_shop_explanation_box.hide()
+    _update_floor_label()
     match room.type:
         Room.Type.MONSTER:
             _on_battle_room_entered(room)

@@ -1,0 +1,27 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://bsecondwindcrd"]
+
+[ext_resource type="Texture2D" uid="uid://cvgugx6m5ov3u" path="res://beanstalk.jpg" id="1_icon"]
+[ext_resource type="Script" path="res://characters/warrior/cards/second_wind.gd" id="2_script"]
+[ext_resource type="AudioStream" uid="uid://cy6owtfbf8sfv" path="res://sounds/fountainheal.wav" id="3_sound"]
+
+[resource]
+script = ExtResource("2_script")
+id = "card_second_wind"
+name = "Second Wind"
+type = 1
+target = 0
+description = "Heal HP equal to half your Power. Exhaust"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 0
+requirement_number = 0
+exhausts = true
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Exhaust"
+upgraded = false
+icon = ExtResource("1_icon")
+tooltip_text = ""
+sound = ExtResource("3_sound")
