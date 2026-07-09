@@ -4,7 +4,7 @@ var testing_mode: bool = false
 var tutorial_on = false
 var tutorial_reset_power_warning = true
 
-var gold = 75
+var gold = 7575
 var player_hp = 66
 var player_max_hp = 66
 
@@ -111,6 +111,12 @@ var tutorial_blessing_explanation_needed = true
 var is_final_boss_fight = false
 var game_over_state = false
 
+# Set when the debug BattleButton (run.gd) drops straight into a fresh battle for
+# testing - lets battle_over_panel.gd skip its post-win auto-advance delay so a
+# debug battle can be iterated on quickly. Reset immediately after being read so it
+# never leaks into a real map-flow battle started right after.
+var debug_battle_entry := false
+
 # Which act the run is currently in (1 or 2). Reset by run.gd::_start_run(), flipped
 # to 2 by run.gd::_enter_act_2() after the act-1 boss. Battle scaling (battle.gd) and
 # battle-pool selection (run.gd) both read this.
@@ -138,7 +144,7 @@ var load_run_requested := false
 # scene loads), load_run_requested (the flag that decides fresh-vs-load), player (node ref,
 # reassigned by the battle scene), and the preloaded sfx.
 func reset_run_state() -> void:
-    gold = 75
+    gold = 7575
     player_hp = 66
     player_max_hp = 66
 

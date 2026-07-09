@@ -1,6 +1,6 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://ballincardnew0"]
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://b7cynlg33a63b"]
 
-[ext_resource type="Texture2D" uid="uid://dpey4pupqfw4s" path="res://snatch.png" id="1_icon"]
+[ext_resource type="Texture2D" uid="uid://4mwxeywtlovq" path="res://all_in.png" id="1_vwvjw"]
 [ext_resource type="Script" path="res://characters/warrior/cards/all_in.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://cvjv56ti6hkis" path="res://impact1.ogg" id="3_sound"]
 
@@ -22,6 +22,6 @@ bonus_requirement_number = 0
 bonus_description_text = ""
 tags = "Red Dice"
 upgraded = false
-icon = ExtResource("1_icon")
+icon = ExtResource("1_vwvjw")
 tooltip_text = ""
 sound = ExtResource("3_sound")

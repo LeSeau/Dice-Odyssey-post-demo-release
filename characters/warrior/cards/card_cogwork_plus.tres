@@ -1,6 +1,6 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5cg00000056"]
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://bgmqps5iwpr63"]
 
-[ext_resource type="Texture2D" uid="uid://bdggern4qupox" path="res://cogwork.png" id="1_la3gc"]
+[ext_resource type="Texture2D" uid="uid://c22bs4ui067ia" path="res://cogwork_v2.png" id="1_di5fj"]
 [ext_resource type="Script" path="res://characters/warrior/cards/cogwork_plus.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://cy6owtfbf8sfv" path="res://sounds/fountainheal.wav" id="3_sound"]
 
@@ -22,6 +22,6 @@ bonus_requirement_number = 0
 bonus_description_text = ""
 tags = ""
 upgraded = true
-icon = ExtResource("1_la3gc")
+icon = ExtResource("1_di5fj")
 tooltip_text = ""
 sound = ExtResource("3_sound")

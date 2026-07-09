@@ -61,7 +61,7 @@ const DICE_TYPE_COLOR := {
 @onready var dice_9_label: Label = $DicePanel/MarginContainer/HBoxContainer/Dice9/Dice9Label
 
 
-var tooltip_instance: Panel
+var tooltip_instance: CanvasLayer
 
 
 
@@ -421,8 +421,9 @@ func _show_tooltip(dice_node: VBoxContainer, dice_type: String) -> void:
         tooltip_instance = null
     tooltip_instance = TooltipScene.instantiate()
     get_tree().root.add_child(tooltip_instance)
-    tooltip_instance.get_tooltip_content(dice_type)
-    tooltip_instance.show_tooltip(Vector2(498, 123))  # adjust to taste
+    var tooltip_panel = tooltip_instance.get_node("DiceTooltip")
+    tooltip_panel.get_tooltip_content(dice_type)
+    tooltip_panel.show_tooltip(Vector2(498, 123))  # adjust to taste
 
 func _hide_tooltip() -> void:
     if tooltip_instance and is_instance_valid(tooltip_instance):

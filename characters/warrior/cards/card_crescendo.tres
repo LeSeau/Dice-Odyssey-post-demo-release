@@ -1,6 +1,6 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://bcrescendocard"]
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://ck4j7qnc6knxi"]
 
-[ext_resource type="Texture2D" uid="uid://c7d45oic081be" path="res://gptdetonation2.png" id="1_icon"]
+[ext_resource type="Texture2D" uid="uid://dpu8yuy2wy8ki" path="res://crescendo_v2.png" id="1_a1o65"]
 [ext_resource type="Script" path="res://characters/warrior/cards/crescendo.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://cvjv56ti6hkis" path="res://impact1.ogg" id="3_sound"]
 
@@ -22,6 +22,6 @@ bonus_requirement_number = 0
 bonus_description_text = ""
 tags = "Exhaust"
 upgraded = false
-icon = ExtResource("1_icon")
+icon = ExtResource("1_a1o65")
 tooltip_text = ""
 sound = ExtResource("3_sound")

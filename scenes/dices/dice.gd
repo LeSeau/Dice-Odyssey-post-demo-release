@@ -52,6 +52,15 @@ extends Control
 var ink_is_on = false
 var mech_adjustment_used := false
 
+# Guards against the Roll button's ~0.25s toss animation: the actual dice-count
+# decrement only happens in dice_interface.gd::_on_dice_rolled, reacting to the
+# dice_rolled/red_dice_rolled signal emitted at the END of _apply_roll_result()
+# (i.e. after the animation finishes). Spam-clicking Roll during that window let
+# every click pass the can_roll check against the same not-yet-decremented count,
+# rolling far more dice than the player actually had. Set true the instant a roll
+# is accepted, cleared once _apply_roll_result() has emitted that signal.
+var _roll_in_progress := false
+
 const MECH_ARROW_HOVER_SCALE := Vector2(1.2, 1.2)
 const MECH_ARROW_HOVER_DURATION := 0.1
 const MECH_ARROW_PUNCH_SCALE := Vector2(0.8, 0.8)
@@ -317,6 +326,8 @@ func _update_power_float() -> void:
         current_power.material.set_shader_parameter("crackle_charge", crackle_charge)
 
 func roll_dice():
+    if _roll_in_progress:
+        return
     var can_roll = false
     dice_type = Global.dice_type
     # Flux check
@@ -358,6 +369,8 @@ func roll_dice():
         print("no more " + dice_type + " dice")
         play_error_sound()
         return
+
+    _roll_in_progress = true
 
     play_dice_roll_sound()
     Global.fight_dice_rolled+=1
@@ -796,6 +809,7 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
     mech_adjustment_used = false
     _update_mech_buttons()
     _update_charged_card_description()
+    _roll_in_progress = false
 
 
 # Light landing tick, fired on EVERY orb (unlike _play_power_orb_arrival_reaction below, which

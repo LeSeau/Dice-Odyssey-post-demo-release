@@ -84,9 +84,10 @@ func _on_button_pressed() -> void:
     print("rolling golden dice")
     
 func update_rewards_recap() -> void:
-    rewards_recap_label.text = "Rewards:" + str(gold_reward) + " Gold"
+    var text := "Rewards: " + str(gold_reward) + " Gold"
     if heal_reward > 0:
-        rewards_recap_label.text+= ", " + str(heal_reward) + " HP"
+        text += ", " + str(heal_reward) + " HP"
+    rewards_recap_label.text = "[center]" + text + "[/center]"
 
 func _on_roll_dice_pressed() -> void:
     var number_of_outcomes = faces.size()

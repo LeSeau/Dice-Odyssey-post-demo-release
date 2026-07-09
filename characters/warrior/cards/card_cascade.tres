@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://bcascadecard00"]
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c8m4nt66rdhr8"]
 
 [ext_resource type="Texture2D" uid="uid://cq5283hbchist" path="res://gptrainbow.png" id="1_icon"]
 [ext_resource type="Script" path="res://characters/warrior/cards/cascade.gd" id="2_script"]

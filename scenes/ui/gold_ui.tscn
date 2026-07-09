@@ -20,6 +20,7 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="Label" type="Label" parent="."]
+custom_minimum_size = Vector2(70, 0)
 layout_mode = 2
 size_flags_vertical = 4
 label_settings = ExtResource("3_lblst")

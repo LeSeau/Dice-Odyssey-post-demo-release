@@ -2,6 +2,8 @@ extends Control
 
 @onready var enable_tutorial_panel: Panel = $EnableTutorialPanel
 @onready var load_run_button: Button = $LoadRun
+@onready var load_run_confirm_panel: Panel = $LoadRunConfirmPanel
+@onready var load_run_confirm_info: Label = $LoadRunConfirmPanel/InfoLabel
 
 
 const RUN_SCENE := preload("res://scenes/run/run.tscn")
@@ -10,12 +12,54 @@ func _ready()  -> void:
     var main_menu_theme = preload("res://main_menu_theme_v2.ogg")
     SFXPlayer.play(main_menu_theme)
     get_tree().paused = false
-    # Placeholder Load Run button (styled with the shared shop styleboxes, not painted
-    # into the background art like NewRun) - only shown when a run save actually exists.
+    # Load Run only shown when a run save actually exists. Both buttons share the
+    # same ornate menu-button style (main_menu.tscn) - the background art itself
+    # (main_menu_v4.png) no longer has any button painted into it.
     load_run_button.visible = SaveManager.has_save()
 
 
+# Reads the save straight from disk instead of trusting has_save() alone (which
+# only checks the file exists) - read_save() also rejects a corrupted or
+# version-mismatched file, returning {}. That case falls through to run.gd's own
+# fallback (_load_run starts a fresh run if the save is unusable), so skip the
+# confirmation screen entirely and go straight to the load flow.
 func _on_load_run_pressed() -> void:
+    var data := SaveManager.read_save()
+    if data.is_empty():
+        _start_load_run()
+        return
+    _populate_load_confirm_panel(data)
+    load_run_confirm_panel.show()
+
+
+func _populate_load_confirm_panel(data: Dictionary) -> void:
+    var floors_climbed: int = data.get("map", {}).get("floors_climbed", 0)
+    var floor_num: int = mini(floors_climbed + 1, MapGenerator.FLOORS)
+    var total_dice := 0
+    for amount: int in data.get("dice_max", {}).values():
+        total_dice += amount
+    load_run_confirm_info.text = "Floor %d • Act %d\nGold: %d • HP: %d/%d\nDeck: %d cards • Relics: %d • Dice: %d" % [
+        floor_num,
+        data.get("act", 1),
+        data.get("gold", 0),
+        data.get("health", 0),
+        data.get("max_health", 0),
+        data.get("deck", []).size(),
+        data.get("relics", []).size(),
+        total_dice,
+    ]
+
+
+func _on_confirm_load_pressed() -> void:
+    load_run_confirm_panel.hide()
+    _start_load_run()
+
+
+func _on_cancel_load_pressed() -> void:
+    load_run_confirm_panel.hide()
+
+
+func _start_load_run() -> void:
     # Consumed by run.gd::_late_init, which restores from SaveManager instead of
     # starting fresh. tutorial_on comes back from the save itself, so no tutorial
     # popup on this path.

@@ -1,9 +1,9 @@
 [gd_resource type="Resource" load_steps=5 format=3 uid="uid://ldf5lvcasl8p"]
 
-[ext_resource type="Texture2D" uid="uid://bdggern4qupox" path="res://cogwork.png" id="1_la3gc"]
+[ext_resource type="Texture2D" uid="uid://c22bs4ui067ia" path="res://cogwork_v2.png" id="1_3dgaf"]
 [ext_resource type="Script" path="res://characters/warrior/cards/cogwork.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://cy6owtfbf8sfv" path="res://sounds/fountainheal.wav" id="3_sound"]
-[ext_resource type="Resource" path="res://characters/warrior/cards/card_cogwork_plus.tres" id="4_plus"]
+[ext_resource type="Resource" uid="uid://bgmqps5iwpr63" path="res://characters/warrior/cards/card_cogwork_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_script")
@@ -24,6 +24,6 @@ bonus_description_text = ""
 tags = ""
 upgraded = false
 upgraded_version = ExtResource("4_plus")
-icon = ExtResource("1_la3gc")
+icon = ExtResource("1_3dgaf")
 tooltip_text = ""
 sound = ExtResource("3_sound")

@@ -1,66 +1,50 @@
-[gd_scene load_steps=21 format=3 uid="uid://btktlydklchb4"]
+[gd_scene load_steps=16 format=3 uid="uid://btktlydklchb4"]
 
 [ext_resource type="Script" path="res://main_menu.gd" id="1_vi5tj"]
-[ext_resource type="Texture2D" uid="uid://d4nx6s75m7oci" path="res://main_menu_v3.jpg" id="2_2uw4g"]
+[ext_resource type="Texture2D" uid="uid://crd5hg4i57lek" path="res://main_menu_v4.png" id="2_2uw4g"]
 [ext_resource type="FontFile" uid="uid://c4mfyi0ta8qeq" path="res://fonts/MinionPro-Semibold.otf" id="3_lj8do"]
-[ext_resource type="StyleBox" path="res://scenes/shop/shop_button_normal.tres" id="4_btn_n"]
-[ext_resource type="StyleBox" path="res://scenes/shop/shop_button_hover.tres" id="5_btn_h"]
-[ext_resource type="StyleBox" path="res://scenes/shop/shop_button_pressed.tres" id="6_btn_p"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cvc1e"]
-bg_color = Color(0.6, 0.6, 0.6, 0)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_menu_btn_hover"]
+bg_color = Color(0.423529, 0.0862745, 0.164706, 1)
 border_width_left = 4
 border_width_top = 4
 border_width_right = 4
 border_width_bottom = 4
-border_color = Color(1, 1, 0.227451, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
+border_color = Color(1, 0.843137, 0.294118, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(1, 0.752941, 0.2, 0.35)
+shadow_size = 10
+shadow_offset = Vector2(0, 3)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mqnf8"]
-bg_color = Color(0.6, 0.6, 0.6, 0)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_menu_btn_pressed"]
+bg_color = Color(0.203922, 0, 0.0470588, 1)
 border_width_left = 4
 border_width_top = 4
 border_width_right = 4
 border_width_bottom = 4
-border_color = Color(1, 1, 0.227451, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
+border_color = Color(0.658824, 0.431373, 0.0627451, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_eiscl"]
-bg_color = Color(0.6, 0.6, 0.6, 0)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(1, 1, 0.227451, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pktf8"]
-bg_color = Color(0.6, 0.6, 0.6, 0)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_menu_btn_normal"]
+bg_color = Color(0.311214, 0, 0.0696221, 1)
 border_width_left = 4
 border_width_top = 4
 border_width_right = 4
 border_width_bottom = 4
-border_color = Color(1, 1, 0.227451, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_r22wc"]
-bg_color = Color(0.6, 0.6, 0.6, 0)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
+border_color = Color(0.788235, 0.635294, 0.152941, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0, 0, 0, 0.55)
+shadow_size = 6
+shadow_offset = Vector2(0, 3)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1ahky"]
 content_margin_left = 16.0
@@ -187,29 +171,36 @@ expand_mode = 2
 [node name="NewRun" type="Button" parent="."]
 layout_mode = 0
 offset_left = 69.0
-offset_top = 591.0
-offset_right = 611.0
-offset_bottom = 677.0
-theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxFlat_cvc1e")
-theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_mqnf8")
-theme_override_styles/hover = SubResource("StyleBoxFlat_eiscl")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_pktf8")
-theme_override_styles/normal = SubResource("StyleBoxFlat_r22wc")
+offset_top = 538.0
+offset_right = 449.0
+offset_bottom = 606.0
+theme_override_colors/font_hover_color = Color(1, 0.843137, 0, 1)
+theme_override_colors/font_color = Color(0.92549, 0.890196, 0.815686, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.6)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("3_lj8do")
+theme_override_font_sizes/font_size = 36
+theme_override_styles/hover = SubResource("StyleBoxFlat_menu_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_menu_btn_pressed")
+theme_override_styles/normal = SubResource("StyleBoxFlat_menu_btn_normal")
+text = "Start New Run"
 
 [node name="LoadRun" type="Button" parent="."]
 visible = false
 layout_mode = 0
 offset_left = 69.0
-offset_top = 693.0
-offset_right = 611.0
-offset_bottom = 755.0
+offset_top = 622.0
+offset_right = 449.0
+offset_bottom = 690.0
 theme_override_colors/font_hover_color = Color(1, 0.843137, 0, 1)
 theme_override_colors/font_color = Color(0.92549, 0.890196, 0.815686, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.6)
+theme_override_constants/outline_size = 4
 theme_override_fonts/font = ExtResource("3_lj8do")
 theme_override_font_sizes/font_size = 36
-theme_override_styles/hover = ExtResource("5_btn_h")
-theme_override_styles/pressed = ExtResource("6_btn_p")
-theme_override_styles/normal = ExtResource("4_btn_n")
+theme_override_styles/hover = SubResource("StyleBoxFlat_menu_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_menu_btn_pressed")
+theme_override_styles/normal = SubResource("StyleBoxFlat_menu_btn_normal")
 text = "Load Run"
 
 [node name="EnableTutorialPanel" type="Panel" parent="."]
@@ -294,8 +285,93 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_cancel_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_cancel_normal")
 text = "X"
 
+[node name="LoadRunConfirmPanel" type="Panel" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -320.0
+offset_top = -160.0
+offset_right = 320.0
+offset_bottom = 160.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_1ahky")
+
+[node name="Label" type="Label" parent="LoadRunConfirmPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 20.0
+offset_bottom = 52.0
+grow_horizontal = 2
+text = "Continue this run?"
+label_settings = SubResource("LabelSettings_5kukv")
+horizontal_alignment = 1
+
+[node name="InfoLabel" type="Label" parent="LoadRunConfirmPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 90.0
+offset_bottom = 200.0
+grow_horizontal = 2
+text = "Floor 1 • Act 1
+Gold: 0 • HP: 0/0
+Deck: 0 cards • Relics: 0 • Dice: 0"
+label_settings = SubResource("LabelSettings_ud1vm")
+horizontal_alignment = 1
+
+[node name="ConfirmLoadButton" type="Button" parent="LoadRunConfirmPanel"]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 245.0
+offset_right = 300.0
+offset_bottom = 297.0
+theme_override_colors/font_hover_color = Color(0.7, 1, 0.75, 1)
+theme_override_colors/font_color = Color(0, 0.854902, 0, 1)
+theme_override_styles/hover = SubResource("StyleBoxFlat_enable_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_enable_normal")
+text = "Yes, that's my run!"
+
+[node name="CancelLoadButton" type="Button" parent="LoadRunConfirmPanel"]
+layout_mode = 0
+offset_left = 340.0
+offset_top = 245.0
+offset_right = 600.0
+offset_bottom = 297.0
+theme_override_colors/font_hover_color = Color(1, 0.7, 0.7, 1)
+theme_override_colors/font_color = Color(0.856481, 0.000105334, 5.87195e-05, 0.941176)
+theme_override_styles/hover = SubResource("StyleBoxFlat_skip_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_skip_normal")
+text = "Cancel"
+
+[node name="CloseButton" type="Button" parent="LoadRunConfirmPanel"]
+z_index = 10
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -40.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = 40.0
+grow_horizontal = 0
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/font_color = Color(0.752941, 0.501961, 0.0627451, 1)
+theme_override_font_sizes/font_size = 20
+theme_override_styles/hover = SubResource("StyleBoxFlat_cancel_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_cancel_normal")
+text = "X"
+
 [connection signal="pressed" from="NewRun" to="." method="_on_new_run_pressed"]
 [connection signal="pressed" from="LoadRun" to="." method="_on_load_run_pressed"]
 [connection signal="pressed" from="EnableTutorialPanel/StartWithTutorial" to="." method="_on_start_with_tutorial_pressed"]
 [connection signal="pressed" from="EnableTutorialPanel/StartWithoutTutorial" to="." method="_on_start_without_tutorial_pressed"]
 [connection signal="pressed" from="EnableTutorialPanel/CancelButton" to="." method="_on_cancel_tutorial_panel_pressed"]
+[connection signal="pressed" from="LoadRunConfirmPanel/ConfirmLoadButton" to="." method="_on_confirm_load_pressed"]
+[connection signal="pressed" from="LoadRunConfirmPanel/CancelLoadButton" to="." method="_on_cancel_load_pressed"]
+[connection signal="pressed" from="LoadRunConfirmPanel/CloseButton" to="." method="_on_cancel_load_pressed"]

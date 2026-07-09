@@ -1,9 +1,9 @@
 [gd_resource type="Resource" load_steps=5 format=3 uid="uid://qemx1sow73c5"]
 
-[ext_resource type="Texture2D" uid="uid://dfc1vkule4ndm" path="res://gptnecromancy.png" id="1_oycft"]
+[ext_resource type="Texture2D" uid="uid://b5sxfd1laxfd1" path="res://dark_pact_v2.png" id="1_h6jfg"]
 [ext_resource type="Script" path="res://characters/warrior/cards/necromancy.gd" id="2_nt70x"]
 [ext_resource type="AudioStream" uid="uid://cy6owtfbf8sfv" path="res://sounds/fountainheal.wav" id="3_bitmr"]
-[ext_resource type="Resource" path="res://characters/warrior/cards/card_necromancy_plus.tres" id="4_plus"]
+[ext_resource type="Resource" uid="uid://bwhfkk12aw4mt" path="res://characters/warrior/cards/card_necromancy_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_nt70x")
@@ -24,6 +24,6 @@ bonus_description_text = ""
 tags = "Charge, Evil Dice"
 upgraded = false
 upgraded_version = ExtResource("4_plus")
-icon = ExtResource("1_oycft")
+icon = ExtResource("1_h6jfg")
 tooltip_text = ""
 sound = ExtResource("3_bitmr")

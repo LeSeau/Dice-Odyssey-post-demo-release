@@ -1,6 +1,6 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://bbreachcardnew"]
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://cgkjg5uhx4wax"]
 
-[ext_resource type="Texture2D" uid="uid://dvsei7h4lfy1x" path="res://barricade_v2.png" id="1_icon"]
+[ext_resource type="Texture2D" uid="uid://befr66ku8gwaq" path="res://breach.png" id="1_ewfpb"]
 [ext_resource type="Script" path="res://characters/warrior/cards/breach.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://cvjv56ti6hkis" path="res://impact1.ogg" id="3_sound"]
 
@@ -22,6 +22,6 @@ bonus_requirement_number = 0
 bonus_description_text = ""
 tags = ""
 upgraded = false
-icon = ExtResource("1_icon")
+icon = ExtResource("1_ewfpb")
 tooltip_text = ""
 sound = ExtResource("3_sound")

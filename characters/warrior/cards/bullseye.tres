@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://2ikh0yv5jo36" path="res://bullseye.png" id="1_hbdgu"]
 [ext_resource type="Script" path="res://characters/warrior/cards/bullseye.gd" id="2_gs8sh"]
 [ext_resource type="AudioStream" uid="uid://cvjv56ti6hkis" path="res://impact1.ogg" id="3_q51qe"]
-[ext_resource type="Resource" path="res://characters/warrior/cards/bullseye_plus.tres" id="4_plus"]
+[ext_resource type="Resource" uid="uid://bgsv7oud7bh3h" path="res://characters/warrior/cards/bullseye_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_gs8sh")

@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3 uid="uid://ddiw0jjwni4p4"]
+[gd_scene load_steps=22 format=3 uid="uid://ddiw0jjwni4p4"]
 
 [ext_resource type="Script" path="res://scenes/events/event_russian_dice.gd" id="1_utaay"]
 [ext_resource type="Texture2D" uid="uid://c17qq0sj25epy" path="res://assets/images/blue1.png" id="2_0uv5j"]
@@ -12,41 +12,76 @@
 [ext_resource type="AudioStream" uid="uid://bu8uvjhi41uik" path="res://success.mp3" id="8_kr51r"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_kwaja"]
-bg_color = Color(0.246036, 0.403102, 0.363782, 1)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
+bg_color = Color(0.117647, 0.196078, 0.176471, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.788235, 0.635294, 0.152941, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 8
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_thl7v"]
-bg_color = Color(0.878468, 0.475935, 0.265035, 1)
+bg_color = Color(0.63264, 0.534451, 0.857609, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_reward_tag"]
+bg_color = Color(0.117647, 0.196078, 0.176471, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.788235, 0.635294, 0.152941, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_htkly"]
 bg_color = Color(0.311214, 0, 0.0696221, 1)
-border_width_left = 6
-border_width_top = 6
-border_width_right = 6
-border_width_bottom = 6
-border_color = Color(0.957843, 0.774044, 0.321806, 1)
-corner_radius_top_left = 25
-corner_radius_top_right = 25
-corner_radius_bottom_right = 25
-corner_radius_bottom_left = 25
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.788235, 0.635294, 0.152941, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+shadow_color = Color(0, 0, 0, 0.5)
 shadow_size = 8
+shadow_offset = Vector2(0, 4)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_c8xcl"]
-bg_color = Color(0.311214, 0, 0.0696221, 1)
+bg_color = Color(0.117647, 0.196078, 0.176471, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.788235, 0.635294, 0.152941, 1)
 corner_radius_top_left = 12
 corner_radius_top_right = 12
 corner_radius_bottom_right = 12
 corner_radius_bottom_left = 12
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_eyh5d"]
-bg_color = Color(0.095169, 0.177456, 0.157006, 1)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 2
+bg_color = Color(0.117647, 0.196078, 0.176471, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.788235, 0.635294, 0.152941, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 8
 
 [sub_resource type="Gradient" id="Gradient_n2u7c"]
 colors = PackedColorArray(0.972549, 0.913725, 0.631373, 1, 0.705882, 0.772549, 0.894118, 1)
@@ -118,9 +153,12 @@ offset_top = 12.0
 offset_bottom = 12.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_colors/default_color = Color(0.92549, 0.890196, 0.815686, 1)
+theme_override_fonts/normal_font = ExtResource("8_2rf78")
+theme_override_font_sizes/normal_font_size = 18
 bbcode_enabled = true
 text = "[center]Keep rolling for more rewards.
-Lose all if you roll 1
+[color=gold]Lose all if you roll 1[/color]
 "
 
 [node name="HBoxContainer" type="HBoxContainer" parent="DicePanel"]
@@ -140,6 +178,7 @@ size_flags_vertical = 4
 [node name="Reward1" type="Panel" parent="DicePanel/HBoxContainer/Dice1"]
 custom_minimum_size = Vector2(0, 25)
 layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_reward_tag")
 
 [node name="RichTextLabel" type="RichTextLabel" parent="DicePanel/HBoxContainer/Dice1/Reward1"]
 custom_minimum_size = Vector2(20, 20)
@@ -147,6 +186,7 @@ layout_mode = 2
 offset_top = 4.0
 offset_right = 120.0
 offset_bottom = 24.0
+theme_override_colors/default_color = Color(0.788235, 0.635294, 0.152941, 1)
 theme_override_font_sizes/normal_font_size = 14
 bbcode_enabled = true
 text = "[center]15 Gold[/center]"
@@ -194,6 +234,7 @@ size_flags_vertical = 4
 [node name="Reward2" type="Panel" parent="DicePanel/HBoxContainer/Dice2"]
 custom_minimum_size = Vector2(0, 25)
 layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_reward_tag")
 
 [node name="RichTextLabel" type="RichTextLabel" parent="DicePanel/HBoxContainer/Dice2/Reward2"]
 custom_minimum_size = Vector2(20, 20)
@@ -201,6 +242,7 @@ layout_mode = 2
 offset_top = 4.0
 offset_right = 120.0
 offset_bottom = 24.0
+theme_override_colors/default_color = Color(0.788235, 0.635294, 0.152941, 1)
 theme_override_font_sizes/normal_font_size = 14
 bbcode_enabled = true
 text = "[center] 5HP[/center]"
@@ -248,6 +290,7 @@ size_flags_vertical = 4
 [node name="Reward3" type="Panel" parent="DicePanel/HBoxContainer/Dice3"]
 custom_minimum_size = Vector2(0, 25)
 layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_reward_tag")
 
 [node name="RichTextLabel" type="RichTextLabel" parent="DicePanel/HBoxContainer/Dice3/Reward3"]
 custom_minimum_size = Vector2(20, 20)
@@ -255,6 +298,7 @@ layout_mode = 2
 offset_top = 4.0
 offset_right = 120.0
 offset_bottom = 24.0
+theme_override_colors/default_color = Color(0.788235, 0.635294, 0.152941, 1)
 theme_override_font_sizes/normal_font_size = 14
 bbcode_enabled = true
 text = "[center] 30 Gold[/center]"
@@ -302,6 +346,7 @@ size_flags_vertical = 4
 [node name="Reward4" type="Panel" parent="DicePanel/HBoxContainer/Dice4"]
 custom_minimum_size = Vector2(0, 25)
 layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_reward_tag")
 
 [node name="RichTextLabel" type="RichTextLabel" parent="DicePanel/HBoxContainer/Dice4/Reward4"]
 custom_minimum_size = Vector2(20, 20)
@@ -309,6 +354,7 @@ layout_mode = 2
 offset_top = 4.0
 offset_right = 120.0
 offset_bottom = 24.0
+theme_override_colors/default_color = Color(0.788235, 0.635294, 0.152941, 1)
 theme_override_font_sizes/normal_font_size = 14
 bbcode_enabled = true
 text = "[center] 10HP[/center]"
@@ -356,6 +402,7 @@ size_flags_vertical = 4
 [node name="Reward5" type="Panel" parent="DicePanel/HBoxContainer/Dice5"]
 custom_minimum_size = Vector2(0, 25)
 layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_reward_tag")
 
 [node name="RichTextLabel" type="RichTextLabel" parent="DicePanel/HBoxContainer/Dice5/Reward5"]
 custom_minimum_size = Vector2(20, 20)
@@ -363,6 +410,7 @@ layout_mode = 2
 offset_top = 4.0
 offset_right = 120.0
 offset_bottom = 24.0
+theme_override_colors/default_color = Color(0.788235, 0.635294, 0.152941, 1)
 theme_override_font_sizes/normal_font_size = 14
 bbcode_enabled = true
 text = "[center] 50 Gold[/center]"
@@ -444,8 +492,10 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_colors/default_color = Color(0.92549, 0.890196, 0.815686, 1)
+theme_override_font_sizes/normal_font_size = 15
 bbcode_enabled = true
-text = "Rewards: "
+text = "[center]Rewards: [/center]"
 
 [node name="StopButton" type="Button" parent="DicePanel"]
 layout_mode = 1
@@ -500,6 +550,8 @@ anchor_right = 1.0
 offset_top = 30.0
 offset_bottom = 80.0
 grow_horizontal = 2
+theme_override_fonts/normal_font = ExtResource("7_0p250")
+theme_override_font_sizes/normal_font_size = 28
 bbcode_enabled = true
 text = "[center][color=red]You lost![/color][/center]"
 
@@ -556,6 +608,8 @@ anchor_right = 1.0
 offset_top = 30.0
 offset_bottom = 80.0
 grow_horizontal = 2
+theme_override_fonts/normal_font = ExtResource("7_0p250")
+theme_override_font_sizes/normal_font_size = 28
 bbcode_enabled = true
 text = "[center][color=gold]Congrats![/color][/center]"
 

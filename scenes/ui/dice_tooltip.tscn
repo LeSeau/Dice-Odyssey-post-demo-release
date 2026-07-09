@@ -6,14 +6,17 @@
 [ext_resource type="FontFile" uid="uid://daeyoqlqsy1q8" path="res://assets/static/Roboto_Condensed-Bold.ttf" id="4_p6vb4"]
 [ext_resource type="FontFile" uid="uid://b2y60c4274gkj" path="res://fonts/Cinzel-Bold.otf" id="5_cinzel"]
 
-[node name="DiceTooltip" type="Panel"]
+[node name="CanvasLayer" type="CanvasLayer"]
+layer = 100
+
+[node name="DiceTooltip" type="Panel" parent="."]
 offset_right = 204.0
 offset_bottom = 88.0
 theme = ExtResource("1_fwjqx")
 theme_override_styles/panel = ExtResource("2_84ury")
 script = ExtResource("3_8dw8k")
 
-[node name="MarginContainer" type="MarginContainer" parent="."]
+[node name="MarginContainer" type="MarginContainer" parent="DiceTooltip"]
 layout_mode = 0
 offset_left = 2.0
 offset_top = 2.0
@@ -24,14 +27,14 @@ theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 10
 theme_override_constants/margin_bottom = 6
 
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="DiceTooltip/MarginContainer"]
 custom_minimum_size = Vector2(180, 60)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 alignment = 1
 
-[node name="TooltipTitle" type="RichTextLabel" parent="MarginContainer/VBoxContainer"]
+[node name="TooltipTitle" type="RichTextLabel" parent="DiceTooltip/MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(80, 20)
 layout_mode = 2
@@ -45,7 +48,7 @@ bbcode_enabled = true
 text = "[center][color=gold][b]Blue Dice[/b][/color][/center]"
 scroll_active = false
 
-[node name="TooltipText" type="RichTextLabel" parent="MarginContainer/VBoxContainer"]
+[node name="TooltipText" type="RichTextLabel" parent="DiceTooltip/MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(80, 40)
 layout_mode = 2

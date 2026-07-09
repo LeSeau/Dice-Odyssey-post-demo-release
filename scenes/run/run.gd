@@ -26,7 +26,8 @@ const ACT2_GOLD_MULT := 1.5
 
 @onready var current_view: Node = $CurrentView
 @onready var map_button: Button = %MapButton
-@onready var consult_map_button: Button = %ConsultMapButton
+@onready var consult_map_button: TextureButton = %ConsultMapButton
+@onready var consult_map_button_hover_glow: Panel = %HoverGlow
 @onready var battle_button: Button = %BattleButton
 @onready var shop_button: Button = %ShopButton
 @onready var rewards_button: Button = %RewardsButton
@@ -297,11 +298,13 @@ func _setup_event_connections() -> void:
 
 
     
-    battle_button.pressed.connect(_change_view.bind(BATTLE_SCENE))
+    battle_button.pressed.connect(_on_debug_battle_button_pressed)
     map_button.pressed.connect(_show_map)
     rewards_button.pressed.connect(_change_view.bind(BATTLE_REWARD_SCENE))
     shop_button.pressed.connect(_change_view.bind(SHOP_SCENE))
     consult_map_button.pressed.connect(_on_consult_map_button_pressed)
+    consult_map_button.mouse_entered.connect(_on_consult_map_button_mouse_entered)
+    consult_map_button.mouse_exited.connect(_on_consult_map_button_mouse_exited)
     
     
 func _setup_top_bar():
@@ -553,7 +556,13 @@ func _on_map_exited(room: Room) -> void:
                         event_scene.relic_handler = relic_handler
                     if "char_stats" in event_scene:
                         event_scene.char_stats = character
-                    
+                    # Some older events (event_fountain_heal.gd) use this property name
+                    # instead - redundant with setup() below, but a direct safety net in
+                    # case that call is ever skipped (has_method false, script error, etc.)
+                    # for a scene that still expects character_stats to be non-null.
+                    if "character_stats" in event_scene:
+                        event_scene.character_stats = character
+
                     # If your event scenes need access to character or run stats
                     if event_scene.has_method("setup"):
                         event_scene.setup(character, stats)
@@ -575,6 +584,10 @@ func _on_show_reward():
     for i in Global.pending_card_rewards:
         reward_scene.add_card_reward()
     Global.pending_card_rewards = 1
+
+func _on_debug_battle_button_pressed() -> void:
+    Global.debug_battle_entry = true
+    _change_view(BATTLE_SCENE)
 
 func _on_dice_shop_pressed() -> void:
     SFXPlayer.play(sfx_click)
@@ -635,7 +648,7 @@ func _open_map_consult() -> void:
     map_consult_mode = true
     var view := current_view.get_child(0)
     view.hide()
-    _set_nested_canvas_layers_visible(view, false)
+    _hide_nested_canvas_layers(view)
     # Camera2D isn't a CanvasItem, so hiding the view above does nothing to its own
     # camera (battle.tscn has one) - it would stay "current" and keep driving the
     # viewport, fighting Map's camera for control (this is why scrolling the map
@@ -660,7 +673,10 @@ func _open_map_consult() -> void:
     # (on top of the map_consult_mode guard in _on_map_exited) room clicks can't
     # register at all while paused - consulting can never accidentally select a room.
     get_tree().paused = true
-    consult_map_button.text = "Close Map"
+    # No text label on the icon button (see run.tscn - now a plain TextureButton,
+    # the scroll icon replaced the old "Map"/"Close Map" text button) - a warm
+    # tint stands in for that state change instead.
+    _update_map_icon_modulate()
 
 func _close_map_consult() -> void:
     map_consult_mode = false
@@ -669,13 +685,43 @@ func _close_map_consult() -> void:
     if current_view.get_child_count() > 0:
         var view := current_view.get_child(0)
         view.show()
-        _set_nested_canvas_layers_visible(view, true)
+        _restore_nested_canvas_layers(view)
         _set_nested_cameras_enabled(view, true)
-    consult_map_button.text = "Map"
+    _update_map_icon_modulate()
+
+# Hover feedback for the map icon button - a gold outline (HoverGlow, run.tscn)
+# fades in, plus a brightness bump layered on top of whichever base tint
+# currently applies (map_consult_mode's warm "active" tint, or plain white),
+# so hovering while the map is open doesn't fight with/override that state.
+var _map_icon_hovering := false
+
+func _on_consult_map_button_mouse_entered() -> void:
+    _map_icon_hovering = true
+    _update_map_icon_modulate()
+    var tween := create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+    tween.tween_property(consult_map_button_hover_glow, "modulate:a", 1.0, 0.12)
+
+func _on_consult_map_button_mouse_exited() -> void:
+    _map_icon_hovering = false
+    _update_map_icon_modulate()
+    var tween := create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+    tween.tween_property(consult_map_button_hover_glow, "modulate:a", 0.0, 0.12)
+
+func _update_map_icon_modulate() -> void:
+    var base := Color(1.35, 1.15, 0.65) if map_consult_mode else Color.WHITE
+    # Brighten RGB only (not alpha - Color * float scales all 4 channels, which
+    # would push alpha above 1 and make WHITE's hover state semi-meaningless).
+    var target := Color(base.r * 1.2, base.g * 1.2, base.b * 1.2, 1.0) if _map_icon_hovering else base
+    # Bound tween would otherwise be paused along with the rest of the tree
+    # while consulting the map - but ConsultMapButton itself stays interactive
+    # then (process_mode=ALWAYS in run.tscn), so its own feedback should too.
+    var tween := create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+    tween.tween_property(consult_map_button, "modulate", target, 0.1)
 
 # See _open_map_consult() - a hidden view's own Camera2D (not a CanvasItem) keeps
 # running/staying current unless explicitly disabled, same class of gotcha as
-# _set_nested_canvas_layers_visible below but for cameras instead of CanvasLayers.
+# _hide_nested_canvas_layers/_restore_nested_canvas_layers above but for cameras
+# instead of CanvasLayers.
 func _set_nested_cameras_enabled(node: Node, enabled: bool) -> void:
     for child in node.get_children():
         if child is Camera2D:
@@ -688,11 +734,28 @@ func _set_nested_cameras_enabled(node: Node, enabled: bool) -> void:
 # its parent's visibility and must be toggled explicitly, same root cause as the
 # MapBackground leak documented in CLAUDE.md. Recurses past CanvasLayers too, in
 # case one ever nests another.
-func _set_nested_canvas_layers_visible(node: Node, is_visible: bool) -> void:
+#
+# Remembers each CanvasLayer's PRIOR visibility (rather than unconditionally
+# forcing true on restore) - battle.tscn's own "Tooltip" CanvasLayer (the draw/
+# discard pile hover tooltip, battle.gd::_show_pile_tooltip/_hide_pile_tooltip)
+# is deliberately visible=false whenever no pile is being hovered. Blanket-
+# forcing every CanvasLayer back to visible=true on map-consult close was
+# resurrecting that tooltip with whatever placeholder/stale content it happened
+# to hold, showing it stuck on screen even though nothing was actually hovered.
+var _canvas_layer_prev_visibility: Dictionary = {}
+
+func _hide_nested_canvas_layers(node: Node) -> void:
     for child in node.get_children():
         if child is CanvasLayer:
-            child.visible = is_visible
-        _set_nested_canvas_layers_visible(child, is_visible)
+            _canvas_layer_prev_visibility[child] = child.visible
+            child.visible = false
+        _hide_nested_canvas_layers(child)
+
+func _restore_nested_canvas_layers(node: Node) -> void:
+    for child in node.get_children():
+        if child is CanvasLayer:
+            child.visible = _canvas_layer_prev_visibility.get(child, true)
+        _restore_nested_canvas_layers(child)
 
 func _on_stop_map_music() -> void:
     map_music.stop()

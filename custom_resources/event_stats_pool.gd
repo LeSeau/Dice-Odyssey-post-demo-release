@@ -20,13 +20,18 @@ func _setup_weight_for_tier(tier: int) -> void:
         event.accumulated_weight = total_weights_by_tier[tier]
 
 func get_random_event_for_tier(tier: int) -> EventStats:
-    var roll := randf_range(0.0, total_weights_by_tier[tier])
     var events := _get_all_events_for_tier(tier)
 
+    # Testing override: an event flagged force_for_testing wins unconditionally,
+    # skipping the weighted roll below entirely. See EventStats.force_for_testing.
+    for event: EventStats in events:
+        if event.force_for_testing:
+            return event
+
+    var roll := randf_range(0.0, total_weights_by_tier[tier])
     for event: EventStats in events:
         if event.accumulated_weight > roll:
             return event
-            print(event)
 
     return null
 

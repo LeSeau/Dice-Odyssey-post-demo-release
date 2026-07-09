@@ -1,6 +1,6 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://bmomentumcard0"]
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://8tt2t3itmpi8"]
 
-[ext_resource type="Texture2D" uid="uid://bgdarh7nip250" path="res://gptslice.png" id="1_icon"]
+[ext_resource type="Texture2D" uid="uid://81v36u3qwhyn" path="res://momentum.png" id="1_jyuph"]
 [ext_resource type="Script" path="res://characters/warrior/cards/momentum.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://cvjv56ti6hkis" path="res://impact1.ogg" id="3_sound"]
 
@@ -22,6 +22,6 @@ bonus_requirement_number = 0
 bonus_description_text = ""
 tags = ""
 upgraded = false
-icon = ExtResource("1_icon")
+icon = ExtResource("1_jyuph")
 tooltip_text = ""
 sound = ExtResource("3_sound")

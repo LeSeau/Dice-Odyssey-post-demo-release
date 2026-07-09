@@ -1,6 +1,6 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://bres0nancecard"]
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://eq2csrh52lqs"]
 
-[ext_resource type="Texture2D" uid="uid://tdq22k6innox" path="res://pulse.png" id="1_icon"]
+[ext_resource type="Texture2D" uid="uid://cpb12px7xr3nt" path="res://resonance_good.png" id="1_rltup"]
 [ext_resource type="Script" path="res://characters/warrior/cards/resonance.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://cvjv56ti6hkis" path="res://impact1.ogg" id="3_sound"]
 
@@ -22,6 +22,6 @@ bonus_requirement_number = 0
 bonus_description_text = ""
 tags = ""
 upgraded = false
-icon = ExtResource("1_icon")
+icon = ExtResource("1_rltup")
 tooltip_text = ""
 sound = ExtResource("3_sound")

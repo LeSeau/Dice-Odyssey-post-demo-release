@@ -69,8 +69,15 @@ func _on_roll_dice_pressed() -> void:
     if roll_result!= 0:
         reward_panel.show()
         var health_reward = roll_result * 4
-        character_stats.health += health_reward 
-        Events.hp_changed.emit()
+        # character_stats should always be set by run.gd's setup() call on entering
+        # this event - guarding here anyway since it crashed the whole game once
+        # with no other clue than "health on Nil"; this at least keeps the event
+        # from hard-crashing and leaves a trail if it happens again.
+        if character_stats == null:
+            push_error("event_fountain_heal: character_stats is null, skipping heal")
+        else:
+            character_stats.health += health_reward
+            Events.hp_changed.emit()
 
         # 🔥 Build the reward text manually
         reward_label.text = "[center]You won [color=green]" + str(health_reward) + " Health[/color]![/center]"

@@ -18,18 +18,31 @@ func _ready() -> void:
     Events.stop_battle_music.emit()
 
 
+const WIN_AUTO_ADVANCE_DELAY := 1.0
+
 func show_screen(text: String, type: Type) -> void:
-    if Global.game_over_state: 
+    if type == Type.LOSE:
         lost_panel.show()
         audio_player.stream = load("res://gameoversound.wav")
-    else:
-        audio_player.stream = load("res://victory_daiso.mp3")
-    audio_player.play()
-    label.text = text
-    continue_button.visible = type == Type.WIN
-    restart_button.visible = type == Type.LOSE
-    show()
-    get_tree().paused = true
+        audio_player.play()
+        label.text = text
+        continue_button.visible = false
+        restart_button.visible = true
+        show()
+        get_tree().paused = true
+        return
+
+    # Win: skip the manual "Continue" screen entirely (no need for a click, no
+    # jingle) - just auto-advance straight to card rewards after a short beat.
+    # A battle entered via run.gd's debug BattleButton skips the beat entirely
+    # (Global.debug_battle_entry) so debug iteration isn't stuck waiting on it -
+    # reset right away so it never leaks into the next real map-flow battle.
+    if Global.debug_battle_entry:
+        Global.debug_battle_entry = false
+        Events.battle_won.emit()
+        return
+    await get_tree().create_timer(WIN_AUTO_ADVANCE_DELAY).timeout
+    Events.battle_won.emit()
 
 
 func _on_join_discord_button_pressed() -> void:

@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://nfklwfie3xpy" path="res://scenes/ui/card_pile_opener.tscn" id="3_bglvk"]
 [ext_resource type="PackedScene" uid="uid://bdmrt1adkfiii" path="res://scenes/ui/gold_ui.tscn" id="3_xchug"]
 [ext_resource type="Texture2D" uid="uid://ce73qu6xbuv2j" path="res://assets/images/blue2.png" id="4_32ynl"]
+[ext_resource type="Texture2D" path="res://assets/images/map_button_icon.png" id="50_mapicon"]
 [ext_resource type="Resource" uid="uid://2if2rhy1aktn" path="res://treasure_relic_pool.tres" id="4_i08gm"]
 [ext_resource type="PackedScene" uid="uid://jg7s3ul6gyqj" path="res://scenes/ui/card_pile_view.tscn" id="4_rq0pt"]
 [ext_resource type="Texture2D" uid="uid://cdpcpjn0arvjp" path="res://assets/images/red1.png" id="5_14sn0"]
@@ -25,9 +26,6 @@
 [ext_resource type="FontFile" uid="uid://bm3deysyi2y55" path="res://Belwe Bold/Belwe Bold.otf" id="33_q6s60"]
 [ext_resource type="Texture2D" uid="uid://b1my7ua56jx7t" path="res://tutorial_arrow.png" id="33_ys7td"]
 [ext_resource type="PackedScene" uid="uid://c7qk2actbnr4m" path="res://scenes/ui/act_banner.tscn" id="34_actbn"]
-[ext_resource type="StyleBox" uid="uid://c8k2n5xr9j7wq" path="res://scenes/shop/shop_button_normal.tres" id="35_btn_n"]
-[ext_resource type="StyleBox" uid="uid://dqm3v7x8k2n5w" path="res://scenes/shop/shop_button_hover.tres" id="36_btn_h"]
-[ext_resource type="StyleBox" uid="uid://bx6v9n3k8q2wr" path="res://scenes/shop/shop_button_pressed.tres" id="37_btn_p"]
 
 [sub_resource type="Gradient" id="Gradient_ajfrf"]
 colors = PackedColorArray(0.101961, 0.227451, 0.235294, 1, 0.0588235, 0.133333, 0.141176, 1)
@@ -43,6 +41,18 @@ border_color = Color(0.784314, 0.658824, 0.294118, 1)
 shadow_color = Color(0, 0, 0, 0.35)
 shadow_size = 6
 shadow_offset = Vector2(0, 3)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_map_icon_hover_glow"]
+bg_color = Color(1, 1, 1, 0)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 0.843137, 0.294118, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
 
 [sub_resource type="StyleBoxLine" id="StyleBoxLine_6aa02"]
 color = Color(0.784314, 0.662745, 0.431373, 1)
@@ -333,24 +343,40 @@ size_flags_vertical = 4
 label_settings = ExtResource("21_topbarlbl")
 text = "Floor: 1"
 
+[node name="Spacer" type="Control" parent="TopBar/BarItems"]
+custom_minimum_size = Vector2(10, 0)
+layout_mode = 2
+
+[node name="ConsultMapButton" type="TextureButton" parent="TopBar/BarItems"]
+unique_name_in_owner = true
+process_mode = 3
+custom_minimum_size = Vector2(90, 70)
+layout_mode = 2
+size_flags_vertical = 4
+texture_normal = ExtResource("50_mapicon")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="HoverGlow" type="Panel" parent="TopBar/BarItems/ConsultMapButton"]
+unique_name_in_owner = true
+modulate = Color(1, 1, 1, 0)
+mouse_filter = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -6.0
+offset_top = -6.0
+offset_right = 6.0
+offset_bottom = 6.0
+grow_horizontal = 2
+grow_vertical = 2
+z_index = -1
+theme_override_styles/panel = SubResource("StyleBoxFlat_map_icon_hover_glow")
+
 [node name="ExpandSpacer" type="Control" parent="TopBar/BarItems"]
 layout_mode = 2
 size_flags_horizontal = 3
-
-[node name="Spacer" type="Control" parent="TopBar/BarItems"]
-custom_minimum_size = Vector2(2, 0)
-layout_mode = 2
-
-[node name="ConsultMapButton" type="Button" parent="TopBar/BarItems"]
-unique_name_in_owner = true
-process_mode = 3
-custom_minimum_size = Vector2(90, 50)
-layout_mode = 2
-size_flags_vertical = 4
-theme_override_styles/normal = ExtResource("35_btn_n")
-theme_override_styles/hover = ExtResource("36_btn_h")
-theme_override_styles/pressed = ExtResource("37_btn_p")
-text = "Map"
 
 [node name="Spacer4" type="Control" parent="TopBar/BarItems"]
 custom_minimum_size = Vector2(2, 0)
