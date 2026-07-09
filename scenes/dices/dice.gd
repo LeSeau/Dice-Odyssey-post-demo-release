@@ -105,15 +105,30 @@ const POWER_ORB_SIZE_MAX := 22.0
 const POWER_ORB_SIZE_BIG_ROLL_BONUS := 10.0  # added to size on top rolls, so big hits read visibly chunkier
 const POWER_ORB_BRIGHTNESS := 1.5
 const POWER_ORB_MAX_ROLL_BRIGHTNESS := 2.1   # extra overbright punch specifically on max rolls
-const POWER_ORB_STAGGER := 0.035         # launch delay between orbs, so they read as a little stream
-const POWER_ORB_FLIGHT_MIN := 0.22
-const POWER_ORB_FLIGHT_MAX := 0.34
+const POWER_ORB_STAGGER := 0.035         # base launch delay between orbs
+const POWER_ORB_STAGGER_JITTER := 0.028  # +/- randomized on top of the base above, so launches don't fall on a perfect metronome grid (a big part of the "train" look)
+const POWER_ORB_FLIGHT_MIN := 0.20
+const POWER_ORB_FLIGHT_MAX := 0.42       # widened (was 0.34) - more spread between individual orbs' arrival times
+# Where along the path (0=die, 1=Power label) each orb's control point sits - randomized per
+# orb instead of a fixed 0.55, so some orbs bow early/steep and others late/shallow rather than
+# all tracing the same silhouette.
+const POWER_ORB_MID_X_MIN := 0.35
+const POWER_ORB_MID_X_MAX := 0.75
 # The die sits left of the Power label at roughly the same height - a straight line between
 # them reads as flat/boring. Orbs instead arc UP and over (a rough "rainbow" shape per Julien's
 # note - deliberately loose, not a precise math curve), landing on the Power label FROM ABOVE
 # rather than approaching it level, which reads as much more impactful.
-const POWER_ORB_ARC_HEIGHT_MIN := 60.0
-const POWER_ORB_ARC_HEIGHT_MAX := 110.0
+const POWER_ORB_ARC_HEIGHT_MIN := 40.0
+const POWER_ORB_ARC_HEIGHT_MAX := 130.0
+
+# Landing sfx - a light tick per orb as it's absorbed into the Power number. Placeholder
+# asset (unused elsewhere in the project) - swap for a proper "chime" sound if Julien has one.
+# Pitch/volume are jittered per hit so a burst of orbs doesn't read as the same note on repeat.
+const POWER_ORB_LAND_SFX := preload("res://sfx/578807__nomiqbomi__pluck-1.mp3")
+const POWER_ORB_LAND_PITCH_MIN := 0.85
+const POWER_ORB_LAND_PITCH_MAX := 1.25
+const POWER_ORB_LAND_VOLUME_DB := 2.0     # bumped again from -4 (Julien: still louder) - was -10 originally
+const POWER_ORB_LAND_VOLUME_JITTER := 3.0
 
 # Die-glow-charges-with-power tuning (see _update_dice_aura_charge()). All 9 per-dice-type
 # shaders (blue_dice_shader.tres etc.) share a "power_intensity" uniform (hint_range 0.1-2.0)
@@ -594,21 +609,28 @@ func _spawn_power_orbs(roll_val: int, type: String, is_max_roll: bool) -> void:
         orb.size = Vector2(size, size)
         orb.pivot_offset = orb.size / 2.0
 
-        var start := origin + Vector2(randf_range(-10.0, 10.0), randf_range(-10.0, 10.0))
-        var end := target + Vector2(randf_range(-6.0, 6.0), randf_range(-6.0, 6.0))
+        var start := origin + Vector2(randf_range(-14.0, 14.0), randf_range(-14.0, 14.0))
+        var end := target + Vector2(randf_range(-10.0, 10.0), randf_range(-10.0, 10.0))
         orb.global_position = start - orb.size / 2.0
 
         # Rough "rainbow" arc: control point sits well ABOVE the midpoint (and biased toward
         # the target's x) so the path rises, sails over, and comes back down into the Power
         # label from above - rather than the old perpendicular-random bow, which averaged out
         # to a flat, straightforward line since it bowed up or down with equal odds.
-        var mid_x := lerpf(start.x, end.x, 0.55)
+        # mid_x's ratio is randomized per orb (was a fixed 0.55) so each one bows through a
+        # different point along the path instead of all fanning out from the same silhouette -
+        # combined with the wider control-x jitter below, this is what breaks the "train" look.
+        var mid_x := lerpf(start.x, end.x, randf_range(POWER_ORB_MID_X_MIN, POWER_ORB_MID_X_MAX))
         var apex_y := minf(start.y, end.y) - randf_range(POWER_ORB_ARC_HEIGHT_MIN, POWER_ORB_ARC_HEIGHT_MAX)
-        var control := Vector2(mid_x + randf_range(-15.0, 15.0), apex_y)
+        var control := Vector2(mid_x + randf_range(-25.0, 25.0), apex_y)
 
         var flight_time := randf_range(POWER_ORB_FLIGHT_MIN, POWER_ORB_FLIGHT_MAX)
+        # Jittered on top of the linear index-based spacing, rather than a bare `STAGGER * i` -
+        # a perfectly even launch cadence is exactly what reads as a mechanical conveyor/train
+        # regardless of how varied the paths are. Clamped to >=0 since jitter can go negative.
+        var launch_delay := maxf(0.0, POWER_ORB_STAGGER * i + randf_range(-POWER_ORB_STAGGER_JITTER, POWER_ORB_STAGGER_JITTER))
         var tw := create_tween()
-        tw.tween_interval(POWER_ORB_STAGGER * i)
+        tw.tween_interval(launch_delay)
         tw.tween_property(orb, "modulate:a", 1.0, flight_time * 0.3)
         tw.parallel().tween_method(_orb_bezier_step.bind(orb, start, control, end), 0.0, 1.0, flight_time) \
             .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
@@ -616,11 +638,12 @@ func _spawn_power_orbs(roll_val: int, type: String, is_max_roll: bool) -> void:
         # number rather than just stopping next to it.
         tw.parallel().tween_property(orb, "scale", Vector2(0.2, 0.2), flight_time) \
             .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-        # The first (unstaggered, i==0) orb is the earliest to land - that's the moment the
-        # Power number gets its "delivery" reaction, rather than waiting for the whole
+        # The first (unstaggered, i==0) orb is roughly the earliest to land - that's the moment
+        # the Power number gets its "delivery" reaction, rather than waiting for the whole
         # staggered swarm on big rolls (so the timing doesn't grow with orb count).
         if i == 0:
             tw.tween_callback(_play_power_orb_arrival_reaction.bind(type))
+        tw.tween_callback(_play_power_orb_land_sfx)
         tw.tween_callback(orb.queue_free)
 
 
@@ -773,6 +796,16 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
     mech_adjustment_used = false
     _update_mech_buttons()
     _update_charged_card_description()
+
+
+# Light landing tick, fired on EVERY orb (unlike _play_power_orb_arrival_reaction below, which
+# only fires once per roll on the first orb). Pitch/volume jittered per hit so a big roll's
+# flurry of landings reads as a scatter of individual little hits rather than the same note
+# machine-gunned back to back.
+func _play_power_orb_land_sfx() -> void:
+    var pitch := randf_range(POWER_ORB_LAND_PITCH_MIN, POWER_ORB_LAND_PITCH_MAX)
+    var volume := POWER_ORB_LAND_VOLUME_DB + randf_range(-POWER_ORB_LAND_VOLUME_JITTER, POWER_ORB_LAND_VOLUME_JITTER)
+    SFXPlayer.play(POWER_ORB_LAND_SFX, false, pitch, volume)
 
 
 # A second, smaller reaction on the Power number, purely additive - the number itself already

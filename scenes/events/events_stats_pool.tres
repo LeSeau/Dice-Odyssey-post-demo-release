@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="EventStatsPool" load_steps=16 format=3 uid="uid://dih15xjxqnjvm"]
+[gd_resource type="Resource" script_class="EventStatsPool" load_steps=31 format=3 uid="uid://dih15xjxqnjvm"]
 
 [ext_resource type="Script" path="res://custom_resources/event_stats.gd" id="1_1o3oj"]
 [ext_resource type="Resource" uid="uid://dcw1xrmomcaom" path="res://scenes/events/event_add_new_card.tres" id="2_fe2a0"]
@@ -15,7 +15,22 @@
 [ext_resource type="Resource" uid="uid://khcn03j3k3o4" path="res://scenes/events/event_relic_or_heal.tres" id="12_e17ra"]
 [ext_resource type="Resource" uid="uid://c330m1b4rpra2" path="res://scenes/events/event_dice_arcanist.tres" id="13_ol1td"]
 [ext_resource type="Resource" uid="uid://bj2ou20igy0rd" path="res://scenes/events/event_more_money_for_hp.tres" id="14_cgcno"]
+[ext_resource type="Resource" path="res://scenes/events/event_hollow_idol.tres" id="15_hidl0"]
+[ext_resource type="Resource" path="res://scenes/events/event_fickle_broker.tres" id="16_brkr0"]
+[ext_resource type="Resource" path="res://scenes/events/event_hungry_altar.tres" id="17_altr0"]
+[ext_resource type="Resource" path="res://scenes/events/event_whetstone_shrine.tres" id="18_whet0"]
+[ext_resource type="Resource" path="res://scenes/events/event_bargaining_skeleton.tres" id="19_skel0"]
+[ext_resource type="Resource" path="res://scenes/events/event_dice_forge.tres" id="20_forg0"]
+[ext_resource type="Resource" path="res://scenes/events/event_wandering_merchant.tres" id="21_merc0"]
+[ext_resource type="Resource" path="res://scenes/events/event_patient_monk.tres" id="22_monk0"]
+[ext_resource type="Resource" path="res://scenes/events/event_twin_vaults.tres" id="23_vlts0"]
+[ext_resource type="Resource" path="res://scenes/events/event_crimson_eclipse.tres" id="24_ecl000"]
+[ext_resource type="Resource" path="res://scenes/events/event_twin_shrines.tres" id="25_shr011"]
+[ext_resource type="Resource" path="res://scenes/events/event_wayside_shrine.tres" id="26_way012"]
+[ext_resource type="Resource" path="res://scenes/events/event_healing_spring.tres" id="27_spr013"]
+[ext_resource type="Resource" path="res://scenes/events/event_traveling_healer.tres" id="28_heal014"]
+[ext_resource type="Resource" path="res://scenes/events/event_golden_die_shrine.tres" id="29_gold015"]
 
 [resource]
 script = ExtResource("2_ry2tl")
-pool = Array[ExtResource("1_1o3oj")]([ExtResource("2_fe2a0"), ExtResource("4_37for"), ExtResource("5_5uosp"), ExtResource("3_vdhyb"), ExtResource("6_yfmgm"), ExtResource("7_deatg"), ExtResource("8_aoccr"), ExtResource("8_6dtv5"), ExtResource("10_r2ghg"), ExtResource("11_ed1fw"), ExtResource("12_e17ra"), ExtResource("13_ol1td"), ExtResource("14_cgcno")])
+pool = Array[ExtResource("1_1o3oj")]([ExtResource("2_fe2a0"), ExtResource("4_37for"), ExtResource("5_5uosp"), ExtResource("3_vdhyb"), ExtResource("6_yfmgm"), ExtResource("7_deatg"), ExtResource("8_aoccr"), ExtResource("8_6dtv5"), ExtResource("10_r2ghg"), ExtResource("11_ed1fw"), ExtResource("12_e17ra"), ExtResource("13_ol1td"), ExtResource("14_cgcno"), ExtResource("15_hidl0"), ExtResource("16_brkr0"), ExtResource("17_altr0"), ExtResource("18_whet0"), ExtResource("19_skel0"), ExtResource("20_forg0"), ExtResource("21_merc0"), ExtResource("22_monk0"), ExtResource("23_vlts0"), ExtResource("24_ecl000"), ExtResource("25_shr011"), ExtResource("26_way012"), ExtResource("27_spr013"), ExtResource("28_heal014"), ExtResource("29_gold015")])

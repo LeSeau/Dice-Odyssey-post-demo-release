@@ -160,6 +160,88 @@ func create_map() -> void:
 
 
 # =========================================================
+# SAVE / LOAD (see global/save_manager.gd for the format rationale)
+# =========================================================
+
+# Serializes the room graph to plain data. Only on-path rooms (next_rooms > 0) and the boss
+# are saved - they're the only ones create_map() ever spawns; off-path grid slots are
+# regenerated as blank Room.new()s on load. Room links are stored as next-row COLUMN indexes
+# (a room's next_rooms always live on row + 1), so no object references end up in the file.
+func get_save_data() -> Dictionary:
+    var rooms_out: Array = []
+    for current_floor: Array in map_data:
+        for room: Room in current_floor:
+            if room.next_rooms.is_empty() and room.type != Room.Type.BOSS:
+                continue
+            var next_columns: Array = []
+            for next: Room in room.next_rooms:
+                next_columns.append(next.column)
+            rooms_out.append({
+                "row": room.row,
+                "column": room.column,
+                "type": room.type,
+                "position": room.position,
+                "selected": room.selected,
+                "secret": room.is_secret_fight,
+                "battle": room.battle_stats.resource_path if room.battle_stats else "",
+                "event": room.event_stats.resource_path if room.event_stats else "",
+                "next_columns": next_columns,
+            })
+    var last: Variant = null
+    if last_room != null:
+        last = [last_room.row, last_room.column]
+    return {
+        "floors_climbed": floors_climbed,
+        "last_room": last,
+        "rooms": rooms_out,
+    }
+
+
+# Rebuilds map_data + visuals from get_save_data() output. Mirrors generate_new_map()'s
+# structure (clear -> fill map_data -> create_map) so all the node/lookup lifecycle fixed
+# for act-2 regeneration applies here too. Caller (run.gd) is responsible for the unlock
+# call afterwards (unlock_next_rooms / unlock_floor) - same split as a fresh run.
+func load_from_save_data(data: Dictionary) -> void:
+    floors_climbed = data["floors_climbed"]
+    last_room = null
+    _clear_map()
+
+    var rebuilt: Array[Array] = []
+    for i in MapGenerator.FLOORS:
+        var row_rooms: Array[Room] = []
+        for j in MapGenerator.MAP_WIDTH:
+            var room := Room.new()
+            room.row = i
+            room.column = j
+            room.next_rooms = []
+            row_rooms.append(room)
+        rebuilt.append(row_rooms)
+    map_data = rebuilt
+
+    # Pass 1: per-room fields. Pass 2 below wires next_rooms, once every target exists.
+    for entry: Dictionary in data["rooms"]:
+        var room: Room = map_data[entry["row"]][entry["column"]]
+        room.type = entry["type"]
+        room.position = entry["position"]
+        room.selected = entry["selected"]
+        room.is_secret_fight = entry["secret"]
+        if entry["battle"] != "" and ResourceLoader.exists(entry["battle"]):
+            room.battle_stats = load(entry["battle"])
+        if entry["event"] != "" and ResourceLoader.exists(entry["event"]):
+            room.event_stats = load(entry["event"])
+
+    for entry: Dictionary in data["rooms"]:
+        var room: Room = map_data[entry["row"]][entry["column"]]
+        for next_column in entry["next_columns"]:
+            room.next_rooms.append(map_data[entry["row"] + 1][next_column])
+
+    if data["last_room"] != null:
+        last_room = map_data[data["last_room"][0]][data["last_room"][1]]
+
+    create_map()
+
+
+# =========================================================
 # ROOM SPAWNING
 # =========================================================
 

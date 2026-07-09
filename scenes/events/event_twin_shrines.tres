@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="EventStats" load_steps=3 format=3 uid="uid://bhq2shr0011a"]
+
+[ext_resource type="PackedScene" uid="uid://bhq2shr0011b" path="res://scenes/events/event_twin_shrines.tscn" id="1_shr011"]
+[ext_resource type="Script" path="res://custom_resources/event_stats.gd" id="2_shr012"]
+
+[resource]
+script = ExtResource("2_shr012")
+event_tier = 0
+weight = 1.0
+scene = ExtResource("1_shr011")

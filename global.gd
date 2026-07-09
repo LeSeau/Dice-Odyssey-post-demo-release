@@ -123,3 +123,97 @@ var hound_debuff_attack_done = false
 var gargantua_debuff_attack_done = false
 var has_rolled_6_this_turn = false
 var has_rolled_1_this_fight = false
+
+# Set by the main menu's Load Run button; consumed (and cleared) by run.gd::_late_init,
+# which then restores from SaveManager instead of starting fresh.
+var load_run_requested := false
+
+
+# Puts every RUN-scOPED field back to its new-run default. Called by run.gd::_late_init on
+# every run start (fresh or loaded - a load overwrites on top of this clean slate).
+# Fixes a latent bug at the same time: the death-screen Restart button reloads the Run scene,
+# but this autoload survives scene reloads - before this function existed, gold/dice/act/
+# tutorial flags from the dead run silently carried over into the "fresh" one.
+# NOT reset here: testing_mode (dev switch), tutorial_on (set by the main menu before the
+# scene loads), load_run_requested (the flag that decides fresh-vs-load), player (node ref,
+# reassigned by the battle scene), and the preloaded sfx.
+func reset_run_state() -> void:
+    gold = 75
+    player_hp = 66
+    player_max_hp = 66
+
+    blue_dice_current_amount = 2
+    blue_dice_max_amount = 2
+    blue_dice_bonus_amount = 0
+    blue_dice_bonus_amount_fight = 0
+    red_dice_current_amount = 1
+    red_dice_max_amount = 1
+    red_dice_bonus_amount = 0
+    for type in ["evil", "green", "giant", "magma", "even", "odd", "mech"]:
+        set(type + "_dice_current_amount", 0)
+        set(type + "_dice_max_amount", 0)
+        set(type + "_dice_bonus_amount", 0)
+    mech_dice_bonus_amount_fight = 0
+
+    roll_value = 0
+    last_roll = 0
+    roll_history = []
+    next_roll_value = 0
+    next_roll_modifier = 0
+    next_guaranteed_roll = 0
+    starting_power_next_turn = 0
+    power_generated_this_turn = 0
+    no_reset = false
+
+    ink_active = false
+    charged_dice_this_turn = false
+    dice_amount_rolled_this_turn = 0
+    dice_type = "blue"
+    current_card = null
+    charged_card_instance_id = 0
+    playing_red_card = false
+    dragging_card = false
+    fight_turn = 0
+    fight_dice_rolled = 0
+    cards_played_this_turn = 0
+    enemy_last_move = ""
+    lose_strength_next_turn = 0
+    has_blocked_last_turn = false
+    has_rolled_6_this_turn = false
+    has_rolled_1_this_fight = false
+    hound_debuff_attack_done = false
+    gargantua_debuff_attack_done = false
+
+    dice_inventory = ["blue", "red"]
+    purchased_dice_counts = {
+        "evil": 0, "giant": 0, "magma": 0, "even": 0, "odd": 0,
+        "blue": 0, "red": 0, "green": 0, "mech": 0,
+    }
+    cheapest_dice_price = null
+    shop_initialized = false
+    shop_dice_selection = []
+
+    removing_card = false
+    upgrading_card = false
+    current_act = 1
+    is_final_boss_fight = false
+    game_over_state = false
+    pending_card_rewards = 1
+
+    tutorial_reset_power_warning = true
+    tutorial_forced_roll = 0
+    tutorial_block = true
+    tutorial_low_blow = false
+    tutorial_fight = true
+    tutorial_enemy_attack = true
+    tutorial_red_dice = false
+    tutorial_charging_card = false
+    tutorial_red_attack = false
+    tutorial_end_turn = false
+    tutorial_blue_dice = false
+    tutorial_second_turn = false
+    tutorial_recombobulate = false
+    tutorial_bonus_requirement_explanation_needed = true
+    tutorial_transcendent_explanation_needed = true
+    tutorial_dice_shop_explanation_needed = false
+    tutorial_blessing_explanation_needed = true

@@ -1,8 +1,11 @@
-[gd_scene load_steps=18 format=3 uid="uid://btktlydklchb4"]
+[gd_scene load_steps=21 format=3 uid="uid://btktlydklchb4"]
 
 [ext_resource type="Script" path="res://main_menu.gd" id="1_vi5tj"]
 [ext_resource type="Texture2D" uid="uid://d4nx6s75m7oci" path="res://main_menu_v3.jpg" id="2_2uw4g"]
 [ext_resource type="FontFile" uid="uid://c4mfyi0ta8qeq" path="res://fonts/MinionPro-Semibold.otf" id="3_lj8do"]
+[ext_resource type="StyleBox" path="res://scenes/shop/shop_button_normal.tres" id="4_btn_n"]
+[ext_resource type="StyleBox" path="res://scenes/shop/shop_button_hover.tres" id="5_btn_h"]
+[ext_resource type="StyleBox" path="res://scenes/shop/shop_button_pressed.tres" id="6_btn_p"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cvc1e"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
@@ -193,6 +196,22 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_eiscl")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_pktf8")
 theme_override_styles/normal = SubResource("StyleBoxFlat_r22wc")
 
+[node name="LoadRun" type="Button" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 69.0
+offset_top = 693.0
+offset_right = 611.0
+offset_bottom = 755.0
+theme_override_colors/font_hover_color = Color(1, 0.843137, 0, 1)
+theme_override_colors/font_color = Color(0.92549, 0.890196, 0.815686, 1)
+theme_override_fonts/font = ExtResource("3_lj8do")
+theme_override_font_sizes/font_size = 36
+theme_override_styles/hover = ExtResource("5_btn_h")
+theme_override_styles/pressed = ExtResource("6_btn_p")
+theme_override_styles/normal = ExtResource("4_btn_n")
+text = "Load Run"
+
 [node name="EnableTutorialPanel" type="Panel" parent="."]
 visible = false
 layout_mode = 1
@@ -276,6 +295,7 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_cancel_normal")
 text = "X"
 
 [connection signal="pressed" from="NewRun" to="." method="_on_new_run_pressed"]
+[connection signal="pressed" from="LoadRun" to="." method="_on_load_run_pressed"]
 [connection signal="pressed" from="EnableTutorialPanel/StartWithTutorial" to="." method="_on_start_with_tutorial_pressed"]
 [connection signal="pressed" from="EnableTutorialPanel/StartWithoutTutorial" to="." method="_on_start_without_tutorial_pressed"]
 [connection signal="pressed" from="EnableTutorialPanel/CancelButton" to="." method="_on_cancel_tutorial_panel_pressed"]

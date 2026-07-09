@@ -1,4 +1,4 @@
-[gd_scene load_steps=40 format=3 uid="uid://b56wvanf6u6h7"]
+[gd_scene load_steps=43 format=3 uid="uid://b56wvanf6u6h7"]
 
 [ext_resource type="Script" path="res://scenes/run/run.gd" id="1_sgoer"]
 [ext_resource type="PackedScene" uid="uid://deprxl041o8nn" path="res://scenes/map/map.tscn" id="2_1mcea"]
@@ -25,6 +25,9 @@
 [ext_resource type="FontFile" uid="uid://bm3deysyi2y55" path="res://Belwe Bold/Belwe Bold.otf" id="33_q6s60"]
 [ext_resource type="Texture2D" uid="uid://b1my7ua56jx7t" path="res://tutorial_arrow.png" id="33_ys7td"]
 [ext_resource type="PackedScene" uid="uid://c7qk2actbnr4m" path="res://scenes/ui/act_banner.tscn" id="34_actbn"]
+[ext_resource type="StyleBox" uid="uid://c8k2n5xr9j7wq" path="res://scenes/shop/shop_button_normal.tres" id="35_btn_n"]
+[ext_resource type="StyleBox" uid="uid://dqm3v7x8k2n5w" path="res://scenes/shop/shop_button_hover.tres" id="36_btn_h"]
+[ext_resource type="StyleBox" uid="uid://bx6v9n3k8q2wr" path="res://scenes/shop/shop_button_pressed.tres" id="37_btn_p"]
 
 [sub_resource type="Gradient" id="Gradient_ajfrf"]
 colors = PackedColorArray(0.101961, 0.227451, 0.235294, 1, 0.0588235, 0.133333, 0.141176, 1)
@@ -165,6 +168,7 @@ battle_stats_pool = ExtResource("3_a53df")
 elite_relic_pool = ExtResource("4_i08gm")
 
 [node name="Map" parent="." instance=ExtResource("2_1mcea")]
+process_mode = 3
 position = Vector2(-3, -39)
 
 [node name="CurrentView" type="Node" parent="."]
@@ -334,6 +338,21 @@ layout_mode = 2
 size_flags_horizontal = 3
 
 [node name="Spacer" type="Control" parent="TopBar/BarItems"]
+custom_minimum_size = Vector2(2, 0)
+layout_mode = 2
+
+[node name="ConsultMapButton" type="Button" parent="TopBar/BarItems"]
+unique_name_in_owner = true
+process_mode = 3
+custom_minimum_size = Vector2(90, 50)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_styles/normal = ExtResource("35_btn_n")
+theme_override_styles/hover = ExtResource("36_btn_h")
+theme_override_styles/pressed = ExtResource("37_btn_p")
+text = "Map"
+
+[node name="Spacer4" type="Control" parent="TopBar/BarItems"]
 custom_minimum_size = Vector2(2, 0)
 layout_mode = 2
 

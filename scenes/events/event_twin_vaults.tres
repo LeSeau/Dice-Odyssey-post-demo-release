@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="EventStats" load_steps=3 format=3 uid="uid://bhq1vlts0009a"]
+
+[ext_resource type="PackedScene" uid="uid://bhq1vlts0009b" path="res://scenes/events/event_twin_vaults.tscn" id="1_vlts1"]
+[ext_resource type="Script" path="res://custom_resources/event_stats.gd" id="2_vlts2"]
+
+[resource]
+script = ExtResource("2_vlts2")
+event_tier = 0
+weight = 1.0
+scene = ExtResource("1_vlts1")

@@ -26,6 +26,7 @@ const ACT2_GOLD_MULT := 1.5
 
 @onready var current_view: Node = $CurrentView
 @onready var map_button: Button = %MapButton
+@onready var consult_map_button: Button = %ConsultMapButton
 @onready var battle_button: Button = %BattleButton
 @onready var shop_button: Button = %ShopButton
 @onready var rewards_button: Button = %RewardsButton
@@ -65,6 +66,24 @@ var character: CharacterStats
 var dice_displays = {}
 var used_battles: Array[BattleStats] = []  # Track used battles during this run
 
+# Player-facing "peek at the map" toggle (TopBar's ConsultMapButton) - unlike the
+# debug MapButton (which destructively frees whatever's in current_view), this
+# hides the current view and pauses the tree instead, so battle/event/shop/
+# treasure/campfire state is fully intact when closed. See _open_map_consult().
+var map_consult_mode := false
+
+# Set when the act-2 boss falls: the run is over, no further checkpoint may be
+# written (and the save file has already been deleted in _on_battle_won).
+var run_finished := false
+
+# The dice shop panel (unlike battle/event/card-shop/campfire/treasure) doesn't
+# cover the whole screen and is meant to float over the visible map, so it's
+# instantiated under TopBar (a CanvasLayer, screen-space, immune to the map
+# camera's scroll) instead of current_view (world-space - would drift off-center
+# whenever the map camera isn't at its floor-0 resting position). Tracked here
+# since _change_view()'s current_view bookkeeping doesn't apply to it.
+var dice_shop_instance: Node = null
+
 # Armed by _on_battle_won when the act-1 boss falls; fires on the next return to
 # the map (i.e. after the boss reward screen), so boss gold/card aren't skipped.
 var act_transition_pending := false
@@ -79,6 +98,10 @@ func _ready() -> void:
 
 
 func _late_init() -> void:
+    # Clean slate for every run - the Global autoload survives scene reloads (death-screen
+    # Restart included), so without this a "new" run inherited the previous run's gold/dice/
+    # act/tutorial flags. A loaded run restores its own values on top of this reset.
+    Global.reset_run_state()
     var warrior = load("res://characters/warrior/warrior.tres")
     character = warrior.create_instance()
 
@@ -94,7 +117,11 @@ func _late_init() -> void:
     Events.start_map_music.connect(_on_start_map_music)
     Events.check_if_can_purchase_dice.connect(_on_check_if_can_purchase_dice)
 
-    _start_run()
+    if Global.load_run_requested:
+        Global.load_run_requested = false
+        _load_run()
+    else:
+        _start_run()
     _on_update_dice_top_bar()
     map_music.play()
 
@@ -208,6 +235,9 @@ func _start_run() -> void:
     map.generate_new_map()
     map.unlock_floor(0)
     _update_floor_label()
+    # First checkpoint right away - starting a new run is also what "abandons" any previous
+    # save (single slot, roguelike convention).
+    _save_checkpoint()
 
 
 # floors_climbed is 0 before any room is picked (row 0 is the currently
@@ -224,12 +254,12 @@ func _change_view(scene: PackedScene) -> Node:
     print(scene)
     if current_view.get_child_count() > 0:
         current_view.get_child(0).queue_free()
-        
+
     get_tree().paused = false
     var new_view := scene.instantiate()
     current_view.add_child(new_view)
     map.hide_map()
-    
+
     return new_view
     
 func _show_map() -> void:
@@ -241,9 +271,17 @@ func _show_map() -> void:
     SFXPlayer.play(Global.sfx_click)
     if current_view.get_child_count() > 0:
         current_view.get_child(0).queue_free()
+    if dice_shop_instance:
+        dice_shop_instance.queue_free()
+        dice_shop_instance = null
     dice_shop.show()
     map.show_map()
     map.unlock_next_rooms()
+    # The save checkpoint: every return to the map (post-battle-reward, post-event,
+    # post-shop, post-campfire, post-treasure) snapshots the run. Quitting mid-room
+    # resumes from here - i.e. back on the map, the room not yet re-entered (v1 scope:
+    # no mid-combat saves, see save_manager.gd).
+    _save_checkpoint()
 
 
 func _setup_event_connections() -> void:
@@ -263,6 +301,7 @@ func _setup_event_connections() -> void:
     map_button.pressed.connect(_show_map)
     rewards_button.pressed.connect(_change_view.bind(BATTLE_REWARD_SCENE))
     shop_button.pressed.connect(_change_view.bind(SHOP_SCENE))
+    consult_map_button.pressed.connect(_on_consult_map_button_pressed)
     
     
 func _setup_top_bar():
@@ -438,6 +477,13 @@ func _on_battle_won() -> void:
     if map.last_room.type == Room.Type.BOSS and Global.current_act == 1:
         act_transition_pending = true
 
+    # Beating the act-2 boss ends the run - drop the save (roguelike: a finished run
+    # can't be reloaded). run_finished also stops _show_map's checkpoint from writing
+    # a useless "post-boss map with nothing left to do" save when the reward screen exits.
+    if map.last_room.type == Room.Type.BOSS and Global.current_act >= 2:
+        run_finished = true
+        SaveManager.delete_save()
+
     Global.fight_turn = 0
 
 # One-shot act transition. Deck, relics, gold and dice all carry over untouched -
@@ -457,6 +503,12 @@ func _enter_act_2() -> void:
 
 
 func _on_map_exited(room: Room) -> void:
+    # Room clicks are blocked at the input level while consulting the map (see
+    # _open_map_consult - the tree is paused and Map isn't PROCESS_MODE_ALWAYS),
+    # but guard here too in case this is ever reached some other way - consulting
+    # the map must never be able to trigger entering a new room.
+    if map_consult_mode:
+        return
     dice_shop_explanation_box.hide()
     _update_floor_label()
     match room.type:
@@ -527,7 +579,11 @@ func _on_show_reward():
 func _on_dice_shop_pressed() -> void:
     SFXPlayer.play(sfx_click)
     dice_shop_explanation_box.hide()
-    _change_view(DICE_SHOP_SCENE)
+    if dice_shop_instance:
+        dice_shop_instance.queue_free()
+    dice_shop_instance = DICE_SHOP_SCENE.instantiate()
+    $TopBar.add_child(dice_shop_instance)
+    map.show_map()
     
     
 func _on_hp_changed() -> void:
@@ -562,6 +618,82 @@ func _on_open_deck_view_for_upgrade() -> void:
 func _on_show_map_requested() -> void:
     _show_map()
 
+# Non-destructive "peek at the map" (STS-style), from battle/event/shop/treasure/
+# campfire. Unlike _show_map() (used by the debug MapButton and real map-to-map
+# transitions), this never frees current_view's child - it just hides it and
+# pauses the tree, so whatever's underneath (an in-progress battle, an event
+# dialogue, a shop) is exactly as the player left it when they close the map again.
+func _on_consult_map_button_pressed() -> void:
+    if map_consult_mode:
+        _close_map_consult()
+    else:
+        _open_map_consult()
+
+func _open_map_consult() -> void:
+    if current_view.get_child_count() == 0:
+        return  # already looking at the map itself - nothing to peek behind
+    map_consult_mode = true
+    var view := current_view.get_child(0)
+    view.hide()
+    _set_nested_canvas_layers_visible(view, false)
+    # Camera2D isn't a CanvasItem, so hiding the view above does nothing to its own
+    # camera (battle.tscn has one) - it would stay "current" and keep driving the
+    # viewport, fighting Map's camera for control (this is why scrolling the map
+    # during consult previously had no visible effect - you were moving Map's
+    # camera while the battle's own camera was still the one actually active).
+    # Disable it BEFORE enabling Map's own camera below so there's never a moment
+    # with two enabled cameras contending for "current".
+    _set_nested_cameras_enabled(view, false)
+    map.show_map()
+    # Force-clear any relic tooltip that's mid-hover before pausing - relic_ui.gd's
+    # main tooltip has no safety timeout (only mouse_exited/_exit_tree free it, and
+    # neither fires on a paused, non-ALWAYS node), so without this it would sit on
+    # screen for the entire time the map is up and stay stuck after closing it too.
+    for relic_ui in relic_handler.relics.get_children():
+        if relic_ui.has_method("_cleanup_tooltips"):
+            relic_ui._cleanup_tooltips()
+    # Pausing (same pattern as battle_over_panel.gd) freezes whatever's hidden
+    # underneath - enemy turns, event timers, shop animations - so nothing
+    # progresses invisibly while the map is up. ConsultMapButton itself is
+    # process_mode=ALWAYS (set in run.tscn) so it still receives the click that
+    # closes this again; Map/rooms are left at their default process mode, so
+    # (on top of the map_consult_mode guard in _on_map_exited) room clicks can't
+    # register at all while paused - consulting can never accidentally select a room.
+    get_tree().paused = true
+    consult_map_button.text = "Close Map"
+
+func _close_map_consult() -> void:
+    map_consult_mode = false
+    get_tree().paused = false
+    map.hide_map()
+    if current_view.get_child_count() > 0:
+        var view := current_view.get_child(0)
+        view.show()
+        _set_nested_canvas_layers_visible(view, true)
+        _set_nested_cameras_enabled(view, true)
+    consult_map_button.text = "Map"
+
+# See _open_map_consult() - a hidden view's own Camera2D (not a CanvasItem) keeps
+# running/staying current unless explicitly disabled, same class of gotcha as
+# _set_nested_canvas_layers_visible below but for cameras instead of CanvasLayers.
+func _set_nested_cameras_enabled(node: Node, enabled: bool) -> void:
+    for child in node.get_children():
+        if child is Camera2D:
+            child.enabled = enabled
+        _set_nested_cameras_enabled(child, enabled)
+
+# hide()/show() on a view's root only propagates to normal CanvasItem children -
+# any CanvasLayer anywhere in its subtree (battle.tscn alone has 5: BattleUI/
+# CardPileViews/BattleOverLayer/RedFlash/an unnamed one) draws independently of
+# its parent's visibility and must be toggled explicitly, same root cause as the
+# MapBackground leak documented in CLAUDE.md. Recurses past CanvasLayers too, in
+# case one ever nests another.
+func _set_nested_canvas_layers_visible(node: Node, is_visible: bool) -> void:
+    for child in node.get_children():
+        if child is CanvasLayer:
+            child.visible = is_visible
+        _set_nested_canvas_layers_visible(child, is_visible)
+
 func _on_stop_map_music() -> void:
     map_music.stop()
 
@@ -589,3 +721,201 @@ func _on_show_reward_with_relic(relic: Relic) -> void:
 
 func _on_join_discord_button_pressed() -> void:
     OS.shell_open("https://discord.gg/fah8A2qQx2")
+
+
+# =========================================================
+# SAVE / LOAD (v1: map-screen checkpoints only, single slot)
+# See global/save_manager.gd for the format/scope rationale.
+# =========================================================
+
+const DICE_TYPES := ["blue", "red", "evil", "green", "giant", "magma", "even", "odd", "mech"]
+
+# The one-shot tutorial/explanation flags that matter ACROSS rooms (a loaded run must not
+# replay the forced first fight or re-show already-seen explanation panels). The many
+# within-combat tutorial flags aren't listed - a load always lands on the map, where
+# reset_run_state() defaults are correct for them.
+const SAVED_TUTORIAL_FLAGS := [
+    "tutorial_on", "tutorial_fight", "tutorial_block", "tutorial_enemy_attack",
+    "tutorial_reset_power_warning",
+    "tutorial_bonus_requirement_explanation_needed",
+    "tutorial_transcendent_explanation_needed",
+    "tutorial_dice_shop_explanation_needed",
+    "tutorial_blessing_explanation_needed",
+]
+
+
+func _save_checkpoint() -> void:
+    if run_finished:
+        return
+
+    # Cards are saved as {path, id} pairs: path is the primary key (all deck cards are
+    # shared file-backed resources today), id is a fallback so a future code path that
+    # duplicates a Card resource (duplicates lose their resource_path) degrades to an
+    # id lookup instead of silently dropping the card from the save.
+    var deck_out: Array = []
+    for card: Card in character.deck.cards:
+        if card.resource_path == "" and card.id == "":
+            push_warning("Save: deck card with neither resource_path nor id - skipped")
+            continue
+        deck_out.append({"path": card.resource_path, "id": card.id})
+
+    var relics_out: Array = []
+    for relic: Relic in relic_handler.get_all_relics():
+        if relic.resource_path == "":
+            push_warning("Save: relic '%s' has no resource_path - skipped" % relic.id)
+            continue
+        relics_out.append(relic.resource_path)
+
+    var dice_out := {}
+    for type: String in DICE_TYPES:
+        dice_out[type] = Global.get(type + "_dice_max_amount")
+
+    var tutorials_out := {}
+    for flag: String in SAVED_TUTORIAL_FLAGS:
+        tutorials_out[flag] = Global.get(flag)
+
+    var used_battles_out: Array = []
+    for battle: BattleStats in used_battles:
+        if battle.resource_path != "":
+            used_battles_out.append(battle.resource_path)
+
+    var event_pool_out: Array = []
+    for event: EventStats in event_stats_pool.pool:
+        if event.resource_path != "":
+            event_pool_out.append(event.resource_path)
+    var initial_event_pool_out: Array = []
+    for event: EventStats in initial_event_pool:
+        if event.resource_path != "":
+            initial_event_pool_out.append(event.resource_path)
+
+    SaveManager.write_save({
+        "act": Global.current_act,
+        "gold": Global.gold,
+        "health": character.health,
+        "max_health": character.max_health,
+        "player_max_hp": Global.player_max_hp,
+        "deck": deck_out,
+        "relics": relics_out,
+        "dice_max": dice_out,
+        "dice_inventory": Global.dice_inventory.duplicate(),
+        "purchased_dice_counts": Global.purchased_dice_counts.duplicate(),
+        "shop_initialized": Global.shop_initialized,
+        "shop_dice_selection": Global.shop_dice_selection.duplicate(),
+        "cheapest_dice_price": Global.cheapest_dice_price,
+        "tutorials": tutorials_out,
+        "used_battles": used_battles_out,
+        "event_pool_remaining": event_pool_out,
+        "event_pool_initial": initial_event_pool_out,
+        "run_stats": {
+            "card_rewards": stats.card_rewards,
+            "normal_weight": stats.normal_weight,
+            "support_weight": stats.support_weight,
+        },
+        "map": map.get_save_data(),
+    })
+
+
+# Mirrors _start_run()'s structure but restores every piece from the save instead of
+# generating fresh. Runs on top of the reset_run_state() clean slate from _late_init.
+func _load_run() -> void:
+    var data := SaveManager.read_save()
+    if data.is_empty():
+        push_warning("Load Run: no usable save found - starting a fresh run instead")
+        _start_run()
+        return
+
+    stats = RunStats.new()
+    stats.card_rewards = data["run_stats"]["card_rewards"]
+    stats.normal_weight = data["run_stats"]["normal_weight"]
+    stats.support_weight = data["run_stats"]["support_weight"]
+
+    Global.current_act = data["act"]
+    Global.gold = data["gold"]
+    stats.gold = data["gold"]
+    Global.player_max_hp = data["player_max_hp"]
+
+    for type: String in DICE_TYPES:
+        var max_amount: int = data["dice_max"].get(type, 0)
+        Global.set(type + "_dice_max_amount", max_amount)
+        # current gets recomputed at each battle start anyway; max is a safe map-screen value
+        Global.set(type + "_dice_current_amount", max_amount)
+    Global.dice_inventory = data["dice_inventory"]
+    Global.purchased_dice_counts = data["purchased_dice_counts"]
+    Global.shop_initialized = data["shop_initialized"]
+    Global.shop_dice_selection = data["shop_dice_selection"]
+    Global.cheapest_dice_price = data["cheapest_dice_price"]
+
+    for flag: String in SAVED_TUTORIAL_FLAGS:
+        if data["tutorials"].has(flag):
+            Global.set(flag, data["tutorials"][flag])
+
+    # max_health BEFORE health - Stats.set_health clamps against the current max.
+    character.max_health = data["max_health"]
+    character.health = data["health"]
+
+    var restored_deck := CardPile.new()
+    var id_lookup := _build_card_id_lookup()
+    for entry: Dictionary in data["deck"]:
+        var card: Card = null
+        if entry["path"] != "" and ResourceLoader.exists(entry["path"]):
+            card = load(entry["path"])
+        elif id_lookup.has(entry["id"]):
+            card = id_lookup[entry["id"]]
+        if card:
+            restored_deck.add_card(card)
+        else:
+            push_warning("Load Run: card '%s' (%s) no longer exists - dropped from deck" % [entry["id"], entry["path"]])
+    character.deck = restored_deck
+
+    var restored_events: Array[EventStats] = []
+    for path: String in data["event_pool_remaining"]:
+        if ResourceLoader.exists(path):
+            restored_events.append(load(path))
+    event_stats_pool.pool = restored_events
+    event_stats_pool.setup()
+    var restored_initial_events: Array[EventStats] = []
+    for path: String in data["event_pool_initial"]:
+        if ResourceLoader.exists(path):
+            restored_initial_events.append(load(path))
+    initial_event_pool = restored_initial_events
+
+    used_battles.clear()
+    for path: String in data["used_battles"]:
+        if ResourceLoader.exists(path):
+            used_battles.append(load(path))
+
+    _setup_event_connections()
+    _setup_top_bar()  # adds the starting relic; saved relics below dedupe via has_relic
+
+    for path: String in data["relics"]:
+        if not ResourceLoader.exists(path):
+            push_warning("Load Run: relic %s no longer exists - dropped" % path)
+            continue
+        relic_handler.add_relic(load(path))
+
+    map.load_from_save_data(data["map"])
+    if map.last_room != null:
+        map.unlock_next_rooms()
+    else:
+        map.unlock_floor(0)
+    map.show_map()
+    dice_shop.show()
+    _update_floor_label()
+    Events.hp_changed.emit()
+    Events.check_if_can_purchase_dice.emit()
+
+
+# Path-independent card lookup for the deck-restore id fallback: every card that can
+# legally be in a deck is reachable from the warrior's draftable pool or starting deck,
+# plus their upgraded ("+") versions.
+func _build_card_id_lookup() -> Dictionary:
+    var lookup := {}
+    var sources: Array[CardPile] = [character.draftable_cards, character.starting_deck]
+    for pile: CardPile in sources:
+        if pile == null:
+            continue
+        for card: Card in pile.cards:
+            lookup[card.id] = card
+            if card.upgraded_version:
+                lookup[card.upgraded_version.id] = card.upgraded_version
+    return lookup

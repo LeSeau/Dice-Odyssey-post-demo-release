@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="EventStats" load_steps=3 format=3 uid="uid://bhq1brkr0002a"]
+
+[ext_resource type="PackedScene" uid="uid://bhq1brkr0002b" path="res://scenes/events/event_fickle_broker.tscn" id="1_brkr1"]
+[ext_resource type="Script" path="res://custom_resources/event_stats.gd" id="2_brkr2"]
+
+[resource]
+script = ExtResource("2_brkr2")
+event_tier = 0
+weight = 1.0
+scene = ExtResource("1_brkr1")

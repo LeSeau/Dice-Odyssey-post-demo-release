@@ -77,6 +77,23 @@ func _on_mouse_entered() -> void:
     var pos = get_global_mouse_position() + Vector2(24, 24)
     tooltip_panel.show_tooltip(pos)
 
+    # Safety net (unlike the tag tooltips below, which already have their own 6s
+    # timeout, this main tooltip previously had NONE) - mouse_exited/_exit_tree are
+    # the only other cleanup paths, and neither fires if the tree gets paused
+    # mid-hover (e.g. consulting the map), since GUI signals don't fire on a
+    # paused non-ALWAYS node. Without this, a tooltip open right before a pause
+    # would sit on screen forever, even after unpausing. Captures the instance
+    # itself (not just the hover id) so a superseded tooltip still gets freed by
+    # its own timer - same pattern as intent_ui.gd's _start_tooltip_safety_timeout.
+    var this_main_tooltip := tooltip_instance
+    get_tree().create_timer(8.0).timeout.connect(func():
+        if not is_instance_valid(this_main_tooltip):
+            return
+        if tooltip_instance == this_main_tooltip:
+            tooltip_instance = null
+        this_main_tooltip.queue_free()
+    )
+
     var tags_to_show := []
     if relic.tags != "":
         for tag in relic.tags.split(","):

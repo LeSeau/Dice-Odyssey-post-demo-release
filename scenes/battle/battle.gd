@@ -160,6 +160,9 @@ func _on_enemy_turn_ended() -> void:
 
 func _on_player_died() -> void:
     Global.game_over_state = true
+    # Permadeath: dying invalidates the run's save (the last checkpoint was the map
+    # screen before this fight - keeping it would allow retrying the fight for free).
+    SaveManager.delete_save()
     Events.stop_battle_music.emit()
     Events.battle_over_screen_requested.emit("Game Over!", BattleOverPanel.Type.LOSE)
 
