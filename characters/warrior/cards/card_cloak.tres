@@ -21,6 +21,7 @@ bonus_requirement = 4
 bonus_requirement_number = 0
 bonus_description_text = "Charge 1"
 tags = "Charge"
+upgraded = false
 icon = ExtResource("1_gxy8r")
 tooltip_text = ""
 sound = ExtResource("3_ahl6v")

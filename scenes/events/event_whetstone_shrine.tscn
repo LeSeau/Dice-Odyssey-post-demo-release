@@ -1,7 +1,7 @@
 [gd_scene load_steps=10 format=3 uid="uid://bhq1whet0004b"]
 
 [ext_resource type="Script" path="res://scenes/events/event_whetstone_shrine.gd" id="1_whet1"]
-[ext_resource type="Texture2D" uid="uid://vrlvehii1h1j" path="res://sledgehammer.png" id="2_whet2"]
+[ext_resource type="Texture2D" uid="uid://e1a3whet003a" path="res://whetstone_shrine.png" id="2_whet2"]
 [ext_resource type="FontFile" uid="uid://bfgwr7o37ol1j" path="res://Noto_Sans/static/NotoSans-Regular.ttf" id="3_whet3"]
 [ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="4_whet4"]
 
@@ -153,7 +153,7 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("4_whet4")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[center]Pay 45 Gold.[color=gold] Sharpen a card of your choosing.[/color][/center]
+text = "[center][color=gold]Pay 45 Gold.[/color][color=green] Sharpen a card of your choosing.[/color][/center]
 "
 scroll_active = false
 
@@ -176,7 +176,7 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("4_whet4")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[center]Skip it.[color=gold] Take 20 Gold instead.[/color][/center]
+text = "[center]Skip it.[color=green] Browse a card reward instead.[/color][/center]
 "
 scroll_active = false
 

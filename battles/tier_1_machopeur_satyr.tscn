@@ -12,7 +12,7 @@ stats = ExtResource("3_fmr0d")
 sprite_y_offset = 20
 
 [node name="B Satyr" parent="." instance=ExtResource("1_ppjke")]
-position = Vector2(992, 450)
+position = Vector2(992, 425)
 scale = Vector2(0.75, 0.75)
 stats = ExtResource("2_uspug")
 width = 310

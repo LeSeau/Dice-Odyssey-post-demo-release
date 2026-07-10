@@ -14,6 +14,6 @@ func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
 func _on_dice_rolled():
     print("adding dice to damage")
 
-func get_dynamic_description(modifiers: ModifierHandler) -> String:
-    var total := modifiers.get_modified_value(6, Modifier.Type.DMG_DEALT)
+func get_dynamic_description(modifiers: ModifierHandler, target: Node = null) -> String:
+    var total := apply_target_modifier(modifiers.get_modified_value(6, Modifier.Type.DMG_DEALT), target)
     return "Deal %d damage" % total

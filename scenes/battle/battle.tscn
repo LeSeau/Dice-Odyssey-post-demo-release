@@ -667,6 +667,14 @@ size_flags_vertical = 4
 texture = ExtResource("24_bxf3j")
 expand_mode = 1
 
+[node name="ScoutDice6" type="TextureRect" parent="ScoutPanel/HBoxContainer"]
+custom_minimum_size = Vector2(50, 50)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture = ExtResource("24_bxf3j")
+expand_mode = 1
+
 [node name="Tooltip" parent="." instance=ExtResource("26_orwrd")]
 visible = false
 

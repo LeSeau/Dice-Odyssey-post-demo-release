@@ -6,7 +6,7 @@
 [node name="Tier0Crab" type="Node2D"]
 
 [node name="Enemy2" parent="." instance=ExtResource("1_uifor")]
-position = Vector2(892, 416)
+position = Vector2(892, 391)
 stats = ExtResource("2_rtes5")
 width = 280
 height = 280

@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scenes/events/event_hollow_idol.gd" id="1_hidl1"]
 [ext_resource type="Resource" uid="uid://2if2rhy1aktn" path="res://treasure_relic_pool.tres" id="2_hidl2"]
-[ext_resource type="Texture2D" uid="uid://5wmopmdd2d5t" path="res://philosopher_stone.png" id="3_hidl3"]
+[ext_resource type="Texture2D" uid="uid://e1a3hidl001a" path="res://hollow_idol.png" id="3_hidl3"]
 [ext_resource type="FontFile" uid="uid://bfgwr7o37ol1j" path="res://Noto_Sans/static/NotoSans-Regular.ttf" id="4_hidl4"]
 [ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="5_hidl5"]
 
@@ -155,7 +155,7 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("5_hidl5")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[center]Pry it open.[color=gold] Gain a Relic.[/color] [color=red]Lose 4 Max HP[/color][/center]
+text = "[center]Pry it open.[color=green] Gain a Relic.[/color] [color=red]Lose 6 Max HP[/color][/center]
 "
 scroll_active = false
 
@@ -182,29 +182,5 @@ text = "[center]Just chip the gems.[color=gold] Gain 65 Gold.[/color][/center]
 "
 scroll_active = false
 
-[node name="Leave" type="Button" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer"]
-custom_minimum_size = Vector2(300, 40)
-layout_mode = 2
-
-[node name="RichTextLabel" type="RichTextLabel" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/Leave"]
-custom_minimum_size = Vector2(0, 40)
-layout_mode = 1
-anchors_preset = 14
-anchor_top = 0.5
-anchor_right = 1.0
-anchor_bottom = 0.5
-offset_top = -10.0
-offset_bottom = 30.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-theme_override_fonts/normal_font = ExtResource("5_hidl5")
-theme_override_font_sizes/normal_font_size = 20
-bbcode_enabled = true
-text = "[center]Leave it be.[color=gray] Walk away.[/color][/center]
-"
-scroll_active = false
-
 [connection signal="pressed" from="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/PryOpen" to="." method="_on_pry_open_pressed"]
 [connection signal="pressed" from="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/Melt" to="." method="_on_melt_pressed"]
-[connection signal="pressed" from="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/Leave" to="." method="_on_leave_pressed"]

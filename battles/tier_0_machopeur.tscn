@@ -6,7 +6,7 @@
 [node name="Tier1Machopeur" type="Node2D"]
 
 [node name="Machopeur" parent="." instance=ExtResource("1_h50wc")]
-position = Vector2(871, 370)
+position = Vector2(871, 349)
 stats = ExtResource("2_gnjt8")
 width = 320
 height = 320

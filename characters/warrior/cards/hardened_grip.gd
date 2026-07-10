@@ -3,7 +3,7 @@ extends Card
 const HARDENED_GRIP_STATUS = preload("res://statuses/status_hardened_grip.tres")
 
 func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
-    if Global.roll_value >= 6:
+    if Global.roll_value >= 6 or Global.blessing_cast_any_roll:
         var status_effect := StatusEffect.new()
         var hardened_grip := HARDENED_GRIP_STATUS.duplicate()
         status_effect.status = hardened_grip

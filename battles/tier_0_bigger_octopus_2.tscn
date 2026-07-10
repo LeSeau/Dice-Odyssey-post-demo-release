@@ -6,7 +6,7 @@
 [node name="Tier0BiggerOctopus2" type="Node2D"]
 
 [node name="BiggerOctopus1" parent="." instance=ExtResource("1_kr0ue")]
-position = Vector2(731, 417)
+position = Vector2(705, 417)
 scale = Vector2(0.75, 0.75)
 stats = ExtResource("2_x5moe")
 width = 260
@@ -14,7 +14,7 @@ height = 260
 intent_ui_y_offset = 20
 
 [node name="BiggerOctopus2" parent="." instance=ExtResource("1_kr0ue")]
-position = Vector2(876, 475)
+position = Vector2(902, 444)
 scale = Vector2(0.75, 0.75)
 stats = ExtResource("2_x5moe")
 width = 260

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://c4royvuffjmsm"]
+
+[ext_resource type="Script" path="res://relics/cartographers_quill.gd" id="1_quill"]
+[ext_resource type="Texture2D" uid="uid://ch4e12en64i5b" path="res://cartographers_quill.png" id="2_quill"]
+
+[resource]
+script = ExtResource("1_quill")
+relic_name = "Cartographer's Quill"
+id = "cartographers_quill"
+type = 4
+has_counter = false
+counter = 0
+starter_relic = false
+icon = ExtResource("2_quill")
+tooltip = "Your Scout cards show 1 more roll outcome"
+tags = "Scout"

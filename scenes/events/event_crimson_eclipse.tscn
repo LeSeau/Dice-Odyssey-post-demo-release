@@ -1,7 +1,7 @@
 [gd_scene load_steps=10 format=3 uid="uid://bhq1ecl00010b"]
 
 [ext_resource type="Script" path="res://scenes/events/event_crimson_eclipse.gd" id="1_ecl001"]
-[ext_resource type="Texture2D" uid="uid://cvnnppo3we0vv" path="res://eclipse.png" id="2_ecl002"]
+[ext_resource type="Texture2D" uid="uid://e1a3ecl0006a" path="res://crimson_eclipse.png" id="2_ecl002"]
 [ext_resource type="FontFile" uid="uid://bfgwr7o37ol1j" path="res://Noto_Sans/static/NotoSans-Regular.ttf" id="3_ecl003"]
 [ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="4_ecl004"]
 
@@ -123,7 +123,7 @@ layout_mode = 2
 mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("3_ecl003")
 bbcode_enabled = true
-text = "The sky above the ruins bleeds red as the sun vanishes behind a black disc. Something unseen speaks from the dark, offering a wager: [color=purple]\"gold, for a die that only shows sixes... or nothing.\"[/color]
+text = "The sky above the ruins bleeds red as the sun vanishes behind a black disc. Something unseen speaks from the dark, offering a wager: [color=purple]\"a piece of what you carry, for a die that only shows sixes... or a piece of yourself, if you'd rather keep your trinkets.\"[/color]
 [p] [p]The eclipse won't last long enough to think it over twice."
 fit_content = true
 
@@ -153,7 +153,7 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("4_ecl004")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[center]Accept the wager.[color=gold] Pay 50 Gold. Gain an Evil Dice.[/color][/center]
+text = "[center]Accept the wager.[color=red] Lose 2 random Relics.[/color][color=green] Gain an Evil Dice.[/color][/center]
 "
 scroll_active = false
 
@@ -176,7 +176,7 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("4_ecl004")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[center]Decline.[color=gray] Wait for daylight.[/color][/center]
+text = "[center]Decline.[color=red] Lose 6 HP.[/color][/center]
 "
 scroll_active = false
 

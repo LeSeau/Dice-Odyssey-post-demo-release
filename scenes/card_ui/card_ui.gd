@@ -694,7 +694,8 @@ func reapply_playable_visual() -> void:
 
 func _on_dice_rolled_update_description(_a = null, _b = null) -> void:
     if card and card.has_method("get_dynamic_description"):
-        _apply_description(card.get_dynamic_description(player_modifiers))
+        var aimed_target: Node = targets[0] if not targets.is_empty() else null
+        _apply_description(card.get_dynamic_description(player_modifiers, aimed_target))
 
 
 # Single chokepoint for writing to the Description RichTextLabel: applies keyword coloring

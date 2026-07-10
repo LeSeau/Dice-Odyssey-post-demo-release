@@ -7,6 +7,6 @@
 [resource]
 script = ExtResource("3_2vh84")
 ai = ExtResource("1_4c64o")
-enemy_name = "Vortex"
+enemy_name = "Maelstrom"
 max_health = 58
 art = ExtResource("2_uerfd")

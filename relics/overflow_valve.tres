@@ -1,0 +1,16 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://ddwme6h5b4l33"]
+
+[ext_resource type="Script" path="res://relics/overflow_valve.gd" id="1_valve"]
+[ext_resource type="Texture2D" uid="uid://b51juiqhswowy" path="res://overflow_valve.png" id="2_valve"]
+
+[resource]
+script = ExtResource("1_valve")
+relic_name = "Overflow Valve"
+id = "overflow_valve"
+type = 2
+has_counter = false
+counter = 0
+starter_relic = false
+icon = ExtResource("2_valve")
+tooltip = "At the end of your turn, unspent Power deals damage to a random enemy"
+tags = ""

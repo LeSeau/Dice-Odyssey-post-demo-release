@@ -6,5 +6,5 @@
 [node name="Tier1Bats3" type="Node2D"]
 
 [node name="Enemy" parent="." instance=ExtResource("1_0ek5h")]
-position = Vector2(526, 311)
+position = Vector2(682, 311)
 stats = ExtResource("2_eqmef")

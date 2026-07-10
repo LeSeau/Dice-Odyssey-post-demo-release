@@ -1,0 +1,27 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://d9r2sig0001a"]
+
+[ext_resource type="Texture2D" uid="uid://6w3q7ds4pba7" path="res://sigil.png" id="1_sigil"]
+[ext_resource type="Script" path="res://characters/warrior/cards/sigil_card.gd" id="2_script"]
+[ext_resource type="AudioStream" uid="uid://03pj37p20iou" path="res://sounds/recompose.wav" id="3_sound"]
+
+[resource]
+script = ExtResource("2_script")
+id = "card_sigil"
+name = "Sigil"
+type = 1
+target = 1
+description = "Apply a Sigil to the target. Whenever your Power exactly matches its number, gain +1 Blue Dice"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 4
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = ""
+upgraded = false
+icon = ExtResource("1_sigil")
+tooltip_text = ""
+sound = ExtResource("3_sound")

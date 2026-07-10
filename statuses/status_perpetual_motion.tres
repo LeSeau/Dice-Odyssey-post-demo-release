@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="PerpetualMotionStatus" load_steps=3 format=3 uid="uid://bperpetualstat"]
+[gd_resource type="Resource" script_class="PerpetualMotionStatus" load_steps=3 format=3 uid="uid://cr2gioxq6ar2u"]
 
-[ext_resource type="Texture2D" uid="uid://cixhe0hba0c1" path="res://assets/images/scroll.jpg" id="1_icon"]
+[ext_resource type="Texture2D" uid="uid://coqrviiil13h2" path="res://perpetual_motion_status_icon.png" id="1_icon"]
 [ext_resource type="Script" path="res://statuses/status_perpetual_motion.gd" id="2_script"]
 
 [resource]

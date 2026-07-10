@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="CogworkStatus" load_steps=3 format=3 uid="uid://dc0gw0rkstatu0"]
+[gd_resource type="Resource" script_class="CogworkStatus" load_steps=3 format=3 uid="uid://ngf28q0ks7fd"]
 
-[ext_resource type="Texture2D" uid="uid://cixhe0hba0c1" path="res://assets/images/scroll.jpg" id="1_icon"]
+[ext_resource type="Texture2D" uid="uid://bliucjhys8its" path="res://cogwork_status_icon.png" id="1_icon"]
 [ext_resource type="Script" path="res://statuses/status_cogwork.gd" id="2_script"]
 
 [resource]

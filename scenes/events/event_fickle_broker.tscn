@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scenes/events/event_fickle_broker.gd" id="1_brkr1"]
 [ext_resource type="Resource" uid="uid://2if2rhy1aktn" path="res://treasure_relic_pool.tres" id="2_brkr2"]
-[ext_resource type="Texture2D" uid="uid://ccrp7y1wgpdi6" path="res://oswald.png" id="3_brkr3"]
+[ext_resource type="Texture2D" uid="uid://e1a3brkr002a" path="res://fickle_broker.png" id="3_brkr3"]
 [ext_resource type="FontFile" uid="uid://bfgwr7o37ol1j" path="res://Noto_Sans/static/NotoSans-Regular.ttf" id="4_brkr4"]
 [ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="5_brkr5"]
 
@@ -126,7 +126,7 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("4_brkr4")
 bbcode_enabled = true
 text = "A hooded trader spreads a cloth of trinkets across the table. [color=purple]\"One of yours for one of mine,\"[/color] he grins, sliding a die across the counter.
-[p] [p]You won't know what you're getting until it's already yours - and neither, it seems, will he."
+[p] [p]He's willing to name names, at least - two bargains, laid out plain, if you're interested."
 fit_content = true
 
 [node name="VBoxContainer" type="VBoxContainer" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer"]
@@ -136,11 +136,11 @@ size_flags_horizontal = 4
 size_flags_vertical = 10
 theme_override_constants/separation = 12
 
-[node name="Trade" type="Button" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer"]
+[node name="TradeA" type="Button" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer"]
 custom_minimum_size = Vector2(300, 40)
 layout_mode = 2
 
-[node name="RichTextLabel" type="RichTextLabel" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/Trade"]
+[node name="RichTextLabel" type="RichTextLabel" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/TradeA"]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 1
 anchors_preset = 14
@@ -155,7 +155,30 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("5_brkr5")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[center]Strike the trade.[color=gold] Swap a random Relic you own for a new one.[/color][/center]
+text = "[center]Trade offer #1[/center]
+"
+scroll_active = false
+
+[node name="TradeB" type="Button" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer"]
+custom_minimum_size = Vector2(300, 40)
+layout_mode = 2
+
+[node name="RichTextLabel" type="RichTextLabel" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/TradeB"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -10.0
+offset_bottom = 30.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_fonts/normal_font = ExtResource("5_brkr5")
+theme_override_font_sizes/normal_font_size = 20
+bbcode_enabled = true
+text = "[center]Trade offer #2[/center]
 "
 scroll_active = false
 
@@ -182,5 +205,6 @@ text = "[center]Not worth the risk.[color=gray] Leave.[/color][/center]
 "
 scroll_active = false
 
-[connection signal="pressed" from="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/Trade" to="." method="_on_trade_pressed"]
+[connection signal="pressed" from="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/TradeA" to="." method="_on_trade_a_pressed"]
+[connection signal="pressed" from="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/TradeB" to="." method="_on_trade_b_pressed"]
 [connection signal="pressed" from="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/Leave" to="." method="_on_leave_pressed"]

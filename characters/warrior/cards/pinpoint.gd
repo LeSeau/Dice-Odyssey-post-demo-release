@@ -21,7 +21,7 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
 func _on_dice_rolled():
     print("adding dice to damage")
 
-func get_dynamic_description(modifiers: ModifierHandler) -> String:
+func get_dynamic_description(modifiers: ModifierHandler, target: Node = null) -> String:
     if is_inked():
         if Global.has_rolled_6_this_turn:
             return "Deal ? damage. (You have rolled a 6 this turn — deal ? damage again)"
@@ -30,7 +30,7 @@ func get_dynamic_description(modifiers: ModifierHandler) -> String:
         if Global.has_rolled_6_this_turn:
             return "Deal X damage. (You have rolled a 6 this turn — deal X damage again)"
         return "Deal X damage. (You haven't rolled a 6 this turn)"
-    var total := modifiers.get_modified_value(Global.roll_value, Modifier.Type.DMG_DEALT)
+    var total := apply_target_modifier(modifiers.get_modified_value(Global.roll_value, Modifier.Type.DMG_DEALT), target)
     if Global.has_rolled_6_this_turn:
         return "Deal %d damage. (You have rolled a 6 this turn — deal %d damage again)" % [total, total]
     return "Deal %d damage. (You haven't rolled a 6 this turn)" % total

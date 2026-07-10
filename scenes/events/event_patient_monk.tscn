@@ -1,7 +1,7 @@
 [gd_scene load_steps=10 format=3 uid="uid://bhq1monk0008b"]
 
 [ext_resource type="Script" path="res://scenes/events/event_patient_monk.gd" id="1_monk1"]
-[ext_resource type="Texture2D" uid="uid://cbnktwu8wsnks" path="res://serenity_perfect.png" id="2_monk2"]
+[ext_resource type="Texture2D" uid="uid://e1a3monk005a" path="res://patient_monk.png" id="2_monk2"]
 [ext_resource type="FontFile" uid="uid://bfgwr7o37ol1j" path="res://Noto_Sans/static/NotoSans-Regular.ttf" id="3_monk3"]
 [ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="4_monk4"]
 
@@ -153,7 +153,7 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("4_monk4")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[center]Drink deeply now.[color=gold] Heal 20 HP.[/color][/center]
+text = "[center]Drink deeply now.[color=green] Heal 20 HP.[/color][/center]
 "
 scroll_active = false
 
@@ -176,7 +176,7 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("4_monk4")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[center]Bottle it for later.[color=gold] Gain 5 Max HP.[/color][/center]
+text = "[center]Bottle it for later.[color=green] Gain 8 Max HP.[/color][/center]
 "
 scroll_active = false
 

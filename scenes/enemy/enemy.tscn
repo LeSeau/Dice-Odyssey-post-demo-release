@@ -9,6 +9,7 @@
 [ext_resource type="PackedScene" uid="uid://c6qcxv2m34hwv" path="res://scenes/status_handler/status_handler.tscn" id="7_jbqlv"]
 [ext_resource type="PackedScene" uid="uid://cj610j1wjtrwi" path="res://scenes/modifier_handler/modifier_handler.tscn" id="8_bcuhr"]
 [ext_resource type="PackedScene" uid="uid://cntarjcc6q8hs" path="res://scenes/modifier_handler/modifier.tscn" id="9_cvvnv"]
+[ext_resource type="LabelSettings" uid="uid://dqx1nameenemy1" path="res://scenes/enemy/enemy_name_label_settings.tres" id="10_namelbl"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_0r5a0"]
 resource_local_to_scene = true
@@ -144,18 +145,17 @@ offset_bottom = 151.0
 grow_vertical = 0
 mouse_filter = 2
 
-[node name="NameLabel" type="Label" parent="."]
+[node name="NameLabelLayer" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="NameLabel" type="Label" parent="NameLabelLayer"]
 visible = false
-z_index = 5
 mouse_filter = 2
-offset_left = 17.0
-offset_top = 155.0
-offset_right = 223.0
-offset_bottom = 177.0
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 14
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 206.0
+offset_bottom = 22.0
+label_settings = ExtResource("10_namelbl")
 horizontal_alignment = 1
 
 [node name="IntentUI" parent="." instance=ExtResource("5_xytk4")]
@@ -170,7 +170,6 @@ offset_left = 33.0
 offset_top = 145.0
 offset_right = 33.0
 offset_bottom = 145.0
-theme_override_constants/h_separation = 4
 status_owner = NodePath("..")
 
 [node name="ModifierHandler" parent="." instance=ExtResource("8_bcuhr")]

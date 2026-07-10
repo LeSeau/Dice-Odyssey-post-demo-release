@@ -67,7 +67,7 @@ func get_tooltip_content(status: Status) -> void:
         "eclipse":
             text = "The next card you play does not reset your Power"
         _:
-            text = "No description available."
+            text = status.tooltip if status.tooltip != "" else "No description available."
 
     title_bbcode = "[center][color=gold][b]" + status.id.capitalize() + "[/b][/color][/center]"
     var text_bbcode = "[b][center]" + text + "[/center][/b]"

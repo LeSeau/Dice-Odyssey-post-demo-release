@@ -117,7 +117,7 @@ func _on_roll_dice_pressed() -> void:
         Events.gold_changed.emit()
 
         # 🔥 Build the reward text manually
-        reward_label.text = "[center]You won [color=yellow]" + str(gold_reward) + " Gold[/color]![/center]"
+        reward_label.text = "[center]You won [color=gold]" + str(gold_reward) + " Gold[/color]![/center]"
 
         # Step 4: Wait another 1.5 seconds, show sad goblin
         await get_tree().create_timer(1.5).timeout
@@ -178,6 +178,7 @@ func _on_roll_dice_1_pressed() -> void:
         update_rewards_recap()
     else:
         await get_tree().create_timer(1).timeout
+        stop_button.disabled = true
         loser_panel.show()
         var laugh_sound = preload("res://laughsound.mp3")
         audio_listener_2d.stream = laugh_sound
@@ -212,6 +213,7 @@ func _on_roll_dice_2_pressed() -> void:
         update_rewards_recap()
     else:
         await get_tree().create_timer(1).timeout
+        stop_button.disabled = true
         loser_panel.show()
         var laugh_sound = preload("res://laughsound.mp3")
         audio_listener_2d.stream = laugh_sound
@@ -224,9 +226,16 @@ func _on_loser_exit_button_pressed() -> void:
 
 func _on_winner_exit_button_pressed() -> void:
     Global.gold += gold_reward
-    character_stats.health+= heal_reward
+    # character_stats should always be set by run.gd's setup() call on entering
+    # this event - guarding here anyway, same pattern as event_fountain_heal.gd's
+    # "health on Nil" crash (only seen so far when running this scene standalone
+    # in the editor, not through a normal run).
+    if character_stats == null:
+        push_error("event_russian_dice: character_stats is null, skipping heal reward")
+    else:
+        character_stats.health += heal_reward
+        Events.hp_changed.emit()
     Events.gold_changed.emit()
-    Events.hp_changed.emit()
     Events.event_exited.emit()
 
 
@@ -259,6 +268,7 @@ func _on_roll_dice_3_pressed() -> void:
         update_rewards_recap()
     else:
         await get_tree().create_timer(1).timeout
+        stop_button.disabled = true
         loser_panel.show()
         var laugh_sound = preload("res://laughsound.mp3")
         audio_listener_2d.stream = laugh_sound
@@ -293,6 +303,7 @@ func _on_roll_dice_4_pressed() -> void:
         update_rewards_recap()
     else:
         await get_tree().create_timer(1).timeout
+        stop_button.disabled = true
         loser_panel.show()
         var laugh_sound = preload("res://laughsound.mp3")
         audio_listener_2d.stream = laugh_sound
@@ -327,6 +338,7 @@ func _on_roll_dice_5_pressed() -> void:
         winner_panel.show()
     else:
         await get_tree().create_timer(1).timeout
+        stop_button.disabled = true
         loser_panel.show()
         var laugh_sound = preload("res://laughsound.mp3")
         audio_listener_2d.stream = laugh_sound

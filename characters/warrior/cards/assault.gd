@@ -19,13 +19,13 @@ func _on_dice_rolled():
 
     print("adding dice to damage")
 
-func get_dynamic_description(modifiers: ModifierHandler) -> String:
+func get_dynamic_description(modifiers: ModifierHandler, target: Node = null) -> String:
     if is_inked():
         return "Deal ? damage. If you rolled only 1 Dice this turn, deal X2 instead"
     if not has_active_roll():
         return "Deal X damage. If you rolled only 1 Dice this turn, deal X2 instead"
     if Global.dice_amount_rolled_this_turn == 1:
-        var doubled := modifiers.get_modified_value(Global.roll_value * 2, Modifier.Type.DMG_DEALT)
+        var doubled := apply_target_modifier(modifiers.get_modified_value(Global.roll_value * 2, Modifier.Type.DMG_DEALT), target)
         return "Deal %d damage (doubled - only 1 Dice rolled this turn)" % doubled
-    var total := modifiers.get_modified_value(Global.roll_value, Modifier.Type.DMG_DEALT)
+    var total := apply_target_modifier(modifiers.get_modified_value(Global.roll_value, Modifier.Type.DMG_DEALT), target)
     return "Deal %d damage. If you rolled only 1 Dice this turn, deal X2 instead" % total

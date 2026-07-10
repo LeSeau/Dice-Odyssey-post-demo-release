@@ -16,10 +16,10 @@ func _get_player_block(targets: Array[Node]) -> int:
         return 0
     return players[0].stats.block
 
-func get_dynamic_description(modifiers: ModifierHandler) -> String:
+func get_dynamic_description(modifiers: ModifierHandler, target: Node = null) -> String:
     # No targets available here - Global.player is the only route to live block,
     # so fall back to the static text whenever it isn't set.
     if Global.player == null or not is_instance_valid(Global.player) or Global.player.stats == null:
         return "Deal damage equal to your Block"
-    var total := modifiers.get_modified_value(Global.player.stats.block, Modifier.Type.DMG_DEALT)
+    var total := apply_target_modifier(modifiers.get_modified_value(Global.player.stats.block, Modifier.Type.DMG_DEALT), target)
     return "Deal %d damage (equal to your Block)" % total

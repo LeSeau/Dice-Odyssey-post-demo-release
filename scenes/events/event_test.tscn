@@ -167,7 +167,7 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("2_w7k0r")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[center] Sure thing, Deocrassus! [color=green]Gain 60 Gold.[/color]   [color=red]Lose 10 HP.[/color][/center]
+text = "[center] Sure thing, Deocrassus! [color=gold]Gain 60 Gold.[/color]   [color=red]Lose 10 HP.[/color][/center]
 "
 scroll_active = false
 

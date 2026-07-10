@@ -1,7 +1,7 @@
 [gd_scene load_steps=10 format=3 uid="uid://bhq2gold0015b"]
 
 [ext_resource type="Script" path="res://scenes/events/event_golden_die_shrine.gd" id="1_gold015"]
-[ext_resource type="Texture2D" uid="uid://bbhktv7i5fq8" path="res://the_one_perfect.png" id="2_gold016"]
+[ext_resource type="Texture2D" uid="uid://e1a3gold0010a" path="res://golden_die_shrine.png" id="2_gold016"]
 [ext_resource type="FontFile" uid="uid://bfgwr7o37ol1j" path="res://Noto_Sans/static/NotoSans-Regular.ttf" id="3_gold017"]
 [ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="4_gold018"]
 
@@ -153,7 +153,7 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("4_gold018")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[center]Sharpen your resolve.[color=gold] Upgrade a card.[/color][/center]
+text = "[center]Sharpen your resolve.[color=green] Upgrade a card.[/color][/center]
 "
 scroll_active = false
 
@@ -176,7 +176,7 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("4_gold018")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[center]Soothe your wounds.[color=gold] Heal 15 HP.[/color][/center]
+text = "[center]Soothe your wounds.[color=green] Heal 15 HP.[/color][/center]
 "
 scroll_active = false
 

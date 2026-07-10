@@ -39,6 +39,7 @@ var act_tier: int = -1
     scout_panel.get_node("HBoxContainer/ScoutDice3"),
     scout_panel.get_node("HBoxContainer/ScoutDice4"),
     scout_panel.get_node("HBoxContainer/ScoutDice5"),
+    scout_panel.get_node("HBoxContainer/ScoutDice6"),
 ]
 
 @onready var tutorial_dimmer: ColorRect = $CanvasLayer/TutorialDimmer
@@ -198,7 +199,7 @@ var dice_faces := {
         load("res://assets/images/red6.png"),
     ],
     "evil": [
-        load("res://assets/images/blue0.png"),
+        load("res://assets/images/evil0.png"),
         load("res://assets/images/evil6.png"),
         load("res://assets/images/evil6.png"),
         load("res://assets/images/evil6.png"),
@@ -281,7 +282,11 @@ func _on_scout_effect(amount: int) -> void:
     var sfx_scout = preload("res://sfx/153724__carlos_vaquero__violoncello-snap-pizzicato-11.wav")
     SFXPlayer.play(sfx_scout)
     scout_panel.show()
-    _resize_scout_panel(min(amount, scout_faces.size()))
+    # Cartographer's Quill adds Global.scout_bonus_amount extra faces - clamped
+    # to the panel's 6 hardcoded slots either way (bumped from 5 specifically so a
+    # Scout 5 card still gets value out of the relic).
+    var effective_amount: int = amount + Global.scout_bonus_amount
+    _resize_scout_panel(min(effective_amount, scout_faces.size()))
 
     var faces = dice_faces.get(Global.dice_type, [])
     if faces.is_empty():
@@ -289,7 +294,7 @@ func _on_scout_effect(amount: int) -> void:
         return
 
     var selected_faces: Array = []
-    for i in range(min(amount, scout_faces.size())):
+    for i in range(min(effective_amount, scout_faces.size())):
         selected_faces.append(faces[randi() % faces.size()])
 
     for i in range(scout_faces.size()):

@@ -187,7 +187,7 @@ const AURA_BASE_WAVE_SPEED_DEFAULT := 2.022
 const AURA_INTENSITY_REST_OVERRIDE := {"magma": 1.75}
 
 var evil_faces = [
-                load("res://assets/images/blue0.png"),
+                load("res://assets/images/evil0.png"),
                 load("res://assets/images/evil6.png"),
                 load("res://assets/images/evil6.png"),
                 load("res://assets/images/evil6.png"),
@@ -1507,12 +1507,12 @@ func _spawn_roll_popup(value: int) -> void:
     tween.chain().tween_callback(popup.queue_free)
 
 # Resolves the actual face texture for a historical roll VALUE (not the die's current face) -
-# every dice type uses "<type><value>.png" EXCEPT evil's 0 face, which is "blue0.png" (see
+# every dice type uses "<type><value>.png", including evil's 0 face ("evil0.png", see
 # evil_faces above). Mirrors the same lookup _apply_roll_result() uses, just keyed by value
 # instead of by roll_index into a faces array, since roll_history only stores values.
 func _get_dice_face_texture(value: int) -> Texture2D:
     if dice_type == "evil" and value == 0:
-        return load("res://assets/images/blue0.png")
+        return load("res://assets/images/evil0.png")
     return load("res://assets/images/" + dice_type + str(value) + ".png")
 
 

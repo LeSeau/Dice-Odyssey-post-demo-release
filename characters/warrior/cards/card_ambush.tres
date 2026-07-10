@@ -21,6 +21,7 @@ bonus_requirement = 4
 bonus_requirement_number = 0
 bonus_description_text = "Block X"
 tags = ""
+upgraded = false
 icon = ExtResource("1_sa0x1")
 tooltip_text = ""
 sound = ExtResource("3_dcsi1")

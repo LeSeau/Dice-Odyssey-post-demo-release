@@ -68,6 +68,16 @@ var shop_dice_selection = []  # Stores which dice are shown
 
 var lose_strength_next_turn = 0
 var has_blocked_last_turn = false
+
+# Relic-driven passive modifiers (set on initialize_relic, reset on deactivate_relic,
+# same lifecycle as any other per-battle relic effect):
+var scout_bonus_amount: int = 0  # Cartographer's Quill - extra Scout face shown, capped by the panel's 6 slots
+var blessing_cast_any_roll: bool = false  # Prayer Beads - bypasses every Blessing card's roll-threshold gate
+
+# One-shot flag consumed by battle_reward.gd::_show_card_rewards() - swaps each drawn
+# card for its upgraded_version when available, then resets itself. Set by
+# event_wandering_merchant.gd's browse option.
+var force_upgraded_card_rewards: bool = false
 var starting_power_next_turn = 0
 var is_removing_card = true
 var removing_card: bool = false

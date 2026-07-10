@@ -6,5 +6,5 @@
 [node name="TierBossLeviathan" type="Node2D"]
 
 [node name="Leviathan" parent="." instance=ExtResource("1_5yrnd")]
-position = Vector2(918, 418)
+position = Vector2(918, 401)
 stats = ExtResource("2_mpmk8")

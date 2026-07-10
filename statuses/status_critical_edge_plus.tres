@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="CriticalEdgePlusStatus" load_steps=3 format=3 uid="uid://dcr1t1c4ledge1"]
+[gd_resource type="Resource" script_class="CriticalEdgePlusStatus" load_steps=3 format=3 uid="uid://bbhtk7uq01cof"]
 
-[ext_resource type="Texture2D" uid="uid://cixhe0hba0c1" path="res://assets/images/scroll.jpg" id="1_icon"]
+[ext_resource type="Texture2D" uid="uid://c4fa7gtp3uk3c" path="res://critical_edge_status_icon.png" id="1_icon"]
 [ext_resource type="Script" path="res://statuses/status_critical_edge_plus.gd" id="2_script"]
 
 [resource]

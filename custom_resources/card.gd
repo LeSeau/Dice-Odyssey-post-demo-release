@@ -98,6 +98,20 @@ func meets_requirement() -> bool:
             return true
 
 
+# Applies the target enemy's own DMG_TAKEN modifier (Exposed being the main one today) on top
+# of an already player-modified damage amount - mirrors exactly what actually happens at play
+# time: apply_effects() applies the player's DMG_DEALT modifiers, then Enemy.take_damage()
+# separately applies the target's own DMG_TAKEN modifiers via its own ModifierHandler. Dynamic
+# descriptions only ever did the first half, so the damage preview undercounted against an
+# Exposed (or any future DMG_TAKEN-buffed) enemy while the actual damage dealt was correct.
+# `target` is whatever's currently being aimed at (see CardUI.targets / card_target_selector.gd)
+# - null whenever nothing is targeted yet, in which case this is a no-op.
+func apply_target_modifier(amount: int, target: Node) -> int:
+    if target and is_instance_valid(target) and target.get("modifier_handler"):
+        return target.modifier_handler.get_modified_value(amount, Modifier.Type.DMG_TAKEN)
+    return amount
+
+
 # Wraps every keyword from this card's `tags` (e.g. "Charge, Infused") that appears in `text`
 # with a BBCode [color] tag - see KeywordColorizer for the keyword list/colors/regex logic
 # (shared with Relic.get_colorized_description(), the other real consumer of this).

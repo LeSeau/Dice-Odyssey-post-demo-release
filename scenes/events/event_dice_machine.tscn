@@ -154,7 +154,7 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("5_023v0")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[center]Put a Dice in. [color=green] Gain a Giant Dice[/color]. [color=blue]Lose a Blue Dice. [/color] [/center]
+text = "[center]Put a Dice in. [color=green] Gain a Giant Dice[/color]. [color=red]Lose a Blue Dice. [/color] [/center]
 "
 scroll_active = false
 

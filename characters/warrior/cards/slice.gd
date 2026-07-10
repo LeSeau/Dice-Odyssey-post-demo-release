@@ -19,7 +19,7 @@ func _on_dice_rolled():
 
     print("adding dice to damage")
 
-func get_dynamic_description(modifiers: ModifierHandler) -> String:
+func get_dynamic_description(modifiers: ModifierHandler, target: Node = null) -> String:
     if is_inked():
         return "Deal ? damage"
     if not has_active_roll():
@@ -27,5 +27,5 @@ func get_dynamic_description(modifiers: ModifierHandler) -> String:
     var base := Global.roll_value
     if Global.dice_type == "red":
         base += 6
-    var total := modifiers.get_modified_value(base, Modifier.Type.DMG_DEALT)
+    var total := apply_target_modifier(modifiers.get_modified_value(base, Modifier.Type.DMG_DEALT), target)
     return "Deal %d damage" % total

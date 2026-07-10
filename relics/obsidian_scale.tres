@@ -1,0 +1,16 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://jvaj1eg1p4j3"]
+
+[ext_resource type="Script" path="res://relics/obsidian_scale.gd" id="1_obsidian"]
+[ext_resource type="Texture2D" uid="uid://b417tdjoxfnaa" path="res://obsidian_scale.png" id="2_obsidian"]
+
+[resource]
+script = ExtResource("1_obsidian")
+relic_name = "Obsidian Scale"
+id = "obsidian_scale"
+type = 0
+has_counter = false
+counter = 0
+starter_relic = false
+icon = ExtResource("2_obsidian")
+tooltip = "At the start of your second turn, Charge 1 Evil Dice"
+tags = "Charge, Evil Dice"

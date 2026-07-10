@@ -1,7 +1,7 @@
-[gd_scene load_steps=10 format=3 uid="uid://bhq1merc0007b"]
+[gd_scene load_steps=10 format=3 uid="uid://b8ydxsr6m3kpu"]
 
 [ext_resource type="Script" path="res://scenes/events/event_wandering_merchant.gd" id="1_merc1"]
-[ext_resource type="Texture2D" uid="uid://b8ieeidou3ip7" path="res://stupid_adventurer.png" id="2_merc2"]
+[ext_resource type="Texture2D" uid="uid://db5qvwxkoqthn" path="res://wandering_merchant.png" id="2_merc2"]
 [ext_resource type="FontFile" uid="uid://bfgwr7o37ol1j" path="res://Noto_Sans/static/NotoSans-Regular.ttf" id="3_merc3"]
 [ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="4_merc4"]
 
@@ -153,7 +153,7 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("4_merc4")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[center]Pay 25 Gold.[color=gold] Browse 2 fresh cards.[/color][/center]
+text = "[center][color=gold]Pay 25 Gold.[/color][color=green] Browse 3 upgraded cards.[/color][/center]
 "
 scroll_active = false
 
@@ -176,7 +176,7 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("4_merc4")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[center]Decline politely.[color=gold] He tips you 15 Gold.[/color][/center]
+text = "[center]Sell him some junk instead.[color=gold] Gain 50 Gold.[/color][/center]
 "
 scroll_active = false
 

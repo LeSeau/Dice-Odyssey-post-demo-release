@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="EnemyStats" load_steps=4 format=3 uid="uid://plantenemytier1a"]
+[gd_resource type="Resource" script_class="EnemyStats" load_steps=4 format=3 uid="uid://b8t7t518to4lv"]
 
 [ext_resource type="PackedScene" uid="uid://ln0k1sera72a" path="res://enemies/plant/plant_enemy_ai.tscn" id="1_lr1j8"]
 [ext_resource type="Texture2D" uid="uid://cx1vgjfds6g1o" path="res://plant_perfect.png" id="2_u2alm"]
@@ -7,6 +7,6 @@
 [resource]
 script = ExtResource("3_4fptl")
 ai = ExtResource("1_lr1j8")
-enemy_name = "Plant"
+enemy_name = "Venom Bloom"
 max_health = 32
 art = ExtResource("2_u2alm")

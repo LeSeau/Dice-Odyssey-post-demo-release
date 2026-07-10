@@ -6,7 +6,7 @@
 [node name="Tier2Hound" type="Node2D"]
 
 [node name="Hound" parent="." instance=ExtResource("1_tm1t2")]
-position = Vector2(846, 414)
+position = Vector2(846, 382)
 stats = ExtResource("2_0ivxh")
 width = 280
 height = 280

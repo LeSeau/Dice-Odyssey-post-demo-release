@@ -1,0 +1,16 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://c6w8ieibhvj21"]
+
+[ext_resource type="Script" path="res://relics/prayer_beads.gd" id="1_prayer"]
+[ext_resource type="Texture2D" uid="uid://k3pbquhnhmkm" path="res://prayer_beads.png" id="2_prayer"]
+
+[resource]
+script = ExtResource("1_prayer")
+relic_name = "Prayer Beads"
+id = "prayer_beads"
+type = 4
+has_counter = false
+counter = 0
+starter_relic = false
+icon = ExtResource("2_prayer")
+tooltip = "Your Blessing cards can be cast on any roll"
+tags = ""

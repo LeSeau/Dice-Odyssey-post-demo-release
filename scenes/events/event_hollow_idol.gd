@@ -7,7 +7,7 @@ extends Control
 var character_stats: CharacterStats
 var run_stats: RunStats
 
-const MAX_HP_COST := 4
+const MAX_HP_COST := 6
 const GOLD_REWARD := 65
 
 func setup(character: CharacterStats, stats: RunStats) -> void:
@@ -30,8 +30,4 @@ func _on_pry_open_pressed() -> void:
 func _on_melt_pressed() -> void:
     Global.gold += GOLD_REWARD
     Events.gold_changed.emit()
-    Events.event_exited.emit()
-
-
-func _on_leave_pressed() -> void:
     Events.event_exited.emit()

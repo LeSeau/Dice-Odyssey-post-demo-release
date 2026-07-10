@@ -4,7 +4,6 @@ var character_stats: CharacterStats
 var run_stats: RunStats
 
 const UPGRADE_COST := 45
-const REFUND_GOLD := 20
 
 @onready var sharpen_button: Button = $TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/Sharpen
 
@@ -31,6 +30,5 @@ func _on_sharpen_pressed() -> void:
 
 
 func _on_skip_pressed() -> void:
-    Global.gold += REFUND_GOLD
-    Events.gold_changed.emit()
-    Events.event_exited.emit()
+    Global.pending_card_rewards = 1
+    Events.show_reward.emit()

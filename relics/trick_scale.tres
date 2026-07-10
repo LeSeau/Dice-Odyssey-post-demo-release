@@ -1,0 +1,16 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://dmn8vwfuq8vmm"]
+
+[ext_resource type="Script" path="res://relics/trick_scale.gd" id="1_trick"]
+[ext_resource type="Texture2D" uid="uid://cy63r823ic32n" path="res://trick_scale.png" id="2_trick"]
+
+[resource]
+script = ExtResource("1_trick")
+relic_name = "Trick Scale"
+id = "trick_scale"
+type = 0
+has_counter = false
+counter = 0
+starter_relic = false
+icon = ExtResource("2_trick")
+tooltip = "At the start of your third turn, Charge 1 Mech Dice"
+tags = "Charge, Mech Dice"

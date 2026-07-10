@@ -52,7 +52,7 @@ bg_color = Color(0.63264, 0.534451, 0.857609, 1)
 font_size = 28
 font_color = Color(1, 1, 0.160784, 1)
 
-[node name="GoldDice" type="Control"]
+[node name="GoldDice2" type="Control"]
 custom_minimum_size = Vector2(1280, 720)
 layout_mode = 3
 anchors_preset = 0
@@ -99,7 +99,8 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 texture = ExtResource("2_mn2i4")
-stretch_mode = 2
+expand_mode = 1
+stretch_mode = 5
 
 [node name="RollDice" type="Button" parent="DicePanel/DiceDisplay"]
 z_index = 12
@@ -163,7 +164,7 @@ offset_bottom = 27.0
 grow_horizontal = 2
 grow_vertical = 2
 bbcode_enabled = true
-text = "[center]You won [color=yellow] %s Gold[/color]!"
+text = "[center]You won [color=gold] %s Gold[/color]!"
 
 [node name="SadGoblin" type="TextureRect" parent="DicePanel"]
 visible = false

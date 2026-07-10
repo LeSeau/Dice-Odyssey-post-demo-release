@@ -1,6 +1,8 @@
 extends Card
 
 func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
+    if Global.roll_value > 12:
+        return
     var heal_amount: int = int(Global.roll_value / 2.0)
     if heal_amount > 0:
         for target in targets:
@@ -15,9 +17,9 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     Events.dice_roll_reset.emit()
     Events.reset_charged_card.emit()
 
-func get_dynamic_description(_modifiers: ModifierHandler) -> String:
+func get_dynamic_description(_modifiers: ModifierHandler, _target: Node = null) -> String:
     if is_inked():
         return "Heal ? HP (half your Power). Exhaust"
-    if not has_active_roll() or Global.roll_value <= 0:
+    if not has_active_roll() or Global.roll_value <= 0 or not meets_requirement():
         return "Heal HP equal to half your Power. Exhaust"
     return "Heal %d HP (half your Power). Exhaust" % int(Global.roll_value / 2.0)

@@ -1,11 +1,10 @@
-[gd_scene load_steps=18 format=3 uid="uid://sa5bvpw5im22"]
+[gd_scene load_steps=17 format=3 uid="uid://sa5bvpw5im22"]
 
 [ext_resource type="Script" path="res://scenes/events/event_fountain_heal.gd" id="1_22stp"]
 [ext_resource type="Texture2D" uid="uid://c17qq0sj25epy" path="res://assets/images/blue1.png" id="2_cakbb"]
 [ext_resource type="Texture2D" uid="uid://cixhe0hba0c1" path="res://assets/images/scroll.jpg" id="2_lj1tl"]
 [ext_resource type="Texture2D" uid="uid://c5qp245eph6qu" path="res://gptfountain.png" id="3_6mg46"]
 [ext_resource type="Theme" uid="uid://c5ebdqhhhfy3i" path="res://scenes/button/base_button.tres" id="3_rkolt"]
-[ext_resource type="Texture2D" uid="uid://dle5n7pjyi82e" path="res://events_gold_dice.png" id="4_tsxba"]
 [ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="4_tvxd5"]
 [ext_resource type="Texture2D" uid="uid://cbqo7ygdiomru" path="res://sadgoblin.png" id="5_1umx6"]
 [ext_resource type="FontFile" uid="uid://bfgwr7o37ol1j" path="res://Noto_Sans/static/NotoSans-Regular.ttf" id="8_4fhak"]
@@ -128,22 +127,6 @@ grow_vertical = 2
 text = "ROLL"
 horizontal_alignment = 1
 vertical_alignment = 1
-
-[node name="TextureRect" type="TextureRect" parent="DicePanel/DiceDisplay/RollDice"]
-z_index = 1
-custom_minimum_size = Vector2(50, 50)
-layout_mode = 1
-anchors_preset = 4
-anchor_top = 0.5
-anchor_bottom = 0.5
-offset_left = -1.0
-offset_top = -28.0
-offset_right = 54.0
-offset_bottom = 28.0
-grow_vertical = 2
-mouse_filter = 2
-texture = ExtResource("4_tsxba")
-expand_mode = 1
 
 [node name="RewardPanel" type="Panel" parent="DicePanel"]
 visible = false

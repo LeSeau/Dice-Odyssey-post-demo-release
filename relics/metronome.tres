@@ -1,0 +1,16 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://c0x7avoomxpcd"]
+
+[ext_resource type="Script" path="res://relics/metronome.gd" id="1_metro"]
+[ext_resource type="Texture2D" uid="uid://x53d1r3vs6hk" path="res://metronome.png" id="2_metro"]
+
+[resource]
+script = ExtResource("1_metro")
+relic_name = "Metronome"
+id = "metronome"
+type = 4
+has_counter = false
+counter = 0
+starter_relic = false
+icon = ExtResource("2_metro")
+tooltip = "Every 3rd Dice you roll each turn, gain 2 Power"
+tags = ""

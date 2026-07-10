@@ -12,11 +12,11 @@ func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
         damage_effect.execute(targets)
         Events.dice_roll_reset.emit()
 
-func get_dynamic_description(modifiers: ModifierHandler) -> String:
+func get_dynamic_description(modifiers: ModifierHandler, target: Node = null) -> String:
     if is_inked():
         return "Deal ? damage"
     if Global.roll_value == 13:
-        var total := modifiers.get_modified_value(Global.roll_value * 4, Modifier.Type.DMG_DEALT)
+        var total := apply_target_modifier(modifiers.get_modified_value(Global.roll_value * 4, Modifier.Type.DMG_DEALT), target)
         return "Deal %d damage" % total
     return "Deal X4 damage"
 

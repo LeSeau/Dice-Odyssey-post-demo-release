@@ -1,0 +1,16 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://klrw0jgi78xc"]
+
+[ext_resource type="Script" path="res://relics/house_money.gd" id="1_house"]
+[ext_resource type="Texture2D" uid="uid://b4lxure135gbf" path="res://house_money.png" id="2_house"]
+
+[resource]
+script = ExtResource("1_house")
+relic_name = "House Money"
+id = "house_money"
+type = 4
+has_counter = false
+counter = 0
+starter_relic = false
+icon = ExtResource("2_house")
+tooltip = "Whenever a Red Dice rolls 5 or 6, deal 5 damage to all enemies"
+tags = "Red Dice"

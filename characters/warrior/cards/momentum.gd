@@ -11,8 +11,8 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     damage_effect.execute(targets)
     Events.dice_roll_reset.emit()
 
-func get_dynamic_description(modifiers: ModifierHandler) -> String:
+func get_dynamic_description(modifiers: ModifierHandler, target: Node = null) -> String:
     # Preview from hand: the card hasn't been played yet, so the current counter
     # IS the number of other cards already played this turn.
-    var total := modifiers.get_modified_value(4 + 4 * Global.cards_played_this_turn, Modifier.Type.DMG_DEALT)
+    var total := apply_target_modifier(modifiers.get_modified_value(4 + 4 * Global.cards_played_this_turn, Modifier.Type.DMG_DEALT), target)
     return "Deal %d damage (4, plus 4 for each other card played this turn)" % total

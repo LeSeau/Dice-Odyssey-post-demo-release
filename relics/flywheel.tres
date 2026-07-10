@@ -1,0 +1,16 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://bwxhu0g3r7mfy"]
+
+[ext_resource type="Script" path="res://relics/flywheel.gd" id="1_fly"]
+[ext_resource type="Texture2D" uid="uid://w2dg7o3kkj7q" path="res://flywheel.png" id="2_fly"]
+
+[resource]
+script = ExtResource("1_fly")
+relic_name = "Flywheel"
+id = "flywheel"
+type = 4
+has_counter = false
+counter = 0
+starter_relic = false
+icon = ExtResource("2_fly")
+tooltip = "Whenever you Refuel, gain a Scout 2 card"
+tags = "Refuel, Scout"

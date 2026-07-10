@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="SteadyHandPlusStatus" load_steps=3 format=3 uid="uid://dste4dyh4nd002"]
+[gd_resource type="Resource" script_class="SteadyHandPlusStatus" load_steps=3 format=3 uid="uid://ctp6sskpryexv"]
 
-[ext_resource type="Texture2D" uid="uid://cixhe0hba0c1" path="res://assets/images/scroll.jpg" id="1_icon"]
+[ext_resource type="Texture2D" uid="uid://bvp75bixonima" path="res://steady_hand_status_icon.png" id="1_icon"]
 [ext_resource type="Script" path="res://statuses/status_steady_hand_plus.gd" id="2_script"]
 
 [resource]

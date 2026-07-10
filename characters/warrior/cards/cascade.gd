@@ -27,10 +27,10 @@ func _has_run() -> bool:
             return true
     return false
 
-func get_dynamic_description(modifiers: ModifierHandler) -> String:
+func get_dynamic_description(modifiers: ModifierHandler, target: Node = null) -> String:
     if is_inked():
         return "Deal the total of your chain as damage to ALL enemies. Only works if your chain holds 3 consecutive values"
     if not has_active_roll() or not _has_run():
         return "Deal the total of your chain as damage to ALL enemies. Only works if your chain holds 3 consecutive values"
-    var total := modifiers.get_modified_value(_chain_total(), Modifier.Type.DMG_DEALT)
+    var total := apply_target_modifier(modifiers.get_modified_value(_chain_total(), Modifier.Type.DMG_DEALT), target)
     return "STRAIGHT! Deal %d damage to ALL enemies (the total of your chain)" % total

@@ -1,7 +1,7 @@
 extends Card
 
 func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
-    if Global.roll_value < 9:
+    if Global.roll_value < 6:
         return
     Events.reset_charged_card.emit()
     # Strip block BEFORE the hit so the full X lands - the whole identity of the
@@ -16,10 +16,10 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     damage_effect.execute(targets)
     Events.dice_roll_reset.emit()
 
-func get_dynamic_description(modifiers: ModifierHandler) -> String:
+func get_dynamic_description(modifiers: ModifierHandler, target: Node = null) -> String:
     if is_inked():
         return "Remove the target's Block, then deal ? damage"
     if not has_active_roll() or not meets_requirement():
         return "Remove the target's Block, then deal X damage"
-    var total := modifiers.get_modified_value(Global.roll_value, Modifier.Type.DMG_DEALT)
+    var total := apply_target_modifier(modifiers.get_modified_value(Global.roll_value, Modifier.Type.DMG_DEALT), target)
     return "Remove the target's Block, then deal %d damage" % total

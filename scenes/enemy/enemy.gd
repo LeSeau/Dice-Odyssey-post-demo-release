@@ -2,6 +2,14 @@ class_name Enemy
 extends Area2D
 
 const ARROW_OFFSET := 5
+# NameLabel now lives in its own CanvasLayer (see update_enemy()/_on_mouse_entered()
+# below) so it can render above the hand of cards - a CanvasLayer boundary always wins
+# over z_index, so as a plain child of Enemy it could never draw over BattleUI's Hand
+# no matter what z_index it had. Width/center match the box it used to occupy locally;
+# kept as constants here since the label is now positioned by hand in screen space
+# instead of via Control offsets under Enemy's own transform.
+const NAME_LABEL_WIDTH := 206.0
+const NAME_LABEL_SPRITE_CENTER_X := 124.0
 const WHITE_SPRITE_MATERIAL := preload("res://art/white_sprite_material.tres")
 const TARGET_HIGHLIGHT_OUTLINE_COLOR := Color(2.0, 1.7, 0.6, 1.0)
 const TARGET_HIGHLIGHT_OUTLINE_THICKNESS := 3.0
@@ -32,7 +40,8 @@ var _hit_reaction_active := false
 @export var intent_ui_y_offset: int = 0
 @onready var arrow: Sprite2D = $Arrow
 @onready var stats_ui: StatsUI = $StatsUI
-@onready var name_label: Label = $NameLabel
+@onready var name_label_layer: CanvasLayer = $NameLabelLayer
+@onready var name_label: Label = $NameLabelLayer/NameLabel
 @onready var intent_ui: IntentUI = $IntentUI
 @export var status_handler_y_offset: int = 0
 @onready var status_handler: StatusHandler = $StatusHandler
@@ -50,6 +59,11 @@ var blocked_last_turn: bool = false
 # duplicated Resource doesn't reliably keep the original's resource_path, so deriving the
 # fallback name from the file later (once `stats` only holds the duplicate) wouldn't work.
 var _display_name := ""
+
+# Local (unscaled) Y of the name label's box, computed in update_enemy() alongside
+# stats_ui - converted to a screen-space CanvasLayer offset on hover, see
+# _on_mouse_entered().
+var _name_label_local_y: float = 0.0
 
 
 func _ready() -> void:
@@ -127,11 +141,25 @@ func update_enemy() -> void:
         sprite_2d.scale = Vector2(final_scale, final_scale)
         
         var sprite_display_height = tex_size.y * final_scale
-        intent_ui.position.y = -sprite_display_height / 2 - 30 - intent_ui_y_offset
-        stats_ui.position.y = (tex_size.y * final_scale / 2) + stats_ui_y_offset
-        name_label.position.y = stats_ui.position.y + stats_ui.size.y + 4
-        status_handler.position.y = (tex_size.y * final_scale / 2) + stats_ui.size.y + status_handler_y_offset - 8
+        # sprite_2d.position.y is set to sprite_y_offset below - the whole UI stack
+        # (intent/HP bar/name/statuses) has to shift by that same amount, or it stays
+        # anchored to where the sprite WOULD be at offset 0 while the art itself moves
+        # down (most battle files use +10/+20 here). That mismatch is why a Satyr's own
+        # legs could hang past its HP bar - the bar was placed too high for where the
+        # sprite actually got drawn.
+        intent_ui.position.y = -sprite_display_height / 2 - 30 - intent_ui_y_offset + sprite_y_offset
+        stats_ui.position.y = (tex_size.y * final_scale / 2) + stats_ui_y_offset + sprite_y_offset
+        _name_label_local_y = stats_ui.position.y + stats_ui.size.y + 4
+        status_handler.position.y = (tex_size.y * final_scale / 2) + stats_ui.size.y + status_handler_y_offset - 8 + sprite_y_offset
     sprite_2d.position.y = sprite_y_offset
+
+    # Multi-enemy battle scenes (e.g. battles/tier_1_oculus_goblin.tscn) set `scale`
+    # directly on the Enemy root to fit several enemies on screen. StatusHandler is a
+    # plain child of that root, so it inherited the shrink too - status icons ended up
+    # smaller in any multi-enemy fight regardless of enemy size. Counter-scale it so
+    # icon size stays constant no matter what the root's own scale is.
+    if scale.x != 0 and scale.y != 0:
+        status_handler.scale = Vector2(1.0 / scale.x, 1.0 / scale.y)
     arrow.position = Vector2.RIGHT * (sprite_2d.get_rect().size.x * sprite_2d.scale.x / 2 + ARROW_OFFSET)
     setup_ai()
     update_stats()
@@ -233,6 +261,12 @@ func _on_area_exited(_area: Area2D) -> void:
 
 func _on_mouse_entered() -> void:
     name_label.text = _display_name
+    # NameLabel's own rect is unscaled screen pixels inside its CanvasLayer (see
+    # update_enemy()) - recomputed here rather than cached, so it's always correct even
+    # if the enemy shifted (e.g. mid hit-reaction knockback) since update_enemy() last ran.
+    var world_center_x = global_position.x + NAME_LABEL_SPRITE_CENTER_X * scale.x
+    var world_y = global_position.y + _name_label_local_y * scale.y
+    name_label_layer.offset = Vector2(world_center_x - NAME_LABEL_WIDTH / 2.0, world_y)
     name_label.show()
 
 

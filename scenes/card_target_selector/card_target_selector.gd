@@ -93,6 +93,13 @@ func _on_area_2d_area_entered(area: Area2D) -> void:
     if area.has_method("set_target_highlight"):
         area.set_target_highlight(true)
 
+    # Damage previews (get_dynamic_description) read whichever enemy is first in
+    # current_card.targets - refresh now that it changed, so e.g. an Exposed enemy's +50%
+    # incoming damage shows up in the card text the moment you aim at them, not just on the
+    # next dice-roll-driven refresh.
+    if current_card.has_method("_on_dice_rolled_update_description"):
+        current_card._on_dice_rolled_update_description()
+
     _set_locked_on(true)
 
 
@@ -104,6 +111,9 @@ func _on_area_2d_area_exited(area: Area2D) -> void:
 
     if area.has_method("set_target_highlight"):
         area.set_target_highlight(false)
+
+    if current_card.has_method("_on_dice_rolled_update_description"):
+        current_card._on_dice_rolled_update_description()
 
     _set_locked_on(not current_card.targets.is_empty())
 

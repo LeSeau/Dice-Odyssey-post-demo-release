@@ -4,7 +4,7 @@ var character_stats: CharacterStats
 var run_stats: RunStats
 
 const HEAL_NOW := 20
-const MAX_HP_GAIN := 5
+const MAX_HP_GAIN := 8
 
 func setup(character: CharacterStats, stats: RunStats) -> void:
     character_stats = character

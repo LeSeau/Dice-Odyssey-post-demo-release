@@ -1,7 +1,7 @@
 [gd_scene load_steps=10 format=3 uid="uid://bhq2way0012b"]
 
 [ext_resource type="Script" path="res://scenes/events/event_wayside_shrine.gd" id="1_way012"]
-[ext_resource type="Texture2D" uid="uid://bj6ns320xbinu" path="res://runic_shield_v2.png" id="2_way013"]
+[ext_resource type="Texture2D" uid="uid://e1a3way00008a" path="res://wayside_shrine.png" id="2_way013"]
 [ext_resource type="FontFile" uid="uid://bfgwr7o37ol1j" path="res://Noto_Sans/static/NotoSans-Regular.ttf" id="3_way014"]
 [ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="4_way015"]
 
@@ -153,7 +153,7 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("4_way015")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[center]Lighten your load.[color=gold] Remove a card.[/color][/center]
+text = "[center]Lighten your load.[color=green] Remove a card.[/color][/center]
 "
 scroll_active = false
 
@@ -176,7 +176,7 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("4_way015")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[center]Mend your wounds.[color=gold] Heal 15 HP.[/color][/center]
+text = "[center]Mend your wounds.[color=green] Heal 15 HP.[/color][/center]
 "
 scroll_active = false
 

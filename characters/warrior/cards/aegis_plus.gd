@@ -10,7 +10,7 @@ func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
         Events.dice_roll_reset.emit()
         Events.reset_charged_card.emit()
 
-func get_dynamic_description(_modifiers: ModifierHandler) -> String:
+func get_dynamic_description(_modifiers: ModifierHandler, _target: Node = null) -> String:
     if is_inked():
         return "Block ?"
     if not has_active_roll() or not meets_requirement():

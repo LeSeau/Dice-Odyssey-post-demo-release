@@ -1,0 +1,16 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://boe4a12efuur"]
+
+[ext_resource type="Script" path="res://relics/echo_chamber.gd" id="1_echo"]
+[ext_resource type="Texture2D" uid="uid://dsqsgds6gpdna" path="res://echo_chamber.png" id="2_echo"]
+
+[resource]
+script = ExtResource("1_echo")
+relic_name = "Echo Chamber"
+id = "echo_chamber"
+type = 4
+has_counter = false
+counter = 0
+starter_relic = false
+icon = ExtResource("2_echo")
+tooltip = "Whenever you roll the same value twice in a row, Charge a Blue Dice"
+tags = "Charge, Blue Dice"

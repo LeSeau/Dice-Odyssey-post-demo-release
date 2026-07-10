@@ -13,8 +13,8 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     damage_effect.execute(targets)
     Events.dice_roll_reset.emit()
 
-func get_dynamic_description(modifiers: ModifierHandler) -> String:
+func get_dynamic_description(modifiers: ModifierHandler, target: Node = null) -> String:
     if is_inked():
         return "Deal ? damage (all Power generated this turn). Exhaust"
-    var total := modifiers.get_modified_value(Global.power_generated_this_turn, Modifier.Type.DMG_DEALT)
+    var total := apply_target_modifier(modifiers.get_modified_value(Global.power_generated_this_turn, Modifier.Type.DMG_DEALT), target)
     return "Deal %d damage (all Power generated this turn). Exhaust" % total

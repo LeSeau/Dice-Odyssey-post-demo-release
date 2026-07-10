@@ -14,10 +14,10 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
         Global.no_reset = true
     Events.dice_roll_reset.emit()
 
-func get_dynamic_description(modifiers: ModifierHandler) -> String:
+func get_dynamic_description(modifiers: ModifierHandler, target: Node = null) -> String:
     if is_inked():
         return "Deal ? damage. If this kills the target, your Power is not reset"
     if not has_active_roll():
         return "Deal X damage. If this kills the target, your Power is not reset"
-    var total := modifiers.get_modified_value(Global.roll_value, Modifier.Type.DMG_DEALT)
+    var total := apply_target_modifier(modifiers.get_modified_value(Global.roll_value, Modifier.Type.DMG_DEALT), target)
     return "Deal %d damage. If this kills the target, your Power is not reset" % total

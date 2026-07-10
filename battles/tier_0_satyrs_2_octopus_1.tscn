@@ -8,7 +8,7 @@
 [node name="Tier0Satyrs2Octopus1" type="Node2D"]
 
 [node name="S Octopus" parent="." instance=ExtResource("1_djehr")]
-position = Vector2(731, 417)
+position = Vector2(722, 417)
 scale = Vector2(0.75, 0.75)
 stats = ExtResource("3_0hod2")
 width = 180
@@ -16,7 +16,7 @@ height = 180
 intent_ui_y_offset = 30
 
 [node name="B Satyr" parent="." instance=ExtResource("1_djehr")]
-position = Vector2(876, 450)
+position = Vector2(885, 450)
 scale = Vector2(0.75, 0.75)
 stats = ExtResource("3_84u55")
 width = 310

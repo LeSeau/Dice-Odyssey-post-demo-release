@@ -1,0 +1,281 @@
+[gd_scene load_steps=18 format=3 uid="uid://btktlydklchb4"]
+
+[ext_resource type="Script" path="res://main_menu.gd" id="1_vi5tj"]
+[ext_resource type="Texture2D" uid="uid://d4nx6s75m7oci" path="res://main_menu_v3.jpg" id="2_2uw4g"]
+[ext_resource type="FontFile" uid="uid://c4mfyi0ta8qeq" path="res://fonts/MinionPro-Semibold.otf" id="3_lj8do"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cvc1e"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(1, 1, 0.227451, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mqnf8"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(1, 1, 0.227451, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_eiscl"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 1, 0.227451, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pktf8"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(1, 1, 0.227451, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_r22wc"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1ahky"]
+content_margin_left = 16.0
+content_margin_top = 16.0
+content_margin_right = 16.0
+content_margin_bottom = 16.0
+bg_color = Color(0.145098, 0.27451, 0.278431, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.752941, 0.501961, 0.0627451, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0.0156863, 0.121569, 0.0901961, 0.8)
+shadow_size = 4
+shadow_offset = Vector2(0, 4)
+
+[sub_resource type="LabelSettings" id="LabelSettings_5kukv"]
+font_size = 24
+font_color = Color(0.941176, 0.752941, 0.188235, 1)
+outline_size = 2
+outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_ud1vm"]
+font = ExtResource("3_lj8do")
+font_size = 22
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_enable_hover"]
+bg_color = Color(0.144787, 0.273985, 0.277578, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.3, 0.9, 0.4, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0.3, 0.9, 0.4, 0.5)
+shadow_size = 4
+shadow_offset = Vector2(0, 2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_enable_normal"]
+bg_color = Color(0.144787, 0.273985, 0.277578, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.227451, 0.541176, 0.431373, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.4)
+shadow_size = 3
+shadow_offset = Vector2(0, 2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_skip_hover"]
+bg_color = Color(0.144787, 0.273985, 0.277578, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.9, 0.3, 0.3, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0.9, 0.3, 0.3, 0.5)
+shadow_size = 4
+shadow_offset = Vector2(0, 2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_skip_normal"]
+bg_color = Color(0.144787, 0.273985, 0.277578, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.6, 0.2, 0.2, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.4)
+shadow_size = 3
+shadow_offset = Vector2(0, 2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cancel_hover"]
+bg_color = Color(0.752941, 0.501961, 0.0627451, 0.4)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cancel_normal"]
+bg_color = Color(0, 0, 0, 0.431373)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_vi5tj")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_2uw4g")
+expand_mode = 2
+
+[node name="NewRun" type="Button" parent="."]
+layout_mode = 0
+offset_left = 69.0
+offset_top = 591.0
+offset_right = 611.0
+offset_bottom = 677.0
+theme_override_styles/hover_pressed_mirrored = SubResource("StyleBoxFlat_cvc1e")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_mqnf8")
+theme_override_styles/hover = SubResource("StyleBoxFlat_eiscl")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_pktf8")
+theme_override_styles/normal = SubResource("StyleBoxFlat_r22wc")
+
+[node name="EnableTutorialPanel" type="Panel" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -303.5
+offset_top = -121.5
+offset_right = 303.5
+offset_bottom = 121.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_1ahky")
+
+[node name="Label" type="Label" parent="EnableTutorialPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 16.0
+offset_bottom = 48.0
+grow_horizontal = 2
+text = "Enable tutorial?"
+label_settings = SubResource("LabelSettings_5kukv")
+horizontal_alignment = 1
+
+[node name="Label2" type="Label" parent="EnableTutorialPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 77.0
+offset_bottom = 96.0
+grow_horizontal = 2
+text = "If this is your first time playing, this is highly recommended.
+
+The tutorial covers the fighting system and takes a minute. "
+label_settings = SubResource("LabelSettings_ud1vm")
+horizontal_alignment = 1
+
+[node name="StartWithTutorial" type="Button" parent="EnableTutorialPanel"]
+layout_mode = 0
+offset_left = 25.0
+offset_top = 170.0
+offset_right = 313.0
+offset_bottom = 222.0
+theme_override_colors/font_hover_color = Color(0.7, 1, 0.75, 1)
+theme_override_colors/font_color = Color(0, 0.854902, 0, 1)
+theme_override_styles/hover = SubResource("StyleBoxFlat_enable_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_enable_normal")
+text = "Enable tutorial"
+
+[node name="StartWithoutTutorial" type="Button" parent="EnableTutorialPanel"]
+layout_mode = 0
+offset_left = 331.0
+offset_top = 170.0
+offset_right = 574.0
+offset_bottom = 222.0
+theme_override_colors/font_hover_color = Color(1, 0.7, 0.7, 1)
+theme_override_colors/font_color = Color(0.856481, 0.000105334, 5.87195e-05, 0.941176)
+theme_override_styles/hover = SubResource("StyleBoxFlat_skip_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_skip_normal")
+text = "Skip tutorial"
+
+[node name="CancelButton" type="Button" parent="EnableTutorialPanel"]
+z_index = 10
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -40.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = 40.0
+grow_horizontal = 0
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/font_color = Color(0.752941, 0.501961, 0.0627451, 1)
+theme_override_font_sizes/font_size = 20
+theme_override_styles/hover = SubResource("StyleBoxFlat_cancel_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_cancel_normal")
+text = "X"
+
+[connection signal="pressed" from="NewRun" to="." method="_on_new_run_pressed"]
+[connection signal="pressed" from="EnableTutorialPanel/StartWithTutorial" to="." method="_on_start_with_tutorial_pressed"]
+[connection signal="pressed" from="EnableTutorialPanel/StartWithoutTutorial" to="." method="_on_start_without_tutorial_pressed"]
+[connection signal="pressed" from="EnableTutorialPanel/CancelButton" to="." method="_on_cancel_tutorial_panel_pressed"]

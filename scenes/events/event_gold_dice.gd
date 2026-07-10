@@ -66,7 +66,7 @@ func _on_roll_dice_pressed() -> void:
         Events.gold_changed.emit()
 
         # 🔥 Build the reward text manually
-        reward_label.text = "[center]You won [color=yellow]" + str(gold_reward) + " Gold[/color]![/center]"
+        reward_label.text = "[center]You won [color=gold]" + str(gold_reward) + " Gold[/color]![/center]"
 
         # Step 4: Wait another 1.5 seconds, show sad goblin
         await get_tree().create_timer(1.5).timeout

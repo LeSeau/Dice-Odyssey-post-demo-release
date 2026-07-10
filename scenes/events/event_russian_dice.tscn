@@ -242,7 +242,7 @@ layout_mode = 2
 offset_top = 4.0
 offset_right = 120.0
 offset_bottom = 24.0
-theme_override_colors/default_color = Color(0.788235, 0.635294, 0.152941, 1)
+theme_override_colors/default_color = Color(0.36, 0.85, 0.36, 1)
 theme_override_font_sizes/normal_font_size = 14
 bbcode_enabled = true
 text = "[center] 5HP[/center]"
@@ -354,7 +354,7 @@ layout_mode = 2
 offset_top = 4.0
 offset_right = 120.0
 offset_bottom = 24.0
-theme_override_colors/default_color = Color(0.788235, 0.635294, 0.152941, 1)
+theme_override_colors/default_color = Color(0.36, 0.85, 0.36, 1)
 theme_override_font_sizes/normal_font_size = 14
 bbcode_enabled = true
 text = "[center] 10HP[/center]"
@@ -470,7 +470,7 @@ offset_bottom = 27.0
 grow_horizontal = 2
 grow_vertical = 2
 bbcode_enabled = true
-text = "[center]You won [color=yellow] %s Gold[/color]!"
+text = "[center]You won [color=gold] %s Gold[/color]!"
 
 [node name="RewardsRecap" type="Panel" parent="DicePanel"]
 custom_minimum_size = Vector2(350, 0)

@@ -170,7 +170,7 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("5_twug6")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[center]Buy a Relic![color=gold] Pay 50 Gold.[/color]  [/center]
+text = "[center][color=green]Buy a Relic![/color][color=gold] Pay 50 Gold.[/color]  [/center]
 "
 scroll_active = false
 

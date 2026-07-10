@@ -3,7 +3,7 @@ const BERSERK_STATUS = preload("res://statuses/status_berserk.tres")
 
 
 func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
-    if Global.roll_value >= 4:
+    if Global.roll_value >= 4 or Global.blessing_cast_any_roll:
         var status_effect := StatusEffect.new()
         var berserk := BERSERK_STATUS.duplicate()
         status_effect.status = berserk

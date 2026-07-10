@@ -1,7 +1,7 @@
 [gd_scene load_steps=10 format=3 uid="uid://bhq2spr0013b"]
 
 [ext_resource type="Script" path="res://scenes/events/event_healing_spring.gd" id="1_spr013"]
-[ext_resource type="Texture2D" uid="uid://b5o8r5kgvr7d7" path="res://deserved_drink.png" id="2_spr014"]
+[ext_resource type="Texture2D" uid="uid://e1a3spr00009a" path="res://healing_spring.png" id="2_spr014"]
 [ext_resource type="FontFile" uid="uid://bfgwr7o37ol1j" path="res://Noto_Sans/static/NotoSans-Regular.ttf" id="3_spr015"]
 [ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="4_spr016"]
 
@@ -153,7 +153,7 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("4_spr016")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[center]Drink deeply.[color=gold] Heal 25 HP.[/color][/center]
+text = "[center]Drink deeply.[color=gold] Pay 25 Gold.[/color][color=green] Heal 25 HP.[/color][/center]
 "
 scroll_active = false
 
@@ -176,9 +176,33 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("4_spr016")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[center]Fill a flask instead.[color=gold] Heal 10 HP. Gain 25 Gold.[/color][/center]
+text = "[center]Just drink a little.[color=green] Heal 10 HP.[/color][/center]
+"
+scroll_active = false
+
+[node name="Bleed" type="Button" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer"]
+custom_minimum_size = Vector2(300, 40)
+layout_mode = 2
+
+[node name="RichTextLabel" type="RichTextLabel" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/Bleed"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -10.0
+offset_bottom = 30.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_fonts/normal_font = ExtResource("4_spr016")
+theme_override_font_sizes/normal_font_size = 20
+bbcode_enabled = true
+text = "[center]Offer some blood to the spring.[color=red] Lose 10 HP.[/color][color=gold] Gain 40 Gold.[/color][/center]
 "
 scroll_active = false
 
 [connection signal="pressed" from="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/Drink" to="." method="_on_drink_pressed"]
 [connection signal="pressed" from="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/Flask" to="." method="_on_flask_pressed"]
+[connection signal="pressed" from="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/Bleed" to="." method="_on_bleed_pressed"]

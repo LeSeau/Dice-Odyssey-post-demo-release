@@ -7,7 +7,7 @@
 [node name="Tier0Satyrs3" type="Node2D"]
 
 [node name="Satyr1" parent="." instance=ExtResource("1_pl17f")]
-position = Vector2(1043, 462)
+position = Vector2(1043, 425)
 scale = Vector2(0.75, 0.75)
 stats = ExtResource("2_e4wpj")
 width = 270
@@ -15,7 +15,7 @@ height = 270
 sprite_y_offset = 20
 
 [node name="Satyr2" parent="." instance=ExtResource("1_pl17f")]
-position = Vector2(876, 475)
+position = Vector2(877, 475)
 scale = Vector2(0.75, 0.75)
 stats = ExtResource("2_e4wpj")
 width = 270
@@ -23,7 +23,7 @@ height = 270
 sprite_y_offset = 20
 
 [node name="Octopus" parent="." instance=ExtResource("1_pl17f")]
-position = Vector2(731, 417)
+position = Vector2(730, 417)
 scale = Vector2(0.75, 0.75)
 stats = ExtResource("3_6hel2")
 width = 180

@@ -11,6 +11,11 @@
 [sub_resource type="LabelSettings" id="LabelSettings_diwp1"]
 font = ExtResource("2_ix7dd")
 font_size = 30
+font_color = Color(1, 0.843137, 0, 1)
+outline_size = 3
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 2
+shadow_color = Color(0, 0, 0, 0.6)
 
 [sub_resource type="Animation" id="Animation_3wngg"]
 length = 0.001

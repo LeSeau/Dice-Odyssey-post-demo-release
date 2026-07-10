@@ -1,7 +1,7 @@
 [gd_scene load_steps=10 format=3 uid="uid://bhq2shr0011b"]
 
 [ext_resource type="Script" path="res://scenes/events/event_twin_shrines.gd" id="1_shr011"]
-[ext_resource type="Texture2D" uid="uid://biuady2n2vpug" path="res://unity.png" id="2_shr012"]
+[ext_resource type="Texture2D" uid="uid://e1a3shr0007a" path="res://twin_shrines.png" id="2_shr012"]
 [ext_resource type="FontFile" uid="uid://bfgwr7o37ol1j" path="res://Noto_Sans/static/NotoSans-Regular.ttf" id="3_shr013"]
 [ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="4_shr014"]
 
@@ -153,7 +153,7 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("4_shr014")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[center]Forget a card.[color=gold] Remove one from your deck.[/color][/center]
+text = "[center]Forget a card.[color=green] Remove one from your deck.[/color][/center]
 "
 scroll_active = false
 
@@ -176,7 +176,7 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("4_shr014")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[center]Refine a card.[color=gold] Upgrade one in your deck.[/color][/center]
+text = "[center]Refine a card.[color=green] Upgrade one in your deck.[/color][/center]
 "
 scroll_active = false
 

@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://bhq1forg0006b"]
+[gd_scene load_steps=10 format=3 uid="uid://k6jw6b8f0ovr"]
 
 [ext_resource type="Script" path="res://scenes/events/event_dice_forge.gd" id="1_forg1"]
 [ext_resource type="Texture2D" uid="uid://cv2hhqj8lsetj" path="res://blacksmith.png" id="2_forg2"]

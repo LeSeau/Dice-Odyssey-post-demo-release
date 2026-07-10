@@ -3,7 +3,7 @@ extends Card
 const LUCKY_SEVENS_STATUS = preload("res://statuses/status_lucky_sevens.tres")
 
 func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
-    if Global.roll_value >= 6:
+    if Global.roll_value >= 6 or Global.blessing_cast_any_roll:
         var status_effect := StatusEffect.new()
         var lucky_sevens := LUCKY_SEVENS_STATUS.duplicate()
         status_effect.status = lucky_sevens

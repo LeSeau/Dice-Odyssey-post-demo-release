@@ -2,19 +2,19 @@
 
 [ext_resource type="PackedScene" uid="uid://d0efyathkfg74" path="res://scenes/enemy/enemy.tscn" id="1_jl2pd"]
 [ext_resource type="Resource" uid="uid://bkbnyc3ymuyj" path="res://enemies/goblin/goblin_enemy.tres" id="2_wis8d"]
-[ext_resource type="Resource" uid="uid://plantenemytier1a" path="res://enemies/plant/plant_enemy_tier1.tres" id="3_882qe"]
+[ext_resource type="Resource" uid="uid://b8t7t518to4lv" path="res://enemies/plant/plant_enemy_tier1.tres" id="3_882qe"]
 
 [node name="Tier1PlantGoblin" type="Node2D"]
 
 [node name="Plant" parent="." instance=ExtResource("1_jl2pd")]
-position = Vector2(751, 394)
+position = Vector2(749, 394)
 stats = ExtResource("3_882qe")
 width = 210
 height = 210
 intent_ui_y_offset = 20
 
 [node name="Goblin" parent="." instance=ExtResource("1_jl2pd")]
-position = Vector2(992, 450)
+position = Vector2(994, 450)
 scale = Vector2(0.75, 0.75)
 stats = ExtResource("2_wis8d")
 width = 240

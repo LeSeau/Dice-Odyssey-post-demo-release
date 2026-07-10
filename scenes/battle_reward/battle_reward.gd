@@ -207,10 +207,14 @@ func _show_card_rewards() -> void:
                 _modify_weights(rarity)
                 var picked_card := _get_random_available_card(available_cards, rarity)
                 if picked_card:
-                    card_reward_array.append(picked_card)
                     available_cards.erase(picked_card)
+                    var reward_card := picked_card
+                    if Global.force_upgraded_card_rewards and picked_card.can_be_upgraded():
+                        reward_card = picked_card.upgraded_version
+                    card_reward_array.append(reward_card)
                 break
 
+    Global.force_upgraded_card_rewards = false
     card_rewards.rewards = card_reward_array
     card_rewards.show()
 
