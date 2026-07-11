@@ -3,25 +3,19 @@
 [ext_resource type="Script" path="res://scenes/campfire/campfire.gd" id="1_k0oop"]
 [ext_resource type="FontFile" uid="uid://b1es4i7nr43mv" path="res://fonts/CinzelDecorative-Bold.otf" id="2_eiajw"]
 [ext_resource type="Texture2D" uid="uid://cjl8f526yke17" path="res://campfire_bg.png" id="2_uy3w3"]
-[ext_resource type="Texture2D" uid="uid://c8campfirerest0" path="res://campfire_rest_icon.png" id="3_s87pa"]
-[ext_resource type="Texture2D" uid="uid://c8campfireupgr0" path="res://campfire_upgrade_icon.png" id="4_sevll"]
+[ext_resource type="Texture2D" uid="uid://n3ljacp8hi1i" path="res://campfire_rest_icon.png" id="3_s87pa"]
+[ext_resource type="Texture2D" uid="uid://dq54nh2pk5h26" path="res://campfire_upgrade_icon.png" id="4_sevll"]
 [ext_resource type="Theme" uid="uid://c8cqncsqlplyu" path="res://main_theme.tres" id="5_2wawc"]
 [ext_resource type="FontFile" uid="uid://dq4bmvx1ogtey" path="res://Noto_Sans/static/NotoSans-Medium.ttf" id="7_vmtd8"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rest_normal"]
-bg_color = Color(0.164706, 0.262745, 0.235294, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.752941, 0.501961, 0.0627451, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-shadow_color = Color(0, 0, 0, 0.4)
-shadow_size = 3
-shadow_offset = Vector2(0, 2)
+[sub_resource type="LabelSettings" id="LabelSettings_2svc2"]
+font = ExtResource("2_eiajw")
+font_size = 30
+font_color = Color(1, 0.843137, 0, 1)
+outline_size = 3
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 2
+shadow_color = Color(0, 0, 0, 0.6)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rest_hover"]
 bg_color = Color(0.219608, 0.34902, 0.313726, 1)
@@ -49,16 +43,21 @@ corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
-shadow_size = 0
 
-[sub_resource type="LabelSettings" id="LabelSettings_2svc2"]
-font = ExtResource("2_eiajw")
-font_size = 30
-font_color = Color(1, 0.843137, 0, 1)
-outline_size = 3
-outline_color = Color(0, 0, 0, 1)
-shadow_size = 2
-shadow_color = Color(0, 0, 0, 0.6)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rest_normal"]
+bg_color = Color(0.164706, 0.262745, 0.235294, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.752941, 0.501961, 0.0627451, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.4)
+shadow_size = 3
+shadow_offset = Vector2(0, 2)
 
 [node name="Campfire" type="Control"]
 layout_mode = 3
@@ -124,15 +123,14 @@ anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = 10.0
-offset_bottom = 46.0
+offset_bottom = 36.0
 grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 1
 theme = ExtResource("5_2wawc")
-theme_override_styles/normal = SubResource("StyleBoxFlat_rest_normal")
 theme_override_styles/hover = SubResource("StyleBoxFlat_rest_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_rest_pressed")
+theme_override_styles/normal = SubResource("StyleBoxFlat_rest_normal")
 
 [node name="RichTextLabel" type="RichTextLabel" parent="HealTextureButton/HealButton"]
 layout_mode = 1
@@ -165,15 +163,14 @@ anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = 10.0
-offset_bottom = 46.0
+offset_bottom = 36.0
 grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 1
 theme = ExtResource("5_2wawc")
-theme_override_styles/normal = SubResource("StyleBoxFlat_rest_normal")
 theme_override_styles/hover = SubResource("StyleBoxFlat_rest_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_rest_pressed")
+theme_override_styles/normal = SubResource("StyleBoxFlat_rest_normal")
 
 [node name="RichTextLabel" type="RichTextLabel" parent="UpgradeTextureButton/UpgradeButton"]
 layout_mode = 1

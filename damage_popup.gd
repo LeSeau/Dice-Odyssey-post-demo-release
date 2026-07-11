@@ -2,23 +2,13 @@ extends Node2D
 @onready var label: Label = $Label
 var fade_duration: float = 0.6
 
-const DICE_TYPE_COLORS := {
-    "blue": Color(0.4, 0.7, 1.0),
-    "red": Color(1.0, 0.25, 0.2),
-    "evil": Color(0.85, 0.3, 0.85),
-    "giant": Color(0.75, 1.0, 0.35),
-    "magma": Color(1.0, 0.45, 0.05),
-    "even": Color(1.0, 0.65, 0.3),
-    "odd": Color(1.0, 0.85, 0.1),
-    "green": Color(0.1, 1.0, 0.55),
-    "mech": Color(0.8, 0.8, 0.85),
-}
-
 func show_damage(amount: int, dice_type: String = "") -> void:
     label.text = "-" + str(amount)
 
-    if DICE_TYPE_COLORS.has(dice_type):
-        label.add_theme_color_override("font_color", DICE_TYPE_COLORS[dice_type])
+    # Dice-type accent, lightened a touch: these float over enemies/background art, so they
+    # need a bit more brightness than the raw palette accent to stay readable everywhere.
+    if DicePalette.ACCENT.has(dice_type):
+        label.add_theme_color_override("font_color", DicePalette.accent(dice_type).lightened(0.15))
 
     # Resting size scales with damage, so a big hit's number stays visibly bigger the
     # whole time it's on screen (not just for the spawn punch). ~1 dmg -> 1.0, 24+ -> 1.6.

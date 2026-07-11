@@ -4,8 +4,8 @@
 
 [resource]
 shader = ExtResource("1_8jx7m")
-shader_parameter/magic_color = Color(0, 0.933333, 0.47451, 1)
-shader_parameter/accent_color = Color(0.529412, 0.713726, 0.192157, 0.870588)
+shader_parameter/magic_color = Color(0.18, 0.64, 0.24, 0.95)
+shader_parameter/accent_color = Color(0.06, 0.35, 0.11, 0.87)
 shader_parameter/border_size = 0.2
 shader_parameter/border_softness = 0.06
 shader_parameter/power_intensity = 1.819

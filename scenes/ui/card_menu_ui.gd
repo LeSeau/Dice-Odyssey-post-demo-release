@@ -65,6 +65,42 @@ const NO_REQUIREMENT_LABEL_SETTINGS := preload("res://scenes/card_ui/card_ui_no_
 const TITLE_LABEL_SETTINGS := preload("res://scenes/card_ui/card_title.tres")
 const UPGRADED_TITLE_COLOR := Color(0.36, 0.85, 0.36)
 
+# Long card names ("Perpetual Motion", "Critical Edge+"...) wrap to 2 lines in the fixed-width
+# CardBanner at the default 15pt - step the font down by length so the banner stays 1 line.
+# Thresholds picked against the actual card name pool (longest is 16 chars); tune here if a
+# future name is longer still. Kept in sync with CardUI's copy of these same constants.
+const TITLE_FONT_SIZE_DEFAULT := 15
+const TITLE_FONT_SIZE_MEDIUM := 12
+const TITLE_FONT_SIZE_SMALL := 10
+const TITLE_LENGTH_MEDIUM_THRESHOLD := 13
+const TITLE_LENGTH_SMALL_THRESHOLD := 17
+
+# Long descriptions overflow the fixed-height DescriptionPanel at the default 12pt. Same
+# step-down approach as the title.
+const DESC_FONT_SIZE_DEFAULT := 12
+const DESC_FONT_SIZE_MEDIUM := 11
+const DESC_FONT_SIZE_SMALL := 10
+const DESC_LENGTH_MEDIUM_THRESHOLD := 60
+const DESC_LENGTH_SMALL_THRESHOLD := 90
+
+
+static func title_font_size_for(text: String) -> int:
+    var length := text.length()
+    if length > TITLE_LENGTH_SMALL_THRESHOLD:
+        return TITLE_FONT_SIZE_SMALL
+    elif length > TITLE_LENGTH_MEDIUM_THRESHOLD:
+        return TITLE_FONT_SIZE_MEDIUM
+    return TITLE_FONT_SIZE_DEFAULT
+
+
+static func description_font_size_for(text: String) -> int:
+    var length := text.length()
+    if length > DESC_LENGTH_SMALL_THRESHOLD:
+        return DESC_FONT_SIZE_SMALL
+    elif length > DESC_LENGTH_MEDIUM_THRESHOLD:
+        return DESC_FONT_SIZE_MEDIUM
+    return DESC_FONT_SIZE_DEFAULT
+
 const TooltipScene = preload("res://scenes/ui/tooltip.tscn")
 
 
@@ -203,21 +239,24 @@ func set_card(value: Card) -> void:
             bonus_requirement_label.text = "Mult %d" % card.bonus_requirement_number
 
 
-# Green title on upgraded cards (STS2-style). Duplicates the shared LabelSettings only when
-# needed so non-upgraded cards never touch (and can't accidentally tint) the shared resource.
+# Green title on upgraded cards (STS2-style), plus a length-based font size step-down so long
+# names stay on 1 line. Always duplicates the shared LabelSettings now that font_size can also
+# vary per-card - mutating the shared resource in place would leak one card's size onto every
+# other card using it (same trap as the color-only version this replaced).
 func _apply_title_color() -> void:
+    var settings := TITLE_LABEL_SETTINGS.duplicate()
+    settings.font_size = title_font_size_for(card.name)
     if card.upgraded:
-        var upgraded_settings := TITLE_LABEL_SETTINGS.duplicate()
-        upgraded_settings.font_color = UPGRADED_TITLE_COLOR
-        title.label_settings = upgraded_settings
-    else:
-        title.label_settings = TITLE_LABEL_SETTINGS
+        settings.font_color = UPGRADED_TITLE_COLOR
+    title.label_settings = settings
 
 
 # Single chokepoint for writing to the Description RichTextLabel: applies keyword coloring
-# (Card.get_colorized_description(), driven off card.tags) and re-centers the text via BBCode,
-# since RichTextLabel has no horizontal_alignment property the way Label did.
+# (Card.get_colorized_description(), driven off card.tags), re-centers the text via BBCode
+# (RichTextLabel has no horizontal_alignment property the way Label did), and steps the font
+# size down for long text so it doesn't overflow the fixed-height DescriptionPanel.
 func _apply_description(text: String) -> void:
+    description.add_theme_font_size_override("normal_font_size", description_font_size_for(text))
     description.text = "[center]%s[/center]" % card.get_colorized_description(text)
 
 

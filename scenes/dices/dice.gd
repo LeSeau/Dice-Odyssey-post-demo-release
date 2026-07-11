@@ -114,10 +114,31 @@ const POWER_ORB_SIZE_MAX := 22.0
 const POWER_ORB_SIZE_BIG_ROLL_BONUS := 10.0  # added to size on top rolls, so big hits read visibly chunkier
 const POWER_ORB_BRIGHTNESS := 1.5
 const POWER_ORB_MAX_ROLL_BRIGHTNESS := 2.1   # extra overbright punch specifically on max rolls
-const POWER_ORB_STAGGER := 0.035         # base launch delay between orbs
-const POWER_ORB_STAGGER_JITTER := 0.028  # +/- randomized on top of the base above, so launches don't fall on a perfect metronome grid (a big part of the "train" look)
-const POWER_ORB_FLIGHT_MIN := 0.20
-const POWER_ORB_FLIGHT_MAX := 0.42       # widened (was 0.34) - more spread between individual orbs' arrival times
+const POWER_ORB_FLIGHT_MIN := 0.12
+const POWER_ORB_FLIGHT_MAX := 0.95       # widened again (was 0.14-0.58) - Julien: "all of them are always pretty fast" - the old max wasn't slow enough for a slow orb to actually read as slow next to a fast one
+# Per-orb launch delay is drawn independently at random across this whole window (0 to
+# STAGGER*count), rather than each orb owning a fixed slot (index*STAGGER) with jitter on top.
+# The indexed version still mostly preserved launch ORDER even with jitter, which is exactly
+# what read as a "train" - fully independent draws mean orb #7 can launch before orb #2.
+const POWER_ORB_LAUNCH_WINDOW_PER_ORB := 0.05
+# Each orb also gets its own acceleration PROFILE (trans/ease pair), not just its own speed -
+# same-shaped easing curves on every orb was the other big remaining "everything moves
+# identically" cue, even once individual speeds/paths already varied.
+const POWER_ORB_EASE_PROFILES := [
+    [Tween.TRANS_SINE, Tween.EASE_IN],
+    [Tween.TRANS_QUAD, Tween.EASE_IN],
+    [Tween.TRANS_CUBIC, Tween.EASE_IN_OUT],
+    [Tween.TRANS_SINE, Tween.EASE_IN_OUT],
+    [Tween.TRANS_EXPO, Tween.EASE_IN],
+]
+# Perpendicular sine wobble layered onto the bezier path itself, so the trajectory squiggles
+# instead of being a clean mechanically-smooth arc - envelope is 0 at both endpoints (via
+# sin(t*PI)) so orbs still launch cleanly from the die and land exactly on the Power label,
+# only the MIDDLE of the flight drifts off the pure curve.
+const POWER_ORB_WOBBLE_FREQ_MIN := 1.1   # oscillations across the full flight
+const POWER_ORB_WOBBLE_FREQ_MAX := 2.6
+const POWER_ORB_WOBBLE_AMP_MIN := 5.0
+const POWER_ORB_WOBBLE_AMP_MAX := 16.0
 # Where along the path (0=die, 1=Power label) each orb's control point sits - randomized per
 # orb instead of a fixed 0.55, so some orbs bow early/steep and others late/shallow rather than
 # all tracing the same silhouette.
@@ -285,6 +306,7 @@ func _ready():
     Events.clear_socket.connect(_on_clear_socket)
     Events.update_roll_history_ui.connect(update_roll_history_ui)
     Events.refuel_happened.connect(_on_refuel_happened)
+    Events.all_in_dice_consumed.connect(_spawn_all_in_consumed)
 
     
     # Initialize the dice display with the correct texture based on dice_type
@@ -417,17 +439,20 @@ func roll_dice():
     Events.check_unlucky_status.emit()
     Events.check_lucky_status.emit()
 
-    # Handle guaranteed rolls
-    if Global.next_guaranteed_roll != 0:
+    # Handle guaranteed rolls. Sentinel is -1, NOT 0 - the Evil dice's crack face IS 0, a
+    # legal guaranteed value (see Global.next_guaranteed_roll's declaration for the bug this
+    # used to cause: scouting/forcing the crack face silently rolled normally instead).
+    if Global.next_guaranteed_roll != -1:
         var target_value = Global.next_guaranteed_roll
-        roll_index = values.find(target_value)
+        var found_index = values.find(target_value)
 
-        if roll_index == -1:
+        if found_index == -1:
             push_error("Guaranteed roll value %s is not in dice values: %s" %
                     [str(target_value), str(values)])
-            roll_index = randi() % values.size()
+            found_index = randi() % values.size()
+        roll_index = found_index
 
-        Global.next_guaranteed_roll = 0
+        Global.next_guaranteed_roll = -1
         next_roll_panel.hide()
     
     # Handle tutorial forced rolls
@@ -507,8 +532,14 @@ func roll_dice():
             hit_stop_duration = 0.2
         Shaker.hit_stop(hit_stop_duration)
 
-        # Max-roll celebration: gold flash + particle burst on top of the normal landing
+        # Max-roll celebration: gold flash + particle burst on top of the normal landing.
+        # The burst is tinted per dice type (accent pulled toward warm gold) so a max roll
+        # on magma erupts fiery, on evil violet, etc. - the flash itself stays gold-white,
+        # the universal "success" beat.
         if is_max_roll:
+            var burst_material := gpu_particles_2d.process_material as ParticleProcessMaterial
+            if burst_material:
+                burst_material.color = DicePalette.burst(dice_type)
             gpu_particles_2d.emitting = true
             var max_flash := create_tween()
             max_flash.tween_property(dice_display, "modulate", Color(2.2, 2.0, 1.2, 1.0), 0.06) \
@@ -551,30 +582,35 @@ func _get_power_orb_texture() -> GradientTexture2D:
     return _power_orb_texture
 
 
-# Matches card_particles.gd's palette (kept in sync by eye - both are small per-dice-type color
-# tables, not worth a shared resource for two call sites) but brighter, since these orbs are
-# small UI elements that need to pop against the dice panel background rather than a full-scale
-# particle burst.
-func _get_power_orb_color(type: String) -> Color:
-    match type:
-        "magma": return Color("ff5522")
-        "blue":  return Color("5a8bffff")
-        "red":   return Color("ff3322")
-        "green": return Color("33ff99")
-        "odd":   return Color("ffd60b")
-        "even":  return Color("ffaa55")
-        "evil":  return Color("dd55dd")
-        "giant": return Color("99ff55")
-        "mech":  return Color("bbbbbb")
-        _:       return Color(1, 1, 1)
+# Additive blend so the orbs read as actual light over the dark dice panel (a normal-blend
+# tinted sprite reads as a flat colored dot by comparison). Shared across all orbs, built once
+# like the orb texture above.
+var _power_orb_material: CanvasItemMaterial
+
+func _get_power_orb_material() -> CanvasItemMaterial:
+    if _power_orb_material:
+        return _power_orb_material
+    var mat := CanvasItemMaterial.new()
+    mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+    _power_orb_material = mat
+    return _power_orb_material
 
 
 # tween_method's first parameter is always the interpolated value (t here) - bound args are
 # appended after it, so this stays a named function rather than a multi-statement inline lambda
 # (see reference-video-frame-analysis / the combat-juice-pass lessons on that gotcha).
-func _orb_bezier_step(t: float, orb: TextureRect, p0: Vector2, p1: Vector2, p2: Vector2) -> void:
-    var pos := p0.lerp(p1, t).lerp(p1.lerp(p2, t), t)
-    orb.global_position = pos - orb.size / 2.0
+#
+# wobble_freq/amp/phase add a per-orb perpendicular sine drift on top of the pure bezier curve,
+# so the PATH itself squiggles instead of being a mechanically clean arc - the sin(t*PI)
+# envelope is 0 at t=0 and t=1, so the wobble never moves the guaranteed launch/landing points,
+# only the middle of the flight.
+func _orb_bezier_step(t: float, orb: TextureRect, p0: Vector2, p1: Vector2, p2: Vector2, wobble_freq: float, wobble_amp: float, wobble_phase: float) -> void:
+    var base := p0.lerp(p1, t).lerp(p1.lerp(p2, t), t)
+    var tangent := p1.lerp(p2, t) - p0.lerp(p1, t)
+    tangent = tangent.normalized() if tangent.length_squared() > 0.0001 else Vector2.RIGHT
+    var perp := Vector2(-tangent.y, tangent.x)
+    var wobble := sin(t * wobble_freq * TAU + wobble_phase) * wobble_amp * sin(t * PI)
+    orb.global_position = (base + perp * wobble) - orb.size / 2.0
 
 
 # The "roll -> power" visual link: a few small orbs fly from the die to the Power label on
@@ -595,8 +631,9 @@ func _spawn_power_orbs(roll_val: int, type: String, is_max_roll: bool) -> void:
     # orbs pop against the panel rather than reading as a flat/dim tint - was too shy at 1.0.
     # Max rolls get an extra punch on top, so the biggest hits read as visibly more electric.
     var brightness := POWER_ORB_MAX_ROLL_BRIGHTNESS if is_max_roll else POWER_ORB_BRIGHTNESS
-    var color := _get_power_orb_color(type) * brightness
+    var color := DicePalette.accent(type) * brightness
     var texture := _get_power_orb_texture()
+    var orb_material := _get_power_orb_material()
 
     var count := clampi(POWER_ORB_MIN_COUNT + roll_val / 2, POWER_ORB_MIN_COUNT, POWER_ORB_MAX_COUNT)
     if is_max_roll:
@@ -605,6 +642,25 @@ func _spawn_power_orbs(roll_val: int, type: String, is_max_roll: bool) -> void:
     # Big rolls get chunkier orbs on top of the base random size, not just more of them.
     var size_bonus := lerpf(0.0, POWER_ORB_SIZE_BIG_ROLL_BONUS, clampf(float(roll_val) / 12.0, 0.0, 1.0))
 
+    # Precompute each orb's launch delay + flight time up front (rather than inline per
+    # iteration) so we can find which orb actually lands FIRST - both are now drawn
+    # independently at random, so it's no longer reliably orb #0 the way it was under the
+    # old indexed-stagger scheme (see _play_power_orb_arrival_reaction's call site below).
+    var launch_window := POWER_ORB_LAUNCH_WINDOW_PER_ORB * count
+    var launch_delays: Array[float] = []
+    var flight_times: Array[float] = []
+    var earliest_index := 0
+    var earliest_arrival := INF
+    for i in count:
+        var launch_delay := randf_range(0.0, launch_window)
+        var flight_time := randf_range(POWER_ORB_FLIGHT_MIN, POWER_ORB_FLIGHT_MAX)
+        launch_delays.append(launch_delay)
+        flight_times.append(flight_time)
+        var arrival := launch_delay + flight_time
+        if arrival < earliest_arrival:
+            earliest_arrival = arrival
+            earliest_index = i
+
     for i in count:
         var orb := TextureRect.new()
         orb.texture = texture
@@ -612,6 +668,7 @@ func _spawn_power_orbs(roll_val: int, type: String, is_max_roll: bool) -> void:
         # native resolution regardless of .size below (bit the refuel-return icons the same way).
         orb.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
         orb.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+        orb.material = orb_material
         orb.modulate = color
         orb.modulate.a = 0.0
         orb.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -637,24 +694,28 @@ func _spawn_power_orbs(roll_val: int, type: String, is_max_roll: bool) -> void:
         var apex_y := minf(start.y, end.y) - randf_range(POWER_ORB_ARC_HEIGHT_MIN, POWER_ORB_ARC_HEIGHT_MAX)
         var control := Vector2(mid_x + randf_range(-25.0, 25.0), apex_y)
 
-        var flight_time := randf_range(POWER_ORB_FLIGHT_MIN, POWER_ORB_FLIGHT_MAX)
-        # Jittered on top of the linear index-based spacing, rather than a bare `STAGGER * i` -
-        # a perfectly even launch cadence is exactly what reads as a mechanical conveyor/train
-        # regardless of how varied the paths are. Clamped to >=0 since jitter can go negative.
-        var launch_delay := maxf(0.0, POWER_ORB_STAGGER * i + randf_range(-POWER_ORB_STAGGER_JITTER, POWER_ORB_STAGGER_JITTER))
+        var flight_time := flight_times[i]
+        var launch_delay := launch_delays[i]
+        var ease_profile: Array = POWER_ORB_EASE_PROFILES[randi() % POWER_ORB_EASE_PROFILES.size()]
+        var wobble_freq := randf_range(POWER_ORB_WOBBLE_FREQ_MIN, POWER_ORB_WOBBLE_FREQ_MAX)
+        var wobble_amp := randf_range(POWER_ORB_WOBBLE_AMP_MIN, POWER_ORB_WOBBLE_AMP_MAX)
+        var wobble_phase := randf_range(0.0, TAU)
+
         var tw := create_tween()
         tw.tween_interval(launch_delay)
         tw.tween_property(orb, "modulate:a", 1.0, flight_time * 0.3)
-        tw.parallel().tween_method(_orb_bezier_step.bind(orb, start, control, end), 0.0, 1.0, flight_time) \
-            .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+        tw.parallel().tween_method(
+                _orb_bezier_step.bind(orb, start, control, end, wobble_freq, wobble_amp, wobble_phase),
+                0.0, 1.0, flight_time) \
+            .set_trans(ease_profile[0]).set_ease(ease_profile[1])
         # Shrinks to nothing exactly as it arrives, so it reads as being absorbed into the
         # number rather than just stopping next to it.
         tw.parallel().tween_property(orb, "scale", Vector2(0.2, 0.2), flight_time) \
             .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-        # The first (unstaggered, i==0) orb is roughly the earliest to land - that's the moment
-        # the Power number gets its "delivery" reaction, rather than waiting for the whole
-        # staggered swarm on big rolls (so the timing doesn't grow with orb count).
-        if i == 0:
+        # Whichever orb was precomputed to land FIRST (not necessarily i==0 anymore, now that
+        # launch delay and flight time are both independently randomized) gets the Power
+        # number's "delivery" reaction.
+        if i == earliest_index:
             tw.tween_callback(_play_power_orb_arrival_reaction.bind(type))
         tw.tween_callback(_play_power_orb_land_sfx)
         tw.tween_callback(orb.queue_free)
@@ -753,6 +814,11 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
     if Global.last_roll == values.max():
         play_high_roll_sound()
 
+    # Evil dice's crack face (0): a distinct sting so whiffing reads as a felt outcome
+    # rather than a silent non-event (a 0 roll spawns no power orbs, no popup worth noting).
+    if dice_type == "evil" and Global.last_roll == 0:
+        play_crack_sound()
+
     # Separate gameplay flag (Pinpoint card checks this) - stays tied to a literal 6,
     # not the per-die max, so don't fold it into the check above.
     if Global.last_roll == 6:
@@ -839,7 +905,7 @@ func _play_power_orb_arrival_reaction(type: String) -> void:
 
     var base_color := current_power.modulate
     var flash_tween := create_tween()
-    flash_tween.tween_property(current_power, "modulate", _get_power_orb_color(type), 0.05)
+    flash_tween.tween_property(current_power, "modulate", DicePalette.accent(type).lightened(0.35), 0.05)
     flash_tween.tween_property(current_power, "modulate", base_color, 0.15)
 
 
@@ -850,11 +916,20 @@ func _on_active_dice_changed(new_dice_type):
     print("Active dice changed to: " + dice_type)
     if dice_type == "red" and new_dice_type != "red" and socketed_card_ui != null:
         _on_cancel_red_card_pressed()
-    Global.next_guaranteed_roll = 0
+    Global.next_guaranteed_roll = -1
     next_roll_panel.hide()
     Events.hover_playable_cards.emit()
     update_dice_display()
-    
+
+    # Small landing pop when the new die takes the socket - the swap was previously an
+    # instant texture change with zero feedback. Ends at exactly 1.0 so it can't fight the
+    # roll/refuel tweens beyond a transient frame.
+    var switch_tween := create_tween()
+    switch_tween.tween_property(dice_display, "scale", Vector2(1.12, 1.12), 0.07) \
+        .set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+    switch_tween.tween_property(dice_display, "scale", Vector2(1.0, 1.0), 0.12) \
+        .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
     if(dice_type == "red"):
         card_drop_area.show()
         mech_section.hide()
@@ -875,44 +950,22 @@ func _on_active_dice_changed(new_dice_type):
     Events.change_current_power.emit()
 
 func update_dice_display():
-    dice_display.texture = load("res://assets/images/" + dice_type + "1.png")
-    
-    var outline_color: Color
-    if dice_type == "blue":
-        current_power.modulate = Color(0.35, 0.65, 1.0)  # softer sky blue
-        outline_color = Color(0.0, 0.15, 0.45)
-    elif dice_type == "red":
-        current_power.modulate = Color(1, 0, 0)
-        outline_color = Color(0.4, 0.0, 0.0)
-    elif dice_type == "evil":
-        current_power.modulate = Color(0.8, 0.2, 0.7)
-        outline_color = Color(0.3, 0.0, 0.3)
-        dice_display.texture = load("res://assets/images/evil6.png")
-    elif dice_type == "giant":
-        current_power.modulate = Color(0.7, 1.0, 0.3)
-        outline_color = Color(0.2, 0.4, 0.0)
-    elif dice_type == "magma":
-        current_power.modulate = Color(1.0, 0.3, 0.0)
-        outline_color = Color(0.4, 0.1, 0.0)
-    elif dice_type == "even":
-        current_power.modulate = Color(1.0, 0.6, 0.3)
-        outline_color = Color(0.4, 0.2, 0.0)
-        dice_display.texture = load("res://assets/images/" + dice_type + "2.png")
-    elif dice_type == "odd":
-        current_power.modulate = Color(0.925, 0.764, 0.043)
-        outline_color = Color(0.4, 0.3, 0.0)
-        dice_display.texture = load("res://assets/images/" + dice_type + "1.png")
-    elif dice_type == "green":
-        current_power.modulate = Color(0.0, 0.933, 0.475)
-        outline_color = Color(0.0, 0.3, 0.15)
-        dice_display.texture = load("res://assets/images/" + dice_type + "1.png")
-    elif dice_type == "mech":
-        current_power.modulate = Color(0.35, 0.35, 0.35)
-        outline_color = Color(0.1, 0.1, 0.1)
-        dice_display.texture = load("res://assets/images/" + dice_type + "1.png")
-    
-    current_power.get_theme_font("font")
-    current_power.add_theme_color_override("font_outline_color", outline_color)
+    # Resting face shown when this type becomes active - "1" for every type that has a 1,
+    # evil's best face (it has no 1) and even's lowest (2).
+    var rest_face := "1"
+    match dice_type:
+        "evil": rest_face = "6"
+        "even": rest_face = "2"
+    dice_display.texture = load("res://assets/images/" + dice_type + rest_face + ".png")
+
+    current_power.modulate = DicePalette.accent(dice_type)
+    # The outline must go through label_settings: this Label HAS a LabelSettings resource,
+    # which takes priority over theme overrides - the old add_theme_color_override() call
+    # here was silently ignored, leaving the outline stuck on its authored brown for every
+    # dice type. (Safe to mutate: dice.tscn is instanced exactly once, in battle.tscn, and
+    # _set_power_text already mutates this same resource's font_size.)
+    if current_power.label_settings:
+        current_power.label_settings.outline_color = DicePalette.outline(dice_type)
     _power_resting_modulate = current_power.modulate  # capture per-type color for the clang flash to return to
     set_shader_from_global_type(dice_type)
 
@@ -952,7 +1005,13 @@ func play_high_roll_sound():
     
     var sfx_high_roll = preload("res://sfx/817811__thesoundlibrary__orchestral-hit.wav")
     SFXPlayer.play(sfx_high_roll)
-    
+
+# Placeholder (whipsound.mp3 wasn't used anywhere else - its sharp "crack" transient just
+# happens to fit) - swap for a dedicated stone/glass crack sfx if Julien finds a better one.
+func play_crack_sound():
+    var sfx_crack = preload("res://whipsound.mp3")
+    SFXPlayer.play(sfx_crack, false, 1.0, 3.0)
+
 func play_weak_dice_sound():
     #dice_roll_player.stream = load("res://sounds/visionsound.wav")
     #dice_roll_player.volume_db = 6  # Increase volume (optional)
@@ -1241,11 +1300,31 @@ func set_shader_from_global_type(type: String = Global.dice_type) -> void:
 
 
 func _on_charge_dice_animation():
-    animation_player.play("charge")  # existing aura animation
+    animation_player.play("charge")  # aura scale pulse (color is driven in code below)
     dice_roll_player.stream = load("res://chargedicesound.mp3")
     dice_roll_player.volume_db = 6
     dice_roll_player.play()
-    gpu_particles_2d.emitting = true  # ring of energy spawns and rushes inward (~0.3s to converge)
+    # Ring of energy spawns and rushes inward (~0.3s to converge), tinted toward the active
+    # dice's color so "charging a die" visibly feeds it ITS energy.
+    var burst_material := gpu_particles_2d.process_material as ParticleProcessMaterial
+    if burst_material:
+        burst_material.color = DicePalette.burst(Global.dice_type, 0.35)
+    gpu_particles_2d.emitting = true
+
+    # Charge flash on the aura itself: pulse charge_heat to full, then settle back to the
+    # banked-power level via _update_dice_aura_charge(). This replaces the old "charge"
+    # animation tracks that wrote the BLUE shader's authored accent_color into whatever
+    # material happened to be active - the per-type ShaderMaterials are shared preloaded
+    # resources, so charging while e.g. magma was active permanently (until restart)
+    # repainted magma's aura accent blue-purple.
+    var aura_material := aura.material as ShaderMaterial
+    if aura_material:
+        var heat_tween := create_tween()
+        var heat_rise := heat_tween.tween_property(aura_material, "shader_parameter/charge_heat", 1.0, 0.12)
+        if heat_rise:
+            heat_rise.set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+        heat_tween.tween_interval(0.3)
+        heat_tween.tween_callback(_update_dice_aura_charge)
 
     # Beats are timed so the die "absorbs" the energy exactly when the inward-converging
     # particles reach its center: anticipation squash + hold while the ring collapses,
@@ -1345,31 +1424,9 @@ func update_roll_history_ui():
         else:
             text += ", " + str(Global.roll_history[i])
 
-    # Color by dice type
-    var color := Color.WHITE
-    match Global.dice_type:
-        "blue":
-            color = Color(0.3, 0.5, 1.0)
-        "red":
-            color = Color(1.0, 0.3, 0.3)
-        "evil":
-            color = Color(0.8, 0.2, 0.7)
-        "giant":
-            color = Color(0.7, 1.0, 0.3)
-        "magma":
-            color = Color(1.0, 0.3, 0.0)
-        "even":
-            color = Color(1.0, 0.6, 0.3)
-        "odd":
-            color = Color(0.925, 0.764, 0.043)
-        "green":
-            color = Color(0.0, 0.933, 0.475)
-        "mech":
-            color = Color(0.35, 0.35, 0.35)
-
-    # Lighten toward white so it stays legible on the dark backing pill regardless of
-    # dice type (mech's dark grey was nearly invisible against the glow otherwise).
-    color = color.lerp(Color.WHITE, 0.35)
+    # Dice-type accent, lightened toward white so it stays legible on the dark backing pill
+    # regardless of type.
+    var color := DicePalette.accent(Global.dice_type).lerp(Color.WHITE, 0.35)
 
     # Apply with RichText formatting
     roll_history.visible = true
@@ -1468,20 +1525,10 @@ func _spawn_roll_popup(value: int) -> void:
         return
     var popup = Label.new()
     popup.text = "+" + str(value)
-    
+
     # Match the dice type color
-    var color := Color.WHITE
-    match Global.dice_type:
-        "blue":   color = Color(0.3, 0.5, 1.0)
-        "red":    color = Color(1.0, 0.3, 0.3)
-        "evil":   color = Color(0.8, 0.2, 0.7)
-        "giant":  color = Color(0.7, 1.0, 0.3)
-        "magma":  color = Color(1.0, 0.3, 0.0)
-        "even":   color = Color(1.0, 0.6, 0.3)
-        "odd":    color = Color(0.925, 0.764, 0.043)
-        "green":  color = Color(0.0, 0.933, 0.475)
-        "mech":   color = Color(0.35, 0.35, 0.35)
-    
+    var color := DicePalette.accent(Global.dice_type)
+
     # Size scales a bit with the roll value, so a big roll's "+X" actually reads as bigger
     var font_size := clampi(28 + value, 28, 44)
     popup.modulate = color
@@ -1511,9 +1558,16 @@ func _spawn_roll_popup(value: int) -> void:
 # evil_faces above). Mirrors the same lookup _apply_roll_result() uses, just keyed by value
 # instead of by roll_index into a faces array, since roll_history only stores values.
 func _get_dice_face_texture(value: int) -> Texture2D:
-    if dice_type == "evil" and value == 0:
+    return _get_dice_face_texture_for(dice_type, value)
+
+
+# Same lookup as above but for an explicit type rather than this Dice's own active dice_type -
+# needed for flourishes that show icons spanning MULTIPLE dice types at once (e.g. All In's
+# consumed-dice display, which can include Blue, Evil, Giant... all in the same burst).
+func _get_dice_face_texture_for(type: String, value: int) -> Texture2D:
+    if type == "evil" and value == 0:
         return load("res://assets/images/evil0.png")
-    return load("res://assets/images/" + dice_type + str(value) + ".png")
+    return load("res://assets/images/" + type + str(value) + ".png")
 
 
 # For refuel cards: the dice you actually rolled this turn (each showing ITS OWN rolled face,
@@ -1596,6 +1650,82 @@ func _spawn_refuel_return(rolled_values: Array) -> Tween:
         last_flight = flight
 
     return last_flight
+
+
+# All In's "which dice got spent" flourish: pops icons for the consumed dice (each showing its
+# own type+face, from all_in.gd's `consumed` array) out of the played card, same rise-and-hover
+# beats as _spawn_refuel_return above - but the final leg differs. Refuel's dice fly back INTO
+# the die (they're returned to your pool); All In's dice are destroyed, and came from many
+# different pools at once, so there's no single die to fly into. Instead they hover noticeably
+# longer (Julien: "make them visible a bit longer so the player knows what happened" - the
+# previous behavior was no visual at all, just the damage number with no visible cause) and
+# then burn away in place: a bright flash, a small final rise, then collapse to nothing.
+const ALL_IN_CONSUMED_MAX_ICONS := 10
+const ALL_IN_CONSUMED_RISE := 0.14
+const ALL_IN_CONSUMED_HOVER := 0.9
+const ALL_IN_CONSUMED_HOVER_BOB := 7.0
+const ALL_IN_CONSUMED_BURN := 0.4
+const ALL_IN_CONSUMED_STAGGER := 0.05
+
+func _spawn_all_in_consumed(consumed: Array) -> void:
+    if consumed.is_empty():
+        return
+    var parent_layer := get_tree().get_first_node_in_group("ui_layer")
+    if not parent_layer:
+        return
+    var n := mini(consumed.size(), ALL_IN_CONSUMED_MAX_ICONS)
+    var origin := Global.last_played_card_position
+    if origin == Vector2.ZERO:
+        origin = dice_display.get_global_rect().get_center()
+
+    for i in n:
+        var entry: Dictionary = consumed[i]
+        var icon := TextureRect.new()
+        icon.texture = _get_dice_face_texture_for(entry.get("type", "blue"), entry.get("value", 1))
+        icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+        icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+        icon.custom_minimum_size = Vector2(58, 58)
+        icon.size = Vector2(58, 58)
+        icon.pivot_offset = icon.size / 2.0
+        icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        icon.z_index = 150  # same layer/z convention as the refuel icons above
+        parent_layer.add_child(icon)
+
+        var spawn_pos := origin + Vector2(randf_range(-16.0, 16.0), randf_range(-10.0, 10.0))
+        var hover_pos := origin + Vector2(lerpf(-100.0, 100.0, float(i) / maxf(1.0, n - 1)), -110.0)
+        icon.global_position = spawn_pos - icon.size / 2.0
+        icon.scale = Vector2.ZERO
+
+        var flight := create_tween()
+        flight.tween_interval(ALL_IN_CONSUMED_STAGGER * i)
+
+        # 1. Pop out of the card and rise to the hover spot.
+        flight.tween_property(icon, "scale", Vector2.ONE, ALL_IN_CONSUMED_RISE) \
+            .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+        flight.parallel().tween_property(icon, "global_position", hover_pos - icon.size / 2.0, ALL_IN_CONSUMED_RISE) \
+            .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+        # 2. Hover with a gentle bob, noticeably longer than the refuel version so the player
+        # has time to actually read "oh, that's my dice" before they vanish.
+        flight.tween_property(icon, "global_position:y", hover_pos.y - icon.size.y / 2.0 - ALL_IN_CONSUMED_HOVER_BOB, ALL_IN_CONSUMED_HOVER * 0.5) \
+            .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+        flight.tween_property(icon, "global_position:y", hover_pos.y - icon.size.y / 2.0, ALL_IN_CONSUMED_HOVER * 0.5) \
+            .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+        # 3. Burn away in place: overbright flash, a small final rise + scale pop, then
+        # collapse to nothing - reads as "spent," not "returned."
+        var burn_pos := hover_pos + Vector2(0.0, -26.0)
+        flight.tween_property(icon, "global_position", burn_pos - icon.size / 2.0, ALL_IN_CONSUMED_BURN) \
+            .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+        flight.parallel().tween_property(icon, "modulate", Color(2.2, 2.0, 1.4, 1.0), ALL_IN_CONSUMED_BURN * 0.35) \
+            .set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+        flight.parallel().tween_property(icon, "scale", Vector2(1.25, 1.25), ALL_IN_CONSUMED_BURN * 0.35) \
+            .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+        flight.tween_property(icon, "scale", Vector2.ZERO, ALL_IN_CONSUMED_BURN * 0.5) \
+            .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+        flight.parallel().tween_property(icon, "modulate:a", 0.0, ALL_IN_CONSUMED_BURN * 0.5) \
+            .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+        flight.chain().tween_callback(icon.queue_free)
 
 
 func _on_refuel_happened(amount: int) -> void:

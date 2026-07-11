@@ -7,7 +7,6 @@
 [ext_resource type="PackedScene" uid="uid://nfklwfie3xpy" path="res://scenes/ui/card_pile_opener.tscn" id="3_bglvk"]
 [ext_resource type="PackedScene" uid="uid://bdmrt1adkfiii" path="res://scenes/ui/gold_ui.tscn" id="3_xchug"]
 [ext_resource type="Texture2D" uid="uid://ce73qu6xbuv2j" path="res://assets/images/blue2.png" id="4_32ynl"]
-[ext_resource type="Texture2D" path="res://assets/images/map_button_icon.png" id="50_mapicon"]
 [ext_resource type="Resource" uid="uid://2if2rhy1aktn" path="res://treasure_relic_pool.tres" id="4_i08gm"]
 [ext_resource type="PackedScene" uid="uid://jg7s3ul6gyqj" path="res://scenes/ui/card_pile_view.tscn" id="4_rq0pt"]
 [ext_resource type="Texture2D" uid="uid://cdpcpjn0arvjp" path="res://assets/images/red1.png" id="5_14sn0"]
@@ -18,21 +17,15 @@
 [ext_resource type="Texture2D" uid="uid://bgwa4qau0i542" path="res://dice shop clean outline.png" id="10_wacie"]
 [ext_resource type="Texture2D" uid="uid://ye2g85fpdt1y" path="res://deck.png" id="13_pm2lc"]
 [ext_resource type="FontFile" uid="uid://dltntsanjiykq" path="res://fonts/LuckiestGuy-Regular.ttf" id="20_hicqd"]
-[ext_resource type="LabelSettings" uid="uid://c8x4k2n9wq3rt" path="res://scenes/ui/topbar_label_settings.tres" id="21_topbarlbl"]
+[ext_resource type="LabelSettings" path="res://scenes/ui/topbar_label_settings.tres" id="21_topbarlbl"]
 [ext_resource type="Texture2D" uid="uid://des7u80d2851r" path="res://discord_logo_test.png" id="25_5yr4f"]
 [ext_resource type="Texture2D" uid="uid://debpwfe3e4476" path="res://assets/images/shop.jpg" id="30_a4wio"]
 [ext_resource type="FontFile" uid="uid://dujsng7qdioan" path="res://assets/static/Roboto_Condensed-SemiBold.ttf" id="32_hr3b7"]
 [ext_resource type="AudioStream" uid="uid://lw8o2xuyd2fr" path="res://map_music.ogg" id="32_xlp2w"]
 [ext_resource type="FontFile" uid="uid://bm3deysyi2y55" path="res://Belwe Bold/Belwe Bold.otf" id="33_q6s60"]
 [ext_resource type="Texture2D" uid="uid://b1my7ua56jx7t" path="res://tutorial_arrow.png" id="33_ys7td"]
-[ext_resource type="PackedScene" uid="uid://c7qk2actbnr4m" path="res://scenes/ui/act_banner.tscn" id="34_actbn"]
-
-[sub_resource type="Gradient" id="Gradient_ajfrf"]
-colors = PackedColorArray(0.101961, 0.227451, 0.235294, 1, 0.0588235, 0.133333, 0.141176, 1)
-
-[sub_resource type="GradientTexture2D" id="GradientTexture2D_l7gh7"]
-gradient = SubResource("Gradient_ajfrf")
-fill_to = Vector2(0, 1)
+[ext_resource type="PackedScene" path="res://scenes/ui/act_banner.tscn" id="34_actbn"]
+[ext_resource type="Texture2D" uid="uid://nowr3vqyi4ax" path="res://assets/images/map_button_icon.png" id="50_mapicon"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_topbar_bg"]
 bg_color = Color(0.101961, 0.227451, 0.235294, 1)
@@ -42,17 +35,12 @@ shadow_color = Color(0, 0, 0, 0.35)
 shadow_size = 6
 shadow_offset = Vector2(0, 3)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_map_icon_hover_glow"]
-bg_color = Color(1, 1, 1, 0)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 3
-border_color = Color(1, 0.843137, 0.294118, 1)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
+[sub_resource type="Gradient" id="Gradient_ajfrf"]
+colors = PackedColorArray(0.101961, 0.227451, 0.235294, 1, 0.0588235, 0.133333, 0.141176, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_l7gh7"]
+gradient = SubResource("Gradient_ajfrf")
+fill_to = Vector2(0, 1)
 
 [sub_resource type="StyleBoxLine" id="StyleBoxLine_6aa02"]
 color = Color(0.784314, 0.662745, 0.431373, 1)
@@ -70,6 +58,18 @@ font_size = 14
 font_color = Color(0.92549, 0.890196, 0.815686, 1)
 outline_size = 1
 outline_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_map_icon_hover_glow"]
+bg_color = Color(1, 1, 1, 0)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 0.843137, 0.294118, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6wcbv"]
 content_margin_left = 0.0
@@ -267,8 +267,8 @@ stretch_mode = 5
 [node name="HealthLabel" type="Label" parent="TopBar/BarItems/HBoxContainer"]
 custom_minimum_size = Vector2(65, 0)
 layout_mode = 2
-label_settings = ExtResource("21_topbarlbl")
 text = "66/66"
+label_settings = ExtResource("21_topbarlbl")
 
 [node name="VSeparator" type="VSeparator" parent="TopBar/BarItems"]
 modulate = Color(0.784314, 0.662745, 0.431373, 1)
@@ -339,9 +339,8 @@ theme_override_styles/separator = SubResource("StyleBoxLine_6aa02")
 [node name="FloorLabel" type="Label" parent="TopBar/BarItems"]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_vertical = 4
-label_settings = ExtResource("21_topbarlbl")
 text = "Floor: 1"
+label_settings = ExtResource("21_topbarlbl")
 
 [node name="Spacer" type="Control" parent="TopBar/BarItems"]
 custom_minimum_size = Vector2(10, 0)
@@ -360,7 +359,7 @@ stretch_mode = 5
 [node name="HoverGlow" type="Panel" parent="TopBar/BarItems/ConsultMapButton"]
 unique_name_in_owner = true
 modulate = Color(1, 1, 1, 0)
-mouse_filter = 2
+z_index = -1
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -371,7 +370,7 @@ offset_right = 6.0
 offset_bottom = 6.0
 grow_horizontal = 2
 grow_vertical = 2
-z_index = -1
+mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_map_icon_hover_glow")
 
 [node name="ExpandSpacer" type="Control" parent="TopBar/BarItems"]
@@ -439,15 +438,11 @@ custom_minimum_size = Vector2(30, 0)
 layout_mode = 2
 
 [node name="RelicBar" type="Control" parent="TopBar"]
-layout_mode = 1
+layout_mode = 3
 anchors_preset = 0
-anchor_left = 0.0
-anchor_top = 0.0
-anchor_right = 0.0
-anchor_bottom = 0.0
-offset_left = 28.0
+offset_left = 44.0
 offset_top = 84.0
-offset_right = 478.0
+offset_right = 494.0
 offset_bottom = 164.0
 mouse_filter = 2
 
@@ -458,6 +453,8 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_right = 0.0
+offset_bottom = 0.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -609,7 +606,7 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_oy5q6")
 
 [node name="ActBanner" parent="." instance=ExtResource("34_actbn")]
 
-[connection signal="pressed" from="TopBar/BarItems/DiceShop" to="TopBar/BarItems/DiceShop" method="_on_pressed"]
 [connection signal="mouse_entered" from="TopBar/BarItems/DiceShop" to="TopBar/BarItems/DiceShop" method="_on_mouse_entered"]
 [connection signal="mouse_exited" from="TopBar/BarItems/DiceShop" to="TopBar/BarItems/DiceShop" method="_on_mouse_exited"]
+[connection signal="pressed" from="TopBar/BarItems/DiceShop" to="TopBar/BarItems/DiceShop" method="_on_pressed"]
 [connection signal="pressed" from="CanvasLayer/JoinDiscordControl/JoinDiscordButton" to="." method="_on_join_discord_button_pressed"]

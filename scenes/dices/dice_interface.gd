@@ -14,19 +14,8 @@ const DICE_TYPE_TO_AMOUNT = {
     "giant": "giant_dice_current_amount", "magma": "magma_dice_current_amount", "even": "even_dice_current_amount",
     "odd": "odd_dice_current_amount", "green": "green_dice_current_amount", "mech": "mech_dice_current_amount"
 }
-# Mirrors dice.gd::update_dice_display()'s palette so the selected slot here
-# matches the rolled die / Power number color elsewhere in the HUD.
-const DICE_TYPE_COLOR := {
-    "blue": Color(0.35, 0.65, 1.0),
-    "red": Color(1, 0, 0),
-    "evil": Color(0.8, 0.2, 0.7),
-    "giant": Color(0.7, 1.0, 0.3),
-    "magma": Color(1.0, 0.3, 0.0),
-    "even": Color(1.0, 0.6, 0.3),
-    "odd": Color(0.925, 0.764, 0.043),
-    "green": Color(0.0, 0.933, 0.475),
-    "mech": Color(0.35, 0.35, 0.35),
-}
+# Selected-slot highlight color comes from DicePalette (same source as the rolled die /
+# Power number color elsewhere in the HUD).
 
 @onready var control: DiceInterface = $"."
 @onready var dice_1: VBoxContainer = $DicePanel/MarginContainer/HBoxContainer/Dice1
@@ -484,7 +473,7 @@ func update_selected_highlight(selected_type: String = Global.dice_type) -> void
         var amount: int = Global.get(DICE_TYPE_TO_AMOUNT[dice_type])
         var depleted := amount <= 0
         if dice_type == selected_type and not depleted:
-            var base_color: Color = DICE_TYPE_COLOR.get(dice_type, Color.WHITE)
+            var base_color: Color = DicePalette.accent(dice_type)
             var highlight := base_color.lerp(Color.WHITE, 0.55)
             node.modulate = Color(highlight.r * 1.3, highlight.g * 1.3, highlight.b * 1.3, 1.0)
             node.scale = Vector2(1.15, 1.15)

@@ -1,9 +1,10 @@
-[gd_resource type="Resource" script_class="CardPile" load_steps=14 format=3 uid="uid://dyyfi3rcfxyug"]
+[gd_resource type="Resource" script_class="CardPile" load_steps=15 format=3 uid="uid://dyyfi3rcfxyug"]
 
 [ext_resource type="Script" path="res://custom_resources/card.gd" id="1_3jhqt"]
 [ext_resource type="Script" path="res://custom_resources/card_pile.gd" id="1_ncslu"]
 [ext_resource type="Resource" uid="uid://bx75rk8gt7tps" path="res://characters/warrior/cards/card_recombobulate.tres" id="2_8uutq"]
-[ext_resource type="Resource" uid="uid://bbn0gc6vjjja1" path="res://characters/warrior/cards/card_rupture.tres" id="2_25mee"]
+[ext_resource type="Resource" uid="uid://b7cynlg33a63b" path="res://characters/warrior/cards/card_all_in.tres" id="2_3077s"]
+[ext_resource type="Resource" uid="uid://xijgamtutf7w" path="res://characters/warrior/cards/card_scout3_no_exhaust.tres" id="2_cepbo"]
 [ext_resource type="Resource" uid="uid://cexum1jvlid0b" path="res://characters/warrior/cards/warrior_axe_attack2.tres" id="3_l7ppy"]
 [ext_resource type="Resource" uid="uid://dspv7gyxpld63" path="res://characters/warrior/cards/warrior_axe_attack3.tres" id="4_4a81u"]
 [ext_resource type="Resource" uid="uid://bnk761lymhnou" path="res://characters/warrior/cards/warrior_block1.tres" id="4_oy516"]
@@ -16,4 +17,4 @@
 
 [resource]
 script = ExtResource("1_ncslu")
-cards = Array[ExtResource("1_3jhqt")]([ExtResource("2_25mee"), ExtResource("3_l7ppy"), ExtResource("4_4a81u"), ExtResource("5_b6ceh"), ExtResource("4_oy516"), ExtResource("5_64eln"), ExtResource("6_fuqn2"), ExtResource("9_rxdx3"), ExtResource("9_atp66"), ExtResource("11_7as5q"), ExtResource("2_8uutq")])
+cards = Array[ExtResource("1_3jhqt")]([ExtResource("2_3077s"), ExtResource("3_l7ppy"), ExtResource("4_4a81u"), ExtResource("5_b6ceh"), ExtResource("4_oy516"), ExtResource("5_64eln"), ExtResource("6_fuqn2"), ExtResource("9_rxdx3"), ExtResource("9_atp66"), ExtResource("11_7as5q"), ExtResource("2_8uutq"), ExtResource("2_cepbo")])

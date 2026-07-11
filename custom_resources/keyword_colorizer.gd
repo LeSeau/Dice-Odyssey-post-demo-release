@@ -41,18 +41,19 @@ const LEADING_NUMBER_KEYWORDS: Array[String] = ["Strength", "Muscle"]
 # established color instead of the shared gold. Unlike the other keywords, these colors aren't
 # arbitrary - they're the same ones the dice already wear everywhere else in the game (aura glow
 # in dice.gd, the power-orb particles), so tinting "Blue Dice" blue reinforces an association the
-# player already has rather than inventing a new one. Values match dice.gd's
-# _get_power_orb_color() for the same 9 types.
+# player already has rather than inventing a new one. Kept in sync BY HAND with
+# DicePalette.ACCENT (custom_resources/dice_palette.gd) - a const dict needs literal hex
+# strings for the BBCode tags, so it can't read the palette's Color values. Update both together.
 const DICE_KEYWORD_COLORS := {
-    "Blue Dice": "5A8BFF",
-    "Red Dice": "FF3322",
-    "Green Dice": "33FF99",
-    "Odd Dice": "FFD60B",
-    "Even Dice": "FFAA55",
-    "Evil Dice": "DD55DD",
-    "Giant Dice": "99FF55",
-    "Magma Dice": "FF5522",
-    "Mech Dice": "BBBBBB",
+    "Blue Dice": "3D7BFF",
+    "Red Dice": "FF2F3E",
+    "Green Dice": "48D147",
+    "Odd Dice": "E9B83D",
+    "Even Dice": "FF9526",
+    "Evil Dice": "E14FE1",
+    "Giant Dice": "A9D648",
+    "Magma Dice": "FF5A14",
+    "Mech Dice": "B9C1CB",
 }
 
 # Single source of truth for "what does this dice type actually do", keyed by the same "X Dice"

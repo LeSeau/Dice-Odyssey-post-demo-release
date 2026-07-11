@@ -1,8 +1,8 @@
-[gd_scene load_steps=11 format=3 uid="uid://bhq1brkr0002b"]
+[gd_scene load_steps=11 format=3 uid="uid://g72e5q0qyuqo"]
 
 [ext_resource type="Script" path="res://scenes/events/event_fickle_broker.gd" id="1_brkr1"]
 [ext_resource type="Resource" uid="uid://2if2rhy1aktn" path="res://treasure_relic_pool.tres" id="2_brkr2"]
-[ext_resource type="Texture2D" uid="uid://e1a3brkr002a" path="res://fickle_broker.png" id="3_brkr3"]
+[ext_resource type="Texture2D" uid="uid://do0yscy7gusij" path="res://fickle_broker.png" id="3_brkr3"]
 [ext_resource type="FontFile" uid="uid://bfgwr7o37ol1j" path="res://Noto_Sans/static/NotoSans-Regular.ttf" id="4_brkr4"]
 [ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="5_brkr5"]
 

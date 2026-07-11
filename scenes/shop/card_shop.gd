@@ -4,7 +4,7 @@ extends Control
 const SHOP_CARD = preload("res://scenes/shop/shop_card.tscn")
 const SHOP_RELIC = preload("res://scenes/shop/shop_relic.tscn")
 
-@export var shop_relics: Array [Relic]
+@export var shop_relic_pool: RelicPool
 @export var char_stats: CharacterStats
 @export var run_stats: RunStats
 @export var relic_handler: RelicHandler
@@ -41,13 +41,13 @@ func _generate_shop_cards() -> void:
 
 func _generate_shop_relics() -> void:
     var shop_relics_array: Array[Relic] = []
-    var available_relics := shop_relics.filter(
+    var available_relics := shop_relic_pool.pool.filter(
         func(relic: Relic):
             var can_appear := relic.can_appear_as_reward(char_stats)
             var already_had_it := relic_handler.has_relic(relic.id)
             return can_appear and not already_had_it
     )
-    
+
     available_relics.shuffle()
     shop_relics_array = available_relics.slice(0, 3)
     

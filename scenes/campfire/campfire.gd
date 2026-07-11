@@ -5,13 +5,28 @@ var tooltip_instance: CanvasLayer
 const TooltipScene = preload("res://scenes/ui/tooltip.tscn")
 var _hover_id := 0
 
+# Percentage of current Max HP, not a flat amount - so the heal scales with any
+# permanent Max HP changes the run has picked up (Hollow Idol, Patient Monk...)
+# instead of staying pinned to the starting 66 HP value forever.
+const CAMPFIRE_HEAL_PERCENT := 0.33
+
 func setup(character: CharacterStats, stats: RunStats) -> void:
     character_stats = character
     run_stats = stats
 
+func _get_campfire_heal_amount() -> int:
+    return roundi(character_stats.max_health * CAMPFIRE_HEAL_PERCENT)
+
+# Bypasses tooltip.gd's generic get_tooltip_content("REST") (a static "Heal 22 HP"
+# string shared by keyword tooltips elsewhere) so the tooltip shows the actual
+# amount this Rest will heal for THIS character's current Max HP, not a stale flat
+# number. Same title styling as get_tooltip_content() for visual consistency.
+func _set_rest_tooltip_content(tooltip_panel) -> void:
+    tooltip_panel.tooltip_title.text = "[color=gold][b]REST[/b][/color]"
+    tooltip_panel.tooltip_label.text = "Heal %d HP (%d%% of Max HP)" % [_get_campfire_heal_amount(), roundi(CAMPFIRE_HEAL_PERCENT * 100)]
+
 func _on_heal_button_pressed() -> void:
-    print("healing")
-    var campfire_heal = 22
+    var campfire_heal := _get_campfire_heal_amount()
     character_stats.health += campfire_heal
     var campfire_heal_sound = preload("res://sounds/fountainheal.wav")
     SFXPlayer.play(campfire_heal_sound)
@@ -67,7 +82,7 @@ func _on_heal_zone_mouse_entered() -> void:
     var tooltip = TooltipScene.instantiate()
     get_tree().root.add_child(tooltip)
     var tooltip_panel = tooltip.get_node("Tooltip")
-    tooltip_panel.get_tooltip_content("REST")
+    _set_rest_tooltip_content(tooltip_panel)
 
     var pos = get_global_mouse_position() + Vector2(24, 24)
     pos = pos.round()
@@ -97,7 +112,7 @@ func _on_heal_button_mouse_entered() -> void:
     var tooltip = TooltipScene.instantiate()
     get_tree().root.add_child(tooltip)
     var tooltip_panel = tooltip.get_node("Tooltip")
-    tooltip_panel.get_tooltip_content("REST")
+    _set_rest_tooltip_content(tooltip_panel)
 
     var pos = get_global_mouse_position() + Vector2(24, 24)
     pos = pos.round()

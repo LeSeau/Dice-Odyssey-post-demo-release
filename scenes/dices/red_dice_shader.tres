@@ -5,7 +5,7 @@
 [resource]
 shader = ExtResource("1_mkb30")
 shader_parameter/magic_color = Color(0.545098, 0.0745098, 0.00392157, 0.941176)
-shader_parameter/accent_color = Color(0.854928, 0.0874424, 0, 0.870588)
+shader_parameter/accent_color = Color(0.88, 0.06, 0.16, 0.87)
 shader_parameter/border_size = 0.2
 shader_parameter/border_softness = 0.06
 shader_parameter/power_intensity = 1.819

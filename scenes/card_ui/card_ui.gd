@@ -12,7 +12,6 @@ const TOOLTIP_SPACING = 1     # Space between tooltips
 
 enum PlayableGlow { NONE, AVAILABLE, HOT, NEUTRAL }
 
-const DiceInterfaceScript := preload("res://scenes/dices/dice_interface.gd")
 const GLOW_DEFAULT_COLOR := Color(0.184314, 0.917647, 0.843137)
 const GLOW_BORDER_WIDTH_HOT := 5
 const GLOW_BORDER_WIDTH_AVAILABLE := 3
@@ -40,6 +39,42 @@ const UNPLAYABLE_MODULATE_HAS_POWER := Color(0.6, 0.6, 0.6, 1.0)
 # (see set_upgraded_title_color below), same pattern as MUSCLE_STATUS.duplicate() in bolster.gd.
 const TITLE_LABEL_SETTINGS := preload("res://scenes/card_ui/card_title.tres")
 const UPGRADED_TITLE_COLOR := Color(0.36, 0.85, 0.36)
+
+# Long card names ("Perpetual Motion", "Critical Edge+"...) wrap to 2 lines in the fixed-width
+# CardBanner at the default 15pt - step the font down by length so the banner stays 1 line.
+# Thresholds picked against the actual card name pool (longest is 16 chars); tune here if a
+# future name is longer still.
+const TITLE_FONT_SIZE_DEFAULT := 15
+const TITLE_FONT_SIZE_MEDIUM := 12
+const TITLE_FONT_SIZE_SMALL := 10
+const TITLE_LENGTH_MEDIUM_THRESHOLD := 13
+const TITLE_LENGTH_SMALL_THRESHOLD := 17
+
+# Long descriptions (dynamic-resolved text can run even longer than the static string) overflow
+# the fixed-height DescriptionPanel at the default 12pt. Same step-down approach as the title.
+const DESC_FONT_SIZE_DEFAULT := 12
+const DESC_FONT_SIZE_MEDIUM := 11
+const DESC_FONT_SIZE_SMALL := 10
+const DESC_LENGTH_MEDIUM_THRESHOLD := 60
+const DESC_LENGTH_SMALL_THRESHOLD := 90
+
+
+static func title_font_size_for(text: String) -> int:
+    var length := text.length()
+    if length > TITLE_LENGTH_SMALL_THRESHOLD:
+        return TITLE_FONT_SIZE_SMALL
+    elif length > TITLE_LENGTH_MEDIUM_THRESHOLD:
+        return TITLE_FONT_SIZE_MEDIUM
+    return TITLE_FONT_SIZE_DEFAULT
+
+
+static func description_font_size_for(text: String) -> int:
+    var length := text.length()
+    if length > DESC_LENGTH_SMALL_THRESHOLD:
+        return DESC_FONT_SIZE_SMALL
+    elif length > DESC_LENGTH_MEDIUM_THRESHOLD:
+        return DESC_FONT_SIZE_MEDIUM
+    return DESC_FONT_SIZE_DEFAULT
 
 var current_glow_state: PlayableGlow = PlayableGlow.NONE
 
@@ -177,6 +212,7 @@ func play() -> void:
     # fly back to the die" visual from the card itself. Set before card.play() because that's
     # what fires the effect (and the refuel signal) synchronously.
     Global.last_played_card_position = global_position + size / 2.0
+    _prune_stale_targets()
     card.play(targets, char_stats, player_modifiers)
     _fly_to_discard_and_free()
 
@@ -386,15 +422,16 @@ func _set_card(value: Card) -> void:
             bonus_requirement_label.text = "Mult %d" % card.bonus_requirement_number
 
 
-# Green title on upgraded cards (STS2-style). Duplicates the shared LabelSettings only when
-# needed so non-upgraded cards never touch (and can't accidentally tint) the shared resource.
+# Green title on upgraded cards (STS2-style), plus a length-based font size step-down so long
+# names stay on 1 line. Always duplicates the shared LabelSettings now that font_size can also
+# vary per-card - mutating the shared resource in place would leak one card's size onto every
+# other card using it (same trap as the color-only version this replaced).
 func _apply_title_color() -> void:
+    var settings := TITLE_LABEL_SETTINGS.duplicate()
+    settings.font_size = title_font_size_for(card.name)
     if card.upgraded:
-        var upgraded_settings := TITLE_LABEL_SETTINGS.duplicate()
-        upgraded_settings.font_color = UPGRADED_TITLE_COLOR
-        title.label_settings = upgraded_settings
-    else:
-        title.label_settings = TITLE_LABEL_SETTINGS
+        settings.font_color = UPGRADED_TITLE_COLOR
+    title.label_settings = settings
 
 
 func _set_playable(value: bool) -> void:
@@ -420,6 +457,18 @@ func _on_drop_point_detector_area_entered(area: Area2D) -> void:
 
 func _on_drop_point_detector_area_exited(area: Area2D) -> void:
     targets.erase(area)
+
+
+# Enemies can be freed (die mid-turn - e.g. a Magma dice AoE roll, or a kill while a card is
+# still being aimed over them) while still recorded in `targets` from an earlier drag-over:
+# area_exited only fires when a body/area physically LEAVES the detector, never when it's
+# freed instead. Passing a freed Object into a typed Node parameter crashes at runtime
+# ("previously freed" type error) rather than reading as null, so every read of `targets`
+# prunes dead entries first instead of trusting the array as-is.
+func _prune_stale_targets() -> void:
+    for i in range(targets.size() - 1, -1, -1):
+        if not is_instance_valid(targets[i]):
+            targets.remove_at(i)
 
 
 func _on_card_drag_or_aiming_started(used_card: CardUI) -> void:
@@ -450,6 +499,7 @@ func _on_red_dice_rolled() -> void:
             )
         else:
             print("Playing specific charged card: ", card.id)
+            _prune_stale_targets()
             card.play(targets, char_stats, player_modifiers)
             queue_free()
         
@@ -658,7 +708,7 @@ func set_playable_visual(state: PlayableGlow) -> void:
             _hot_frame_stylebox.expand_margin_right = border_width
             _hot_frame_stylebox.expand_margin_bottom = border_width
             _hot_frame_stylebox.shadow_size = GLOW_SHADOW_SIZE_HOT if is_hot else GLOW_SHADOW_SIZE_AVAILABLE
-            var dice_color: Color = DiceInterfaceScript.DICE_TYPE_COLOR.get(Global.dice_type, GLOW_DEFAULT_COLOR)
+            var dice_color: Color = DicePalette.ACCENT.get(Global.dice_type, GLOW_DEFAULT_COLOR)
             _hot_frame_stylebox.shadow_color = Color(dice_color.r, dice_color.g, dice_color.b, GLOW_SHADOW_ALPHA_HOT if is_hot else GLOW_SHADOW_ALPHA_AVAILABLE)
             card_frame.add_theme_stylebox_override("panel", _hot_frame_stylebox)
             if is_hot:
@@ -694,12 +744,17 @@ func reapply_playable_visual() -> void:
 
 func _on_dice_rolled_update_description(_a = null, _b = null) -> void:
     if card and card.has_method("get_dynamic_description"):
+        _prune_stale_targets()
         var aimed_target: Node = targets[0] if not targets.is_empty() else null
         _apply_description(card.get_dynamic_description(player_modifiers, aimed_target))
 
 
 # Single chokepoint for writing to the Description RichTextLabel: applies keyword coloring
-# (Card.get_colorized_description(), driven off card.tags) and re-centers the text via BBCode,
-# since RichTextLabel has no horizontal_alignment property the way Label did.
+# (Card.get_colorized_description(), driven off card.tags), re-centers the text via BBCode
+# (RichTextLabel has no horizontal_alignment property the way Label did), and steps the font
+# size down for long text so it doesn't overflow the fixed-height DescriptionPanel. Re-evaluated
+# on every call, not just the initial set_card - dynamic descriptions can resolve "X" into a
+# longer string than the static one (see get_dynamic_description call sites).
 func _apply_description(text: String) -> void:
+    description.add_theme_font_size_override("normal_font_size", description_font_size_for(text))
     description.text = "[center]%s[/center]" % card.get_colorized_description(text)

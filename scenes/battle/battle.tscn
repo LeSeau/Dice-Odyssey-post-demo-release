@@ -1,4 +1,4 @@
-[gd_scene load_steps=63 format=3 uid="uid://cahno8aso5net"]
+[gd_scene load_steps=65 format=3 uid="uid://cahno8aso5net"]
 
 [ext_resource type="Script" path="res://scenes/battle/battle.gd" id="1_4s751"]
 [ext_resource type="PackedScene" uid="uid://c0ywt0g0r1n8h" path="res://scenes/ui/turn_banner.tscn" id="turn_banner_scene"]
@@ -43,6 +43,16 @@
 [ext_resource type="Texture2D" uid="uid://babawuw4jquuw" path="res://tutorial_arrow_down.png" id="30_rkd0t"]
 [ext_resource type="Texture2D" uid="uid://bsod70jcw5ate" path="res://power_reset_image.png" id="31_tnut7"]
 [ext_resource type="Script" path="res://scenes/battle/camera_2d.gd" id="36_g4ffy"]
+[ext_resource type="Shader" path="res://scenes/battle/battle_background.gdshader" id="37_bggrd"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_bggrd"]
+shader = ExtResource("37_bggrd")
+shader_parameter/brightness = 0.74
+shader_parameter/saturation = 1.08
+shader_parameter/contrast = 1.05
+shader_parameter/vignette_strength = 0.4
+shader_parameter/vignette_radius = 0.55
+shader_parameter/vignette_softness = 0.55
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_xyg5u"]
 size = Vector2(1288, 718)
@@ -208,8 +218,7 @@ char_stats = ExtResource("4_fwb8a")
 music = ExtResource("3_7d1uf")
 
 [node name="Background" type="Sprite2D" parent="."]
-modulate = Color(0.73, 0.73, 0.73, 1)
-position = Vector2(0, 1)
+material = SubResource("ShaderMaterial_bggrd")
 texture = ExtResource("4_51csj")
 centered = false
 

@@ -4,8 +4,8 @@
 
 [resource]
 shader = ExtResource("1_naesx")
-shader_parameter/magic_color = Color(0.151336, 0.432373, 0.117768, 0.941176)
-shader_parameter/accent_color = Color(0.529412, 0.713726, 0.192157, 0.870588)
+shader_parameter/magic_color = Color(0.33, 0.44, 0.17, 0.94)
+shader_parameter/accent_color = Color(0.61, 0.79, 0.24, 0.87)
 shader_parameter/border_size = 0.2
 shader_parameter/border_softness = 0.06
 shader_parameter/power_intensity = 1.819

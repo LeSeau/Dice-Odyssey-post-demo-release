@@ -226,3 +226,15 @@ res://battles/tier_1_plant_goblin.tres
 res://battles/tier_0_machopeur.tscn
 res://enemies/machopeur/machopeur_enemy.tres
 res://battles/tier_0_machopeur_satyr.tres
+res://scenes/run/run.tscn
+res://global.gd
+res://characters/warrior/cards/warrior_axe_attack1.tres
+res://characters/warrior/cards/card_scout3_no_exhaust.tres
+res://characters/warrior/cards/card_foresight.tres
+res://relics/house_money.tres
+res://scenes/shop/card_shop.tscn
+res://relics/metronome.tres
+res://relics/metronome.gd
+res://scenes/campfire/campfire.tscn
+res://scenes/events/event_fickle_broker.tscn
+res://scenes/events/event_fickle_broker.tres

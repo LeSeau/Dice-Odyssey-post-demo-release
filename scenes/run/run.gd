@@ -491,14 +491,18 @@ func _on_battle_won() -> void:
 
 # One-shot act transition. Deck, relics, gold and dice all carry over untouched -
 # only the map resets, plus the agreed free full heal (act transition = free
-# campfire) and a fresh event pool so act 2 can re-serve act-1 events.
+# campfire). event_stats_pool is deliberately left as-is (NOT reset to
+# initial_event_pool) so events already seen in act 1 don't come back in act 2 -
+# the pool only ever shrinks as events get drawn (see the EVENT room case above),
+# same pool object carries the depletion across the transition. used_battles IS
+# cleared though, since fights are recycled/rescaled per act (see
+# _apply_act2_scaling) rather than being a one-time-per-run pool like events.
 func _enter_act_2() -> void:
     act_transition_pending = false
     Global.current_act = 2
     character.health = character.max_health
     Events.hp_changed.emit()
     used_battles.clear()
-    event_stats_pool.pool = initial_event_pool.duplicate()
     map.generate_new_map()
     map.unlock_floor(0)
     _update_floor_label()

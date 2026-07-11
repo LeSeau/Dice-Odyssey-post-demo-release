@@ -57,7 +57,11 @@ var enemy_last_move = ""
 var player: Player
 var next_roll_value = 0
 var next_roll_modifier = 0
-var next_guaranteed_roll = 0
+# -1 = "no guaranteed roll queued" - NOT 0, since 0 is the Evil dice's crack face and is a
+# perfectly legal value to guarantee (Scout picking it, Unlucky forcing it). See dice.gd's
+# roll_dice() for the consumer - it used to check `!= 0`, which silently ignored a guaranteed
+# 0 and rolled normally instead.
+var next_guaranteed_roll = -1
 var damage_to_display = 0
 var final_enemy_damage = 0
 var dice_inventory = ["blue", "red"]
@@ -176,7 +180,7 @@ func reset_run_state() -> void:
     roll_history = []
     next_roll_value = 0
     next_roll_modifier = 0
-    next_guaranteed_roll = 0
+    next_guaranteed_roll = -1
     starting_power_next_turn = 0
     power_generated_this_turn = 0
     no_reset = false

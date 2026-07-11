@@ -170,7 +170,7 @@ void fragment() {
 [resource]
 shader = SubResource("Shader_o0t3f")
 shader_parameter/magic_color = Color(0.8, 0.2, 0.698039, 1)
-shader_parameter/accent_color = Color(0.184123, 0, 0.983201, 0.831373)
+shader_parameter/accent_color = Color(0.33, 0.03, 0.43, 0.85)
 shader_parameter/border_size = 0.2
 shader_parameter/border_softness = 0.06
 shader_parameter/power_intensity = 1.819
