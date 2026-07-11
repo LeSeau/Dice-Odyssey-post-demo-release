@@ -157,9 +157,9 @@ func reshuffle_deck_from_discard() -> void:
 
 
 func _on_card_played(card: Card) -> void:
-    if card.exhausts:
+    if card.should_exhaust():
         return
-        
+
     character.discard.add_card(card)
 
 func _on_statuses_applied(type: Status.Type) -> void:

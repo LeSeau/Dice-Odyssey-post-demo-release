@@ -83,6 +83,10 @@ var _power_resting_modulate := Color.WHITE
 # display after charging dice / blocking / dealing damage do not.
 var _last_shown_power := 0
 
+# Next-roll slot "delivery" pop (see _on_next_roll_determined) - tracked so back-to-back
+# emissions (e.g. two Focus plays) restart the punch instead of compounding tweens.
+var _next_roll_pop_tween: Tween
+
 # Cached so the power-orb texture (a soft radial gradient) isn't rebuilt on every single roll -
 # this effect fires very frequently, unlike the one-off refuel/discard animations elsewhere.
 var _power_orb_texture: GradientTexture2D
@@ -1263,6 +1267,22 @@ func _on_next_roll_determined():
     var path := "res://assets/images/%s%d.png" % [Global.dice_type, Global.next_guaranteed_roll]
     next_roll_texture.texture = load(path)
     print(path)
+    # Landing pop: battle.gd flies the picked scout die here and emits this signal on
+    # touchdown, so the slot visibly RECEIVES it (scale punch + overbright flash - the
+    # panel's modulate propagates to the face texture inside) instead of silently appearing.
+    # Focus/Focus+ emit the same signal with no flight and get the same beat.
+    next_roll_panel.pivot_offset = next_roll_panel.size / 2.0
+    if _next_roll_pop_tween and _next_roll_pop_tween.is_valid():
+        _next_roll_pop_tween.kill()
+    next_roll_panel.scale = Vector2(0.55, 0.55)
+    next_roll_panel.modulate = Color(1.75, 1.75, 1.75, 1.0)
+    _next_roll_pop_tween = create_tween()
+    _next_roll_pop_tween.tween_property(next_roll_panel, "scale", Vector2(1.14, 1.14), 0.1) \
+        .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+    _next_roll_pop_tween.parallel().tween_property(next_roll_panel, "modulate", Color.WHITE, 0.24) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    _next_roll_pop_tween.tween_property(next_roll_panel, "scale", Vector2.ONE, 0.12) \
+        .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
     
 func _on_battle_started():
     Global.fight_dice_rolled = 0
@@ -1667,16 +1687,20 @@ const ALL_IN_CONSUMED_HOVER_BOB := 7.0
 const ALL_IN_CONSUMED_BURN := 0.4
 const ALL_IN_CONSUMED_STAGGER := 0.05
 
-func _spawn_all_in_consumed(consumed: Array) -> void:
+func _spawn_all_in_consumed(consumed: Array, target_position: Vector2 = Vector2.ZERO) -> void:
     if consumed.is_empty():
         return
     var parent_layer := get_tree().get_first_node_in_group("ui_layer")
     if not parent_layer:
         return
     var n := mini(consumed.size(), ALL_IN_CONSUMED_MAX_ICONS)
-    var origin := Global.last_played_card_position
-    if origin == Vector2.ZERO:
-        origin = dice_display.get_global_rect().get_center()
+    # Icons pop from the played card (matches the other dice-flourish origins), but hover/burn
+    # up near the enemy that got hit rather than over the card itself - see all_in.gd, which
+    # resolves target_position from the targeted Enemy's IntentUI position.
+    var spawn_origin := Global.last_played_card_position
+    if spawn_origin == Vector2.ZERO:
+        spawn_origin = dice_display.get_global_rect().get_center()
+    var hover_origin := target_position if target_position != Vector2.ZERO else spawn_origin
 
     for i in n:
         var entry: Dictionary = consumed[i]
@@ -1691,8 +1715,8 @@ func _spawn_all_in_consumed(consumed: Array) -> void:
         icon.z_index = 150  # same layer/z convention as the refuel icons above
         parent_layer.add_child(icon)
 
-        var spawn_pos := origin + Vector2(randf_range(-16.0, 16.0), randf_range(-10.0, 10.0))
-        var hover_pos := origin + Vector2(lerpf(-100.0, 100.0, float(i) / maxf(1.0, n - 1)), -110.0)
+        var spawn_pos := spawn_origin + Vector2(randf_range(-16.0, 16.0), randf_range(-10.0, 10.0))
+        var hover_pos := hover_origin + Vector2(lerpf(-100.0, 100.0, float(i) / maxf(1.0, n - 1)), -30.0)
         icon.global_position = spawn_pos - icon.size / 2.0
         icon.scale = Vector2.ZERO
 

@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="EventStats" load_steps=3 format=3 uid="uid://bhq2spr0013a"]
+[gd_resource type="Resource" script_class="EventStats" load_steps=3 format=3 uid="uid://b8kv784cwtnwf"]
 
-[ext_resource type="PackedScene" uid="uid://bhq2spr0013b" path="res://scenes/events/event_healing_spring.tscn" id="1_spr013"]
+[ext_resource type="PackedScene" path="res://scenes/events/event_healing_spring.tscn" id="1_spr013"]
 [ext_resource type="Script" path="res://custom_resources/event_stats.gd" id="2_spr014"]
 
 [resource]
@@ -8,3 +8,4 @@ script = ExtResource("2_spr014")
 event_tier = 0
 weight = 1.0
 scene = ExtResource("1_spr013")
+force_for_testing = false

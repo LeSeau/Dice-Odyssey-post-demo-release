@@ -52,6 +52,17 @@ func can_be_upgraded() -> bool:
     return upgraded_version != null and not upgraded
 
 
+# Whether this play should actually exhaust the card, as opposed to going to discard like a
+# normal play. `exhausts` alone isn't enough for a gated card (e.g. a Blessing with Requirement
+# MIN/EXACT/etc.): if the roll didn't meet the requirement, apply_effects() already silently
+# no-ops (see meets_requirement() above), so exhausting on top of that would burn a permanent-
+# effect card for literally nothing - worse than a normal miss, which at least still goes to
+# discard and can be drawn/played again. Ungated cards (Requirement.NONE, the common case for
+# most Blessings) are unaffected since meets_requirement() always returns true for them.
+func should_exhaust() -> bool:
+    return exhausts and meets_requirement()
+
+
 # Global.roll_value == 0 is ambiguous: it's both the reset/no-roll-yet state
 # AND a legitimate outcome of rolling a 0 face (evil dice). roll_history is
 # cleared on every reset path and appended to on every real roll, so

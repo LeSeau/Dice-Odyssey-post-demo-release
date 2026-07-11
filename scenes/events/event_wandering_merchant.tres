@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="EventStats" load_steps=3 format=3 uid="uid://bhq1merc0007a"]
+[gd_resource type="Resource" script_class="EventStats" load_steps=3 format=3 uid="uid://d4cdje1bwseb0"]
 
-[ext_resource type="PackedScene" uid="uid://bhq1merc0007b" path="res://scenes/events/event_wandering_merchant.tscn" id="1_merc1"]
+[ext_resource type="PackedScene" uid="uid://b8ydxsr6m3kpu" path="res://scenes/events/event_wandering_merchant.tscn" id="1_merc1"]
 [ext_resource type="Script" path="res://custom_resources/event_stats.gd" id="2_merc2"]
 
 [resource]
@@ -8,3 +8,4 @@ script = ExtResource("2_merc2")
 event_tier = 0
 weight = 1.0
 scene = ExtResource("1_merc1")
+force_for_testing = false

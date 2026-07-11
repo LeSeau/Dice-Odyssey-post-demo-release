@@ -17,11 +17,13 @@ signal draw_card(amount)
 signal scout_effect(amount)
 signal refuel_happened(amount)
 # Emitted by All In (spends every remaining die across every type as a damage bonus) with an
-# Array[Dictionary] of {type: String, value: int} - purely for the "which dice got spent" visual
-# flourish (dice.gd's _spawn_all_in_consumed), NOT the same as refuel_happened (that means dice
-# were REFILLED and is watched by relics like Fuel-o-meter/Flywheel - All In destroys dice, the
-# opposite, so it needs its own signal rather than piggybacking on that one).
-signal all_in_dice_consumed(consumed: Array)
+# Array[Dictionary] of {type: String, value: int} plus the global position to play the flourish
+# around (the targeted enemy, so the "your dice got consumed" effect reads near the thing they
+# just hit) - purely for the visual flourish (dice.gd's _spawn_all_in_consumed), NOT the same as
+# refuel_happened (that means dice were REFILLED and is watched by relics like Fuel-o-meter/
+# Flywheel - All In destroys dice, the opposite, so it needs its own signal rather than
+# piggybacking on that one).
+signal all_in_dice_consumed(consumed: Array, target_position: Vector2)
 
 # Player-related events
 signal player_hand_drawn

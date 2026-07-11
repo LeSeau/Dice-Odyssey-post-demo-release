@@ -1,7 +1,7 @@
-[gd_scene load_steps=10 format=3 uid="uid://bhq2spr0013b"]
+[gd_scene load_steps=10 format=3 uid="uid://b0wmfmi0c43gi"]
 
 [ext_resource type="Script" path="res://scenes/events/event_healing_spring.gd" id="1_spr013"]
-[ext_resource type="Texture2D" uid="uid://e1a3spr00009a" path="res://healing_spring.png" id="2_spr014"]
+[ext_resource type="Texture2D" uid="uid://cufexvnxo8sb" path="res://healing_spring.png" id="2_spr014"]
 [ext_resource type="FontFile" uid="uid://bfgwr7o37ol1j" path="res://Noto_Sans/static/NotoSans-Regular.ttf" id="3_spr015"]
 [ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="4_spr016"]
 

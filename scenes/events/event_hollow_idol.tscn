@@ -1,8 +1,8 @@
-[gd_scene load_steps=11 format=3 uid="uid://bhq1idol0001b"]
+[gd_scene load_steps=11 format=3 uid="uid://c8t1570nikvu4"]
 
 [ext_resource type="Script" path="res://scenes/events/event_hollow_idol.gd" id="1_hidl1"]
 [ext_resource type="Resource" uid="uid://2if2rhy1aktn" path="res://treasure_relic_pool.tres" id="2_hidl2"]
-[ext_resource type="Texture2D" uid="uid://e1a3hidl001a" path="res://hollow_idol.png" id="3_hidl3"]
+[ext_resource type="Texture2D" uid="uid://ctc1fjick6pos" path="res://hollow.png" id="3_7gai6"]
 [ext_resource type="FontFile" uid="uid://bfgwr7o37ol1j" path="res://Noto_Sans/static/NotoSans-Regular.ttf" id="4_hidl4"]
 [ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="5_hidl5"]
 
@@ -111,7 +111,7 @@ theme_override_constants/separation = 80
 custom_minimum_size = Vector2(500, 500)
 layout_mode = 2
 size_flags_horizontal = 0
-texture = ExtResource("3_hidl3")
+texture = ExtResource("3_7gai6")
 expand_mode = 1
 stretch_mode = 6
 

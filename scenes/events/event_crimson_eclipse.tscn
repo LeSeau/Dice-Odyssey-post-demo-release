@@ -1,7 +1,7 @@
-[gd_scene load_steps=10 format=3 uid="uid://bhq1ecl00010b"]
+[gd_scene load_steps=10 format=3 uid="uid://cbf45nfoatcoa"]
 
 [ext_resource type="Script" path="res://scenes/events/event_crimson_eclipse.gd" id="1_ecl001"]
-[ext_resource type="Texture2D" uid="uid://e1a3ecl0006a" path="res://crimson_eclipse.png" id="2_ecl002"]
+[ext_resource type="Texture2D" uid="uid://cr7tj43fepntt" path="res://crimson_eclipse.png" id="2_ecl002"]
 [ext_resource type="FontFile" uid="uid://bfgwr7o37ol1j" path="res://Noto_Sans/static/NotoSans-Regular.ttf" id="3_ecl003"]
 [ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="4_ecl004"]
 

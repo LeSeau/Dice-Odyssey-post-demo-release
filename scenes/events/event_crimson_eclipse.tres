@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="EventStats" load_steps=3 format=3 uid="uid://bhq1ecl00010a"]
+[gd_resource type="Resource" script_class="EventStats" load_steps=3 format=3 uid="uid://0m0kb8uo57tc"]
 
-[ext_resource type="PackedScene" uid="uid://bhq1ecl00010b" path="res://scenes/events/event_crimson_eclipse.tscn" id="1_ecl001"]
+[ext_resource type="PackedScene" path="res://scenes/events/event_crimson_eclipse.tscn" id="1_ecl001"]
 [ext_resource type="Script" path="res://custom_resources/event_stats.gd" id="2_ecl002"]
 
 [resource]
@@ -8,3 +8,4 @@ script = ExtResource("2_ecl002")
 event_tier = 0
 weight = 1.0
 scene = ExtResource("1_ecl001")
+force_for_testing = false

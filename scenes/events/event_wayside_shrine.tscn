@@ -1,7 +1,7 @@
-[gd_scene load_steps=10 format=3 uid="uid://bhq2way0012b"]
+[gd_scene load_steps=10 format=3 uid="uid://dpwjlmsi11re1"]
 
 [ext_resource type="Script" path="res://scenes/events/event_wayside_shrine.gd" id="1_way012"]
-[ext_resource type="Texture2D" uid="uid://e1a3way00008a" path="res://wayside_shrine.png" id="2_way013"]
+[ext_resource type="Texture2D" uid="uid://40ev72t52aod" path="res://wayside_shrine.png" id="2_way013"]
 [ext_resource type="FontFile" uid="uid://bfgwr7o37ol1j" path="res://Noto_Sans/static/NotoSans-Regular.ttf" id="3_way014"]
 [ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="4_way015"]
 

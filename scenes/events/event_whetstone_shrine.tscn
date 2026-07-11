@@ -1,7 +1,7 @@
-[gd_scene load_steps=10 format=3 uid="uid://bhq1whet0004b"]
+[gd_scene load_steps=10 format=3 uid="uid://bwsym0vamastp"]
 
 [ext_resource type="Script" path="res://scenes/events/event_whetstone_shrine.gd" id="1_whet1"]
-[ext_resource type="Texture2D" uid="uid://e1a3whet003a" path="res://whetstone_shrine.png" id="2_whet2"]
+[ext_resource type="Texture2D" uid="uid://c37blybww5e2j" path="res://whetstone_shrine.png" id="2_whet2"]
 [ext_resource type="FontFile" uid="uid://bfgwr7o37ol1j" path="res://Noto_Sans/static/NotoSans-Regular.ttf" id="3_whet3"]
 [ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="4_whet4"]
 

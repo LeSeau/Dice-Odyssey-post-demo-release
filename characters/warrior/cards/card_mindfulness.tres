@@ -1,6 +1,6 @@
 [gd_resource type="Resource" load_steps=5 format=3 uid="uid://dkr0p76atqwcr"]
 
-[ext_resource type="Texture2D" uid="uid://c5nduahqy3vrj" path="res://foresight.png" id="1_hga3n"]
+[ext_resource type="Texture2D" uid="uid://bfr3tr5jin75e" path="res://gptmindfulness.png" id="1_1spjt"]
 [ext_resource type="Script" path="res://characters/warrior/cards/mindfulness.gd" id="2_4botb"]
 [ext_resource type="AudioStream" uid="uid://68q2f8fotq13" path="res://sounds/blocksound.mp3" id="3_w8tog"]
 [ext_resource type="Resource" uid="uid://cpwx7yukpw0wm" path="res://characters/warrior/cards/card_mindfulness_plus.tres" id="4_plus"]
@@ -24,6 +24,6 @@ bonus_description_text = ""
 tags = "Scout"
 upgraded = false
 upgraded_version = ExtResource("4_plus")
-icon = ExtResource("1_hga3n")
+icon = ExtResource("1_1spjt")
 tooltip_text = ""
 sound = ExtResource("3_w8tog")

@@ -9,3 +9,5 @@
 position = Vector2(860, 396)
 stats = ExtResource("2_6s1fn")
 sprite_y_offset = 10
+stats_ui_y_offset = -15
+status_handler_y_offset = -15

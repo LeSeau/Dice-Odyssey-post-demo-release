@@ -11,3 +11,4 @@
 position = Vector2(892, 416)
 stats = ExtResource("2_6t68l")
 initial_statuses = Array[ExtResource("3_qerv6")]([ExtResource("4_ulpcf")])
+sprite_y_offset = -25

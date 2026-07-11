@@ -12,7 +12,7 @@ scale = Vector2(0.75, 0.75)
 stats = ExtResource("2_82fsh")
 
 [node name="BiggerOctopus" parent="." instance=ExtResource("1_np33x")]
-position = Vector2(731, 417)
+position = Vector2(755, 417)
 scale = Vector2(0.75, 0.75)
 stats = ExtResource("3_x0pwp")
 width = 260

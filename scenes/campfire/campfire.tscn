@@ -123,16 +123,18 @@ anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_top = -8.0
 offset_bottom = 36.0
 grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 1
 theme = ExtResource("5_2wawc")
+theme_override_font_sizes/font_size = 1
 theme_override_styles/hover = SubResource("StyleBoxFlat_rest_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_rest_pressed")
 theme_override_styles/normal = SubResource("StyleBoxFlat_rest_normal")
 
-[node name="RichTextLabel" type="RichTextLabel" parent="HealTextureButton/HealButton"]
+[node name="LabelCenter" type="CenterContainer" parent="HealTextureButton/HealButton"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -140,11 +142,18 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+
+[node name="RichTextLabel" type="RichTextLabel" parent="HealTextureButton/HealButton/LabelCenter"]
+custom_minimum_size = Vector2(120, 30)
+layout_mode = 2
+mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("7_vmtd8")
 theme_override_font_sizes/normal_font_size = 24
 bbcode_enabled = true
 text = "[center]REST[/center]"
+fit_content = true
 scroll_active = false
+autowrap_mode = 0
 
 [node name="UpgradeTextureButton" type="TextureButton" parent="."]
 layout_mode = 0
@@ -163,30 +172,37 @@ anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_top = -8.0
 offset_bottom = 36.0
 grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 1
 theme = ExtResource("5_2wawc")
+theme_override_font_sizes/font_size = 1
 theme_override_styles/hover = SubResource("StyleBoxFlat_rest_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_rest_pressed")
 theme_override_styles/normal = SubResource("StyleBoxFlat_rest_normal")
 
-[node name="RichTextLabel" type="RichTextLabel" parent="UpgradeTextureButton/UpgradeButton"]
+[node name="LabelCenter" type="CenterContainer" parent="UpgradeTextureButton/UpgradeButton"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = 1.0
-offset_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
+
+[node name="RichTextLabel" type="RichTextLabel" parent="UpgradeTextureButton/UpgradeButton/LabelCenter"]
+custom_minimum_size = Vector2(120, 30)
+layout_mode = 2
 mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("7_vmtd8")
 theme_override_font_sizes/normal_font_size = 24
 bbcode_enabled = true
 text = "[center]UPGRADE[/center]"
+fit_content = true
 scroll_active = false
+autowrap_mode = 0
 
 [connection signal="mouse_entered" from="HealTextureButton/HealButton" to="." method="_on_heal_button_mouse_entered"]
 [connection signal="mouse_exited" from="HealTextureButton/HealButton" to="." method="_on_heal_button_mouse_exited"]

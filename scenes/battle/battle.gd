@@ -261,6 +261,48 @@ const SCOUT_PANEL_CENTER_X := 605.0  # (437 + 773) / 2 - the panel's original de
 const SCOUT_PANEL_MIN_WIDTH := 336.0  # original panel width - floor so 3-option Scouts (and fewer) look exactly as before
 const SCOUT_PANEL_SIDE_PADDING := 60.0
 
+# --- Scout animation (2026-07-11) --------------------------------------------
+# The scout flow used to be fully instant: the panel snapped in with every face
+# already visible, and a click snapped it all away while the next-roll slot just
+# appeared. Now it's staged to read as one connected motion: glow motes rise from
+# the active die into the panel as it unfolds, the roll options materialize one
+# by one where the motes land, and the picked die flies down into the next-roll
+# slot (trailing the die's accent color) while the panel folds back away.
+const SCOUT_OPEN_TIME := 0.18
+const SCOUT_FACE_REVEAL_START := 0.08   # delay before the first face starts materializing, lets the panel mostly land first
+# Each option materializes with a couple of quick uncertain flickers before locking in -
+# NOT a plain instant pop (tried, read as "an orb just hit a static die" rather than the die
+# actually forming) and NOT the earlier long tease with a bigger "payoff" beat stacked onto
+# the last option either (tried, read as dragging - most of the extra length was that one
+# option's added suspense). This version treats every option identically and keeps the
+# flicker itself short, so a 3-option Scout still lands around ~1s start-to-finish.
+const SCOUT_FACE_REVEAL_STAGGER := 0.3
+const SCOUT_FACE_TEASE_COUNT := 2       # quick flicker beats before an option commits
+const SCOUT_FACE_TEASE_STEP := 0.055    # duration of one flicker half-step (up or down)
+const SCOUT_FACE_TEASE_SCALE_LOW := 0.45
+const SCOUT_FACE_TEASE_SCALE_HIGH := 0.82
+const SCOUT_FACE_TEASE_ALPHA_LOW := 0.3
+const SCOUT_FACE_TEASE_ALPHA_HIGH := 0.75
+const SCOUT_FACE_REVEAL_TIME := 0.14    # the lock-in pop itself, snappy so it contrasts with the flicker
+const SCOUT_OPEN_MOTE_FLIGHT := 0.22    # die -> panel rise time of one mote
+const SCOUT_OPEN_MOTE_LEAD := 0.16      # launched this far before its face starts flickering, so it arrives right as the flicker begins
+const SCOUT_CLOSE_TIME := 0.18
+const SCOUT_CLOSE_DELAY := 0.08         # after a pick: the chosen die pops out first, THEN the panel folds
+const SCOUT_PICK_PUNCH_SCALE := 1.22
+const SCOUT_PICK_PUNCH_TIME := 0.11
+const SCOUT_PICK_FLIGHT_TIME := 0.45
+const SCOUT_PICK_ARC_LIFT := 60.0       # sideways bow of the pick's flight path
+const SCOUT_TRAIL_SPACING := 0.16       # eased-t gap between trail motes (~6 per flight, evenly spaced along the path)
+const SCOUT_PLUCK_SFX := preload("res://sfx/578807__nomiqbomi__pluck-1.mp3")  # same pluck as the power-orb landings
+
+var _scout_tweens: Array[Tween] = []
+var _scout_pick_in_progress := false
+# Same soft-radial + additive-blend recipe as dice.gd's power orbs (those caches are instance
+# state on the Dice control, so they're rebuilt here) - the scout motes must read as the same
+# magic that charges the die, just pointed at the future instead of the Power number.
+var _scout_glow_texture: GradientTexture2D
+var _scout_glow_material: CanvasItemMaterial
+
 # Widens the panel/dice row for Scout variants with more than 3 options (e.g. Scout 5) so the
 # extra faces don't overflow the originally 3-option-sized layout. Centered on the panel's
 # original position rather than its current one to avoid drift across repeated calls.
@@ -273,6 +315,9 @@ func _resize_scout_panel(visible_count: int) -> void:
     var panel_width: float = maxf(SCOUT_PANEL_MIN_WIDTH, content_width + SCOUT_PANEL_SIDE_PADDING)
     scout_panel.offset_left = SCOUT_PANEL_CENTER_X - panel_width / 2.0
     scout_panel.offset_right = SCOUT_PANEL_CENTER_X + panel_width / 2.0
+    # Bottom-center pivot so the open/close scale reads as the panel unfolding up out of the
+    # dice area below it (and folding back down into it) rather than ballooning in place.
+    scout_panel.pivot_offset = Vector2(panel_width / 2.0, scout_panel.size.y)
 
 
 func _on_scout_effect(amount: int) -> void:
@@ -281,12 +326,14 @@ func _on_scout_effect(amount: int) -> void:
     #audio_stream_player_2d.play()
     var sfx_scout = preload("res://sfx/153724__carlos_vaquero__violoncello-snap-pizzicato-11.wav")
     SFXPlayer.play(sfx_scout)
-    scout_panel.show()
+    _kill_scout_tweens()
+    _scout_pick_in_progress = false
     # Cartographer's Quill adds Global.scout_bonus_amount extra faces - clamped
     # to the panel's 6 hardcoded slots either way (bumped from 5 specifically so a
     # Scout 5 card still gets value out of the relic).
     var effective_amount: int = amount + Global.scout_bonus_amount
-    _resize_scout_panel(min(effective_amount, scout_faces.size()))
+    var visible_count: int = min(effective_amount, scout_faces.size())
+    _resize_scout_panel(visible_count)
 
     var faces = dice_faces.get(Global.dice_type, [])
     if faces.is_empty():
@@ -294,8 +341,21 @@ func _on_scout_effect(amount: int) -> void:
         return
 
     var selected_faces: Array = []
-    for i in range(min(effective_amount, scout_faces.size())):
+    for i in range(visible_count):
         selected_faces.append(faces[randi() % faces.size()])
+
+    # The panel unfolds up out of the dice area instead of snapping in (pivot set
+    # bottom-center by _resize_scout_panel above).
+    scout_panel.show()
+    scout_panel.scale = Vector2(0.7, 0.7)
+    scout_panel.modulate.a = 0.0
+    var open_tween := create_tween()
+    open_tween.tween_property(scout_panel, "modulate:a", 1.0, SCOUT_OPEN_TIME * 0.6)
+    open_tween.parallel().tween_property(scout_panel, "scale", Vector2.ONE, SCOUT_OPEN_TIME) \
+        .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+    _scout_tweens.append(open_tween)
+
+    _spawn_scout_open_motes(visible_count)
 
     for i in range(scout_faces.size()):
         var face = scout_faces[i]
@@ -309,11 +369,44 @@ func _on_scout_effect(amount: int) -> void:
 
             # Connect click signal with the correct face
             face.gui_input.connect(_on_scout_dice_clicked.bind(face))
+
+            # Revealed one at a time where its mote lands: a couple of quick uncertain
+            # flickers (scale/alpha pulsing, like the option is still catching) before it
+            # commits with an overbright pop. Every option gets the exact same treatment -
+            # no extra beats on any one of them. Not clickable until fully committed - an
+            # invisible/mid-flicker TextureRect still receives gui_input, so a blind click
+            # could otherwise pick an option the player never got to see land.
+            face.pivot_offset = face.size / 2.0
+            face.scale = Vector2.ZERO
+            face.modulate = Color(1, 1, 1, 0)
+            face.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+            var reveal := create_tween()
+            reveal.tween_interval(SCOUT_FACE_REVEAL_START + SCOUT_FACE_REVEAL_STAGGER * i)
+
+            for t in range(SCOUT_FACE_TEASE_COUNT):
+                reveal.tween_property(face, "scale", Vector2.ONE * SCOUT_FACE_TEASE_SCALE_HIGH, SCOUT_FACE_TEASE_STEP) \
+                    .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+                reveal.parallel().tween_property(face, "modulate:a", SCOUT_FACE_TEASE_ALPHA_HIGH, SCOUT_FACE_TEASE_STEP)
+                reveal.tween_property(face, "scale", Vector2.ONE * SCOUT_FACE_TEASE_SCALE_LOW, SCOUT_FACE_TEASE_STEP) \
+                    .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+                reveal.parallel().tween_property(face, "modulate:a", SCOUT_FACE_TEASE_ALPHA_LOW, SCOUT_FACE_TEASE_STEP)
+
+            reveal.tween_callback(_play_scout_reveal_sfx.bind(i))
+            reveal.tween_property(face, "modulate", Color(1.9, 1.9, 1.9, 1.0), SCOUT_FACE_TEASE_STEP * 0.6) \
+                .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+            reveal.parallel().tween_property(face, "scale", Vector2.ONE, SCOUT_FACE_REVEAL_TIME) \
+                .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+            reveal.tween_property(face, "modulate", Color.WHITE, SCOUT_FACE_REVEAL_TIME * 1.6)
+            reveal.tween_callback(_make_scout_face_clickable.bind(face))
+            _scout_tweens.append(reveal)
         else:
             face.hide()
 
 func _on_scout_dice_clicked(event: InputEvent, face: TextureRect) -> void:
     if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+        if _scout_pick_in_progress:
+            return
         var tex_path = face.texture.resource_path
 
         # Extract the number from the filename (e.g., blue3.png → 3)
@@ -321,15 +414,246 @@ func _on_scout_dice_clicked(event: InputEvent, face: TextureRect) -> void:
         regex.compile(r"(\d+)\.png$")
         var result := regex.search(tex_path)
         if result:
+            _scout_pick_in_progress = true
+            # State first, visuals after (same principle as the Power number updating
+            # instantly while the orbs fly): the guarantee is set NOW, the flight below is
+            # purely the story of it traveling to the next-roll slot. next_roll_determined
+            # is emitted on touchdown instead of here - see _land_scout_pick.
             Global.next_guaranteed_roll = int(result.get_string(1))
             print("Selected guaranteed roll:", Global.next_guaranteed_roll)
-            Events.next_roll_determined.emit()
-            scout_panel.hide()
             audio_stream_player_2d.stream = load("res://sounds/fountainheal.wav")
             audio_stream_player_2d.volume_db = 9
             audio_stream_player_2d.play()
+            _fly_scout_pick_to_next_roll(face)
+            _close_scout_panel(face)
         else:
             push_error("Failed to extract number from: %s" % tex_path)
+
+
+func _kill_scout_tweens() -> void:
+    for t in _scout_tweens:
+        if t and t.is_valid():
+            t.kill()
+    _scout_tweens.clear()
+
+
+func _make_scout_face_clickable(face: TextureRect) -> void:
+    face.mouse_filter = Control.MOUSE_FILTER_STOP
+
+
+# Rising arpeggio, one pluck per revealed face - same sample as the power-orb landings so
+# scouting sounds like the same magic, just climbing instead of scattering.
+func _play_scout_reveal_sfx(index: int) -> void:
+    SFXPlayer.play(SCOUT_PLUCK_SFX, false, 0.85 + 0.1 * index, -3.0)
+
+
+# One small glow mote per revealed face, rising from the active die up into the panel - "the
+# die projects its futures". Each is timed to arrive just as its face pops in, so the reveal
+# reads as caused by the arriving spark. Targets are computed arithmetically (same formula as
+# _resize_scout_panel) rather than read from the HBox children: container layout only settles
+# at the end of the frame, so freshly-resized face positions would still be stale here.
+func _spawn_scout_open_motes(visible_count: int) -> void:
+    var die := get_node_or_null("ActiveDice/Panel/DiceDisplay") as Control
+    if die == null:
+        return
+    var parent_layer: Node = get_tree().get_first_node_in_group("ui_layer")
+    if parent_layer == null:
+        parent_layer = self
+    var start := die.get_global_rect().get_center()
+    var accent := DicePalette.accent(Global.dice_type)
+    var face_center_y := scout_panel.offset_top + 77.0  # HBox offset_top (52) + half a face (25)
+
+    for i in range(visible_count):
+        var target := Vector2(
+            SCOUT_PANEL_CENTER_X + (i - (visible_count - 1) / 2.0) * (SCOUT_DICE_SIZE + SCOUT_DICE_SEPARATION),
+            face_center_y)
+
+        var mote := TextureRect.new()
+        mote.texture = _get_scout_glow_texture()
+        mote.material = _get_scout_glow_material()
+        mote.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+        mote.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+        var size := randf_range(9.0, 13.0)
+        mote.size = Vector2(size, size)
+        mote.pivot_offset = mote.size / 2.0
+        mote.modulate = accent * 1.6
+        mote.modulate.a = 0.0
+        mote.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        mote.z_index = 149
+        parent_layer.add_child(mote)
+        mote.global_position = start + Vector2(randf_range(-10.0, 10.0), randf_range(-6.0, 6.0)) - mote.size / 2.0
+        mote.scale = Vector2(0.6, 0.6)
+
+        var launch_delay: float = maxf(0.0, SCOUT_FACE_REVEAL_START + SCOUT_FACE_REVEAL_STAGGER * i - SCOUT_OPEN_MOTE_LEAD)
+        var mt := create_tween()
+        mt.tween_interval(launch_delay)
+        mt.tween_property(mote, "modulate:a", 1.0, 0.07)
+        mt.parallel().tween_property(mote, "global_position", target - mote.size / 2.0, SCOUT_OPEN_MOTE_FLIGHT) \
+            .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+        mt.parallel().tween_property(mote, "scale", Vector2.ONE, SCOUT_OPEN_MOTE_FLIGHT)
+        mt.tween_property(mote, "modulate:a", 0.0, 0.1)
+        mt.parallel().tween_property(mote, "scale", Vector2(0.3, 0.3), 0.1)
+        mt.tween_callback(mote.queue_free)
+        _scout_tweens.append(mt)
+
+
+# Folds the panel away. With a picked face: that face goes instantly invisible (the flying
+# clone replaces it), its siblings shrink out, and the panel itself waits a beat so the pick
+# visibly pops OUT of the panel before the panel follows. Without one (Exit button): same
+# close, just immediate and with nothing excluded.
+func _close_scout_panel(picked_face: TextureRect = null) -> void:
+    _kill_scout_tweens()
+    if picked_face:
+        # Alpha instead of hide() - hiding would re-flow the HBoxContainer and shift the
+        # remaining faces sideways mid-close.
+        picked_face.modulate.a = 0.0
+    var fade_index := 0
+    for face in scout_faces:
+        if face == picked_face or not face.visible:
+            continue
+        face.mouse_filter = Control.MOUSE_FILTER_IGNORE  # no late picks while fading out
+        var t := create_tween()
+        t.tween_interval(0.02 * fade_index)
+        t.tween_property(face, "modulate:a", 0.0, 0.1)
+        t.parallel().tween_property(face, "scale", Vector2(0.6, 0.6), 0.1) \
+            .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+        _scout_tweens.append(t)
+        fade_index += 1
+
+    var close := create_tween()
+    if picked_face:
+        close.tween_interval(SCOUT_CLOSE_DELAY)
+    close.tween_property(scout_panel, "scale", Vector2(0.8, 0.8), SCOUT_CLOSE_TIME) \
+        .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+    close.parallel().tween_property(scout_panel, "modulate:a", 0.0, SCOUT_CLOSE_TIME)
+    close.tween_callback(_finish_scout_close)
+    _scout_tweens.append(close)
+
+
+func _finish_scout_close() -> void:
+    scout_panel.hide()
+    scout_panel.scale = Vector2.ONE
+    scout_panel.modulate.a = 1.0
+
+
+# The picked die pops out of the panel and is pulled down into the next-roll slot at the
+# bottom right of the central die, trailing glow motes in the die's accent color - same
+# flight language as the refuel-return icons (punch, then TRANS_QUAD/EASE_IN "pulled" arc).
+func _fly_scout_pick_to_next_roll(face: TextureRect) -> void:
+    var slot := get_node_or_null("ActiveDice/NextRollPanel") as Control
+    if slot == null:
+        # Nothing to fly to (debug launches without the dice scene) - reveal instantly.
+        Events.next_roll_determined.emit()
+        return
+    var parent_layer: Node = get_tree().get_first_node_in_group("ui_layer")
+    if parent_layer == null:
+        parent_layer = self
+
+    var start := face.get_global_rect().get_center()
+    var target := slot.get_global_rect().get_center()
+
+    var flyer := TextureRect.new()
+    flyer.texture = face.texture
+    flyer.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    flyer.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+    flyer.size = face.size
+    flyer.pivot_offset = flyer.size / 2.0
+    flyer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    flyer.z_index = 150  # same layer/z convention as the refuel and All In flourish icons
+    parent_layer.add_child(flyer)
+    flyer.global_position = start - flyer.size / 2.0
+
+    # Deterministic sideways bow (one clean hero arc, not the orbs' random wobble - a single
+    # die squiggling around reads as drunk, not elegant).
+    var dir := (target - start).normalized()
+    var perp := Vector2(-dir.y, dir.x)
+    var control := start.lerp(target, 0.45) - perp * SCOUT_PICK_ARC_LIFT
+
+    var trail_state := {"last_t": 0.0}
+    var accent := DicePalette.accent(Global.dice_type)
+
+    var flight := create_tween()
+    # 1. "Chosen!" punch before departing.
+    flight.tween_property(flyer, "scale", Vector2.ONE * SCOUT_PICK_PUNCH_SCALE, SCOUT_PICK_PUNCH_TIME) \
+        .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+    # 2. Accelerating pull down into the next-roll slot, leaving a trail. The eased t drives
+    # the trail spacing too, so motes end up evenly spaced along the PATH, not in time.
+    flight.tween_method(
+            _scout_pick_bezier_step.bind(flyer, start, control, target, trail_state, accent, parent_layer),
+            0.0, 1.0, SCOUT_PICK_FLIGHT_TIME) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+    flight.parallel().tween_property(flyer, "scale", Vector2.ONE, SCOUT_PICK_FLIGHT_TIME)
+    # 3. Handoff: the flyer vanishes in the same instant the real slot pops in (dice.gd's
+    # _on_next_roll_determined plays the arrival punch), so the die reads as BECOMING the
+    # next-roll display rather than disappearing next to it.
+    flight.tween_callback(_land_scout_pick)
+    flight.tween_callback(flyer.queue_free)
+
+
+func _scout_pick_bezier_step(t: float, flyer: TextureRect, p0: Vector2, p1: Vector2, p2: Vector2, trail_state: Dictionary, accent: Color, parent_layer: Node) -> void:
+    var pos := p0.lerp(p1, t).lerp(p1.lerp(p2, t), t)
+    flyer.global_position = pos - flyer.size / 2.0
+    if t - trail_state["last_t"] >= SCOUT_TRAIL_SPACING:
+        trail_state["last_t"] = t
+        _spawn_scout_trail_mote(pos, accent, parent_layer)
+
+
+func _spawn_scout_trail_mote(pos: Vector2, accent: Color, parent_layer: Node) -> void:
+    var mote := TextureRect.new()
+    mote.texture = _get_scout_glow_texture()
+    mote.material = _get_scout_glow_material()
+    mote.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    mote.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+    var size := randf_range(10.0, 16.0)
+    mote.size = Vector2(size, size)
+    mote.pivot_offset = mote.size / 2.0
+    mote.modulate = accent * 1.5
+    mote.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    mote.z_index = 149  # just under the flying die
+    parent_layer.add_child(mote)
+    mote.global_position = pos + Vector2(randf_range(-4.0, 4.0), randf_range(-4.0, 4.0)) - mote.size / 2.0
+    var fade := create_tween()
+    fade.tween_property(mote, "modulate:a", 0.0, 0.32) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+    fade.parallel().tween_property(mote, "scale", Vector2(0.25, 0.25), 0.32) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+    fade.tween_callback(mote.queue_free)
+
+
+func _land_scout_pick() -> void:
+    # A roll (or an active-dice switch) during the flight consumes/clears the guarantee -
+    # dice.gd resets it to -1 and hides the slot. In that case there's nothing left to
+    # deliver, so don't pop an empty/stale panel.
+    if Global.next_guaranteed_roll == -1:
+        return
+    Events.next_roll_determined.emit()
+    SFXPlayer.play(SCOUT_PLUCK_SFX, false, 0.7, -2.0)
+
+
+func _get_scout_glow_texture() -> GradientTexture2D:
+    if _scout_glow_texture:
+        return _scout_glow_texture
+    var gradient := Gradient.new()
+    gradient.set_color(0, Color(1, 1, 1, 1))
+    gradient.set_color(1, Color(1, 1, 1, 0))
+    var tex := GradientTexture2D.new()
+    tex.gradient = gradient
+    tex.width = 32
+    tex.height = 32
+    tex.fill = GradientTexture2D.FILL_RADIAL
+    tex.fill_from = Vector2(0.5, 0.5)
+    tex.fill_to = Vector2(1.0, 0.5)
+    _scout_glow_texture = tex
+    return _scout_glow_texture
+
+
+func _get_scout_glow_material() -> CanvasItemMaterial:
+    if _scout_glow_material:
+        return _scout_glow_material
+    var mat := CanvasItemMaterial.new()
+    mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+    _scout_glow_material = mat
+    return _scout_glow_material
 
 # Fixed screen-space anchors (design resolution 1280x720) instead of mouse
 # position: mouse-anchored placement was getting clipped by the screen edge.
@@ -486,4 +810,4 @@ func _any_tutorial_panel_visible() -> bool:
 
 
 func _on_exit_button_pressed() -> void:
-    scout_panel.hide()
+    _close_scout_panel()

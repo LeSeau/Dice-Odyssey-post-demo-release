@@ -15,6 +15,7 @@ stats = ExtResource("2_f4yr3")
 initial_statuses = Array[ExtResource("3_x82ac")]([ExtResource("4_51lbi")])
 width = 280
 height = 280
+sprite_y_offset = -35
 
 [node name="Crab" parent="." instance=ExtResource("1_vexuw")]
 position = Vector2(1034, 411)

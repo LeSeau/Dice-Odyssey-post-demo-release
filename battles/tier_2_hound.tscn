@@ -11,5 +11,5 @@ stats = ExtResource("2_0ivxh")
 width = 280
 height = 280
 sprite_y_offset = 20
-stats_ui_y_offset = 16
-status_handler_y_offset = 16
+stats_ui_y_offset = 1
+status_handler_y_offset = 1

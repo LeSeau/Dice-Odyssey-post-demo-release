@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://d9r2dom0004a"]
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://bwqlb8gqnnui0"]
 
 [ext_resource type="Texture2D" uid="uid://djd15qwfjvfyu" path="res://dominance.png" id="1_dom"]
 [ext_resource type="Script" path="res://characters/warrior/cards/dominance.gd" id="2_script"]

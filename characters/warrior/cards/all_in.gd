@@ -2,11 +2,13 @@ extends Card
 
 const ALL_DICE_TYPES := ["blue", "red", "green", "giant", "magma", "even", "odd", "mech", "evil"]
 
-# Real face-value pools per type, used ONLY to pick which face texture each consumed die shows
-# in the flourish (dice.gd::_spawn_all_in_consumed) - kept separate from the randi_range(1,6)
-# roll below that computes the actual damage bonus, so this is purely visual and doesn't touch
-# the card's existing balance (every die type has always contributed a flat 1-6 to the bonus
-# here, regardless of its real face range - not something this pass changes).
+# Real face-value pools per type - each remaining die is rolled from ITS OWN range and that
+# same value both drives the damage bonus AND picks the face texture shown in the flourish
+# (dice.gd::_spawn_all_in_consumed). Previously the flourish face was a second, independent
+# random pick while the damage bonus always used a flat randi_range(1,6) regardless of the
+# die's real range - so a displayed "Giant: 11" never actually contributed more than 6, and
+# Evil's true 6/6/6/0 odds were flattened to a uniform 1-6, silently mismatching what the
+# player saw against what they actually got.
 const DISPLAY_FACE_VALUES := {
     "blue": [1, 2, 3, 4, 5, 6], "red": [1, 2, 3, 4, 5, 6],
     "magma": [1, 2, 3, 4, 5, 6], "mech": [1, 2, 3, 4, 5, 6],
@@ -28,13 +30,24 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
         var remaining: int = Global.get(prop)
         var display_faces: Array = DISPLAY_FACE_VALUES.get(dice_type, [1, 2, 3, 4, 5, 6])
         for i in remaining:
-            bonus += randi_range(1, 6)
-            consumed.append({"type": dice_type, "value": display_faces[randi() % display_faces.size()]})
+            var rolled_value: int = display_faces[randi() % display_faces.size()]
+            bonus += rolled_value
+            consumed.append({"type": dice_type, "value": rolled_value})
         Global.set(prop, 0)
     # Fires before the damage lands, so the "your dice got consumed for this" flourish is
     # already rising by the time the hit/number appears - previously the player only saw the
-    # damage number with no visible cause.
-    Events.all_in_dice_consumed.emit(consumed)
+    # damage number with no visible cause. Anchored on the targeted enemy (above their head, via
+    # IntentUI's position which already accounts for that enemy's sprite height/offset) rather
+    # than the played card, so the flourish reads next to what actually got hit instead of
+    # floating over the hand.
+    var flourish_position := Global.last_played_card_position
+    if not targets.is_empty() and is_instance_valid(targets[0]):
+        var primary_target: Node = targets[0]
+        if primary_target is Enemy:
+            flourish_position = primary_target.intent_ui.global_position + primary_target.intent_ui.size / 2.0
+        elif primary_target is Node2D:
+            flourish_position = primary_target.global_position
+    Events.all_in_dice_consumed.emit(consumed, flourish_position)
     var damage_effect := DamageEffect.new()
     var base_damage: int = Global.roll_value + bonus
     damage_effect.amount = modifiers.get_modified_value(base_damage, Modifier.Type.DMG_DEALT)

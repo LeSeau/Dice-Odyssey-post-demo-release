@@ -8,3 +8,4 @@ script = ExtResource("2_u1b6t")
 event_tier = 0
 weight = 1.0
 scene = ExtResource("1_d6mpu")
+force_for_testing = false

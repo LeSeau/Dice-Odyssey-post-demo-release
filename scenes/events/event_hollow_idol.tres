@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="EventStats" load_steps=3 format=3 uid="uid://bhq1idol0001a"]
+[gd_resource type="Resource" script_class="EventStats" load_steps=3 format=3 uid="uid://32ky3sosni2e"]
 
-[ext_resource type="PackedScene" uid="uid://bhq1idol0001b" path="res://scenes/events/event_hollow_idol.tscn" id="1_hidl1"]
+[ext_resource type="PackedScene" path="res://scenes/events/event_hollow_idol.tscn" id="1_hidl1"]
 [ext_resource type="Script" path="res://custom_resources/event_stats.gd" id="2_hidl2"]
 
 [resource]
@@ -8,3 +8,4 @@ script = ExtResource("2_hidl2")
 event_tier = 0
 weight = 1.0
 scene = ExtResource("1_hidl1")
+force_for_testing = false

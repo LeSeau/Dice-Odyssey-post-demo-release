@@ -1,7 +1,7 @@
-[gd_scene load_steps=10 format=3 uid="uid://bhq2gold0015b"]
+[gd_scene load_steps=10 format=3 uid="uid://bqm3nxr7sonca"]
 
 [ext_resource type="Script" path="res://scenes/events/event_golden_die_shrine.gd" id="1_gold015"]
-[ext_resource type="Texture2D" uid="uid://e1a3gold0010a" path="res://golden_die_shrine.png" id="2_gold016"]
+[ext_resource type="Texture2D" uid="uid://dnbile65pgp36" path="res://golden_die_shrine.png" id="2_gold016"]
 [ext_resource type="FontFile" uid="uid://bfgwr7o37ol1j" path="res://Noto_Sans/static/NotoSans-Regular.ttf" id="3_gold017"]
 [ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="4_gold018"]
 
