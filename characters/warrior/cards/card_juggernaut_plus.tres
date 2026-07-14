@@ -1,0 +1,27 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5rs00000117"]
+
+[ext_resource type="Texture2D" uid="uid://dkjp3rabc4o35" path="res://juggernaut.png" id="1_jugg"]
+[ext_resource type="Script" path="res://characters/warrior/cards/juggernaut_plus.gd" id="2_script"]
+[ext_resource type="AudioStream" uid="uid://cvjv56ti6hkis" path="res://impact1.ogg" id="3_sound"]
+
+[resource]
+script = ExtResource("2_script")
+id = "card_juggernaut_plus"
+name = "Juggernaut+"
+type = 0
+target = 1
+description = "Deal X damage and gain X Block"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 1
+requirement_number = 10
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = ""
+upgraded = true
+icon = ExtResource("1_jugg")
+tooltip_text = ""
+sound = ExtResource("3_sound")

@@ -1,11 +1,13 @@
 extends Control
 
+@export var treasure_relic_pool: RelicPool
+@export var relic_handler: RelicHandler
+@export var char_stats: CharacterStats
+
 @onready var quit: Button = $TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/Quit
-@onready var continue_button: Button = $TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/ContinueButton
-@onready var remove_card_button: Button = $TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/RemoveCardButton
+@onready var give_blood_button: Button = $TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/GiveBloodButton
 
-
-const CARD_REWARD_SCENE := preload("res://scenes/ui/card_rewards.tscn")
+const HP_COST := 8
 
 var character_stats: CharacterStats
 var run_stats: RunStats
@@ -15,30 +17,19 @@ func setup(character: CharacterStats, stats: RunStats) -> void:
     run_stats = stats
 
 
-func _ready():
-    print("ok")
-    # Connect the button's pressed signal to the _on_pressed function
-
-
-func _on_gain_card_pressed() -> void:
-    Events.show_reward.emit()
-
-
 func _on_quit_pressed() -> void:
     Events.event_exited.emit()
 
 
-func _on_remove_card_button_pressed() -> void:
-    print("removing")
-    character_stats.health-=10
+# Oswald wants blood, not cards - trades a Relic for HP instead of removing a
+# card from the deck (the old mechanic didn't match the vampire flavor text at
+# all). Redirects straight to the reward screen like hollow_idol.gd/
+# fickle_broker.gd, same "pay-first, then hand off" pattern.
+func _on_give_blood_button_pressed() -> void:
+    var relic := treasure_relic_pool.get_random_relic(char_stats, relic_handler)
+    if not relic:
+        Events.event_exited.emit()
+        return
+    character_stats.health -= HP_COST
     Events.hp_changed.emit()
-    Events.open_deck_view.emit()
-    continue_button.show()
-    quit.hide()
-    remove_card_button.hide()
-    
-    
-
-
-func _on_continue_button_pressed() -> void:
-    Events.event_exited.emit()
+    Events.show_reward_with_relic.emit(relic)

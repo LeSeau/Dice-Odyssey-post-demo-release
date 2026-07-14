@@ -1,13 +1,12 @@
-[gd_scene load_steps=11 format=3 uid="uid://c8t1570nikvu4"]
+[gd_scene load_steps=10 format=3 uid="uid://c8t1570nikvu4"]
 
 [ext_resource type="Script" path="res://scenes/events/event_hollow_idol.gd" id="1_hidl1"]
-[ext_resource type="Resource" uid="uid://2if2rhy1aktn" path="res://treasure_relic_pool.tres" id="2_hidl2"]
 [ext_resource type="Texture2D" uid="uid://ctc1fjick6pos" path="res://hollow.png" id="3_7gai6"]
 [ext_resource type="FontFile" uid="uid://bfgwr7o37ol1j" path="res://Noto_Sans/static/NotoSans-Regular.ttf" id="4_hidl4"]
 [ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="5_hidl5"]
 
 [sub_resource type="Gradient" id="Gradient_hidl1"]
-colors = PackedColorArray(0.35, 0.32, 0.28, 1, 0.62, 0.5, 0.3, 1)
+colors = PackedColorArray(0.16, 0.13, 0.13, 1, 0.5, 0.14, 0.14, 1)
 
 [sub_resource type="GradientTexture2D" id="GradientTexture2D_hidl1"]
 gradient = SubResource("Gradient_hidl1")
@@ -21,7 +20,7 @@ corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hidl2"]
-bg_color = Color(0.63264, 0.534451, 0.857609, 1)
+bg_color = Color(0.45, 0.1, 0.1, 1)
 
 [sub_resource type="LabelSettings" id="LabelSettings_hidl1"]
 font_size = 28
@@ -35,7 +34,6 @@ offset_top = 35.0
 offset_right = 1280.0
 offset_bottom = 755.0
 script = ExtResource("1_hidl1")
-treasure_relic_pool = ExtResource("2_hidl2")
 
 [node name="TextureRect" type="TextureRect" parent="."]
 layout_mode = 1
@@ -125,8 +123,8 @@ layout_mode = 2
 mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("4_hidl4")
 bbcode_enabled = true
-text = "Deep in the temple ruins, a small stone idol still hums with old magic - a die carved into its brow.
-[p] [p]You could [color=purple]pry it loose[/color] and keep whatever power it holds, or simply [color=yellow]chip off its gilded eyes[/color] and leave the rest behind."
+text = "The idol's eyes are carved from dull red stone, cold and lightless. As you draw your Red Dice near, a crack of heat stirs behind them.
+[p] [p][color=purple]\"Let me feel the crimson rage again,\"[/color] it seems to whisper, hungry for something only your dice can give."
 fit_content = true
 
 [node name="VBoxContainer" type="VBoxContainer" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer"]
@@ -136,11 +134,11 @@ size_flags_horizontal = 4
 size_flags_vertical = 10
 theme_override_constants/separation = 12
 
-[node name="PryOpen" type="Button" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer"]
+[node name="FeedButton" type="Button" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer"]
 custom_minimum_size = Vector2(300, 40)
 layout_mode = 2
 
-[node name="RichTextLabel" type="RichTextLabel" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/PryOpen"]
+[node name="RichTextLabel" type="RichTextLabel" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/FeedButton"]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 1
 anchors_preset = 14
@@ -155,15 +153,15 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("5_hidl5")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[center]Pry it open.[color=green] Gain a Relic.[/color] [color=red]Lose 6 Max HP[/color][/center]
+text = "[center]Feed it.[color=#e05a5a] Give a Red Dice.[/color] [color=green] Gain a random Dice.[/color][/center]
 "
 scroll_active = false
 
-[node name="Melt" type="Button" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer"]
+[node name="CalmButton" type="Button" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer"]
 custom_minimum_size = Vector2(300, 40)
 layout_mode = 2
 
-[node name="RichTextLabel" type="RichTextLabel" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/Melt"]
+[node name="RichTextLabel" type="RichTextLabel" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/CalmButton"]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 1
 anchors_preset = 14
@@ -178,9 +176,33 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("5_hidl5")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[center]Just chip the gems.[color=gold] Gain 65 Gold.[/color][/center]
+text = "[center]Refuse. Calm it down.[color=gold] Pay 30 Gold.[/color][/center]
 "
 scroll_active = false
 
-[connection signal="pressed" from="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/PryOpen" to="." method="_on_pry_open_pressed"]
-[connection signal="pressed" from="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/Melt" to="." method="_on_melt_pressed"]
+[node name="IgnoreButton" type="Button" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer"]
+custom_minimum_size = Vector2(300, 40)
+layout_mode = 2
+
+[node name="RichTextLabel" type="RichTextLabel" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/IgnoreButton"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -10.0
+offset_bottom = 30.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_fonts/normal_font = ExtResource("5_hidl5")
+theme_override_font_sizes/normal_font_size = 20
+bbcode_enabled = true
+text = "[center]Refuse. Ignore its insults.[color=#e05a5a] Lose 6 HP.[/color][/center]
+"
+scroll_active = false
+
+[connection signal="pressed" from="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/FeedButton" to="." method="_on_feed_pressed"]
+[connection signal="pressed" from="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/CalmButton" to="." method="_on_calm_pressed"]
+[connection signal="pressed" from="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/IgnoreButton" to="." method="_on_ignore_pressed"]

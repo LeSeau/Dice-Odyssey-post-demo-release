@@ -8,7 +8,7 @@
 [ext_resource type="FontFile" uid="uid://bfgwr7o37ol1j" path="res://Noto_Sans/static/NotoSans-Regular.ttf" id="5_vft68"]
 
 [sub_resource type="Gradient" id="Gradient_n2u7c"]
-colors = PackedColorArray(0.972549, 0.913725, 0.631373, 1, 0.705882, 0.772549, 0.894118, 1)
+colors = PackedColorArray(0.1, 0.05, 0.08, 1, 0.4, 0.12, 0.22, 1)
 
 [sub_resource type="GradientTexture2D" id="GradientTexture2D_fj5ld"]
 gradient = SubResource("Gradient_n2u7c")
@@ -22,7 +22,7 @@ corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sbp1t"]
-bg_color = Color(0.63264, 0.534451, 0.857609, 1)
+bg_color = Color(0.35, 0.1, 0.18, 1)
 
 [sub_resource type="LabelSettings" id="LabelSettings_ajccg"]
 font_size = 28
@@ -193,7 +193,7 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("5_twug6")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[center]Pay with blood instead. [color=red]Lose 8HP.[/color]  [/center]
+text = "[center]Pay with blood instead. [color=#e05a5a]Lose 8HP.[/color]  [/center]
 "
 scroll_active = false
 

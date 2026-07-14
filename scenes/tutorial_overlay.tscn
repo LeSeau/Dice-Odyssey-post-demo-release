@@ -1,35 +1,98 @@
-[gd_scene format=3 uid="uid://bxp688xbx3iji"]
+[gd_scene load_steps=6 format=3 uid="uid://bxp688xbx3iji"]
+
+[ext_resource type="Script" path="res://scenes/tutorial_overlay.gd" id="1_ov"]
+[ext_resource type="FontFile" uid="uid://dujsng7qdioan" path="res://assets/static/Roboto_Condensed-SemiBold.ttf" id="2_body"]
+[ext_resource type="FontFile" uid="uid://t1kjnid0fq8h" path="res://assets/static/Roboto-Black.ttf" id="3_bold"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pulse"]
+bg_color = Color(0, 0, 0, 0)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.788235, 0.635294, 0.152941, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_text"]
+bg_color = Color(0.058, 0.05, 0.09, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.788235, 0.635294, 0.152941, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0, 0, 0.45)
+shadow_size = 8
 
 [node name="TutorialOverlay" type="CanvasLayer"]
-layer = 100
+layer = 20
+script = ExtResource("1_ov")
 
-[node name="Dimmer" type="ColorRect" parent="."]
-visible = false
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0, 0, 0, 1)
+[node name="TopMask" type="ColorRect" parent="."]
+offset_right = 1280.0
+offset_bottom = 720.0
+color = Color(0, 0, 0, 0)
 
-[node name="HighlightBox" type="NinePatchRect" parent="."]
+[node name="BottomMask" type="ColorRect" parent="."]
+color = Color(0, 0, 0, 0)
+
+[node name="LeftMask" type="ColorRect" parent="."]
+color = Color(0, 0, 0, 0)
+
+[node name="RightMask" type="ColorRect" parent="."]
+color = Color(0, 0, 0, 0)
+
+[node name="PulseFrame" type="Panel" parent="."]
 offset_right = 40.0
 offset_bottom = 40.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_pulse")
 
-[node name="Arrow" type="TextureRect" parent="."]
-offset_right = 40.0
-offset_bottom = 40.0
+[node name="PointerArrow" type="TextureRect" parent="."]
+offset_right = 64.0
+offset_bottom = 86.0
+expand_mode = 1
+stretch_mode = 5
 
 [node name="TextPanel" type="Panel" parent="."]
-offset_right = 40.0
-offset_bottom = 40.0
+offset_left = 340.0
+offset_top = 260.0
+offset_right = 940.0
+offset_bottom = 420.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_text")
 
 [node name="Label" type="RichTextLabel" parent="TextPanel"]
 layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
+offset_left = 18.0
+offset_top = 14.0
+offset_right = 582.0
+offset_bottom = 120.0
+mouse_filter = 2
+theme_override_fonts/normal_font = ExtResource("2_body")
+theme_override_fonts/bold_font = ExtResource("3_bold")
+theme_override_font_sizes/normal_font_size = 17
+theme_override_font_sizes/bold_font_size = 19
+bbcode_enabled = true
+autowrap_mode = 2
 
-[node name="NextButton" type="Button" parent="TextPanel"]
+[node name="ContinueButton" type="Button" parent="TextPanel"]
 layout_mode = 0
-offset_right = 16.0
-offset_bottom = 16.0
+offset_left = 470.0
+offset_top = 112.0
+offset_right = 582.0
+offset_bottom = 146.0
+theme_override_font_sizes/font_size = 15
+text = "Continue"
+
+[node name="SkipButton" type="Button" parent="."]
+offset_left = 1040.0
+offset_top = 120.0
+offset_right = 1262.0
+offset_bottom = 154.0
+theme_override_font_sizes/font_size = 14
+text = "Skip tutorial"

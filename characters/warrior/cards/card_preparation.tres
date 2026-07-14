@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://ciuqp1saq2fjs" path="res://preparation_v2.png" id="1_ffi6j"]
 [ext_resource type="Script" path="res://characters/warrior/cards/preparation.gd" id="2_jlbnf"]
 [ext_resource type="AudioStream" uid="uid://cy6owtfbf8sfv" path="res://sounds/fountainheal.wav" id="3_ap5ep"]
-[ext_resource type="Resource" path="res://characters/warrior/cards/card_preparation_plus.tres" id="4_plus"]
+[ext_resource type="Resource" uid="uid://be42wk3u84eqq" path="res://characters/warrior/cards/card_preparation_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_jlbnf")
@@ -11,7 +11,7 @@ id = "card_preparation"
 name = "Preparation"
 type = 1
 target = 0
-description = "Draw 2 cards. Gain a Scout 3 card"
+description = "Draw 2 cards. Boost 2. Gain a Scout 2 card"
 rarity = 0
 red_only = false
 can_play_without_dice = false
@@ -21,7 +21,7 @@ exhausts = false
 bonus_requirement = 0
 bonus_requirement_number = 0
 bonus_description_text = ""
-tags = "Scout"
+tags = "Scout, Boost"
 upgraded = false
 upgraded_version = ExtResource("4_plus")
 icon = ExtResource("1_ffi6j")

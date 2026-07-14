@@ -68,7 +68,7 @@ func _on_roll_dice_pressed() -> void:
 
     if roll_result!= 0:
         reward_panel.show()
-        var health_reward = roll_result * 4
+        var health_reward = roll_result * 5
         # character_stats should always be set by run.gd's setup() call on entering
         # this event - guarding here anyway since it crashed the whole game once
         # with no other clue than "health on Nil"; this at least keeps the event

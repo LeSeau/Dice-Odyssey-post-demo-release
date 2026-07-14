@@ -38,8 +38,16 @@ func _ready() -> void:
 
 
 func _input(event: InputEvent) -> void:
+    # Only react while actually open, and consume the event so a single Esc press
+    # closes just this view instead of ALSO reaching the pause menu's
+    # _unhandled_input underneath (one close per press). The visible guard also
+    # stops hidden pile-view instances (battle has three) from silently swallowing
+    # every Esc pressed anywhere.
+    if not visible:
+        return
     if event.is_action_pressed("ui_cancel"):
         _on_back_pressed()
+        get_viewport().set_input_as_handled()
 
 
 # Both Global.removing_card/upgrading_card are only meant to be true while this view is open -

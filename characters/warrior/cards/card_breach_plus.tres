@@ -1,0 +1,27 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5rs00000106"]
+
+[ext_resource type="Texture2D" uid="uid://befr66ku8gwaq" path="res://breach.png" id="1_ewfpb"]
+[ext_resource type="Script" path="res://characters/warrior/cards/breach_plus.gd" id="2_script"]
+[ext_resource type="AudioStream" uid="uid://cvjv56ti6hkis" path="res://impact1.ogg" id="3_sound"]
+
+[resource]
+script = ExtResource("2_script")
+id = "card_breach_plus"
+name = "Breach+"
+type = 0
+target = 1
+description = "Remove the target's Block, then deal X damage"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 1
+requirement_number = 4
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = ""
+upgraded = true
+icon = ExtResource("1_ewfpb")
+tooltip_text = ""
+sound = ExtResource("3_sound")

@@ -1,9 +1,11 @@
 extends Relic
 
+const SCOUT3_CARD = preload("res://characters/warrior/cards/card_scout3.tres")
 
 func activate_relic(owner: RelicUI) -> void:
-    var player := owner.get_tree().get_first_node_in_group("player") as Player
     owner.flash()
-    var oracle_card = load("res://characters/warrior/cards/card_oracle_exhaust.tres")
-    Events.add_card_to_hand_requested.emit(oracle_card)
-    
+    # SCOUT3_CARD is a shared preloaded singleton (the same cached object other
+    # scripts preload from the same path, e.g. status_marionette.gd) - duplicate before
+    # handing it out so it never ends up as the SAME Card object as one already in hand.
+    Events.add_card_to_hand_requested.emit(SCOUT3_CARD.duplicate())
+

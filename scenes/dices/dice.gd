@@ -278,6 +278,13 @@ var dice_roll_sounds = [
 
 var socketed_card_ui: CardUI = null
 var _flying_charged_card_to_discard := false
+# _on_card_charged awaits mid-function while auto-canceling a previous socketed card. Without
+# this guard, socketing a second card during that 0.1s window could race: the interleaved call
+# would see socketed_card_ui already null (the first call's auto-cancel already cleared it),
+# skip its own auto-cancel, socket itself, and then get silently overwritten when the first
+# call resumes and re-assigns socketed_card_ui - orphaning the interleaved card hidden/disabled
+# in the hand with nothing pointing at it to ever bring it back (looks like "cards vanished").
+var _socketing_in_progress := false
 
 # The socketed/charged-card display (charged_card_texture/charged_card_description) is a
 # separate, static UI built directly into this scene — not the actual CardUI's own Label,
@@ -459,15 +466,17 @@ func roll_dice():
         Global.next_guaranteed_roll = -1
         next_roll_panel.hide()
     
-    # Handle tutorial forced rolls
-    if Global.tutorial_forced_roll != 0:
-        var target_value = Global.tutorial_forced_roll
-        roll_index = values.find(target_value)
+    # Handle tutorial forced rolls - pops the front of the queue so a multi-roll turn
+    # (e.g. two forced Blue rolls in a row) consumes one value per roll_dice() call.
+    if not Global.tutorial_forced_rolls.is_empty():
+        var target_value: int = Global.tutorial_forced_rolls.pop_front()
+        var forced_index := values.find(target_value)
 
-        if roll_index == -1:
+        if forced_index == -1:
             push_error("Tutorial forced roll value %s is not in dice values: %s" %
                     [str(target_value), str(values)])
-            roll_index = randi() % values.size()
+            forced_index = randi() % values.size()
+        roll_index = forced_index
 
     # --- Testing mode: skip animation ---
     if Global.testing_mode:
@@ -828,6 +837,14 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
     if Global.last_roll == 6:
         Global.has_rolled_6_this_turn = true
 
+    # Arcane infusion (Blue act-2 infusion): a NATURAL 6 on the Blue die draws 2 cards.
+    # Checked on last_roll (the rolled face itself), BEFORE next_roll_modifier is applied
+    # below - so a Scout/Lucky-guaranteed 6 counts (they force the actual face), while a
+    # Boosted 5->6 does not (Julien's call, 2026-07-14). Reuses the same draw_card event
+    # ~20 cards already emit mid-turn.
+    if dice_type == "blue" and Global.last_roll == 6 and Global.is_dice_infused("blue"):
+        Events.draw_card.emit(2)
+
     # Status checks
     Events.check_canalize_status.emit()
     Events.check_infused_status.emit()
@@ -855,19 +872,6 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
     Global.roll_history.append(Global.last_roll)
     print(Global.roll_history)
     update_roll_history_ui()
-
-    # Tutorial step progression (after roll is complete)
-    if Global.tutorial_forced_roll == 6:
-        Events.tutorial_step_requested.emit(3)
-        Global.tutorial_forced_roll = 0
-    elif Global.tutorial_forced_roll == 3:
-        Events.tutorial_step_requested.emit(6)
-        Global.tutorial_forced_roll = 0
-    elif Global.tutorial_forced_roll == 1:
-        Events.tutorial_step_requested.emit(14)
-        Global.tutorial_forced_roll = 0
-    elif Global.tutorial_forced_roll == 2:
-        Global.tutorial_forced_roll = 1
 
     # Emit appropriate events
     if dice_type != "red":
@@ -1010,10 +1014,8 @@ func play_high_roll_sound():
     var sfx_high_roll = preload("res://sfx/817811__thesoundlibrary__orchestral-hit.wav")
     SFXPlayer.play(sfx_high_roll)
 
-# Placeholder (whipsound.mp3 wasn't used anywhere else - its sharp "crack" transient just
-# happens to fit) - swap for a dedicated stone/glass crack sfx if Julien finds a better one.
 func play_crack_sound():
-    var sfx_crack = preload("res://whipsound.mp3")
+    var sfx_crack = preload("res://glass_sound.mp3")
     SFXPlayer.play(sfx_crack, false, 1.0, 3.0)
 
 func play_weak_dice_sound():
@@ -1091,6 +1093,10 @@ func _on_card_charged(card_ui):
     if card_ui.card.can_play_without_dice:
         return
 
+    if _socketing_in_progress:
+        return
+    _socketing_in_progress = true
+
     # CRITICAL FIX: If a card is already socketed, auto-cancel it first
     if socketed_card_ui != null:
         print("Socket already occupied - auto-canceling previous card")
@@ -1103,7 +1109,11 @@ func _on_card_charged(card_ui):
     socketed_card_ui = card_ui
     charged_card_texture.texture = card_ui.card.icon
     charged_card_description.text = card_ui.card.description
-    _update_charged_card_description()
+    # Deferred on purpose: card_released_state.gd emits card_charged BEFORE it assigns
+    # Global.charged_card_instance_id, and the Berserker preview boost
+    # (Card.apply_target_modifier) keys off that id - an immediate refresh here would
+    # miss the +50% until the next dice_rolled/power-change refresh.
+    _update_charged_card_description.call_deferred()
     title.text = card_ui.card.name
     cancel_red_card_panel.show()
 
@@ -1171,14 +1181,11 @@ func _on_card_charged(card_ui):
 
     card_ui.hide()
     card_ui.disabled = true
-    
+
     # Set the flag ONLY when actually ready to play
     # DON'T set it here - let card_released_state handle it
     # Global.playing_red_card = true  // REMOVE THIS
-
-    if Global.tutorial_charging_card:
-        Events.tutorial_step_requested.emit(10)
-        Global.tutorial_charging_card = false
+    _socketing_in_progress = false
 
 
 func _on_reset_charged_card():
@@ -1316,7 +1323,31 @@ func set_shader_from_global_type(type: String = Global.dice_type) -> void:
             push_warning("Unknown dice type: %s" % Global.dice_type)
             return
 
-    aura.material = new_shader_material
+    aura.material = _resolve_aura_material(type, new_shader_material)
+
+
+# Per-battle cache of recolored aura materials for infused dice types (act-2 dice
+# infusions). Instance state on purpose: dice.tscn is re-instantiated every battle, so
+# a later run in the same app session can never inherit a stale infused material.
+var _infused_aura_materials := {}
+
+
+# Infused dice get a recolored COPY of their type's aura material. NEVER mutate the
+# preloaded shared .tres directly - that's the exact bug the old "charge" animation had
+# (see _on_charge_dice_animation): the 9 per-type ShaderMaterials are shared preloaded
+# resources, so writing colors into one repaints it for the rest of the app session.
+func _resolve_aura_material(type: String, base_material: ShaderMaterial) -> ShaderMaterial:
+    if not Global.is_dice_infused(type):
+        return base_material
+    if not _infused_aura_materials.has(type):
+        var info: Dictionary = DiceInfusions.get_info(type)
+        var infused: ShaderMaterial = base_material.duplicate()
+        if info.has("aura_magic"):
+            infused.set_shader_parameter("magic_color", info["aura_magic"])
+        if info.has("aura_accent"):
+            infused.set_shader_parameter("accent_color", info["aura_accent"])
+        _infused_aura_materials[type] = infused
+    return _infused_aura_materials[type]
 
 
 func _on_charge_dice_animation():

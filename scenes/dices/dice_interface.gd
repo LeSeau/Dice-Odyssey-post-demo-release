@@ -135,9 +135,6 @@ func _on_dice_1_gui_input(event: InputEvent) -> void:
             Global.tutorial_reset_power_warning = false 
             return
         Events.active_dice_changed.emit("blue")
-        if Global.tutorial_blue_dice: 
-            Events.tutorial_step_requested.emit(13)
-            Global.tutorial_blue_dice = false
         Events.update_roll_history_ui.emit()
         
 
@@ -152,9 +149,6 @@ func _on_dice_2_gui_input(event: InputEvent) -> void:
         Events.active_dice_changed.emit("red")
         Global.dice_type = "red"
         Events.reset_charged_card.emit()
-        if Global.tutorial_red_dice: 
-            Events.tutorial_step_requested.emit(9)
-            Global.tutorial_red_dice = false
         Events.update_roll_history_ui.emit()
         
 func _on_dice_3_gui_input(event: InputEvent) -> void:
@@ -289,6 +283,15 @@ func _on_dice_amount_changed():
     update_selected_highlight()
 
 func initialize_dices():
+    # Blue is assumed permanent (nothing in the game reduces it to 0 in
+    # practice) so it stays always-visible - but Red can now be traded away
+    # entirely (event_hollow_idol.gd), so it needs the same show/hide check
+    # already applied to every other non-blue dice type below.
+    if Global.red_dice_max_amount > 0 or Global.red_dice_current_amount > 0 or Global.red_dice_bonus_amount > 0:
+        dice_2.show()
+    else:
+        dice_2.hide()
+
     if Global.evil_dice_max_amount > 0 or Global.evil_dice_current_amount > 0 or Global.evil_dice_bonus_amount > 0:
         print("evil dice appearing")
         dice_3_texture.texture = load("res://assets/images/evil6.png")
@@ -371,7 +374,9 @@ func _resize_panel_for_dice_inventory() -> void:
     # initialize_dices()'s own per-type conditions) rather than relying on
     # Global.dice_inventory, which most temporary-dice-granting cards never
     # update (only cogwork.gd does) and is therefore frequently stale.
-    var visible_dice_count := 2  # blue and red are always shown
+    var visible_dice_count := 1  # blue is always shown
+    if Global.red_dice_max_amount > 0 or Global.red_dice_current_amount > 0 or Global.red_dice_bonus_amount > 0:
+        visible_dice_count += 1
     if Global.evil_dice_max_amount > 0 or Global.evil_dice_current_amount > 0 or Global.evil_dice_bonus_amount > 0:
         visible_dice_count += 1
     if Global.giant_dice_max_amount > 0 or Global.giant_dice_current_amount > 0 or Global.giant_dice_bonus_amount > 0:

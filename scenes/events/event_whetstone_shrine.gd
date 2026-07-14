@@ -3,7 +3,7 @@ extends Control
 var character_stats: CharacterStats
 var run_stats: RunStats
 
-const UPGRADE_COST := 45
+const UPGRADE_COST := 30
 
 @onready var sharpen_button: Button = $TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/Sharpen
 
@@ -29,6 +29,5 @@ func _on_sharpen_pressed() -> void:
     Events.open_deck_view_for_upgrade.emit()
 
 
-func _on_skip_pressed() -> void:
-    Global.pending_card_rewards = 1
-    Events.show_reward.emit()
+func _on_leave_pressed() -> void:
+    Events.event_exited.emit()

@@ -1,5 +1,14 @@
 extends Node
 
+
+# App-scoped player settings (volumes, fullscreen) - loaded once at startup and
+# applied to the audio buses/window here; the pause menu updates them live afterwards
+# through SettingsManager. Deliberately NOT part of reset_run_state()/the run save:
+# these belong to the player, not to a run.
+func _ready() -> void:
+    SettingsManager.load_and_apply()
+
+
 var testing_mode: bool = false
 var tutorial_on = false
 var tutorial_reset_power_warning = true
@@ -104,19 +113,24 @@ var cheapest_dice_price
 
 var sfx_click = preload("res://sfx/219069_annabloom_click1 (mp3cut.net).wav")
 var sfx_gold_pickup = preload("res://gold_pickup_sound.mp3")
-var tutorial_forced_roll = 0
 
-var tutorial_block = true
-var tutorial_low_blow = false
+# Queue of rolls the tutorial forces, consumed front-to-back by dice.gd::roll_dice() -
+# replaces the old single tutorial_forced_roll int (2026-07-12 redesign, see
+# tutorial_redesign_2026-07.md). TutorialDirector pushes onto this before a gated ROLL
+# step; dice.gd pops the front value and rolls it instead of the real random result.
+var tutorial_forced_rolls: Array[int] = []
+
+# Queue of face values the tutorial forces into the Scout preview, consumed by
+# battle.gd::_on_scout_effect() instead of its random pick. Same "pop as consumed"
+# convention as tutorial_forced_rolls.
+var tutorial_forced_scout_faces: Array[int] = []
+
 var tutorial_fight = true
+# NOT tutorial-exclusive despite the name - crab_enemy_ai.tscn's TutorialAttack node
+# (weight 10, used by every real Crab fight in the game, all 3 tiers) gates on this
+# flag too, as a one-shot "opening move" for the FIRST Crab fight of the whole run.
+# Do not repurpose or rename without also touching enemies/crab/tutorial_attack.gd.
 var tutorial_enemy_attack = true
-var tutorial_red_dice = false
-var tutorial_charging_card = false
-var tutorial_red_attack = false
-var tutorial_end_turn = false
-var tutorial_blue_dice = false
-var tutorial_second_turn = false
-var tutorial_recombobulate = false
 var tutorial_bonus_requirement_explanation_needed = true
 var tutorial_transcendent_explanation_needed = true
 var tutorial_dice_shop_explanation_needed = false
@@ -135,6 +149,20 @@ var debug_battle_entry := false
 # to 2 by run.gd::_enter_act_2() after the act-1 boss. Battle scaling (battle.gd) and
 # battle-pool selection (run.gd) both read this.
 var current_act := 1
+
+# Act-2 dice infusions: dice type -> infusion id (e.g. {"blue": "arcane"}). Set by the
+# post-act-1-boss infusion screen (scenes/dice_infusion/), permanent for the rest of the
+# run, saved/restored by run.gd. Designs live in custom_resources/dice_infusions.gd.
+var dice_infusions := {}
+
+# Transient: true ONLY while a Berserker-infused socketed card's apply_effects() is
+# running (scoped tightly in card.gd::play()) - damage_effect.gd reads it to apply the
+# +50% damage. Never true outside that synchronous window.
+var berserker_boost_active := false
+
+
+func is_dice_infused(dice_type: String) -> bool:
+    return dice_infusions.has(dice_type)
 
 var no_reset: bool = false
 
@@ -158,7 +186,7 @@ var load_run_requested := false
 # scene loads), load_run_requested (the flag that decides fresh-vs-load), player (node ref,
 # reassigned by the battle scene), and the preloaded sfx.
 func reset_run_state() -> void:
-    gold = 7575
+    gold = 75
     player_hp = 66
     player_max_hp = 66
 
@@ -216,23 +244,17 @@ func reset_run_state() -> void:
     removing_card = false
     upgrading_card = false
     current_act = 1
+    dice_infusions = {}
+    berserker_boost_active = false
     is_final_boss_fight = false
     game_over_state = false
     pending_card_rewards = 1
 
     tutorial_reset_power_warning = true
-    tutorial_forced_roll = 0
-    tutorial_block = true
-    tutorial_low_blow = false
+    tutorial_forced_rolls = []
+    tutorial_forced_scout_faces = []
     tutorial_fight = true
     tutorial_enemy_attack = true
-    tutorial_red_dice = false
-    tutorial_charging_card = false
-    tutorial_red_attack = false
-    tutorial_end_turn = false
-    tutorial_blue_dice = false
-    tutorial_second_turn = false
-    tutorial_recombobulate = false
     tutorial_bonus_requirement_explanation_needed = true
     tutorial_transcendent_explanation_needed = true
     tutorial_dice_shop_explanation_needed = false

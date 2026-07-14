@@ -1,8 +1,9 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://8tt2t3itmpi8"]
+[gd_resource type="Resource" load_steps=5 format=3 uid="uid://8tt2t3itmpi8"]
 
 [ext_resource type="Texture2D" uid="uid://81v36u3qwhyn" path="res://momentum.png" id="1_jyuph"]
 [ext_resource type="Script" path="res://characters/warrior/cards/momentum.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://cvjv56ti6hkis" path="res://impact1.ogg" id="3_sound"]
+[ext_resource type="Resource" path="res://characters/warrior/cards/card_momentum_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_script")
@@ -10,7 +11,7 @@ id = "card_momentum"
 name = "Momentum"
 type = 0
 target = 1
-description = "Deal 4 damage, plus 4 for each other card played this turn"
+description = "Deal 3 damage, plus 3 for each other card played this turn"
 rarity = 0
 red_only = false
 can_play_without_dice = false
@@ -22,6 +23,7 @@ bonus_requirement_number = 0
 bonus_description_text = ""
 tags = ""
 upgraded = false
+upgraded_version = ExtResource("4_plus")
 icon = ExtResource("1_jyuph")
 tooltip_text = ""
 sound = ExtResource("3_sound")

@@ -123,7 +123,7 @@ layout_mode = 2
 mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("3_monk3")
 bbcode_enabled = true
-text = "A monk sits cross-legged atop an enormous die, perfectly still, cards drifting slowly around him like leaves. [color=purple]\"Power taken now, or power kept for later,\"[/color] he murmurs without opening his eyes.
+text = "A monk sits cross-legged atop an enormous die, perfectly still, cards drifting slowly around him like leaves. You have no idea what a temple is doing here. [color=purple]\"Power taken now, or power kept for later,\"[/color] he murmurs without opening his eyes.
 [p] [p]\"Either way, it is yours.\""
 fit_content = true
 

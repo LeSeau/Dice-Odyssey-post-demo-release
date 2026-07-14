@@ -103,12 +103,20 @@ signal clear_socket
 signal temporary_dice_added(dice_type: String)
 signal add_card_to_hand_requested(card: Card)
 signal show_map_requested
+# Emitted by the act-2 dice infusion screen (scenes/dice_infusion/) once the pick is
+# locked in and its ceremony has played - run.gd answers by entering act 2 + showing
+# the new map.
+signal dice_infusion_completed
 signal card_type_played(card_type)
 
-signal tutorial_step_requested(step)
 signal show_warning_message
 
 signal show_reward_with_relic(relic: Relic)
+# Same reward screen, but also drops a claimable gold pill next to the relic -
+# for events like event_russian_dice.gd where gold was banked separately from
+# the relic and needs to show up (and be claimed) exactly once, not be
+# silently added to Global.gold before the screen even opens.
+signal show_reward_with_relic_and_gold(relic: Relic, gold_amount: int)
 
 signal update_roll_history_ui
 signal hover_playable_cards

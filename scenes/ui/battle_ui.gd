@@ -51,7 +51,11 @@ func _set_char_stats(value: CharacterStats) -> void:
 
 
 func _on_player_hand_drawn() -> void:
-    end_turn_button.disabled = false
+    # During the tutorial, TutorialDirector owns this button's disabled state (per-step
+    # input gating) - re-enabling here would silently unlock End Turn mid-script. Same
+    # guard on the delayed re-enable below.
+    if not Global.tutorial_on:
+        end_turn_button.disabled = false
     _update_end_turn_highlight()
 
 
@@ -60,7 +64,8 @@ func _on_end_turn_button_pressed() -> void:
     _stop_end_turn_highlight()
     Events.player_turn_ended.emit()
     await get_tree().create_timer(3.0).timeout
-    end_turn_button.disabled = false
+    if not Global.tutorial_on:
+        end_turn_button.disabled = false
     _update_end_turn_highlight()
 
 

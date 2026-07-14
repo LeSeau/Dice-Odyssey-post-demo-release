@@ -26,7 +26,9 @@ func _on_browse_pressed() -> void:
     Events.show_reward.emit()
 
 
-func _on_decline_pressed() -> void:
+# Telling him his cards (and, by extension, him) are powerful is worth more to
+# his ego than your gold - he tips you handsomely for the compliment.
+func _on_flatter_pressed() -> void:
     Global.gold += SELL_GOLD
     Events.gold_changed.emit()
     Events.event_exited.emit()

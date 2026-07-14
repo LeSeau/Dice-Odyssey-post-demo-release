@@ -1,5 +1,6 @@
-[gd_scene load_steps=22 format=3 uid="uid://ddiw0jjwni4p4"]
+[gd_scene load_steps=23 format=3 uid="uid://ddiw0jjwni4p4"]
 
+[ext_resource type="Resource" uid="uid://2if2rhy1aktn" path="res://treasure_relic_pool.tres" id="1_rdrp0"]
 [ext_resource type="Script" path="res://scenes/events/event_russian_dice.gd" id="1_utaay"]
 [ext_resource type="Texture2D" uid="uid://c17qq0sj25epy" path="res://assets/images/blue1.png" id="2_0uv5j"]
 [ext_resource type="Theme" uid="uid://c5ebdqhhhfy3i" path="res://scenes/button/base_button.tres" id="3_frtye"]
@@ -84,7 +85,7 @@ shadow_color = Color(0, 0, 0, 0.5)
 shadow_size = 8
 
 [sub_resource type="Gradient" id="Gradient_n2u7c"]
-colors = PackedColorArray(0.972549, 0.913725, 0.631373, 1, 0.705882, 0.772549, 0.894118, 1)
+colors = PackedColorArray(0.14, 0.17, 0.11, 1, 0.42, 0.38, 0.18, 1)
 
 [sub_resource type="GradientTexture2D" id="GradientTexture2D_fj5ld"]
 gradient = SubResource("Gradient_n2u7c")
@@ -98,7 +99,7 @@ corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sbp1t"]
-bg_color = Color(0.63264, 0.534451, 0.857609, 1)
+bg_color = Color(0.32, 0.28, 0.13, 1)
 
 [sub_resource type="LabelSettings" id="LabelSettings_ajccg"]
 font_size = 28
@@ -113,6 +114,7 @@ offset_right = 1280.0
 offset_bottom = 755.0
 mouse_filter = 2
 script = ExtResource("1_utaay")
+treasure_relic_pool = ExtResource("1_rdrp0")
 
 [node name="DicePanel" type="Panel" parent="."]
 visible = false
@@ -410,10 +412,10 @@ layout_mode = 2
 offset_top = 4.0
 offset_right = 120.0
 offset_bottom = 24.0
-theme_override_colors/default_color = Color(0.788235, 0.635294, 0.152941, 1)
+theme_override_colors/default_color = Color(0.7, 0.5, 0.9, 1)
 theme_override_font_sizes/normal_font_size = 14
 bbcode_enabled = true
-text = "[center] 50 Gold[/center]"
+text = "[center] 1 Relic[/center]"
 
 [node name="DiceDisplay5" type="TextureRect" parent="DicePanel/HBoxContainer/Dice5"]
 custom_minimum_size = Vector2(120, 120)

@@ -10,7 +10,11 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
         Events.temporary_dice_added.emit("even")
         # Add Oracle card to hand
 
-        var oracle_card = load("res://characters/warrior/cards/card_oracle_exhaust.tres")
+        # load() is still ResourceLoader-cached by path - duplicate before handing it out so
+        # a second trigger (another copy, or this same card cycling back later in the fight)
+        # never emits the SAME Card object into hand twice (two CardUI nodes sharing one
+        # instance_id causes both to resolve as "the" socketed/played card at once).
+        var oracle_card = load("res://characters/warrior/cards/card_oracle_exhaust.tres").duplicate()
         Events.add_card_to_hand_requested.emit(oracle_card)
         Events.dice_roll_reset.emit()
         Events.reset_charged_card.emit()    

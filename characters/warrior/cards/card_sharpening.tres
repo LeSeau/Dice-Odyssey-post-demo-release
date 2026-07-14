@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://d4ff33nnsvwrl" path="res://sharpening_v2.png" id="1_ntnri"]
 [ext_resource type="AudioStream" uid="uid://df64e7qat73gs" path="res://art/block.ogg" id="2_nqo8b"]
 [ext_resource type="Script" path="res://characters/warrior/cards/sharpening.gd" id="2_ys5xw"]
-[ext_resource type="Resource" path="res://characters/warrior/cards/card_sharpening_plus.tres" id="4_plus"]
+[ext_resource type="Resource" uid="uid://b5b3tphlhxogb" path="res://characters/warrior/cards/card_sharpening_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_ys5xw")
@@ -11,7 +11,7 @@ id = "sharpening"
 name = "Sharpening"
 type = 1
 target = 0
-description = "Block X. Charge 1"
+description = "Block X. Charge a random Dice"
 rarity = 0
 red_only = false
 can_play_without_dice = false

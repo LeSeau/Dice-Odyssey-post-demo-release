@@ -1,0 +1,397 @@
+[gd_scene load_steps=18 format=3 uid="uid://c2mvqx4n1p0a1"]
+
+[ext_resource type="Script" path="res://scenes/ui/pause_menu.gd" id="1_script"]
+[ext_resource type="FontFile" uid="uid://b1es4i7nr43mv" path="res://fonts/CinzelDecorative-Bold.otf" id="2_cinzel"]
+[ext_resource type="FontFile" uid="uid://dujsng7qdioan" path="res://assets/static/Roboto_Condensed-SemiBold.ttf" id="3_roboto"]
+[ext_resource type="StyleBox" uid="uid://c8k2n5xr9j7wq" path="res://scenes/shop/shop_button_normal.tres" id="4_btn_n"]
+[ext_resource type="StyleBox" uid="uid://dqm3v7x8k2n5w" path="res://scenes/shop/shop_button_hover.tres" id="5_btn_h"]
+[ext_resource type="StyleBox" uid="uid://bx6v9n3k8q2wr" path="res://scenes/shop/shop_button_pressed.tres" id="6_btn_p"]
+[ext_resource type="Texture2D" path="res://assets/images/slider_knob.png" id="7_knob"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.101961, 0.227451, 0.235294, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.784314, 0.658824, 0.294118, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 10
+shadow_offset = Vector2(0, 4)
+
+[sub_resource type="LabelSettings" id="LabelSettings_title"]
+font = ExtResource("2_cinzel")
+font_size = 34
+font_color = Color(1, 0.843137, 0, 1)
+outline_size = 4
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 2
+shadow_color = Color(0, 0, 0, 0.6)
+
+[sub_resource type="LabelSettings" id="LabelSettings_row"]
+font = ExtResource("3_roboto")
+font_size = 19
+font_color = Color(0.92549, 0.890196, 0.815686, 1)
+outline_size = 2
+outline_color = Color(0, 0, 0, 0.5)
+
+[sub_resource type="LabelSettings" id="LabelSettings_pct"]
+font = ExtResource("3_roboto")
+font_size = 17
+font_color = Color(0.784314, 0.658824, 0.294118, 1)
+outline_size = 2
+outline_color = Color(0, 0, 0, 0.5)
+
+[sub_resource type="LabelSettings" id="LabelSettings_note"]
+font = ExtResource("3_roboto")
+font_size = 13
+font_color = Color(0.72, 0.68, 0.56, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_confirm_title"]
+font = ExtResource("2_cinzel")
+font_size = 24
+font_color = Color(1, 0.843137, 0, 1)
+outline_size = 3
+outline_color = Color(0, 0, 0, 1)
+shadow_size = 2
+shadow_color = Color(0, 0, 0, 0.6)
+
+[sub_resource type="LabelSettings" id="LabelSettings_confirm_body"]
+font = ExtResource("3_roboto")
+font_size = 16
+font_color = Color(0.92549, 0.890196, 0.815686, 1)
+outline_size = 2
+outline_color = Color(0, 0, 0, 0.5)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_track"]
+content_margin_top = 3.0
+content_margin_bottom = 3.0
+bg_color = Color(0.0509804, 0.113725, 0.121569, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fill"]
+content_margin_top = 3.0
+content_margin_bottom = 3.0
+bg_color = Color(0.784314, 0.658824, 0.294118, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fill_hl"]
+content_margin_top = 3.0
+content_margin_bottom = 3.0
+bg_color = Color(0.898039, 0.780392, 0.419608, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[node name="PauseMenu" type="CanvasLayer"]
+process_mode = 3
+layer = 60
+visible = false
+script = ExtResource("1_script")
+
+[node name="Dimmer" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.62)
+
+[node name="Panel" type="Panel" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -225.0
+offset_top = -262.0
+offset_right = 225.0
+offset_bottom = 262.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="Title" type="Label" parent="Panel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 22.0
+offset_bottom = 68.0
+grow_horizontal = 2
+text = "PAUSED"
+label_settings = SubResource("LabelSettings_title")
+horizontal_alignment = 1
+
+[node name="Content" type="VBoxContainer" parent="Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 34.0
+offset_top = 86.0
+offset_right = -34.0
+offset_bottom = -24.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 12
+
+[node name="MasterRow" type="HBoxContainer" parent="Panel/Content"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Label" type="Label" parent="Panel/Content/MasterRow"]
+custom_minimum_size = Vector2(96, 0)
+layout_mode = 2
+text = "Master"
+label_settings = SubResource("LabelSettings_row")
+vertical_alignment = 1
+
+[node name="MasterSlider" type="HSlider" parent="Panel/Content/MasterRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 26)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 1.0
+step = 0.01
+value = 1.0
+theme_override_icons/grabber = ExtResource("7_knob")
+theme_override_icons/grabber_highlight = ExtResource("7_knob")
+theme_override_styles/slider = SubResource("StyleBoxFlat_track")
+theme_override_styles/grabber_area = SubResource("StyleBoxFlat_fill")
+theme_override_styles/grabber_area_highlight = SubResource("StyleBoxFlat_fill_hl")
+
+[node name="MasterPct" type="Label" parent="Panel/Content/MasterRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(52, 0)
+layout_mode = 2
+text = "100%"
+label_settings = SubResource("LabelSettings_pct")
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="MusicRow" type="HBoxContainer" parent="Panel/Content"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Label" type="Label" parent="Panel/Content/MusicRow"]
+custom_minimum_size = Vector2(96, 0)
+layout_mode = 2
+text = "Music"
+label_settings = SubResource("LabelSettings_row")
+vertical_alignment = 1
+
+[node name="MusicSlider" type="HSlider" parent="Panel/Content/MusicRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 26)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 1.0
+step = 0.01
+value = 1.0
+theme_override_icons/grabber = ExtResource("7_knob")
+theme_override_icons/grabber_highlight = ExtResource("7_knob")
+theme_override_styles/slider = SubResource("StyleBoxFlat_track")
+theme_override_styles/grabber_area = SubResource("StyleBoxFlat_fill")
+theme_override_styles/grabber_area_highlight = SubResource("StyleBoxFlat_fill_hl")
+
+[node name="MusicPct" type="Label" parent="Panel/Content/MusicRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(52, 0)
+layout_mode = 2
+text = "100%"
+label_settings = SubResource("LabelSettings_pct")
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="SfxRow" type="HBoxContainer" parent="Panel/Content"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Label" type="Label" parent="Panel/Content/SfxRow"]
+custom_minimum_size = Vector2(96, 0)
+layout_mode = 2
+text = "Effects"
+label_settings = SubResource("LabelSettings_row")
+vertical_alignment = 1
+
+[node name="SfxSlider" type="HSlider" parent="Panel/Content/SfxRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 26)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 1.0
+step = 0.01
+value = 1.0
+theme_override_icons/grabber = ExtResource("7_knob")
+theme_override_icons/grabber_highlight = ExtResource("7_knob")
+theme_override_styles/slider = SubResource("StyleBoxFlat_track")
+theme_override_styles/grabber_area = SubResource("StyleBoxFlat_fill")
+theme_override_styles/grabber_area_highlight = SubResource("StyleBoxFlat_fill_hl")
+
+[node name="SfxPct" type="Label" parent="Panel/Content/SfxRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(52, 0)
+layout_mode = 2
+text = "100%"
+label_settings = SubResource("LabelSettings_pct")
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="Spacer1" type="Control" parent="Panel/Content"]
+custom_minimum_size = Vector2(0, 4)
+layout_mode = 2
+
+[node name="FullscreenButton" type="Button" parent="Panel/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 46)
+layout_mode = 2
+theme_override_colors/font_hover_color = Color(1, 0.843137, 0, 1)
+theme_override_colors/font_color = Color(0.92549, 0.890196, 0.815686, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.6)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("2_cinzel")
+theme_override_font_sizes/font_size = 19
+theme_override_styles/hover = ExtResource("5_btn_h")
+theme_override_styles/pressed = ExtResource("6_btn_p")
+theme_override_styles/normal = ExtResource("4_btn_n")
+text = "Fullscreen: Off"
+
+[node name="Spacer2" type="Control" parent="Panel/Content"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ResumeButton" type="Button" parent="Panel/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+theme_override_colors/font_hover_color = Color(1, 0.843137, 0, 1)
+theme_override_colors/font_color = Color(0.92549, 0.890196, 0.815686, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.6)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("2_cinzel")
+theme_override_font_sizes/font_size = 24
+theme_override_styles/hover = ExtResource("5_btn_h")
+theme_override_styles/pressed = ExtResource("6_btn_p")
+theme_override_styles/normal = ExtResource("4_btn_n")
+text = "Resume"
+
+[node name="MainMenuButton" type="Button" parent="Panel/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+theme_override_colors/font_hover_color = Color(1, 0.843137, 0, 1)
+theme_override_colors/font_color = Color(0.92549, 0.890196, 0.815686, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.6)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("2_cinzel")
+theme_override_font_sizes/font_size = 19
+theme_override_styles/hover = ExtResource("5_btn_h")
+theme_override_styles/pressed = ExtResource("6_btn_p")
+theme_override_styles/normal = ExtResource("4_btn_n")
+text = "Quit to Main Menu"
+
+[node name="Note" type="Label" parent="Panel/Content"]
+layout_mode = 2
+text = "Your run is saved at the last map checkpoint."
+label_settings = SubResource("LabelSettings_note")
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="ConfirmQuitPanel" type="Panel" parent="."]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -230.0
+offset_top = -105.0
+offset_right = 230.0
+offset_bottom = 105.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="ConfirmTitle" type="Label" parent="ConfirmQuitPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 18.0
+offset_bottom = 54.0
+grow_horizontal = 2
+text = "Quit to main menu?"
+label_settings = SubResource("LabelSettings_confirm_title")
+horizontal_alignment = 1
+
+[node name="ConfirmBody" type="Label" parent="ConfirmQuitPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 26.0
+offset_top = 64.0
+offset_right = -26.0
+offset_bottom = 112.0
+grow_horizontal = 2
+text = "Don't worry — your progress is saved at each floor."
+label_settings = SubResource("LabelSettings_confirm_body")
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="ConfirmButtons" type="HBoxContainer" parent="ConfirmQuitPanel"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 28.0
+offset_top = -66.0
+offset_right = -28.0
+offset_bottom = -18.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/separation = 20
+
+[node name="ConfirmQuitButton" type="Button" parent="ConfirmQuitPanel/ConfirmButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_hover_color = Color(1, 0.843137, 0, 1)
+theme_override_colors/font_color = Color(0.92549, 0.890196, 0.815686, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.6)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("2_cinzel")
+theme_override_font_sizes/font_size = 19
+theme_override_styles/hover = ExtResource("5_btn_h")
+theme_override_styles/pressed = ExtResource("6_btn_p")
+theme_override_styles/normal = ExtResource("4_btn_n")
+text = "Yes, quit"
+
+[node name="CancelQuitButton" type="Button" parent="ConfirmQuitPanel/ConfirmButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_hover_color = Color(1, 0.843137, 0, 1)
+theme_override_colors/font_color = Color(0.92549, 0.890196, 0.815686, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.6)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("2_cinzel")
+theme_override_font_sizes/font_size = 19
+theme_override_styles/hover = ExtResource("5_btn_h")
+theme_override_styles/pressed = ExtResource("6_btn_p")
+theme_override_styles/normal = ExtResource("4_btn_n")
+text = "Cancel"

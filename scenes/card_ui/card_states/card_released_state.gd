@@ -28,7 +28,7 @@ func enter() -> void:
     else:
         # We're on red dice but NOT currently playing
         if Global.dice_type == "red":
-            if card_ui.card.can_play_without_dice && card_ui.card.id != "card_slash":
+            if card_ui.card.can_play_without_dice:
                 print("Card can be played without dice, playing directly")
                 played = true
                 card_ui.play()
@@ -48,7 +48,12 @@ func enter() -> void:
             
         elif not card_ui.targets.is_empty():
             if not (Global.dice_type != "red" and card_ui.card.red_only==true):
-                if Global.roll_value > 0 or card_ui.card.can_play_without_dice:
+                # roll_value > 0 alone wrongly blocks a legit play when the active dice's
+                # last roll genuinely happened but resolved to 0 (Evil dice's crack face) -
+                # has_active_roll() (roll_history not empty) distinguishes "rolled and got
+                # unlucky" from "haven't rolled yet", so cards like Recombobulate can still
+                # be played as the safety valve they're meant to be even on a crack roll.
+                if Global.roll_value > 0 or card_ui.card.has_active_roll() or card_ui.card.can_play_without_dice:
                     played = true
                     card_ui.play()
                     Events.reset_charged_card.emit()

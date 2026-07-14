@@ -41,6 +41,14 @@ func show_screen(text: String, type: Type) -> void:
         Global.debug_battle_entry = false
         Events.battle_won.emit()
         return
+
+    if Global.tutorial_on:
+        # TutorialDirector owns the win moment during the tutorial fight - it shows its
+        # own victory step (T3.7) and emits battle_won itself once the player dismisses
+        # it, so the reward screen can't cut the tutorial's closing beat short by racing
+        # this auto-advance timer.
+        return
+
     await get_tree().create_timer(WIN_AUTO_ADVANCE_DELAY).timeout
     Events.battle_won.emit()
 

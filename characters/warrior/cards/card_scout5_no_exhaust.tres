@@ -1,0 +1,25 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://c5rs00000119"]
+
+[ext_resource type="Texture2D" uid="uid://brl4p4svfvlun" path="res://gptoracle.png" id="1_vhioh"]
+[ext_resource type="Script" path="res://characters/warrior/cards/oracle_scout5_no_exhaust.gd" id="2_x5jx0"]
+
+[resource]
+script = ExtResource("2_x5jx0")
+id = "card_oracle5_no_exhaust"
+name = "Scout 5"
+type = 1
+target = 0
+description = " Scout 5"
+rarity = 1
+red_only = false
+can_play_without_dice = true
+requirement = 0
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Scout"
+upgraded = true
+icon = ExtResource("1_vhioh")
+tooltip_text = ""

@@ -13,3 +13,4 @@ counter = 0
 starter_relic = false
 icon = ExtResource("1_hlfb2")
 tooltip = "Start each fight with 1 more random Dice on the first turn"
+tags = ""

@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://kcjvtkdjfj6x" path="res://bolster_v2.png" id="1_4tp04"]
 [ext_resource type="Script" path="res://characters/warrior/cards/bolster.gd" id="2_ld5fs"]
 [ext_resource type="AudioStream" uid="uid://cy6owtfbf8sfv" path="res://sounds/fountainheal.wav" id="3_se2qp"]
-[ext_resource type="Resource" path="res://characters/warrior/cards/card_bolster_plus.tres" id="4_plus"]
+[ext_resource type="Resource" uid="uid://ck1g70alu6yv0" path="res://characters/warrior/cards/card_bolster_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_ld5fs")
@@ -11,13 +11,13 @@ id = "card_bolster"
 name = "Bolster"
 type = 1
 target = 0
-description = "Gain 2 Strength"
+description = "Gain 4 Strength"
 rarity = 0
 red_only = false
 can_play_without_dice = false
 requirement = 1
-requirement_number = 5
-exhausts = false
+requirement_number = 10
+exhausts = true
 bonus_requirement = 0
 bonus_requirement_number = 0
 bonus_description_text = ""

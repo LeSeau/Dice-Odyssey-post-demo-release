@@ -1,0 +1,72 @@
+[gd_scene load_steps=2 format=3 uid="uid://dqf3xkvb2m5na"]
+
+[ext_resource type="Script" path="res://scenes/dice_infusion/dice_infusion.gd" id="1_script"]
+
+[node name="DiceInfusion" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.032, 0.024, 0.055, 1)
+
+[node name="Title" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 30.0
+offset_bottom = 108.0
+grow_horizontal = 2
+horizontal_alignment = 1
+vertical_alignment = 1
+text = "DICE INFUSION"
+
+[node name="Subtitle" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 108.0
+offset_bottom = 172.0
+grow_horizontal = 2
+horizontal_alignment = 1
+vertical_alignment = 1
+text = "Slaying the Leviathan unsealed an ancient power.
+Choose one of your dice to infuse for the rest of the run."
+
+[node name="Options" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 180.0
+offset_bottom = -100.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 70
+alignment = 1
+
+[node name="InfuseButton" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -130.0
+offset_top = -76.0
+offset_right = 130.0
+offset_bottom = -26.0
+grow_horizontal = 2
+grow_vertical = 0
+disabled = true
+text = "INFUSE"

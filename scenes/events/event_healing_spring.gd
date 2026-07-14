@@ -6,8 +6,8 @@ var run_stats: RunStats
 const DRINK_COST := 25
 const DRINK_HEAL := 25
 const FLASK_HEAL := 10
-const BLEED_HP_COST := 10
-const BLEED_GOLD := 40
+const BLEED_HP_COST := 8
+const BLEED_GOLD := 50
 
 func setup(character: CharacterStats, stats: RunStats) -> void:
     character_stats = character

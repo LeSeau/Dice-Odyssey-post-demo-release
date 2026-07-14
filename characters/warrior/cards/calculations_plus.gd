@@ -10,7 +10,9 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
         Events.temporary_dice_added.emit("even")
         # Add Oracle card to hand
 
-        var oracle_card = load("res://characters/warrior/cards/card_scout5.tres")
+        # load() is still ResourceLoader-cached by path - duplicate so a repeat trigger never
+        # hands out the SAME Card object twice (see calculations.gd for the full rationale).
+        var oracle_card = load("res://characters/warrior/cards/card_scout5.tres").duplicate()
         Events.add_card_to_hand_requested.emit(oracle_card)
         Events.dice_roll_reset.emit()
         Events.reset_charged_card.emit()

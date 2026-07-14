@@ -22,7 +22,9 @@ func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
         support_effect.execute(targets)
         Events.dice_amount_changed.emit()
 
-        var oracle_card3 = load("res://characters/warrior/cards/card_scout3.tres")
+        # load() is still ResourceLoader-cached by path - duplicate so a repeat trigger never
+        # hands out the SAME Card object twice (see calculations.gd for the full rationale).
+        var oracle_card3 = load("res://characters/warrior/cards/card_scout3.tres").duplicate()
         Events.add_card_to_hand_requested.emit(oracle_card3)
         Events.reset_charged_card.emit()  
         

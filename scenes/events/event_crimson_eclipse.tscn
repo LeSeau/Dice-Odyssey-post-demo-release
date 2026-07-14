@@ -153,7 +153,7 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("4_ecl004")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[center]Accept the wager.[color=red] Lose 2 random Relics.[/color][color=green] Gain an Evil Dice.[/color][/center]
+text = "[center]Accept the wager.[color=#e05a5a] Lose 2 random Relics.[/color][color=green] Gain an Evil Dice.[/color][/center]
 "
 scroll_active = false
 
@@ -176,7 +176,7 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("4_ecl004")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[center]Decline.[color=red] Lose 6 HP.[/color][/center]
+text = "[center]Decline.[color=#e05a5a] Lose 6 HP.[/color][/center]
 "
 scroll_active = false
 

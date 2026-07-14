@@ -52,6 +52,16 @@ func _cleanup_tooltips() -> void:
             tooltip.queue_free()
     tooltip_instances_tags.clear()
 
+# The tooltip's title box is a fixed-width RichTextLabel (default bold_font_size=16) that
+# doesn't grow the panel to fit - a long relic name (e.g. "Cartographer's Quill") wraps and
+# gets clipped by the box's fixed height instead of showing in full. Step the font size down
+# past a couple length thresholds so it shrinks to fit on one line instead.
+func _fit_tooltip_title(title_label: RichTextLabel, relic_name: String) -> void:
+    if relic_name.length() > 20:
+        title_label.add_theme_font_size_override("bold_font_size", 11)
+    elif relic_name.length() > 15:
+        title_label.add_theme_font_size_override("bold_font_size", 13)
+
 func _on_mouse_entered() -> void:
     flash()
     _hover_id += 1
@@ -73,6 +83,7 @@ func _on_mouse_entered() -> void:
     get_tree().root.add_child(tooltip_instance)
     var tooltip_panel = tooltip_instance.get_node("Tooltip")
     tooltip_panel.tooltip_title.text = "[color=gold][b]%s[/b][/color]" % relic.relic_name
+    _fit_tooltip_title(tooltip_panel.tooltip_title, relic.relic_name)
     tooltip_panel.tooltip_label.text = relic.get_colorized_description(relic.tooltip)
     var pos = get_global_mouse_position() + Vector2(24, 24)
     tooltip_panel.show_tooltip(pos)

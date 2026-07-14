@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="StockpilePlusStatus" load_steps=3 format=3 uid="uid://c5rs00000201"]
+
+[ext_resource type="Texture2D" uid="uid://cncw0huag7qtx" path="res://stockpile_status_icon.png" id="1_icon"]
+[ext_resource type="Script" path="res://statuses/status_stockpile_plus.gd" id="2_script"]
+
+[resource]
+script = ExtResource("2_script")
+id = "stockpile_plus"
+type = 1
+stack_type = 0
+can_expire = false
+duration = 1
+stacks = 1
+icon = ExtResource("1_icon")
+tooltip = "At the end of your turn, keep up to 12 Power for next turn"

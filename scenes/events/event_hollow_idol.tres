@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="EventStats" load_steps=3 format=3 uid="uid://32ky3sosni2e"]
 
-[ext_resource type="PackedScene" path="res://scenes/events/event_hollow_idol.tscn" id="1_hidl1"]
+[ext_resource type="PackedScene" uid="uid://c8t1570nikvu4" path="res://scenes/events/event_hollow_idol.tscn" id="1_hidl1"]
 [ext_resource type="Script" path="res://custom_resources/event_stats.gd" id="2_hidl2"]
 
 [resource]

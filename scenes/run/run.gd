@@ -8,6 +8,7 @@ const TREASURE_SCENE := preload ("res://scenes/treasure/treasure.tscn")
 const CAMPFIRE_SCENE := preload ("res://scenes/campfire/campfire.tscn")
 const EVENT_SCENE := preload("res://scenes/events/event_add_new_card.tscn")
 const DICE_SHOP_SCENE = preload("res://scenes/shop/dice_shop.tscn")
+const DICE_INFUSION_SCENE := preload("res://scenes/dice_infusion/dice_infusion.tscn")
 
 const SHOP_SCENE := preload ("res://scenes/shop/card_shop.tscn")
 
@@ -28,6 +29,9 @@ const ACT2_GOLD_MULT := 1.5
 @onready var map_button: Button = %MapButton
 @onready var consult_map_button: TextureButton = %ConsultMapButton
 @onready var consult_map_button_hover_glow: Panel = %HoverGlow
+@onready var pause_button: TextureButton = %PauseButton
+@onready var pause_button_hover_glow: Panel = get_node("%PauseButton/PauseHoverGlow")
+@onready var pause_menu: PauseMenu = %PauseMenu
 @onready var battle_button: Button = %BattleButton
 @onready var shop_button: Button = %ShopButton
 @onready var rewards_button: Button = %RewardsButton
@@ -108,6 +112,7 @@ func _late_init() -> void:
 
     Events.show_reward.connect(_on_show_reward)
     Events.show_reward_with_relic.connect(_on_show_reward_with_relic)
+    Events.show_reward_with_relic_and_gold.connect(_on_show_reward_with_relic_and_gold)
     Events.update_dice_top_bar.connect(_on_update_dice_top_bar)
     Events.hp_changed.connect(_on_hp_changed)
     Events.card_removed.connect(_on_card_removed)
@@ -188,7 +193,11 @@ func _on_update_dice_top_bar() -> void:
     # Always update blue and red dice (starting dice)
     blue_dice_amount.text = "x" + str(Global.blue_dice_max_amount)
     red_dice_amount.text = "x" + str(Global.red_dice_max_amount)
-    
+    # Blue is assumed permanent, but Red can now be traded away entirely
+    # (event_hollow_idol.gd) - hide it the same way every other dice type
+    # already hides itself once its max_amount hits 0.
+    red_dice.visible = Global.red_dice_max_amount > 0
+
     # Check if we need to add any new dice types
     var dice_types = ["evil", "giant", "magma", "even", "odd", "green", "mech"]
     
@@ -264,8 +273,14 @@ func _change_view(scene: PackedScene) -> Node:
     return new_view
     
 func _show_map() -> void:
+    # Act transition beat: the first return to the map after the act-1 boss (i.e. right
+    # after the boss reward screen exits) is intercepted by the dice infusion screen.
+    # The actual act-2 entry (heal, new map, ACT 2 banner) happens in
+    # _on_dice_infusion_completed, so the banner isn't wasted under the infusion screen.
     if act_transition_pending:
-        _enter_act_2()
+        act_transition_pending = false
+        _show_dice_infusion()
+        return
     if Global.tutorial_dice_shop_explanation_needed:
         dice_shop_explanation_box.show()
         Global.tutorial_dice_shop_explanation_needed = false
@@ -288,6 +303,7 @@ func _show_map() -> void:
 func _setup_event_connections() -> void:
     Events.battle_won.connect(_on_battle_won)
     Events.battle_reward_exited.connect(_show_map)
+    Events.dice_infusion_completed.connect(_on_dice_infusion_completed)
     Events.event_exited.connect(_show_map)
     Events.map_exited.connect(_on_map_exited)
     Events.shop_exited.connect(_show_map)
@@ -305,6 +321,11 @@ func _setup_event_connections() -> void:
     consult_map_button.pressed.connect(_on_consult_map_button_pressed)
     consult_map_button.mouse_entered.connect(_on_consult_map_button_mouse_entered)
     consult_map_button.mouse_exited.connect(_on_consult_map_button_mouse_exited)
+    pause_button.pressed.connect(_on_pause_button_pressed)
+    pause_button.mouse_entered.connect(_on_pause_button_mouse_entered)
+    pause_button.mouse_exited.connect(_on_pause_button_mouse_exited)
+    pause_menu.opened.connect(_on_pause_menu_opened)
+    pause_menu.closed.connect(_on_pause_menu_closed)
     
     
 func _setup_top_bar():
@@ -379,11 +400,13 @@ func _get_tier_for_room(room: Room) -> int:
 func _get_unique_battle_for_tier(tier: int) -> BattleStats:
     if Global.tutorial_fight == true && Global.tutorial_on:
         print("specific fight chosen")
-        var crab_fight: BattleStats = load("res://battles/tier_0_crab.tres")
-        used_battles.append(crab_fight) # optional but recommended
+        # Dedicated tutorial content (battles/tutorial_fight.tres), not the real
+        # tier_0_crab pool entry - not appended to used_battles since it isn't in any
+        # pool and should never affect no-repeat tracking for the rest of the run.
+        var tutorial_fight: BattleStats = load("res://battles/tutorial_fight.tres")
         Global.tutorial_fight = false   # so only the first fight is forced
         Global.tutorial_dice_shop_explanation_needed = true
-        return crab_fight
+        return tutorial_fight
     # In act 2 the act-local tier draws from a higher act-1 pool (see
     # ACT2_SOURCE_TIER) - everything below works on the source tier, since that's
     # what the .tres battle_tier labels hold.
@@ -497,6 +520,20 @@ func _on_battle_won() -> void:
 # same pool object carries the depletion across the transition. used_battles IS
 # cleared though, since fights are recycled/rescaled per act (see
 # _apply_act2_scaling) rather than being a one-time-per-run pool like events.
+# The act-transition "ancient power" beat (STS2 ancient-relic style): after the act-1
+# boss reward screen exits, the dice infusion screen takes over current_view instead of
+# the map. It reads Global itself (owned dice types) and reports back through
+# Events.dice_infusion_completed - no setup args needed.
+func _show_dice_infusion() -> void:
+    dice_shop.hide()
+    _change_view(DICE_INFUSION_SCENE)
+
+
+func _on_dice_infusion_completed() -> void:
+    _enter_act_2()
+    _show_map()
+
+
 func _enter_act_2() -> void:
     act_transition_pending = false
     Global.current_act = 2
@@ -540,7 +577,7 @@ func _on_map_exited(room: Room) -> void:
             # Check if we have events available
             if event_stats_pool.pool.size() > 0:
                 # Get a random event from the pool
-                var random_event = event_stats_pool.get_random_event_for_tier(0)
+                var random_event = event_stats_pool.get_random_event_for_tier(0, relic_handler.get_all_relics().size())
                 
                 if random_event != null:
                     # Get the scene from the random event
@@ -634,6 +671,42 @@ func _on_open_deck_view_for_upgrade() -> void:
 
 func _on_show_map_requested() -> void:
     _show_map()
+
+
+func _on_pause_button_pressed() -> void:
+    pause_menu.toggle()
+
+
+# Same stuck-tooltip guard as _open_map_consult(): pausing freezes mouse_exited on
+# non-ALWAYS nodes, so a relic tooltip mid-hover would otherwise sit frozen on
+# screen for as long as the pause menu is up (and after closing it, too).
+func _on_pause_menu_opened() -> void:
+    for relic_ui in relic_handler.relics.get_children():
+        if relic_ui.has_method("_cleanup_tooltips"):
+            relic_ui._cleanup_tooltips()
+    # Map is PROCESS_MODE_ALWAYS on purpose (map consult needs it interactive while
+    # the tree is paused), but that also means the pause menu's tree-pause does NOT
+    # freeze it - map.gd polls Input in _process and handles raw _input, both of
+    # which ignore the menu's full-screen dimmer entirely (they never go through
+    # GUI), and room Area2Ds keep firing hover. Demote it to PAUSABLE while the
+    # menu is up so the map underneath is truly inert; restored on close below.
+    map.process_mode = Node.PROCESS_MODE_PAUSABLE
+
+
+func _on_pause_menu_closed() -> void:
+    map.process_mode = Node.PROCESS_MODE_ALWAYS
+
+
+func _on_pause_button_mouse_entered() -> void:
+    pause_button.modulate = Color(1.18, 1.18, 1.18)
+    var tween := create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+    tween.tween_property(pause_button_hover_glow, "modulate:a", 1.0, 0.12)
+
+
+func _on_pause_button_mouse_exited() -> void:
+    pause_button.modulate = Color.WHITE
+    var tween := create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+    tween.tween_property(pause_button_hover_glow, "modulate:a", 0.0, 0.12)
 
 # Non-destructive "peek at the map" (STS-style), from battle/event/shop/treasure/
 # campfire. Unlike _show_map() (used by the debug MapButton and real map-to-map
@@ -786,6 +859,20 @@ func _on_show_reward_with_relic(relic: Relic) -> void:
     reward_scene.add_relic_reward(relic)
 
 
+# Same as _on_show_reward_with_relic, but also drops a claimable gold pill on
+# the same screen (event_russian_dice.gd's dice-5 payout) - relic can be null
+# (relic pool exhausted) if only gold is left to claim.
+func _on_show_reward_with_relic_and_gold(relic: Relic, gold_amount: int) -> void:
+    var reward_scene := _change_view(BATTLE_REWARD_SCENE) as BattleReward
+    reward_scene.run_stats = stats
+    reward_scene.character_stats = character
+    reward_scene.relic_handler = relic_handler
+    if relic:
+        reward_scene.add_relic_reward(relic)
+    if gold_amount > 0:
+        reward_scene.add_gold_reward(gold_amount)
+
+
 func _on_join_discord_button_pressed() -> void:
     OS.shell_open("https://discord.gg/fah8A2qQx2")
 
@@ -802,7 +889,7 @@ const DICE_TYPES := ["blue", "red", "evil", "green", "giant", "magma", "even", "
 # within-combat tutorial flags aren't listed - a load always lands on the map, where
 # reset_run_state() defaults are correct for them.
 const SAVED_TUTORIAL_FLAGS := [
-    "tutorial_on", "tutorial_fight", "tutorial_block", "tutorial_enemy_attack",
+    "tutorial_on", "tutorial_fight", "tutorial_enemy_attack",
     "tutorial_reset_power_warning",
     "tutorial_bonus_requirement_explanation_needed",
     "tutorial_transcendent_explanation_needed",
@@ -864,6 +951,7 @@ func _save_checkpoint() -> void:
         "deck": deck_out,
         "relics": relics_out,
         "dice_max": dice_out,
+        "dice_infusions": Global.dice_infusions.duplicate(),
         "dice_inventory": Global.dice_inventory.duplicate(),
         "purchased_dice_counts": Global.purchased_dice_counts.duplicate(),
         "shop_initialized": Global.shop_initialized,
@@ -907,6 +995,8 @@ func _load_run() -> void:
         # current gets recomputed at each battle start anyway; max is a safe map-screen value
         Global.set(type + "_dice_current_amount", max_amount)
     Global.dice_inventory = data["dice_inventory"]
+    # .get with default: saves written before the infusion feature (2026-07-14) lack the key.
+    Global.dice_infusions = data.get("dice_infusions", {})
     Global.purchased_dice_counts = data["purchased_dice_counts"]
     Global.shop_initialized = data["shop_initialized"]
     Global.shop_dice_selection = data["shop_dice_selection"]

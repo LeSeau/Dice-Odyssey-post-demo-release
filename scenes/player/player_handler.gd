@@ -4,6 +4,39 @@ extends Node
 const HAND_DRAW_INTERVAL := 0.25
 const HAND_DISCARD_INTERVAL := 0.25
 
+# Forced opening hands for the 3 scripted tutorial turns (tutorial_redesign_2026-07.md
+# §3/§6.B.3), keyed by Global.fight_turn at the moment _force_tutorial_hand() runs (0 = turn
+# 1, 1 = turn 2, 2 = turn 3 - fight_turn increments in end_turn(), so start_turn() always
+# sees the turn that's ABOUT to begin). cards_per_turn is 5, and each turn's script uses
+# only 4 of them, so ONE card is always left in hand at End Turn - that spare must never be
+# a Strike. The Skeleton is deliberately left at exactly 6 HP entering turn 3 (the scripted
+# Scout->guaranteed-6->Strike finale), so a spare Strike + the fresh Red Dice would be an
+# obvious "socket it, roll a 6, kill him now" that both tempts the player and would preempt
+# the finale. Turn 2's spare is therefore a second Block (self-target, can't touch the
+# enemy). Turn 3 only forces Scout 3 + one Strike; by then some Strike/Block copies have
+# cycled into the discard, so _force_tutorial_hand() searches BOTH piles (the rest of turn
+# 3's hand is a genuine reshuffle draw, gated anyway so it never matters which cards land).
+const TUTORIAL_HAND_BY_TURN := {
+    0: [
+        "res://characters/warrior/cards/warrior_axe_attack2.tres",
+        "res://characters/warrior/cards/warrior_axe_attack3.tres",
+        "res://characters/warrior/cards/warrior_block1.tres",
+        "res://characters/warrior/cards/warrior_block2.tres",
+        "res://characters/warrior/cards/warrior_block3.tres",
+    ],
+    1: [
+        "res://characters/warrior/cards/low_blow.tres",
+        "res://characters/warrior/cards/card_recombobulate.tres",
+        "res://characters/warrior/cards/reinforce.tres",
+        "res://characters/warrior/cards/warrior_block4.tres",
+        "res://characters/warrior/cards/warrior_block2.tres",
+    ],
+    2: [
+        "res://characters/warrior/cards/card_scout3_no_exhaust.tres",
+        "res://characters/warrior/cards/warrior_axe_attack2.tres",
+    ],
+}
+
 @onready var hand: Control = $"../BattleUI/Hand"
 @onready var audio_stream_player_2d: AudioStreamPlayer2D = $"../AudioStreamPlayer2D"
 
@@ -29,19 +62,6 @@ func start_battle(char_stats: CharacterStats) -> void:
     character = char_stats
     character.draw_pile = character.deck.duplicate(true)
     character.draw_pile.shuffle()
-    if Global.tutorial_on:
-        var forced_cards = [
-            load("res://characters/warrior/cards/warrior_axe_attack1.tres"),
-            load("res://characters/warrior/cards/warrior_block1.tres"),
-            load("res://characters/warrior/cards/low_blow.tres"),
-            load("res://characters/warrior/cards/warrior_axe_attack2.tres"),
-            load("res://characters/warrior/cards/warrior_block2.tres")
-        ]
-        for forced_card in forced_cards:
-            character.draw_pile.remove_card(forced_card)
-        # Insert at front (will be drawn first)
-        for i in range(forced_cards.size() - 1, -1, -1):
-            character.draw_pile.cards.push_front(forced_cards[i])
 
     character.discard = CardPile.new()
     relics.relics_activated.connect(_on_relics_activated)
@@ -50,14 +70,6 @@ func start_battle(char_stats: CharacterStats) -> void:
 
 
 func start_turn() -> void:
-    var forced_turn2_cards = [
-        load("res://characters/warrior/cards/warrior_axe_attack3.tres"),
-        load("res://characters/warrior/cards/card_recombobulate.tres"),
-        load("res://characters/warrior/cards/warrior_block3.tres"),
-        load("res://characters/warrior/cards/reinforce.tres"),
-        load("res://characters/warrior/cards/warrior_axe_attack4.tres")
-    ]
-
     Events.check_if_losing_strength.emit()
     character.block = 0
     Global.player.stats.block = 0
@@ -68,18 +80,31 @@ func start_turn() -> void:
     relics.activate_relics_by_type(Relic.Type.START_OF_TURN)
     Global.blue_dice_current_amount = Global.blue_dice_max_amount + Global.blue_dice_bonus_amount + Global.blue_dice_bonus_amount_fight
     Global.roll_history = []
-    if Global.tutorial_second_turn && Global.tutorial_on:
-        for forced_card in forced_turn2_cards:
-            character.draw_pile.remove_card(forced_card)
-
-        for i in range(forced_turn2_cards.size() - 1, -1, -1):
-            character.draw_pile.cards.push_front(forced_turn2_cards[i])
-        Global.tutorial_second_turn = false
+    if Global.tutorial_on:
+        _force_tutorial_hand()
     Global.dice_amount_rolled_this_turn = 0
     Events.player_turn_started.emit()
-    if Global.tutorial_end_turn: 
-        Events.tutorial_step_requested.emit(12)
-        Global.tutorial_end_turn = false
+
+
+# Pulls this turn's scripted opening hand (TUTORIAL_HAND_BY_TURN) out of wherever each
+# card currently sits - draw_pile most of the time, but by turn 3 every starter card has
+# cycled through play/discard at least once, so discard has to be checked too (remove_card
+# is a safe no-op on a pile that doesn't have the card, so checking both unconditionally is
+# fine). Cards end up at the FRONT of draw_pile in list order, so the very next draw_cards()
+# call deals them out first - anything beyond the forced list (turn 3 only forces 2 of its
+# 5 cards) is a genuine reshuffle draw from whatever's left in discard.
+func _force_tutorial_hand() -> void:
+    var paths: Array = TUTORIAL_HAND_BY_TURN.get(Global.fight_turn, [])
+    if paths.is_empty():
+        return
+    var forced_cards: Array[Card] = []
+    for path: String in paths:
+        forced_cards.append(load(path))
+    for forced_card in forced_cards:
+        character.draw_pile.remove_card(forced_card)
+        character.discard.remove_card(forced_card)
+    for i in range(forced_cards.size() - 1, -1, -1):
+        character.draw_pile.cards.push_front(forced_cards[i])
 
 func end_turn() -> void:
     Events.clear_socket.emit()

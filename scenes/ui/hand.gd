@@ -11,6 +11,16 @@ const CARD_UI_SCENE := preload("res://scenes/card_ui/card_ui.tscn")
 @export var hover_lift: float = -20.0  # How much the card lifts when hovered
 @export var hover_time: float = 0.15   # Animation time for hovering
 
+# Tutorial lift is bigger than a normal hover (lifted higher + scaled more) so the one card
+# the tutorial wants clicked reads as clearly picked out from the rest of the fan.
+const TUTORIAL_LIFT := -64.0
+const TUTORIAL_SCALE := Vector2(1.22, 1.22)
+
+# The tutorial "locks" a card lifted. While locked, hover-in/out on that card re-asserts the
+# lift instead of resetting to base - otherwise hovering it and moving away would drop it back
+# down (the plain hover's mouse_exited reset). Cleared by clear_card_lift when the step ends.
+var tutorial_locked_card: CardUI = null
+
 # Store original vertical Y positions (not X!)
 var _original_positions: Dictionary = {}
 var _original_z_indices: Dictionary = {}
@@ -37,6 +47,8 @@ func add_card(card: Card) -> void:
     call_deferred("_update_card_positions")
 
 func discard_card(card: CardUI) -> void:
+    if tutorial_locked_card == card:
+        tutorial_locked_card = null
     if _original_positions.has(card):
         _original_positions.erase(card)
     card.queue_free()
@@ -87,6 +99,12 @@ func _update_card_positions() -> void:
 func _on_card_mouse_entered(card: CardUI) -> void:
     if card.disabled or not _original_positions.has(card):
         return
+    # Locked (tutorial) card keeps its bigger lift on hover rather than dropping to the plain
+    # hover height - never falls below the tutorial lift while the step is active.
+    if card == tutorial_locked_card:
+        if Global.dragging_card == false:
+            highlight_card_lift(card)
+        return
     if Global.dragging_card == false:
         var tween := create_tween()
         tween.tween_property(card, "position:y",
@@ -98,6 +116,12 @@ func _on_card_mouse_entered(card: CardUI) -> void:
 func _on_card_mouse_exited(card: CardUI) -> void:
     if not _original_positions.has(card):
         return
+    # Locked (tutorial) card must not reset to base on hover-out - re-assert the lift instead,
+    # unless it's mid-drag (the drag system owns its position then).
+    if card == tutorial_locked_card:
+        if Global.dragging_card == false:
+            highlight_card_lift(card)
+        return
     if Global.dragging_card == false:
         var tween := create_tween()
         tween.tween_property(card, "position:y",
@@ -105,6 +129,38 @@ func _on_card_mouse_exited(card: CardUI) -> void:
         card.z_index = _original_z_indices.get(card, 1)
         card.rotation_degrees = _get_card_fan_angle(card)
         card.scale = Vector2(1.0, 1.0)
+
+# Tutorial card highlight: lift+de-rotate+scale the actual card node (the same visual the
+# real hover produces) instead of drawing an external rectangle over it - a rectangle from
+# get_global_rect() is axis-aligned and ignores the fan rotation applied above, so it never
+# lines up with a fanned card's rotated silhouette. Deliberately does NOT reuse
+# _on_card_mouse_entered: that early-returns on card.disabled, and the tutorial lifts a card
+# in the same step that re-enables it (gate applied just after), so the card is still disabled
+# at lift time - the hover path would silently no-op. This path ignores disabled on purpose.
+func highlight_card_lift(card: CardUI) -> void:
+    tutorial_locked_card = card
+    # Fall back to the card's CURRENT y when the fan positions haven't been cached yet - without
+    # this the lift silently no-ops (only the lock got set) whenever _original_positions was
+    # empty at call time, which is exactly why the tutorial's Strike wasn't visibly lifting.
+    var base_y: float = _original_positions[card].y if _original_positions.has(card) else card.position.y
+    var tween := create_tween()
+    tween.tween_property(card, "position:y",
+        base_y + TUTORIAL_LIFT, hover_time).set_ease(Tween.EASE_OUT)
+    card.z_index = 60
+    card.rotation_degrees = 0
+    card.scale = TUTORIAL_SCALE
+
+func clear_card_lift(card: CardUI) -> void:
+    if tutorial_locked_card == card:
+        tutorial_locked_card = null
+    if not _original_positions.has(card):
+        return
+    var tween := create_tween()
+    tween.tween_property(card, "position:y",
+        _original_positions[card].y, hover_time).set_ease(Tween.EASE_IN)
+    card.z_index = _original_z_indices.get(card, 1)
+    card.rotation_degrees = _get_card_fan_angle(card)
+    card.scale = Vector2(1.0, 1.0)
 
 func _on_add_card_to_hand_requested(card: Card) -> void:
     add_card(card)
@@ -241,7 +297,10 @@ func _get_glow_state(card: Card) -> CardUI.PlayableGlow:
             if card.requirement == Card.Requirement.NONE:
                 return CardUI.PlayableGlow.AVAILABLE
         return CardUI.PlayableGlow.NONE
-    if Global.roll_value <= 0:
+    # roll_value <= 0 alone would wrongly dim a card that's actually playable right now -
+    # has_active_roll() catches the "rolled and landed on Evil's crack face (0)" case, which
+    # is still a real roll, just an unlucky one (see card_released_state.gd's matching gate).
+    if Global.roll_value <= 0 and not card.has_active_roll():
         return CardUI.PlayableGlow.NONE
     if card.requirement == Card.Requirement.NONE:
         return CardUI.PlayableGlow.AVAILABLE

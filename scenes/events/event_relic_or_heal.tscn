@@ -8,7 +8,7 @@
 [ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="6_wr10k"]
 
 [sub_resource type="Gradient" id="Gradient_n2u7c"]
-colors = PackedColorArray(0.972549, 0.913725, 0.631373, 1, 0.705882, 0.772549, 0.894118, 1)
+colors = PackedColorArray(0.15, 0.08, 0.2, 1, 0.5, 0.25, 0.55, 1)
 
 [sub_resource type="GradientTexture2D" id="GradientTexture2D_fj5ld"]
 gradient = SubResource("Gradient_n2u7c")
@@ -22,7 +22,7 @@ corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sbp1t"]
-bg_color = Color(0.63264, 0.534451, 0.857609, 1)
+bg_color = Color(0.4, 0.18, 0.45, 1)
 
 [sub_resource type="LabelSettings" id="LabelSettings_ajccg"]
 font_size = 28
@@ -169,7 +169,7 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("6_wr10k")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[center]Dive deeper.[color=green] Gain a Relic.[/color] [color=red] Lose 8 HP[/color] [/center]
+text = "[center]Dive deeper.[color=green] Gain a Relic.[/color] [color=#e05a5a] Lose 8 HP[/color] [/center]
 "
 scroll_active = false
 

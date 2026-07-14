@@ -6,7 +6,9 @@ func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
     block_effect.amount = Global.roll_value
     block_effect.sound = sound
     block_effect.execute(targets)
-    var scout_card = load("res://characters/warrior/cards/card_scout3.tres")
+    # load() is still ResourceLoader-cached by path - duplicate so a repeat trigger never
+    # hands out the SAME Card object twice (see calculations.gd for the full rationale).
+    var scout_card = load("res://characters/warrior/cards/card_scout3.tres").duplicate()
     Events.add_card_to_hand_requested.emit(scout_card)
     Events.dice_roll_reset.emit()
     Events.reset_charged_card.emit()

@@ -11,7 +11,7 @@ func setup(character: CharacterStats, stats: RunStats) -> void:
     run_stats = stats
 
 func _on_accept_button_pressed() -> void:
-    Global.gold +=45
+    Global.gold +=40
     Events.gold_changed.emit()
     Events.event_exited.emit()
 
@@ -23,8 +23,8 @@ func _on_leave_button_pressed() -> void:
 
 
 func _on_more_money_button_pressed() -> void:
-    character_stats.health-=10
-    Global.gold +=110
+    character_stats.health-=16
+    Global.gold +=100
     Events.hp_changed.emit()
     Events.gold_changed.emit()
     Events.event_exited.emit()

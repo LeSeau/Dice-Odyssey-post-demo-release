@@ -11,11 +11,18 @@
 [ext_resource type="AudioStream" uid="uid://bu8uvjhi41uik" path="res://success.mp3" id="8_yulmk"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_kwaja"]
-bg_color = Color(0.246036, 0.403102, 0.363782, 1)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
+bg_color = Color(0.117647, 0.196078, 0.176471, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.788235, 0.635294, 0.152941, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 8
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_htkly"]
 bg_color = Color(0.311214, 0, 0.0696221, 1)
@@ -31,7 +38,7 @@ corner_radius_bottom_left = 25
 shadow_size = 8
 
 [sub_resource type="Gradient" id="Gradient_n2u7c"]
-colors = PackedColorArray(0.972549, 0.913725, 0.631373, 1, 0.705882, 0.772549, 0.894118, 1)
+colors = PackedColorArray(0.08, 0.2, 0.22, 1, 0.25, 0.55, 0.55, 1)
 
 [sub_resource type="GradientTexture2D" id="GradientTexture2D_fj5ld"]
 gradient = SubResource("Gradient_n2u7c")
@@ -45,7 +52,7 @@ corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sbp1t"]
-bg_color = Color(0.63264, 0.534451, 0.857609, 1)
+bg_color = Color(0.15, 0.4, 0.4, 1)
 
 [sub_resource type="LabelSettings" id="LabelSettings_ajccg"]
 font_size = 28
@@ -147,7 +154,7 @@ offset_bottom = 27.0
 grow_horizontal = 2
 grow_vertical = 2
 bbcode_enabled = true
-text = "[center]You won [color=yellow] %s Gold[/color]!"
+text = "[center]You won [color=green] %s Health[/color]!"
 
 [node name="SadGoblin" type="TextureRect" parent="DicePanel"]
 visible = false
@@ -284,9 +291,8 @@ layout_mode = 2
 mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("8_4fhak")
 bbcode_enabled = true
-text = "Health fountain ahead![color=yellow] [/color]
-
-[p] [p] Gain [color=green]YOUR ROLL * 4 HP. [/color]
+text = "A health fountain ahead![color=yellow] [/color] The moment you dip your hand in, you can feel it : a warm, rejuvenating current humming up your arm, patient and ancient.
+[p] [p] [color=green]HEAL YOUR ROLL x 5 HP. [/color]
 
 "
 fit_content = true

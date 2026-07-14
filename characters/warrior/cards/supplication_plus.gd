@@ -4,7 +4,7 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     var total_dice = Global.blue_dice_current_amount + Global.red_dice_current_amount + Global.green_dice_current_amount + Global.giant_dice_current_amount + Global.magma_dice_current_amount + Global.even_dice_current_amount + Global.odd_dice_current_amount + Global.mech_dice_current_amount
 
     if total_dice == 0:
-        Global.green_dice_current_amount += 3
+        Global.green_dice_current_amount += 4
         Events.change_current_power.emit()
         var support_effect := SupportEffect.new()
         support_effect.sound = sound

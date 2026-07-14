@@ -199,7 +199,7 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("4_spr016")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[center]Offer some blood to the spring.[color=red] Lose 10 HP.[/color][color=gold] Gain 40 Gold.[/color][/center]
+text = "[center]Offer some blood to the spring.[color=#e05a5a] Lose 8 HP.[/color][color=gold] Gain 50 Gold.[/color][/center]
 "
 scroll_active = false
 

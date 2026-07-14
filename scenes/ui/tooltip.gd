@@ -70,6 +70,8 @@ func get_tooltip_content(requirement):
         text += "Permanently improve a card in your deck"
     elif requirement == "Blessing":
         text += "A lasting effect for the rest of the combat. Exhausts when played."
+    elif requirement == "Celestial":
+        text += "This card does not need Power or Dice to be played. It does not reset Power after being played."
     #if bonus_requirement == "MAX":
         #text += "Your power cannot exceed this value\n"
     #elif bonus_requirement == "MIN":

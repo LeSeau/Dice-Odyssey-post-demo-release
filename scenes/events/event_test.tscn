@@ -7,7 +7,7 @@
 [ext_resource type="FontFile" uid="uid://bfgwr7o37ol1j" path="res://Noto_Sans/static/NotoSans-Regular.ttf" id="4_swvkx"]
 
 [sub_resource type="Gradient" id="Gradient_n2u7c"]
-colors = PackedColorArray(0.972549, 0.913725, 0.631373, 1, 0.705882, 0.772549, 0.894118, 1)
+colors = PackedColorArray(0.18, 0.06, 0.15, 1, 0.5, 0.15, 0.35, 1)
 
 [sub_resource type="GradientTexture2D" id="GradientTexture2D_fj5ld"]
 gradient = SubResource("Gradient_n2u7c")
@@ -21,7 +21,7 @@ corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sbp1t"]
-bg_color = Color(0.63264, 0.534451, 0.857609, 1)
+bg_color = Color(0.4, 0.12, 0.3, 1)
 
 [sub_resource type="LabelSettings" id="LabelSettings_ajccg"]
 font_size = 28
@@ -167,7 +167,7 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("2_w7k0r")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[center] Sure thing, Deocrassus! [color=gold]Gain 60 Gold.[/color]   [color=red]Lose 10 HP.[/color][/center]
+text = "[center] Sure thing, Deocrassus! [color=gold]Gain 60 Gold.[/color]   [color=#e05a5a]Lose 10 HP.[/color][/center]
 "
 scroll_active = false
 

@@ -34,7 +34,7 @@ func _on_dice_rolled(dice_type: String, roll_value: int, owner: RelicUI) -> void
     
     # Create and execute the damage effect
     var dmg = DamageEffect.new()
-    dmg.amount = 3
+    dmg.amount = 5
     dmg.execute([random_enemy])
     print("BowRelic: Damage dealt!")
 

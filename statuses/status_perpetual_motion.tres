@@ -12,4 +12,4 @@ can_expire = false
 duration = 1
 stacks = 1
 icon = ExtResource("1_icon")
-tooltip = "The first time you run out of Dice each turn, Refuel 2 Dice"
+tooltip = "The first time you run out of Dice each turn, Refuel 1 Dice"

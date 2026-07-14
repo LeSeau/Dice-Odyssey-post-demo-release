@@ -1,0 +1,27 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://xgiaodbupma3"]
+
+[ext_resource type="Texture2D" uid="uid://cpb12px7xr3nt" path="res://resonance_good.png" id="1_rltup"]
+[ext_resource type="Script" path="res://characters/warrior/cards/resonance_plus.gd" id="2_script"]
+[ext_resource type="AudioStream" uid="uid://cvjv56ti6hkis" path="res://impact1.ogg" id="3_sound"]
+
+[resource]
+script = ExtResource("2_script")
+id = "card_resonance_plus"
+name = "Resonance+"
+type = 0
+target = 1
+description = "Deal X damage. If you have two identical rolls in your current power, deal X damage again and Charge 1"
+rarity = 0
+red_only = false
+can_play_without_dice = false
+requirement = 0
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Charge"
+upgraded = true
+icon = ExtResource("1_rltup")
+tooltip_text = ""
+sound = ExtResource("3_sound")

@@ -145,6 +145,13 @@ func _on_trade_button_mouse_entered(button: Button) -> void:
         get_tree().root.add_child(tooltip)
         var panel = tooltip.get_node("Tooltip")
         panel.tooltip_title.text = "[color=#%s][b]%s%s[/b][/color]" % [entry["color"], entry["label"], relic.relic_name]
+        # See relic_ui.gd's _fit_tooltip_title - the title box is fixed-width and doesn't
+        # grow to fit, so a long name (plus the label prefix here) can get clipped.
+        var full_title_len: int = entry["label"].length() + relic.relic_name.length()
+        if full_title_len > 20:
+            panel.tooltip_title.add_theme_font_size_override("bold_font_size", 11)
+        elif full_title_len > 15:
+            panel.tooltip_title.add_theme_font_size_override("bold_font_size", 13)
         panel.tooltip_label.text = relic.get_colorized_description(relic.tooltip)
         var pos := Vector2(base_x, start_y + i * (TOOLTIP_HEIGHT + TOOLTIP_SPACING))
         panel.show_tooltip(pos)

@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3 uid="uid://bq7fm2x9k5dpz"]
+
+[ext_resource type="PackedScene" uid="uid://d0efyathkfg74" path="res://scenes/enemy/enemy.tscn" id="1_enemy"]
+[ext_resource type="Resource" uid="uid://cwrl8h4bx3ynv" path="res://enemies/crab/crab_enemy_tutorial.tres" id="2_stats"]
+
+[node name="TutorialFight" type="Node2D"]
+
+[node name="Skeleton" parent="." instance=ExtResource("1_enemy")]
+position = Vector2(892, 391)
+stats = ExtResource("2_stats")
+sprite_y_offset = 10

@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://bvr4vbfb304nb" path="res://supplication.png" id="1_5r87j"]
 [ext_resource type="Script" path="res://characters/warrior/cards/supplication.gd" id="2_gd65b"]
 [ext_resource type="AudioStream" uid="uid://cy6owtfbf8sfv" path="res://sounds/fountainheal.wav" id="3_oxqu6"]
-[ext_resource type="Resource" path="res://characters/warrior/cards/card_supplication_plus.tres" id="4_plus"]
+[ext_resource type="Resource" uid="uid://mtpxv8hjgwd0" path="res://characters/warrior/cards/card_supplication_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_gd65b")
@@ -11,7 +11,7 @@ id = "card_supplication"
 name = "Supplication"
 type = 1
 target = 0
-description = "If you have no Dice left, Charge 2 Green Dice"
+description = "If you have no Dice left, Charge 3 Green Dice"
 rarity = 1
 red_only = false
 can_play_without_dice = true

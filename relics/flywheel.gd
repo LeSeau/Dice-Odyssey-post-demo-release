@@ -7,7 +7,11 @@ func initialize_relic(owner: RelicUI) -> void:
 
 func _on_refuel_happened(_amount, owner: RelicUI) -> void:
     owner.flash()
-    Events.add_card_to_hand_requested.emit(SCOUT2_CARD)
+    # SCOUT2_CARD is a shared preloaded singleton - duplicate before handing it out so two
+    # refuels in the same fight (this relic can trigger repeatedly) never emit the SAME Card
+    # object into hand twice (two CardUI nodes sharing one instance_id causes both to resolve
+    # as "the" socketed/played card at once).
+    Events.add_card_to_hand_requested.emit(SCOUT2_CARD.duplicate())
 
 func deactivate_relic(owner: RelicUI) -> void:
     if Events.refuel_happened.is_connected(_on_refuel_happened):

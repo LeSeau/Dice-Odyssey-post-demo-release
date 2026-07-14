@@ -1,0 +1,27 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5rs00000103"]
+
+[ext_resource type="Texture2D" uid="uid://4mwxeywtlovq" path="res://all_in.png" id="1_vwvjw"]
+[ext_resource type="Script" path="res://characters/warrior/cards/all_in_plus.gd" id="2_script"]
+[ext_resource type="AudioStream" uid="uid://cvjv56ti6hkis" path="res://impact1.ogg" id="3_sound"]
+
+[resource]
+script = ExtResource("2_script")
+id = "card_all_in_plus"
+name = "All In+"
+type = 0
+target = 1
+description = "Charge 1 Blue Dice. Then, deal X damage: spend all your remaining Dice, each adds its own roll"
+rarity = 0
+red_only = true
+can_play_without_dice = false
+requirement = 5
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Charge"
+upgraded = true
+icon = ExtResource("1_vwvjw")
+tooltip_text = ""
+sound = ExtResource("3_sound")

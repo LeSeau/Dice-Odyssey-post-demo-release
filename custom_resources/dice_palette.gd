@@ -44,10 +44,23 @@ const BURST_WARM_WHITE := Color(1.0, 0.92, 0.6)
 
 
 static func accent(type: String) -> Color:
+    # An infused die (act-2 dice infusion) overrides its identity color here, at the
+    # single source - power number, orbs, popups, particles and card glow all recolor
+    # at once without touching any consumer. (The hand-synced consumers listed above -
+    # keyword_colorizer, aura shader .tres - deliberately keep the BASE colors; the
+    # aura gets its own infused recolor via dice.gd::_resolve_aura_material.)
+    if Global.is_dice_infused(type):
+        var info: Dictionary = DiceInfusions.get_info(type)
+        if info.has("accent"):
+            return info["accent"]
     return ACCENT.get(type, Color.WHITE)
 
 
 static func outline(type: String) -> Color:
+    if Global.is_dice_infused(type):
+        var info: Dictionary = DiceInfusions.get_info(type)
+        if info.has("outline"):
+            return info["outline"]
     return OUTLINE.get(type, Color(0.08, 0.08, 0.08))
 
 

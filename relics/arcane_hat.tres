@@ -12,6 +12,5 @@ has_counter = false
 counter = 0
 starter_relic = false
 icon = ExtResource("1_1r2ge")
-tooltip = "When you charge a Dice, draw 1 Card
-"
+tooltip = "When you play a card with an Exact requirement and hit it, Charge a random Dice"
 tags = "Charge"

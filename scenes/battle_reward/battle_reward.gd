@@ -126,6 +126,12 @@ func _on_relic_reward_mouse_entered(relic: Relic, button: Control) -> void:
 
     # Set tooltip title + text
     tooltip_panel.tooltip_title.text = "[color=gold][b]%s[/b][/color]" % relic.relic_name
+    # See relic_ui.gd's _fit_tooltip_title for why: the title box is fixed-width and
+    # doesn't grow to fit, so a long name (e.g. "Cartographer's Quill") gets clipped.
+    if relic.relic_name.length() > 20:
+        tooltip_panel.tooltip_title.add_theme_font_size_override("bold_font_size", 11)
+    elif relic.relic_name.length() > 15:
+        tooltip_panel.tooltip_title.add_theme_font_size_override("bold_font_size", 13)
     tooltip_panel.tooltip_label.text = relic.get_colorized_description(relic.tooltip)
 
     # Position tooltip to the right of the button

@@ -387,7 +387,11 @@ func _set_card(value: Card) -> void:
         # stale maroon base every time the card returns to its resting glow state.
         _base_frame_stylebox = SUPPORT_STYLEBOX
         _hot_frame_stylebox = null
-        requirement_panel.add_theme_stylebox_override("panel", CELESTIAL_REQUIREMENT_NONE_STYLEBOX)
+        # Only force the "no requirement" ribbon look when there truly is no requirement -
+        # a Celestial card that DOES have a real requirement (e.g. From Nothing's Exact 0)
+        # keeps its requirement-specific stylebox instead of being silently overwritten.
+        if card.requirement == Card.Requirement.NONE:
+            requirement_panel.add_theme_stylebox_override("panel", CELESTIAL_REQUIREMENT_NONE_STYLEBOX)
         description.add_theme_color_override("font_outline_color", CELESTIAL_DESC_LABEL_SETTINGS.outline_color)
     # Fixed bonus requirement logic
     if card.bonus_requirement == Card.Requirement.NONE:
@@ -606,6 +610,9 @@ func _on_card_frame_mouse_entered() -> void:
 
     if card.type == Card.Type.BLESSING:
         tooltips_to_show.append("Blessing")
+
+    if card.can_play_without_dice:
+        tooltips_to_show.append("Celestial")
 
     if card.tags != "":
         var tags_array = card.tags.split(",")

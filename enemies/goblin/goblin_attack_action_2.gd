@@ -42,4 +42,7 @@ func update_intent_text() -> void:
     var damage_with_enemy_mods := modifiers.get_modified_value(base_damage, Modifier.Type.DMG_DEALT)
     var total_modified_damage := player.modifier_handler.get_modified_value(damage_with_enemy_mods, Modifier.Type.DMG_TAKEN)
 
-    intent.current_text = intent.base_text % total_modified_damage
+    # This action hits twice (see perform_action's two damage_effect.execute calls, both for
+    # the same base_damage) - the intent number must reflect the full incoming damage for the
+    # turn, same as every single-hit action's intent already does, not just one of the two hits.
+    intent.current_text = intent.base_text % (total_modified_damage * 2)

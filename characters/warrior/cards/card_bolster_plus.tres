@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5bl00000051"]
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://ck1g70alu6yv0"]
 
 [ext_resource type="Texture2D" uid="uid://kcjvtkdjfj6x" path="res://bolster_v2.png" id="1_4tp04"]
 [ext_resource type="Script" path="res://characters/warrior/cards/bolster_plus.gd" id="2_ld5fs"]
@@ -10,13 +10,13 @@ id = "card_bolster_plus"
 name = "Bolster+"
 type = 1
 target = 0
-description = "Gain 3 Strength"
+description = "Gain 5 Strength"
 rarity = 0
 red_only = false
 can_play_without_dice = false
 requirement = 1
-requirement_number = 5
-exhausts = false
+requirement_number = 8
+exhausts = true
 bonus_requirement = 0
 bonus_requirement_number = 0
 bonus_description_text = ""

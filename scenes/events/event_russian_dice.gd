@@ -1,5 +1,9 @@
 extends Control
 
+@export var treasure_relic_pool: RelicPool
+@export var relic_handler: RelicHandler
+@export var char_stats: CharacterStats
+
 @onready var roll_golden_dice: Button = $TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/RollGoldenDice
 @onready var quit: Button = $TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/Quit
 @onready var dice_panel: Panel = $DicePanel
@@ -333,9 +337,8 @@ func _on_roll_dice_5_pressed() -> void:
         audio_listener_2d.play()
         roll_dice_5.disabled = true
         reward_5.set("theme_override_styles/panel", REWARD_STYLEBOX)
-        heal_reward+=30
-        update_rewards_recap()
-        winner_panel.show()
+        await get_tree().create_timer(0.6).timeout
+        _finish_with_relic_reward()
     else:
         await get_tree().create_timer(1).timeout
         stop_button.disabled = true
@@ -343,6 +346,21 @@ func _on_roll_dice_5_pressed() -> void:
         var laugh_sound = preload("res://laughsound.mp3")
         audio_listener_2d.stream = laugh_sound
         audio_listener_2d.play()
+
+
+# The 5th dice is a full clean sweep - its payout is a relic, not gold/HP, so
+# we settle the HP banked from dice 1-4 directly (no reward-screen equivalent
+# for HP) and hand the banked gold off to the reward screen as a claimable
+# pill next to the relic, instead of adding it to Global.gold here - doing
+# both would double-count it once the player claims the pill.
+func _finish_with_relic_reward() -> void:
+    if character_stats == null:
+        push_error("event_russian_dice: character_stats is null, skipping heal reward")
+    else:
+        character_stats.health += heal_reward
+        Events.hp_changed.emit()
+    var relic := treasure_relic_pool.get_random_relic(char_stats, relic_handler)
+    Events.show_reward_with_relic_and_gold.emit(relic, gold_reward)
 
 
 func _on_stop_button_pressed() -> void:

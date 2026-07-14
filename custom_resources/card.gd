@@ -118,6 +118,18 @@ func meets_requirement() -> bool:
 # `target` is whatever's currently being aimed at (see CardUI.targets / card_target_selector.gd)
 # - null whenever nothing is targeted yet, in which case this is a no-op.
 func apply_target_modifier(amount: int, target: Node) -> int:
+    # Berserker infusion preview: while THIS card is the one socketed on an infused Red
+    # die, mirror damage_effect.gd's +50% here so the socketed-card display and the
+    # aiming preview show the number that will actually hit. Applied BEFORE the target's
+    # DMG_TAKEN modifier - same order as the real flow (damage_effect boosts, then
+    # Enemy.take_damage applies the target's own modifiers). Preview-only by
+    # construction: this helper is never called from any apply_effects() (verified across
+    # all 80 dynamic-description cards, 2026-07-10) - the REAL boost stays in
+    # damage_effect.gd, so there is no double-count.
+    if Global.charged_card_instance_id != 0 \
+            and instance_id == Global.charged_card_instance_id \
+            and Global.is_dice_infused("red"):
+        amount = ceili(amount * 1.5)
     if target and is_instance_valid(target) and target.get("modifier_handler"):
         return target.modifier_handler.get_modified_value(amount, Modifier.Type.DMG_TAKEN)
     return amount
@@ -152,20 +164,7 @@ func play(targets: Array[Node], char_stats: CharacterStats, modifiers: ModifierH
     Global.cards_played_this_turn+=1
     Events.card_played.emit(self)
     Events.check_ink_status.emit()
-    if Global.tutorial_block == true && Global.tutorial_on:
-        Events.tutorial_step_requested.emit(5)
-        Global.tutorial_block = false
-    if Global.tutorial_low_blow == true:
-        Events.tutorial_step_requested.emit(8)
-        Global.tutorial_low_blow = false
-    if Global.tutorial_red_attack == true:
-        Events.tutorial_step_requested.emit(11)
-        Global.tutorial_red_attack = false
-    if Global.tutorial_recombobulate == true:
-        Events.tutorial_step_requested.emit(15)
-        Global.tutorial_recombobulate = false
 
-    
     var particles = preload("res://scenes/card_ui/card_particles.tscn").instantiate()
     var target_array = targets if is_single_targeted() else _get_targets(targets)
     if target_array.size() > 0:
@@ -173,10 +172,24 @@ func play(targets: Array[Node], char_stats: CharacterStats, modifiers: ModifierH
         particles.global_position = target_array[0].get_viewport().get_mouse_position()
         particles.play_effect(Global.roll_value, Global.dice_type)
     
+    # Berserker infusion (Red act-2 infusion): the card socketed on the Red die deals 50%
+    # more damage when its roll plays it. Global.playing_red_card is true for exactly that
+    # play window (set when the Red roll is accepted in dice.gd, cleared right after the
+    # play in both the instant path and the aim-then-release path), so scoping the boost
+    # flag around apply_effects() keeps unrelated damage out of the window (e.g. House
+    # Money's relic damage reacting to the same roll). damage_effect.gd applies the
+    # actual multiplier, enemies only.
+    var berserker_boost: bool = Global.playing_red_card and Global.is_dice_infused("red")
+    if berserker_boost:
+        Global.berserker_boost_active = true
+
     if is_single_targeted():
         apply_effects(targets, modifiers)
     else:
         apply_effects(_get_targets(targets), modifiers)
+
+    if berserker_boost:
+        Global.berserker_boost_active = false
 
     # Bonus hit-stop for meeting a strict EXACT requirement - a "you nailed it" beat, on top
     # of whatever hit-stop the effect itself triggered (safe to overlap now that Shaker.hit_stop

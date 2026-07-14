@@ -123,8 +123,8 @@ layout_mode = 2
 mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("3_merc3")
 bbcode_enabled = true
-text = "A cheerful merchant waves you over, satchel bulging with cards he swears are \"one of a kind.\" [color=purple]\"A small look costs a small fee,\"[/color] he says, [color=purple]\"but no obligation to buy.\"[/color]
-[p] [p]He seems entirely too pleased with himself."
+text = "A merchant strikes a pose before you've even said hello, admiring his own reflection in a polished shield buckle. [color=purple]\"Powerful cards, I have!\"[/color] he beams. [color=purple]\"Ooh, powerful, just like me, and my powerful wand.\"[/color]
+[p] [p]He seems entirely too pleased with himself. He hasn't stopped talking about himself since you arrived."
 fit_content = true
 
 [node name="VBoxContainer" type="VBoxContainer" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer"]
@@ -153,15 +153,15 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("4_merc4")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[center][color=gold]Pay 25 Gold.[/color][color=green] Browse 3 upgraded cards.[/color][/center]
+text = "[center][color=gold]Pay 25 Gold.[/color][color=green] Choose 1 of 3 upgraded cards.[/color][/center]
 "
 scroll_active = false
 
-[node name="Decline" type="Button" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer"]
+[node name="Flatter" type="Button" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer"]
 custom_minimum_size = Vector2(300, 40)
 layout_mode = 2
 
-[node name="RichTextLabel" type="RichTextLabel" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/Decline"]
+[node name="RichTextLabel" type="RichTextLabel" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/Flatter"]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 1
 anchors_preset = 14
@@ -176,9 +176,9 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("4_merc4")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[center]Sell him some junk instead.[color=gold] Gain 50 Gold.[/color][/center]
+text = "[center]\"Wow, so powerful!\"[color=gold] Gain 50 Gold.[/color][/center]
 "
 scroll_active = false
 
 [connection signal="pressed" from="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/Browse" to="." method="_on_browse_pressed"]
-[connection signal="pressed" from="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/Decline" to="." method="_on_decline_pressed"]
+[connection signal="pressed" from="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/Flatter" to="." method="_on_flatter_pressed"]

@@ -21,6 +21,27 @@ const ACT2_MUSCLE_BASE := {0: 2, 1: 3, 2: 4, 3: 5, 4: 4}
 # falls back to the source battle's own tier label.
 var act_tier: int = -1
 
+# --- Combat background selection ------------------------------------------
+# One background per (act, act-local tier) slot, keyed exactly like the scaling
+# tables above. Act 1 arcs from open-air ruins toward a stormy sea-cliff for
+# Leviathan; act 2 arcs from indoor archives toward a mistier variant of that
+# same coastline for the Leviathan rematch (same boss both acts).
+const BACKGROUND_ACT1 := {
+    0: preload("res://assets/backgrounds/combat_bg_act1_t0_jungle.png"),
+    1: preload("res://assets/backgrounds/combat_bg_act1_t1_desert.png"),
+    2: preload("res://assets/backgrounds/combat_bg_act1_t2_throne_hall.png"),
+    3: preload("res://assets/backgrounds/combat_bg_act1_elite_lava.png"),
+    4: preload("res://assets/backgrounds/combat_bg_act1_boss_coastal_storm.png"),
+}
+const BACKGROUND_ACT2 := {
+    0: preload("res://assets/backgrounds/combat_bg_act2_t0_arcane_library.png"),
+    1: preload("res://assets/backgrounds/combat_bg_act2_t1_purple_library.png"),
+    2: preload("res://assets/backgrounds/combat_bg_act2_t2_idol_shrine.png"),
+    3: preload("res://assets/backgrounds/combat_bg_act2_elite_colosseum.png"),
+    4: preload("res://assets/backgrounds/combat_bg_act2_boss_coastal_mist.png"),
+}
+const BACKGROUND_FALLBACK := preload("res://assets/backgrounds/20-2.jpg")
+
 @export var battle_stats: BattleStats
 @export var char_stats: CharacterStats
 @export var music: AudioStream
@@ -28,6 +49,7 @@ var act_tier: int = -1
 @onready var audio_stream_player_2d: AudioStreamPlayer2D = $AudioStreamPlayer2D
 @onready var tooltip: CanvasLayer = $Tooltip
 
+@onready var background: Sprite2D = $Background
 @onready var battle_ui: BattleUI = $BattleUI
 @onready var player_handler: PlayerHandler = $PlayerHandler
 @onready var enemy_handler: EnemyHandler = $EnemyHandler
@@ -42,32 +64,6 @@ var act_tier: int = -1
     scout_panel.get_node("HBoxContainer/ScoutDice6"),
 ]
 
-@onready var tutorial_dimmer: ColorRect = $CanvasLayer/TutorialDimmer
-
-@onready var tutorial_1: Panel = $CanvasLayer/Tutorial/Tutorial1
-@onready var tutorial_1_button: Button = $CanvasLayer/Tutorial/Tutorial1/Tutorial1Button
-@onready var tutorial_2: Panel = $CanvasLayer/Tutorial/Tutorial2
-
-#
-#@onready var tutorial_1: Panel = $Tutorial/Tutorial1
-#@onready var tutorial_1_button: Button = $Tutorial/Tutorial1/Tutorial1Button
-
-@onready var tutorial_3: Panel = $CanvasLayer/Tutorial/Tutorial3
-@onready var tutorial_4: Panel = $CanvasLayer/Tutorial/Tutorial4
-@onready var tutorial_5: Panel = $CanvasLayer/Tutorial/Tutorial5
-@onready var tutorial_6: Panel = $CanvasLayer/Tutorial/Tutorial6
-@onready var tutorial_7: Panel = $CanvasLayer/Tutorial/Tutorial7
-@onready var tutorial_8: Panel = $CanvasLayer/Tutorial/Tutorial8
-@onready var tutorial_9: Panel = $CanvasLayer/Tutorial/Tutorial9
-@onready var tutorial_10: Panel = $CanvasLayer/Tutorial/Tutorial10
-@onready var tutorial_11: Panel = $CanvasLayer/Tutorial/Tutorial11
-@onready var tutorial_12: Panel = $CanvasLayer/Tutorial/Tutorial12
-@onready var tutorial_13: Panel = $CanvasLayer/Tutorial/Tutorial13
-@onready var tutorial_14: Panel = $CanvasLayer/Tutorial/Tutorial14
-@onready var tutorial_15: Panel = $CanvasLayer/Tutorial/Tutorial15
-@onready var skip_tutorial_button: Button = $CanvasLayer/Tutorial/SkipTutorialButton
-
-
 @onready var dice_animation_check: TextureButton = $BattleUI/DiceAnimationControl/DiceAnimationOption/DiceAnimationCheck
 @onready var warning_power_reset: Panel = $CanvasLayer/Tutorial/WarningPowerReset
 @onready var warning_button: Button = $CanvasLayer/Tutorial/WarningPowerReset/WarningButton
@@ -75,21 +71,16 @@ var act_tier: int = -1
 
 
 func _ready() -> void:
-    
+
     enemy_handler.child_order_changed.connect(_on_enemies_child_order_changed)
     Events.enemy_turn_ended.connect(_on_enemy_turn_ended)
-    
+
     Events.player_turn_ended.connect(player_handler.end_turn)
     Events.player_hand_discarded.connect(enemy_handler.start_turn)
     Events.player_died.connect(_on_player_died)
     Events.scout_effect.connect(_on_scout_effect)
     Events.stop_battle_music.connect(_on_stop_battle_music)
-    Events.tutorial_step_requested.connect(_on_tutorial_step_requested)
     Events.show_warning_message.connect(_on_show_warning_message)
-    if Global.tutorial_on:
-        tutorial_1.show()
-        tutorial_dimmer.show()
-        skip_tutorial_button.show()
     dice_animation_check.button_pressed = Global.testing_mode
 
     
@@ -100,21 +91,29 @@ func start_battle() -> void:
     get_tree().paused = false
     MusicPlayer.play(music, true)
     Events.stop_map_music.emit()
+    background.texture = _select_background_texture()
     battle_ui.char_stats = char_stats
     player.stats = char_stats
     player_handler.relics = relics
     enemy_handler.setup_enemies(battle_stats)
     _apply_act2_scaling()
     enemy_handler.reset_enemy_actions()
-    relics.relics_activated.connect(_on_relics_activated)
-    relics.activate_relics_by_type(Relic.Type.START_OF_COMBAT)
     Global.fight_turn = 0
     Global.fight_dice_rolled = 0
     Global.dice_type = "blue"
     Global.hound_debuff_attack_done = false
     Global.gargantua_debuff_attack_done = false
     Global.ink_active = false
+    # battle_started MUST fire before the START_OF_COMBAT relic cascade below: that cascade
+    # synchronously calls player_handler.start_battle() -> start_turn() -> emits
+    # player_turn_started, which recomputes each dice type's current_amount from its
+    # "_bonus_amount_fight" fields (temporary dice granted mid-fight by cards like Cogwork).
+    # dice.gd's _on_battle_started() is what zeroes those fields for the new fight - if it
+    # ran AFTER player_turn_started (the old order), turn 1 of a new fight would still show
+    # last fight's leftover temporary dice for exactly one turn before they got reset away.
     Events.battle_started.emit()
+    relics.relics_activated.connect(_on_relics_activated)
+    relics.activate_relics_by_type(Relic.Type.START_OF_COMBAT)
 
 
 # Must run BETWEEN setup_enemies() (stats instances exist - set_enemy_stats
@@ -146,6 +145,15 @@ func _apply_act2_scaling() -> void:
         var muscle: Status = ACT2_MUSCLE_STATUS.duplicate()
         muscle.stacks = muscle_per_enemy
         enemy.status_handler.add_status(muscle)
+
+
+# Debug launches (act_tier still -1) and any unrecognized tier fall back to the
+# original single background rather than guessing.
+func _select_background_texture() -> Texture2D:
+    if act_tier < 0:
+        return BACKGROUND_FALLBACK
+    var pool: Dictionary = BACKGROUND_ACT2 if Global.current_act >= 2 else BACKGROUND_ACT1
+    return pool.get(act_tier, BACKGROUND_FALLBACK)
 
 
 func _on_enemies_child_order_changed() -> void:
@@ -341,8 +349,16 @@ func _on_scout_effect(amount: int) -> void:
         return
 
     var selected_faces: Array = []
-    for i in range(visible_count):
-        selected_faces.append(faces[randi() % faces.size()])
+    if not Global.tutorial_forced_scout_faces.is_empty():
+        for i in range(visible_count):
+            var forced_tex: Texture2D = null
+            if i < Global.tutorial_forced_scout_faces.size():
+                forced_tex = _find_dice_face_texture(faces, Global.tutorial_forced_scout_faces[i])
+            selected_faces.append(forced_tex if forced_tex else faces[randi() % faces.size()])
+        Global.tutorial_forced_scout_faces = []
+    else:
+        for i in range(visible_count):
+            selected_faces.append(faces[randi() % faces.size()])
 
     # The panel unfolds up out of the dice area instead of snapping in (pivot set
     # bottom-center by _resize_scout_panel above).
@@ -402,6 +418,19 @@ func _on_scout_effect(amount: int) -> void:
             _scout_tweens.append(reveal)
         else:
             face.hide()
+
+# Finds the face texture whose filename encodes the given value (same convention
+# _on_scout_dice_clicked already parses picked faces with, e.g. "blue3.png" -> 3) -
+# used by the tutorial to force specific Scout faces instead of a random pick.
+func _find_dice_face_texture(faces: Array, value: int) -> Texture2D:
+    var regex := RegEx.new()
+    regex.compile(r"(\d+)\.png$")
+    for tex: Texture2D in faces:
+        var result := regex.search(tex.resource_path)
+        if result and int(result.get_string(1)) == value:
+            return tex
+    return null
+
 
 func _on_scout_dice_clicked(event: InputEvent, face: TextureRect) -> void:
     if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
@@ -694,119 +723,15 @@ func _on_stop_battle_music() -> void:
 
 
 
-func _on_tutorial_1_button_pressed() -> void:
-    tutorial_dimmer.hide()
-    tutorial_1.hide()
-    tutorial_2.show()
-    Global.tutorial_forced_roll = 6
-
-func _on_tutorial_step_requested(step) -> void:
-    if Global.tutorial_on:
-        if step == 3:
-            tutorial_2.hide()
-            tutorial_3.show()
-            Global.tutorial_block = true
-        if step == 5:
-            tutorial_4.hide()
-            tutorial_5.show()
-        if step == 6:
-            tutorial_6.hide()
-            tutorial_7.show()
-        if step == 8: 
-            tutorial_7.hide()
-            tutorial_8.show()
-            Global.tutorial_red_dice = true
-        if step == 9:
-            tutorial_8.hide()
-            tutorial_9.show()
-            Global.tutorial_charging_card = true
-        if step == 10:
-            tutorial_9.hide()
-            tutorial_10.show()
-            Global.tutorial_forced_roll = 5
-            Global.tutorial_red_attack = true
-        if step == 11:
-            tutorial_10.hide()
-            tutorial_11.show()
-            Global.tutorial_end_turn = true
-            Global.tutorial_second_turn = true
-        if step == 12:
-            tutorial_11.hide()
-            tutorial_12.show()
-            Global.tutorial_blue_dice = true
-        if step == 13:
-            tutorial_12.hide()
-            tutorial_13.show()
-            Global.tutorial_forced_roll = 2
-        if step == 14:
-            tutorial_13.hide()
-            tutorial_14.show()
-            Global.tutorial_recombobulate = true
-        if step == 15:
-            tutorial_14.hide()
-            tutorial_15.show()
-            Global.tutorial_on = false
-
-
-        
-
-
-func _on_tutorial_3_button_pressed() -> void:
-    tutorial_3.hide()
-    tutorial_4.show()
-
-
-func _on_tutorial_5_button_pressed() -> void:
-    tutorial_5.hide()
-    tutorial_6.show()
-    Global.tutorial_forced_roll = 3
-    Global.tutorial_low_blow = true
-
-
-func _on_tutorial_15_button_pressed() -> void:
-    tutorial_15.hide()
-    skip_tutorial_button.hide()
-    Global.tutorial_on = false
-
 func _on_show_warning_message() -> void:
     warning_power_reset.show()
 
 func _on_warning_button_pressed() -> void:
     warning_power_reset.hide()
-    
 
 
 func _on_dice_animation_check_toggled(toggled_on: bool) -> void:
     Global.testing_mode =  toggled_on
-
-
-func _on_skip_tutorial_button_pressed() -> void:
-    end_tutorial()
-    
-func end_tutorial() -> void:
-    for child in $CanvasLayer/Tutorial.get_children():
-        child.hide()
-    tutorial_dimmer.hide()
-    Global.tutorial_on = false
-    Global.tutorial_block = false 
-    Global.tutorial_fight = false
-    # manquants :
-    Global.tutorial_forced_roll = 0
-    Global.tutorial_red_dice = false
-    Global.tutorial_charging_card = false
-    Global.tutorial_red_attack = false
-    Global.tutorial_end_turn = false
-    Global.tutorial_second_turn = false
-    Global.tutorial_blue_dice = false
-    Global.tutorial_low_blow = false
-    Global.tutorial_recombobulate = false
-    
-    
-func _any_tutorial_panel_visible() -> bool:
-    for child in $CanvasLayer/Tutorial.get_children():
-        if child.visible:
-            return true
-    return false
 
 
 func _on_exit_button_pressed() -> void:
