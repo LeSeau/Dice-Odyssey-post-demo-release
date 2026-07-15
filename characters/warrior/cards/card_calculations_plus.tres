@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c3cl9plusaa06"]
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://dgrbi0p8ryt3m"]
 
 [ext_resource type="Texture2D" uid="uid://chdes7gu4y4db" path="res://gptcalculations.png" id="1_3u8qr"]
 [ext_resource type="Script" path="res://characters/warrior/cards/calculations_plus.gd" id="1_oattr"]
@@ -12,6 +12,7 @@ type = 1
 target = 0
 description = "Charge 2 Even Dice. Gain a Scout 5 card"
 rarity = 0
+rarity_tier = 1
 red_only = false
 can_play_without_dice = false
 requirement = 7

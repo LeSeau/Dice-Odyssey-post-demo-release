@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://ct0lcw75uf7ri" path="res://eruption.png" id="1_invu2"]
 [ext_resource type="Script" path="res://characters/warrior/cards/eruption.gd" id="2_11sqi"]
 [ext_resource type="AudioStream" uid="uid://bryyjsmk8fak6" path="res://detonationsound.mp3" id="3_xhxr5"]
-[ext_resource type="Resource" path="res://characters/warrior/cards/card_eruption_plus.tres" id="4_plus"]
+[ext_resource type="Resource" uid="uid://nr7xfbh8r10w" path="res://characters/warrior/cards/card_eruption_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_11sqi")
@@ -13,6 +13,7 @@ type = 0
 target = 0
 description = "Charge 2 Magma Dice"
 rarity = 0
+rarity_tier = 1
 red_only = false
 can_play_without_dice = false
 requirement = 7

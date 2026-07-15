@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5mr00000054"]
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://qqmd8hokhw88"]
 
 [ext_resource type="Texture2D" uid="uid://ro7rxkqloi3x" path="res://Marionette.png" id="1_x5vrf"]
 [ext_resource type="Script" path="res://characters/warrior/cards/marionette_plus.gd" id="2_sgvrk"]
@@ -12,6 +12,7 @@ type = 2
 target = 0
 description = "At the start of each turn, gain a Scout 5 card"
 rarity = 0
+rarity_tier = 1
 red_only = false
 can_play_without_dice = false
 requirement = 1

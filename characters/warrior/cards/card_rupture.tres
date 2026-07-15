@@ -13,6 +13,7 @@ type = 0
 target = 1
 description = "Deal X damage. Apply Exposed 2"
 rarity = 0
+rarity_tier = 0
 red_only = false
 can_play_without_dice = false
 requirement = 1

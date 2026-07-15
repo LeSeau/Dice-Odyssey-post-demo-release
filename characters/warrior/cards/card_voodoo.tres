@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://bimvfkph5opg4" path="res://voodoo.png" id="1_4fuwo"]
 [ext_resource type="Script" path="res://characters/warrior/cards/voodoo.gd" id="2_jqhve"]
 [ext_resource type="AudioStream" uid="uid://03pj37p20iou" path="res://sounds/recompose.wav" id="3_c5pce"]
-[ext_resource type="Resource" path="res://characters/warrior/cards/card_voodoo_plus.tres" id="4_plus"]
+[ext_resource type="Resource" uid="uid://cauxidlyppkqt" path="res://characters/warrior/cards/card_voodoo_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_jqhve")
@@ -13,6 +13,7 @@ type = 1
 target = 0
 description = "Refuel into a random Dice type"
 rarity = 1
+rarity_tier = 1
 red_only = false
 can_play_without_dice = false
 requirement = 0

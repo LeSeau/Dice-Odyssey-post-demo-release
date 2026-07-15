@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5rs00000107"]
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://cn085qv7lxrat"]
 
 [ext_resource type="Texture2D" uid="uid://c5nduahqy3vrj" path="res://foresight.png" id="1_p3vbg"]
 [ext_resource type="Script" path="res://characters/warrior/cards/foresight_plus.gd" id="2_script"]
@@ -12,6 +12,7 @@ type = 2
 target = 0
 description = "Whenever you Scout, Charge 1"
 rarity = 0
+rarity_tier = 1
 red_only = false
 can_play_without_dice = false
 requirement = 1

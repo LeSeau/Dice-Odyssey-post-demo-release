@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://cf316i0ocjj5w" path="res://berserk.png" id="1_vvmcg"]
 [ext_resource type="Script" path="res://characters/warrior/cards/berserker.gd" id="2_m54y5"]
 [ext_resource type="AudioStream" uid="uid://d66mkrcpmfir" path="res://chargedicesound.mp3" id="3_gt05e"]
-[ext_resource type="Resource" path="res://characters/warrior/cards/card_berserker_plus.tres" id="4_plus"]
+[ext_resource type="Resource" uid="uid://bx41bkdduff6u" path="res://characters/warrior/cards/card_berserker_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_m54y5")
@@ -13,6 +13,7 @@ type = 2
 target = 0
 description = "You deal double damage with Red Dice"
 rarity = 0
+rarity_tier = 2
 red_only = false
 can_play_without_dice = false
 requirement = 1

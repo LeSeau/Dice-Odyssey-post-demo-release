@@ -140,6 +140,8 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 18.0
+offset_right = -18.0
 grow_horizontal = 2
 grow_vertical = 2
 text = "Strike"
@@ -148,6 +150,24 @@ horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 2
 metadata/_edit_use_anchors_ = true
+
+[node name="RarityGem" type="TextureRect" parent="Visuals/CardBackground/CardFrame/CardBanner"]
+z_index = 2
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -9.0
+offset_right = -4.0
+offset_bottom = 9.0
+grow_horizontal = 0
+grow_vertical = 2
+mouse_filter = 1
+expand_mode = 1
+stretch_mode = 5
 
 [node name="Panel" type="Panel" parent="Visuals/CardBackground/CardFrame"]
 custom_minimum_size = Vector2(110, 80)
@@ -342,3 +362,5 @@ volume_db = 4.622
 [connection signal="mouse_exited" from="Visuals" to="." method="_on_visuals_mouse_exited"]
 [connection signal="mouse_exited" from="Visuals" to="." method="_on_card_frame_mouse_exited"]
 [connection signal="gui_input" from="Visuals/CardBackground/CardFrame" to="." method="_on_card_frame_gui_input"]
+[connection signal="mouse_entered" from="Visuals/CardBackground/CardFrame/CardBanner/RarityGem" to="." method="_on_rarity_gem_mouse_entered"]
+[connection signal="mouse_exited" from="Visuals/CardBackground/CardFrame/CardBanner/RarityGem" to="." method="_on_rarity_gem_mouse_exited"]

@@ -56,6 +56,17 @@ const BLESSING_STYLEBOX := preload("res://scenes/card_ui/card_ui_blessing.tres")
 const BLESSING_DESC_STYLEBOX := preload("res://scenes/card_ui/card_ui_description_panel_blessing.tres")
 const BLESSING_DESC_LABEL_SETTINGS := preload("res://scenes/card_ui/blessing_card_description_label.tres")
 
+# Rarity gem in the banner's right slot - kept in sync with CardUI's copy of the same
+# constants/logic. Every tier shows a gem, Common included (muted stone gray) - and since the
+# texture is unconditionally overwritten on every set_card(), the reused BeforeCard/AfterCard
+# nodes in the upgrade confirm dialog can't leak a previous card's gem (the bug class the old
+# Uncommon/Rare-only version needed an explicit else-branch for).
+const RARITY_GEM_TEXTURES := {
+    Card.RarityTier.COMMON: preload("res://assets/images/rarity_gem_common.png"),
+    Card.RarityTier.UNCOMMON: preload("res://assets/images/rarity_gem_uncommon.png"),
+    Card.RarityTier.RARE: preload("res://assets/images/rarity_gem_rare.png"),
+}
+
 const REQUIREMENT_LABEL_SETTINGS := preload("res://scenes/card_ui/card_ui_requirement_ribbon.tres")
 const NO_REQUIREMENT_LABEL_SETTINGS := preload("res://scenes/card_ui/card_ui_no_requirement_ribbon.tres")
 
@@ -65,18 +76,17 @@ const NO_REQUIREMENT_LABEL_SETTINGS := preload("res://scenes/card_ui/card_ui_no_
 const TITLE_LABEL_SETTINGS := preload("res://scenes/card_ui/card_title.tres")
 const UPGRADED_TITLE_COLOR := Color(0.36, 0.85, 0.36)
 
-# Long card names ("Perpetual Motion", "Critical Edge+"...) wrap to 2 lines in the fixed-width
-# CardBanner at the default 15pt - step the font down by length so the banner stays 1 line.
-# Thresholds picked against the actual card name pool (longest is 16 chars); tune here if a
-# future name is longer still. Kept in sync with CardUI's copy of these same constants.
-const TITLE_FONT_SIZE_DEFAULT := 15
-const TITLE_FONT_SIZE_MEDIUM := 12
-const TITLE_FONT_SIZE_SMALL := 10
-const TITLE_LENGTH_MEDIUM_THRESHOLD := 13
-const TITLE_LENGTH_SMALL_THRESHOLD := 17
+# Width available to the Title label between its symmetric banner insets (see the Title node's
+# offset_left/offset_right in the .tscn) - reserves the rarity gem's slot on the right,
+# mirrored left so the title stays optically centered. Kept in sync with CardUI's copy.
+const TITLE_MAX_WIDTH := 104.0
+# Descending candidates - first size whose MEASURED width fits is used. Char-count thresholds
+# (the previous approach) can't work: caps width varies too much per glyph ("Necromancy+" is
+# 11 chars but wider than several 13-char names).
+const TITLE_FONT_SIZE_CANDIDATES: Array[int] = [15, 12, 10, 9]
 
-# Long descriptions overflow the fixed-height DescriptionPanel at the default 12pt. Same
-# step-down approach as the title.
+# Long descriptions overflow the fixed-height DescriptionPanel at the default 12pt. Simple
+# length-based step-down.
 const DESC_FONT_SIZE_DEFAULT := 12
 const DESC_FONT_SIZE_MEDIUM := 11
 const DESC_FONT_SIZE_SMALL := 10
@@ -85,12 +95,11 @@ const DESC_LENGTH_SMALL_THRESHOLD := 90
 
 
 static func title_font_size_for(text: String) -> int:
-    var length := text.length()
-    if length > TITLE_LENGTH_SMALL_THRESHOLD:
-        return TITLE_FONT_SIZE_SMALL
-    elif length > TITLE_LENGTH_MEDIUM_THRESHOLD:
-        return TITLE_FONT_SIZE_MEDIUM
-    return TITLE_FONT_SIZE_DEFAULT
+    var font: Font = TITLE_LABEL_SETTINGS.font
+    for size: int in TITLE_FONT_SIZE_CANDIDATES:
+        if font.get_string_size(text, HORIZONTAL_ALIGNMENT_CENTER, -1, size).x <= TITLE_MAX_WIDTH:
+            return size
+    return TITLE_FONT_SIZE_CANDIDATES[-1]
 
 
 static func description_font_size_for(text: String) -> int:
@@ -128,6 +137,7 @@ const TooltipScene = preload("res://scenes/ui/tooltip.tscn")
 @onready var description_panel: Panel = $Visuals/CardBackground/CardFrame/DescriptionPanel
 @onready var card_banner: Panel = $Visuals/CardBackground/CardFrame/CardBanner
 @onready var bonus_separator: ColorRect = $Visuals/CardBackground/CardFrame/BonusSeparator
+@onready var rarity_gem: TextureRect = $Visuals/CardBackground/CardFrame/CardBanner/RarityGem
 
 
 
@@ -158,6 +168,7 @@ func set_card(value: Card) -> void:
     _apply_title_color()
     _apply_description(card.description)
     requirement_label.label_settings = REQUIREMENT_LABEL_SETTINGS
+    rarity_gem.texture = RARITY_GEM_TEXTURES[card.rarity_tier]
 
     if card.requirement == Card.Requirement.NONE:
         requirement_panel.add_theme_stylebox_override("panel", NONE_STYLEBOX)
@@ -286,6 +297,55 @@ var tooltip_instance_requirement: Panel
 var tooltip_instance_bonus: Panel
 var tooltip_instances_tags: Array = []
 
+# Rarity gem hover tooltip - menu contexts only (rewards, deck view, shop). The in-hand
+# CardUI gem is deliberately inert (mouse_filter IGNORE in card_ui.tscn); here the gem is
+# mouse_filter PASS so it can receive hover while clicks still propagate up to the card's
+# own gui_input (reward pick / remove / upgrade).
+const RARITY_TOOLTIP_KEYWORDS := {
+    Card.RarityTier.COMMON: "Common",
+    Card.RarityTier.UNCOMMON: "Uncommon",
+    Card.RarityTier.RARE: "Rare",
+}
+var _gem_tooltip: Node = null
+var _gem_hover_id := 0
+
+
+func _on_rarity_gem_mouse_entered() -> void:
+    if disable_hover_tooltip or not card:
+        return
+    _gem_hover_id += 1
+    var captured_id := _gem_hover_id
+    _cleanup_gem_tooltip()
+
+    _gem_tooltip = TooltipScene.instantiate()
+    get_tree().root.add_child(_gem_tooltip)
+    var tooltip_panel = _gem_tooltip.get_node("Tooltip")
+    tooltip_panel.get_tooltip_content(RARITY_TOOLTIP_KEYWORDS[card.rarity_tier])
+
+    # Just right of the gem, clamped so the rightmost reward card's tooltip stays on screen.
+    var pos := rarity_gem.get_global_rect().end + Vector2(8.0, -20.0)
+    var viewport_size := get_viewport_rect().size
+    pos.x = minf(pos.x, viewport_size.x - 220.0)
+    pos.y = clampf(pos.y, 10.0, viewport_size.y - 120.0)
+    tooltip_panel.show_tooltip(pos.round())
+
+    # Same leak safety net as every other root-parented tooltip in this file.
+    get_tree().create_timer(6.0).timeout.connect(func():
+        if captured_id == _gem_hover_id:
+            _cleanup_gem_tooltip()
+    )
+
+
+func _on_rarity_gem_mouse_exited() -> void:
+    _gem_hover_id += 1
+    _cleanup_gem_tooltip()
+
+
+func _cleanup_gem_tooltip() -> void:
+    if _gem_tooltip and is_instance_valid(_gem_tooltip):
+        _gem_tooltip.queue_free()
+    _gem_tooltip = null
+
 # Replace your _on_card_frame_mouse_entered function:
 var _card_hover_id := 0
 
@@ -368,6 +428,15 @@ func _on_card_frame_mouse_entered() -> void:
 func _on_card_frame_mouse_exited() -> void:
     _card_hover_id += 1
     _cleanup_tooltips()
+
+
+# Tooltips live under get_tree().root, not this node - free them explicitly when this card
+# is torn down (e.g. picking a reward frees the whole screen while the gem/frame is still
+# hovered, so mouse_exited never fires - the documented root-parented-tooltip leak pattern).
+func _exit_tree() -> void:
+    _cleanup_tooltips()
+    _cleanup_gem_tooltip()
+
 
 func _cleanup_tooltips() -> void:
     if tooltip_instance_requirement and is_instance_valid(tooltip_instance_requirement):

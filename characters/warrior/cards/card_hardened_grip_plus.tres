@@ -12,6 +12,7 @@ type = 2
 target = 0
 description = "Gain 1 block every time you roll a Dice"
 rarity = 0
+rarity_tier = 1
 red_only = false
 can_play_without_dice = false
 requirement = 1

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5vd00000053"]
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://cauxidlyppkqt"]
 
 [ext_resource type="Texture2D" uid="uid://bimvfkph5opg4" path="res://voodoo.png" id="1_4fuwo"]
 [ext_resource type="Script" path="res://characters/warrior/cards/voodoo_plus.gd" id="2_jqhve"]
@@ -12,6 +12,7 @@ type = 1
 target = 0
 description = "Refuel into a random Dice type. Draw 1 card"
 rarity = 1
+rarity_tier = 1
 red_only = false
 can_play_without_dice = false
 requirement = 0

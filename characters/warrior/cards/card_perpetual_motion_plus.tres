@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5rs00000108"]
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://dmh1m2sefiv36"]
 
 [ext_resource type="Texture2D" uid="uid://bt26yj386gfj6" path="res://perpetual_motion.png" id="1_np5uj"]
 [ext_resource type="Script" path="res://characters/warrior/cards/perpetual_motion_plus.gd" id="2_script"]
@@ -12,6 +12,7 @@ type = 2
 target = 0
 description = "The first time you run out of Dice each turn, Charge 1"
 rarity = 0
+rarity_tier = 1
 red_only = false
 can_play_without_dice = false
 requirement = 1

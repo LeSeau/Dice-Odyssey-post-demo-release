@@ -12,6 +12,7 @@ type = 0
 target = 1
 description = "Deal X damage + 2 for each Dice rolled this combat"
 rarity = 0
+rarity_tier = 1
 red_only = false
 can_play_without_dice = false
 requirement = 0

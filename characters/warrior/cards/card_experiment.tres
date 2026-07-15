@@ -13,6 +13,7 @@ type = 0
 target = 1
 description = "Deal X damage. Gain a random Support card"
 rarity = 0
+rarity_tier = 0
 red_only = false
 can_play_without_dice = false
 requirement = 0

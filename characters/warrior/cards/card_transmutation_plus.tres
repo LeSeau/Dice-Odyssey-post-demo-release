@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5rs00000113"]
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://celiv2aqy15bh"]
 
 [ext_resource type="Texture2D" uid="uid://c55ayi4j6o8us" path="res://transmutation.png" id="1_edgm0"]
 [ext_resource type="Script" path="res://characters/warrior/cards/transmutation_plus.gd" id="2_script"]
@@ -12,6 +12,7 @@ type = 1
 target = 0
 description = "Convert all your remaining Dice into your active type, for this turn only"
 rarity = 1
+rarity_tier = 2
 red_only = false
 can_play_without_dice = true
 requirement = 0

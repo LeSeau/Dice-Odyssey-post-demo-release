@@ -3,6 +3,20 @@ extends Control
 
 #enum Type {GOLD, NEW_CARD, RELIC}
 
+# Set by run.gd (_on_battle_won) based on the room just cleared, before add_card_reward() is
+# ever clicked - see _setup_card_chances()/_show_card_rewards() for how each context changes
+# the draw. Event-triggered rewards (Wandering Merchant etc., via run.gd::_on_show_reward)
+# never set this, so they default to NORMAL - correct, those shouldn't get elite/boss odds.
+enum RewardContext {NORMAL, ELITE, BOSS}
+@export var reward_context: RewardContext = RewardContext.NORMAL
+
+# Elite screens lean toward Uncommon/Rare without going all-the-way to the Boss's guaranteed-
+# Rare treatment - local multipliers only, never written back to run_stats (pity still tracks
+# against the true underlying weight, see _update_rare_pity()). At base weights this lands on
+# ~48% / 42% / 10% per slot - close to STS's 50/40/10 elite odds.
+const ELITE_UNCOMMON_MULT := 1.4
+const ELITE_RARE_MULT := 4.0
+
 const CARD_REWARDS = preload("res://scenes/ui/card_rewards.tscn")
 const REWARD_BUTTON = preload("res://scenes/ui/reward_button.tscn")
 const GOLD_ICON := preload("res://gold_icon_v2.png")
@@ -29,6 +43,8 @@ var warning_dismissed := false
 @export var relic_handler: RelicHandler
 
 @onready var rewards: VBoxContainer = %Rewards
+@onready var reward_panel: VBoxContainer = $VBoxContainer
+@onready var background: TextureRect = $Background
 @onready var audio_player: AudioStreamPlayer2D = $AudioStreamPlayer2D
 
 @onready var warning_panel: Panel = $WarningPanel
@@ -42,14 +58,21 @@ var warning_dismissed := false
 
 var card_reward_total_weight := 0.0
 var card_rarity_weights := {
-    Card.Rarity.NORMAL: 0.0,
-    Card.Rarity.SUPPORT: 0.0}
-    
+    Card.RarityTier.COMMON: 0.0,
+    Card.RarityTier.UNCOMMON: 0.0,
+    Card.RarityTier.RARE: 0.0}
+
 
 func _ready() -> void:
     for node: Node in rewards.get_children():
         node.queue_free()
-        
+
+    # Mirror the battle just fought instead of always showing the .tscn's static
+    # default - null before any battle has happened yet this run (see Global's doc
+    # comment), in which case the authored default texture stays as-is.
+    if Global.last_battle_background:
+        background.texture = Global.last_battle_background
+
     run_stats = RunStats.new()
     Events.gold_changed.connect(func():print("gold:%s" % Global.gold))
     
@@ -68,12 +91,24 @@ func _ready() -> void:
     else:
         gg_panel.hide()
 
+    _play_panel_entrance()
+
+const PANEL_FADE_DURATION := 0.6
+
+# Simple fade-in, Slay the Spire style - no movement/bounce, the reward panel just
+# settles into view via a plain alpha fade. Replaces an earlier "rises up like a
+# trophy" version that read as too much once actually played.
+func _play_panel_entrance() -> void:
+    reward_panel.modulate.a = 0.0
+    var tween := create_tween()
+    tween.tween_property(reward_panel, "modulate:a", 1.0, PANEL_FADE_DURATION).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
 func add_gold_reward(amount: int) -> void:
     var gold_reward := REWARD_BUTTON.instantiate() as RewardButton
     gold_reward.custom_minimum_size.y = 70
     gold_reward.reward_icon = GOLD_ICON
     gold_reward.reward_text = GOLD_TEXT % amount
-    gold_reward.pressed.connect(on_gold_reward_taken.bind(amount))  
+    gold_reward.pressed.connect(on_gold_reward_taken.bind(amount))
     rewards.add_child.call_deferred(gold_reward)
 
 func add_card_reward() -> void:
@@ -83,16 +118,16 @@ func add_card_reward() -> void:
     card_reward.reward_text = CARD_TEXT
     card_reward.pressed.connect(_show_card_rewards)
     rewards.add_child.call_deferred(card_reward)
-    
+
 func add_relic_reward(relic: Relic) -> void:
     var relic_reward := REWARD_BUTTON.instantiate() as RewardButton
     relic_reward.reward_icon = relic.icon
     relic_reward.reward_text = relic.relic_name
-    
+
     # Connect hover signals to show/hide tooltip
     relic_reward.mouse_entered.connect(_on_relic_reward_mouse_entered.bind(relic, relic_reward))
     relic_reward.mouse_exited.connect(_on_relic_reward_mouse_exited)
-    
+
     relic_reward.pressed.connect(_on_relic_reward_taken.bind(relic))
     rewards.add_child.call_deferred(relic_reward)
 
@@ -201,52 +236,79 @@ func _show_card_rewards() -> void:
 
     var card_reward_array: Array[Card] = []
     var available_cards: Array[Card] = character_stats.draftable_cards.cards.duplicate(true)
+    var owned_cards: Array[Card] = character_stats.deck.cards
 
-    for i in range(3):
+    if reward_context == RewardContext.BOSS:
+        # Boss screens skip the weighted draw entirely - all 3 offers are Rare, the run's
+        # biggest reward-screen moment. Still dedups against already-owned Rares (see
+        # CardRarityDraw) so a second boss screen doesn't just re-show what the first one did.
+        for i in range(3):
+            var picked_card := CardRarityDraw.pick_card(available_cards, Card.RarityTier.RARE, owned_cards)
+            if picked_card:
+                available_cards.erase(picked_card)
+                card_reward_array.append(_resolve_reward_card(picked_card))
+    else:
         _setup_card_chances()
-        var roll := randf_range(0.0, card_reward_total_weight)
-        var cumulative := 0.0
+        var rare_drawn := false
+        for i in range(3):
+            var roll := randf_range(0.0, card_reward_total_weight)
+            var cumulative := 0.0
 
-        for rarity: Card.Rarity in card_rarity_weights:
-            cumulative += card_rarity_weights[rarity]
-            if roll <= cumulative:
-                _modify_weights(rarity)
-                var picked_card := _get_random_available_card(available_cards, rarity)
-                if picked_card:
-                    available_cards.erase(picked_card)
-                    var reward_card := picked_card
-                    if Global.force_upgraded_card_rewards and picked_card.can_be_upgraded():
-                        reward_card = picked_card.upgraded_version
-                    card_reward_array.append(reward_card)
-                break
+            for tier: Card.RarityTier in card_rarity_weights:
+                cumulative += card_rarity_weights[tier]
+                if roll <= cumulative:
+                    if tier == Card.RarityTier.RARE:
+                        rare_drawn = true
+                    var picked_card := CardRarityDraw.pick_card(available_cards, tier, owned_cards)
+                    if picked_card:
+                        available_cards.erase(picked_card)
+                        card_reward_array.append(_resolve_reward_card(picked_card))
+                    break
+        _update_rare_pity(rare_drawn)
 
     Global.force_upgraded_card_rewards = false
     card_rewards.rewards = card_reward_array
     card_rewards.show()
 
-    
+
+func _resolve_reward_card(picked_card: Card) -> Card:
+    if Global.force_upgraded_card_rewards and picked_card.can_be_upgraded():
+        return picked_card.upgraded_version
+    return picked_card
+
+
+# Elite multipliers are local to this one draw (never written back to run_stats) - pity below
+# still tracks the true underlying rare_weight regardless of which context rolled the Rare.
 func _setup_card_chances() -> void:
-    card_reward_total_weight = run_stats.normal_weight + run_stats.support_weight
-    card_rarity_weights[Card.Rarity.NORMAL] = run_stats.normal_weight
-    card_rarity_weights[Card.Rarity.SUPPORT] = run_stats.support_weight
+    var uncommon_mult := 1.0
+    var rare_mult := 1.0
+    if reward_context == RewardContext.ELITE:
+        uncommon_mult = ELITE_UNCOMMON_MULT
+        rare_mult = ELITE_RARE_MULT
+
+    card_rarity_weights[Card.RarityTier.COMMON] = run_stats.common_weight
+    card_rarity_weights[Card.RarityTier.UNCOMMON] = run_stats.uncommon_weight * uncommon_mult
+    card_rarity_weights[Card.RarityTier.RARE] = run_stats.rare_weight * rare_mult
+    card_reward_total_weight = card_rarity_weights[Card.RarityTier.COMMON] \
+        + card_rarity_weights[Card.RarityTier.UNCOMMON] \
+        + card_rarity_weights[Card.RarityTier.RARE]
 
 
-func _modify_weights(rarity_rolled: Card.Rarity) -> void:
-    if rarity_rolled == Card.Rarity.SUPPORT:
-        run_stats.support_weight = RunStats.BASE_SUPPORT_WEIGHT
+# Pity ticks once per REWARD SCREEN, not per card slot - the initial per-slot version
+# effectively tripled the ramp (+0.9 per screen), capping rare odds at ~24% per slot within
+# three battles (Julien: "insane amount of uncommon & rare"). Resets whenever a screen
+# actually offered a Rare. Boss screens never touch pity (they bypass the weighted draw).
+func _update_rare_pity(rare_drawn: bool) -> void:
+    if rare_drawn:
+        run_stats.rare_weight = RunStats.BASE_RARE_WEIGHT
     else:
-        run_stats.support_weight = clampf (run_stats.support_weight + 0.3, run_stats.BASE_SUPPORT_WEIGHT, 5.0)
-    
+        run_stats.rare_weight = clampf(
+            run_stats.rare_weight + RunStats.RARE_WEIGHT_PITY_STEP,
+            RunStats.BASE_RARE_WEIGHT,
+            RunStats.RARE_WEIGHT_PITY_CAP
+        )
 
-func _get_random_available_card(available_cards: Array[Card], with_rarity: Card.Rarity) -> Card:
-    var all_possible_cards := available_cards.filter(
-        func(card: Card):
-            return card.rarity == with_rarity
-    )
-    
-    all_possible_cards.shuffle()
-    return all_possible_cards.pick_random()
- 
+
 func _on_card_reward_taken(card: Card) -> void:
     if not character_stats or not card:
         return

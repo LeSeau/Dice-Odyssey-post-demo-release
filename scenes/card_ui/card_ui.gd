@@ -40,18 +40,19 @@ const UNPLAYABLE_MODULATE_HAS_POWER := Color(0.6, 0.6, 0.6, 1.0)
 const TITLE_LABEL_SETTINGS := preload("res://scenes/card_ui/card_title.tres")
 const UPGRADED_TITLE_COLOR := Color(0.36, 0.85, 0.36)
 
-# Long card names ("Perpetual Motion", "Critical Edge+"...) wrap to 2 lines in the fixed-width
-# CardBanner at the default 15pt - step the font down by length so the banner stays 1 line.
-# Thresholds picked against the actual card name pool (longest is 16 chars); tune here if a
-# future name is longer still.
-const TITLE_FONT_SIZE_DEFAULT := 15
-const TITLE_FONT_SIZE_MEDIUM := 12
-const TITLE_FONT_SIZE_SMALL := 10
-const TITLE_LENGTH_MEDIUM_THRESHOLD := 13
-const TITLE_LENGTH_SMALL_THRESHOLD := 17
+# Width available to the Title label between its symmetric banner insets (see the Title node's
+# offset_left/offset_right in the .tscn) - the insets reserve the rarity gem's slot on the
+# right and mirror it on the left so the title stays optically centered on the card. Card is
+# 140 wide, 18px inset each side.
+const TITLE_MAX_WIDTH := 104.0
+# Descending candidates - the first size whose MEASURED width fits is used. Char-count
+# thresholds (the previous approach) can't work here: caps width varies too much per glyph
+# ("Necromancy+" is 11 chars but wider than several 13-char names). 15 is the design size;
+# 9 only exists for extreme names ("Perpetual Motion+") that Julien may rename instead.
+const TITLE_FONT_SIZE_CANDIDATES: Array[int] = [15, 12, 10, 9]
 
 # Long descriptions (dynamic-resolved text can run even longer than the static string) overflow
-# the fixed-height DescriptionPanel at the default 12pt. Same step-down approach as the title.
+# the fixed-height DescriptionPanel at the default 12pt. Simple length-based step-down.
 const DESC_FONT_SIZE_DEFAULT := 12
 const DESC_FONT_SIZE_MEDIUM := 11
 const DESC_FONT_SIZE_SMALL := 10
@@ -60,12 +61,11 @@ const DESC_LENGTH_SMALL_THRESHOLD := 90
 
 
 static func title_font_size_for(text: String) -> int:
-    var length := text.length()
-    if length > TITLE_LENGTH_SMALL_THRESHOLD:
-        return TITLE_FONT_SIZE_SMALL
-    elif length > TITLE_LENGTH_MEDIUM_THRESHOLD:
-        return TITLE_FONT_SIZE_MEDIUM
-    return TITLE_FONT_SIZE_DEFAULT
+    var font: Font = TITLE_LABEL_SETTINGS.font
+    for size: int in TITLE_FONT_SIZE_CANDIDATES:
+        if font.get_string_size(text, HORIZONTAL_ALIGNMENT_CENTER, -1, size).x <= TITLE_MAX_WIDTH:
+            return size
+    return TITLE_FONT_SIZE_CANDIDATES[-1]
 
 
 static func description_font_size_for(text: String) -> int:
@@ -127,6 +127,16 @@ const BLESSING_STYLEBOX := preload("res://scenes/card_ui/card_ui_blessing.tres")
 const BLESSING_DESC_STYLEBOX := preload("res://scenes/card_ui/card_ui_description_panel_blessing.tres")
 const BLESSING_DESC_LABEL_SETTINGS := preload("res://scenes/card_ui/blessing_card_description_label.tres")
 
+# Rarity gem in the banner's right slot (the old dead SupportIcon spot). Every tier shows a
+# gem - Common included (muted stone gray), per Julien: an empty slot on most cards read as
+# "something's missing" rather than "this card is common". Starter cards get the Common gem
+# for free since COMMON is the enum default on Card.rarity_tier.
+const RARITY_GEM_TEXTURES := {
+    Card.RarityTier.COMMON: preload("res://assets/images/rarity_gem_common.png"),
+    Card.RarityTier.UNCOMMON: preload("res://assets/images/rarity_gem_uncommon.png"),
+    Card.RarityTier.RARE: preload("res://assets/images/rarity_gem_rare.png"),
+}
+
 @export var card: Card : set = _set_card
 @export var char_stats: CharacterStats : set = _set_char_stats
 @export var player_modifiers: ModifierHandler 
@@ -166,7 +176,7 @@ var _hot_frame_stylebox: StyleBoxFlat
 @onready var card_state_machine: CardStateMachine = $CardStateMachine
 @onready var targets: Array[Node] = []
 
-@onready var support_icon: TextureRect = $CardBackground/CardFrame/CardBanner/SupportIcon
+@onready var rarity_gem: TextureRect = $CardBackground/CardFrame/CardBanner/RarityGem
 
 
 var original_index := 0
@@ -337,8 +347,7 @@ func _set_card(value: Card) -> void:
     title.text = str(card.name)
     _apply_title_color()
     requirement_label.label_settings = REQUIREMENT_LABEL_SETTINGS
-    #support_icon.visible = card.rarity == Card.Rarity.SUPPORT
-
+    rarity_gem.texture = RARITY_GEM_TEXTURES[card.rarity_tier]
 
     if card.requirement == Card.Requirement.NONE:
         requirement_panel.add_theme_stylebox_override("panel", NONE_STYLEBOX)

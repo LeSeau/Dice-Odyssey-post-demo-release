@@ -13,6 +13,7 @@ type = 1
 target = 0
 description = "Block X12"
 rarity = 0
+rarity_tier = 0
 red_only = null
 can_play_without_dice = null
 requirement = 7

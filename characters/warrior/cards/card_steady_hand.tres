@@ -13,6 +13,7 @@ type = 2
 target = 0
 description = "At the start of each turn, gain Boost 3"
 rarity = 0
+rarity_tier = 1
 red_only = false
 can_play_without_dice = false
 requirement = 1

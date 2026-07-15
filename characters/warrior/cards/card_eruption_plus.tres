@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5er00000022"]
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://nr7xfbh8r10w"]
 
 [ext_resource type="Texture2D" uid="uid://ct0lcw75uf7ri" path="res://eruption.png" id="1_invu2"]
 [ext_resource type="Script" path="res://characters/warrior/cards/eruption_plus.gd" id="2_11sqi"]
@@ -12,6 +12,7 @@ type = 0
 target = 0
 description = "Charge 3 Magma Dice"
 rarity = 0
+rarity_tier = 1
 red_only = false
 can_play_without_dice = false
 requirement = 7

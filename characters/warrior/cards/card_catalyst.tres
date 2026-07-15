@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://d2vbqajw1aqko" path="res://catalyst_v2.png" id="1_by36k"]
 [ext_resource type="Script" path="res://characters/warrior/cards/catalyst.gd" id="2_axsma"]
 [ext_resource type="AudioStream" uid="uid://03pj37p20iou" path="res://sounds/recompose.wav" id="3_e3g2s"]
-[ext_resource type="Resource" path="res://characters/warrior/cards/card_catalyst_plus.tres" id="4_plus"]
+[ext_resource type="Resource" uid="uid://ck4ow7ju7bm1o" path="res://characters/warrior/cards/card_catalyst_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_axsma")
@@ -13,6 +13,7 @@ type = 1
 target = 0
 description = "Refuel your active Dice. Charge 1"
 rarity = 1
+rarity_tier = 1
 red_only = false
 can_play_without_dice = false
 requirement = 0

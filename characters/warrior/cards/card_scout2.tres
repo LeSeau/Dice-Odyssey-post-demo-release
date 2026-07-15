@@ -11,6 +11,7 @@ type = 1
 target = 0
 description = "Exhaust: Scout 2"
 rarity = 1
+rarity_tier = 0
 red_only = false
 can_play_without_dice = true
 requirement = 0

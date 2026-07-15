@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://ro7rxkqloi3x" path="res://Marionette.png" id="1_x5vrf"]
 [ext_resource type="Script" path="res://characters/warrior/cards/marionette.gd" id="2_sgvrk"]
 [ext_resource type="AudioStream" uid="uid://cy6owtfbf8sfv" path="res://sounds/fountainheal.wav" id="3_rqy32"]
-[ext_resource type="Resource" path="res://characters/warrior/cards/card_marionette_plus.tres" id="4_plus"]
+[ext_resource type="Resource" uid="uid://qqmd8hokhw88" path="res://characters/warrior/cards/card_marionette_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_sgvrk")
@@ -13,6 +13,7 @@ type = 2
 target = 0
 description = "At the start of each turn, gain a Scout 3 card"
 rarity = 0
+rarity_tier = 1
 red_only = false
 can_play_without_dice = false
 requirement = 1

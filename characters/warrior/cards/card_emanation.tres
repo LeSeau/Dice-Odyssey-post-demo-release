@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://bl3vn0j2olda7" path="res://emanation_v2.png" id="1_jmcpc"]
 [ext_resource type="Script" path="res://characters/warrior/cards/emanation.gd" id="2_okgbf"]
 [ext_resource type="AudioStream" uid="uid://cy6owtfbf8sfv" path="res://sounds/fountainheal.wav" id="3_l5mj1"]
-[ext_resource type="Resource" path="res://characters/warrior/cards/card_emanation_plus.tres" id="4_plus"]
+[ext_resource type="Resource" uid="uid://wfwjk3m7t6mo" path="res://characters/warrior/cards/card_emanation_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_okgbf")
@@ -13,6 +13,7 @@ type = 2
 target = 0
 description = "Gain 1 more Blue Dice each turn"
 rarity = 0
+rarity_tier = 1
 red_only = false
 can_play_without_dice = false
 requirement = 1

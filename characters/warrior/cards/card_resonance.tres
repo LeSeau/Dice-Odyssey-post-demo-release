@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://cpb12px7xr3nt" path="res://resonance_good.png" id="1_rltup"]
 [ext_resource type="Script" path="res://characters/warrior/cards/resonance.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://cvjv56ti6hkis" path="res://impact1.ogg" id="3_sound"]
-[ext_resource type="Resource" path="res://characters/warrior/cards/card_resonance_plus.tres" id="4_plus"]
+[ext_resource type="Resource" uid="uid://xgiaodbupma3" path="res://characters/warrior/cards/card_resonance_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_script")

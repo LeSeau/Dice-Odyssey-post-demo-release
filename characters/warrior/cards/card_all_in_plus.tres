@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5rs00000103"]
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://dk12gq5atdvj6"]
 
 [ext_resource type="Texture2D" uid="uid://4mwxeywtlovq" path="res://all_in.png" id="1_vwvjw"]
 [ext_resource type="Script" path="res://characters/warrior/cards/all_in_plus.gd" id="2_script"]
@@ -12,6 +12,7 @@ type = 0
 target = 1
 description = "Charge 1 Blue Dice. Then, deal X damage: spend all your remaining Dice, each adds its own roll"
 rarity = 0
+rarity_tier = 2
 red_only = true
 can_play_without_dice = false
 requirement = 5

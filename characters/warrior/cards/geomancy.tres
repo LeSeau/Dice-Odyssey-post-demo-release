@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://cwgxjq8wo6sn8" path="res://geomancy.png" id="1_oh8ke"]
 [ext_resource type="Script" path="res://characters/warrior/cards/geomancy.gd" id="2_v5dom"]
 [ext_resource type="AudioStream" uid="uid://cy6owtfbf8sfv" path="res://sounds/fountainheal.wav" id="3_66tkx"]
-[ext_resource type="Resource" path="res://characters/warrior/cards/geomancy_plus.tres" id="4_plus"]
+[ext_resource type="Resource" uid="uid://cig7ttmermagh" path="res://characters/warrior/cards/geomancy_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_v5dom")
@@ -13,6 +13,7 @@ type = 1
 target = 0
 description = "Triple your Power"
 rarity = 1
+rarity_tier = 1
 red_only = false
 can_play_without_dice = false
 requirement = 2

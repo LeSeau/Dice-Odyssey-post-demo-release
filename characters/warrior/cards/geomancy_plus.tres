@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5ge00000048"]
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://cig7ttmermagh"]
 
 [ext_resource type="Texture2D" uid="uid://cwgxjq8wo6sn8" path="res://geomancy.png" id="1_oh8ke"]
 [ext_resource type="Script" path="res://characters/warrior/cards/geomancy_plus.gd" id="2_v5dom"]
@@ -12,6 +12,7 @@ type = 1
 target = 0
 description = "Triple your Power"
 rarity = 1
+rarity_tier = 1
 red_only = false
 can_play_without_dice = false
 requirement = 2

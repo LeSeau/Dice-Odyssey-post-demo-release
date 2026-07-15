@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://bsc0wdsvejuc0" path="res://gptreinforce.jpg" id="1_07mm7"]
 [ext_resource type="Script" path="res://characters/warrior/cards/reinforce.gd" id="1_v6007"]
 [ext_resource type="AudioStream" uid="uid://do0dmgci28247" path="res://sounds/blacksmithsound.wav" id="3_buaeb"]
-[ext_resource type="Resource" path="res://characters/warrior/cards/reinforce_plus.tres" id="4_plus"]
+[ext_resource type="Resource" uid="uid://cdv42dxf57k23" path="res://characters/warrior/cards/reinforce_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("1_v6007")
@@ -13,6 +13,7 @@ type = 1
 target = 0
 description = "Add 2 to your Power"
 rarity = 1
+rarity_tier = 0
 red_only = false
 can_play_without_dice = false
 requirement = 2

@@ -13,6 +13,7 @@ type = 1
 target = 0
 description = "Gain 10 block and end your turn"
 rarity = 0
+rarity_tier = 0
 red_only = false
 can_play_without_dice = false
 requirement = 0

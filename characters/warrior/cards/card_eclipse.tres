@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://cvnnppo3we0vv" path="res://eclipse.png" id="1_sfpt2"]
 [ext_resource type="Script" path="res://characters/warrior/cards/eclipse.gd" id="2_57mlf"]
 [ext_resource type="AudioStream" uid="uid://dnh25fl6se86b" path="res://eclipse_sound.wav" id="3_tt3kv"]
-[ext_resource type="Resource" path="res://characters/warrior/cards/card_eclipse_plus.tres" id="4_plus"]
+[ext_resource type="Resource" uid="uid://rcktqq4f2q82" path="res://characters/warrior/cards/card_eclipse_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_57mlf")
@@ -13,6 +13,7 @@ type = 1
 target = 0
 description = "The next card you play does not reset your Power. Exhaust"
 rarity = 1
+rarity_tier = 1
 red_only = false
 can_play_without_dice = true
 requirement = 0

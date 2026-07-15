@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5dm00000055"]
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c1tm510x34jvl"]
 
 [ext_resource type="Texture2D" uid="uid://cgxrlwrh2flx0" path="res://doomsday.png" id="1_cjwng"]
 [ext_resource type="Script" path="res://characters/warrior/cards/doomsday_plus.gd" id="2_ovv1i"]
@@ -12,6 +12,7 @@ type = 0
 target = 1
 description = "Deal X6 damage"
 rarity = 0
+rarity_tier = 1
 red_only = false
 can_play_without_dice = false
 requirement = 7

@@ -13,6 +13,7 @@ type = 1
 target = 0
 description = "Gain 4 Strength"
 rarity = 0
+rarity_tier = 1
 red_only = false
 can_play_without_dice = false
 requirement = 1

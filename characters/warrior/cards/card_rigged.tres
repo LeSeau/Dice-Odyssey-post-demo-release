@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://bok31nro1j1wq" path="res://rigged.png" id="1_5r2un"]
 [ext_resource type="Script" path="res://characters/warrior/cards/rigged.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://cy6owtfbf8sfv" path="res://sounds/fountainheal.wav" id="3_sound"]
-[ext_resource type="Resource" path="res://characters/warrior/cards/card_rigged_plus.tres" id="4_plus"]
+[ext_resource type="Resource" uid="uid://bpsg6irubjqxu" path="res://characters/warrior/cards/card_rigged_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_script")
@@ -13,6 +13,7 @@ type = 1
 target = 0
 description = "Gain Lucky 2. Exhaust"
 rarity = 1
+rarity_tier = 1
 red_only = false
 can_play_without_dice = true
 requirement = 0

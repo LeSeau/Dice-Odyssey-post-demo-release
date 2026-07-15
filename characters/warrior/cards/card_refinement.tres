@@ -13,6 +13,7 @@ type = 1
 target = 0
 description = "Increase your Power to the next multiple of 7"
 rarity = 1
+rarity_tier = 0
 red_only = false
 can_play_without_dice = false
 requirement = 0

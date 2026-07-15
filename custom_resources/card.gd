@@ -3,7 +3,11 @@ extends Resource
 
 enum Type {ATTACK, SKILL, BLESSING}
 enum Target {SELF, SINGLE_ENEMY, ALL_ENEMIES, EVERYONE}
+# NOT a drop-rarity axis despite the name - this is the "does playing this card reset your
+# Power" mechanic flag (see hand.gd:296). Drop rarity lives in RarityTier/rarity_tier below;
+# the two are fully independent (a support card can be Common, Uncommon, or Rare).
 enum Rarity {NORMAL, SUPPORT}
+enum RarityTier {COMMON, UNCOMMON, RARE}
 enum Requirement {NONE, MIN, MAX, EVEN, ODD, RED, MULTIPLE, EXACT, PANDORA}
 
 const RARITY_COLORS := {
@@ -18,6 +22,7 @@ const RARITY_COLORS := {
 @export var target: Target
 @export var description: String
 @export var rarity: Rarity
+@export var rarity_tier: RarityTier = RarityTier.COMMON
 @export var red_only: bool
 @export var can_play_without_dice: bool
 @export var requirement: Requirement

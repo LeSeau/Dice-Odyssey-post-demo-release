@@ -72,6 +72,12 @@ func get_tooltip_content(requirement):
         text += "A lasting effect for the rest of the combat. Exhausts when played."
     elif requirement == "Celestial":
         text += "This card does not need Power or Dice to be played. It does not reset Power after being played."
+    elif requirement == "Common":
+        text += "A Common card."
+    elif requirement == "Uncommon":
+        text += "An Uncommon card."
+    elif requirement == "Rare":
+        text += "A Rare card."
     #if bonus_requirement == "MAX":
         #text += "Your power cannot exceed this value\n"
     #elif bonus_requirement == "MIN":

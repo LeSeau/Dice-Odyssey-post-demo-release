@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5bk00000052"]
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://bx41bkdduff6u"]
 
 [ext_resource type="Texture2D" uid="uid://cf316i0ocjj5w" path="res://berserk.png" id="1_vvmcg"]
 [ext_resource type="Script" path="res://characters/warrior/cards/berserker_plus.gd" id="2_m54y5"]
@@ -12,6 +12,7 @@ type = 2
 target = 0
 description = "You deal double damage with Red Dice"
 rarity = 0
+rarity_tier = 2
 red_only = false
 can_play_without_dice = false
 requirement = 1

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5rs00000115"]
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://ctrevteplsvq1"]
 
 [ext_resource type="Texture2D" uid="uid://spb1vt7t6whn" path="res://second_wind_v2.png" id="1_wbp0s"]
 [ext_resource type="Script" path="res://characters/warrior/cards/second_wind_plus.gd" id="2_script"]
@@ -12,6 +12,7 @@ type = 1
 target = 0
 description = "Heal HP equal to half your Power. Exhaust"
 rarity = 0
+rarity_tier = 1
 red_only = false
 can_play_without_dice = false
 requirement = 2

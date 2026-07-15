@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://bt26yj386gfj6" path="res://perpetual_motion.png" id="1_np5uj"]
 [ext_resource type="Script" path="res://characters/warrior/cards/perpetual_motion.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://cy6owtfbf8sfv" path="res://sounds/fountainheal.wav" id="3_sound"]
-[ext_resource type="Resource" path="res://characters/warrior/cards/card_perpetual_motion_plus.tres" id="4_plus"]
+[ext_resource type="Resource" uid="uid://dmh1m2sefiv36" path="res://characters/warrior/cards/card_perpetual_motion_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_script")
@@ -13,6 +13,7 @@ type = 2
 target = 0
 description = "The first time you run out of Dice each turn, Charge 1"
 rarity = 0
+rarity_tier = 1
 red_only = false
 can_play_without_dice = false
 requirement = 1

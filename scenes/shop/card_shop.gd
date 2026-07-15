@@ -26,12 +26,27 @@ func populate_shop() -> void:
     _generate_shop_cards()
     _generate_shop_relics()
     
+# Guaranteed composition (2 Common / 2 Uncommon / 1 Rare) rather than a blind shuffle - every
+# shop visit now contains exactly one expensive temptation instead of the old pure-random slice
+# sometimes offering zero Rares (or, before rarity existed at all, zero of anything special).
+const SHOP_COMPOSITION: Array[Card.RarityTier] = [
+    Card.RarityTier.COMMON, Card.RarityTier.COMMON,
+    Card.RarityTier.UNCOMMON, Card.RarityTier.UNCOMMON,
+    Card.RarityTier.RARE,
+]
+
+
 func _generate_shop_cards() -> void:
     var shop_card_array: Array[Card] = []
-    var available_cards := char_stats.draftable_cards.cards.duplicate(true)
-    available_cards.shuffle()
-    shop_card_array = available_cards.slice(0, 5)
-    
+    var available_cards: Array[Card] = char_stats.draftable_cards.cards.duplicate(true)
+    var owned_cards: Array[Card] = char_stats.deck.cards
+
+    for tier: Card.RarityTier in SHOP_COMPOSITION:
+        var picked_card := CardRarityDraw.pick_card(available_cards, tier, owned_cards)
+        if picked_card:
+            available_cards.erase(picked_card)
+            shop_card_array.append(picked_card)
+
     for card: Card in shop_card_array:
         var new_shop_card := SHOP_CARD.instantiate() as ShopCard
         cards.add_child(new_shop_card)

@@ -13,6 +13,7 @@ type = 1
 target = 0
 description = "If you have no Dice left, Charge 3 Green Dice"
 rarity = 1
+rarity_tier = 0
 red_only = false
 can_play_without_dice = true
 requirement = 0

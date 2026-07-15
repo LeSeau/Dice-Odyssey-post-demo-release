@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://cbveywd68g6l1" path="res://bulwark.png" id="1_va6ep"]
 [ext_resource type="Script" path="res://characters/warrior/cards/bulwark.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://cvjv56ti6hkis" path="res://impact1.ogg" id="3_sound"]
-[ext_resource type="Resource" path="res://characters/warrior/cards/card_bulwark_plus.tres" id="4_plus"]
+[ext_resource type="Resource" uid="uid://cs4jagd15nxbk" path="res://characters/warrior/cards/card_bulwark_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_script")
@@ -13,6 +13,7 @@ type = 0
 target = 1
 description = "Deal damage equal to your Block"
 rarity = 0
+rarity_tier = 1
 red_only = false
 can_play_without_dice = false
 requirement = 0

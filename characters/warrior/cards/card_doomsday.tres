@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://cgxrlwrh2flx0" path="res://doomsday.png" id="1_cjwng"]
 [ext_resource type="Script" path="res://characters/warrior/cards/doomsday.gd" id="2_ovv1i"]
 [ext_resource type="AudioStream" uid="uid://bmk6ieyjgirsp" path="res://laughsound.mp3" id="3_h1gft"]
-[ext_resource type="Resource" path="res://characters/warrior/cards/card_doomsday_plus.tres" id="4_plus"]
+[ext_resource type="Resource" uid="uid://c1tm510x34jvl" path="res://characters/warrior/cards/card_doomsday_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_ovv1i")
@@ -13,6 +13,7 @@ type = 0
 target = 1
 description = "Deal X4 damage"
 rarity = 0
+rarity_tier = 1
 red_only = false
 can_play_without_dice = false
 requirement = 7

@@ -254,9 +254,14 @@ func _start_run() -> void:
 # available floor) and becomes N right after picking a room on row N-1 - in
 # both cases "floors_climbed + 1" is the floor the player is currently on/about
 # to enter. Clamped since floors_climbed can reach FLOORS right after picking
-# the boss room, one past the last real floor number.
+# the boss room, one past the last real floor number. map.floors_climbed is
+# act-local (each act generates its own fresh map starting back at 0), so the
+# displayed floor number is offset by the floor count of all completed acts -
+# otherwise act 2 would visibly restart the count at "Floor: 1".
 func _update_floor_label() -> void:
-    floor_label.text = "Floor: %d" % mini(map.floors_climbed + 1, MapGenerator.FLOORS)
+    var floor_in_act := mini(map.floors_climbed + 1, MapGenerator.FLOORS)
+    var completed_acts_offset := (Global.current_act - 1) * MapGenerator.FLOORS
+    floor_label.text = "Floor: %d" % (completed_acts_offset + floor_in_act)
 
 
 
@@ -490,6 +495,15 @@ func _on_battle_won() -> void:
         gold_reward = roundi(gold_reward * ACT2_GOLD_MULT)
     reward_scene.add_gold_reward(gold_reward)
     reward_scene.add_card_reward()
+
+    # Card-reward rarity odds branch on room type (BattleReward.RewardContext) - boss rooms
+    # get all-Rare offers, elites get boosted Uncommon/Rare odds, everything else is the base
+    # weighted draw. Must be set before the player can click the "Add New Card" button, so
+    # right here is early enough regardless of room type.
+    if map.last_room.type == Room.Type.BOSS:
+        reward_scene.reward_context = BattleReward.RewardContext.BOSS
+    elif map.last_room.type == Room.Type.ELITE:
+        reward_scene.reward_context = BattleReward.RewardContext.ELITE
 
     # Add relic reward for elite fights
 
@@ -963,8 +977,7 @@ func _save_checkpoint() -> void:
         "event_pool_initial": initial_event_pool_out,
         "run_stats": {
             "card_rewards": stats.card_rewards,
-            "normal_weight": stats.normal_weight,
-            "support_weight": stats.support_weight,
+            "rare_weight": stats.rare_weight,
         },
         "map": map.get_save_data(),
     })
@@ -981,8 +994,10 @@ func _load_run() -> void:
 
     stats = RunStats.new()
     stats.card_rewards = data["run_stats"]["card_rewards"]
-    stats.normal_weight = data["run_stats"]["normal_weight"]
-    stats.support_weight = data["run_stats"]["support_weight"]
+    # data.get() fallback: saves written before the rarity system (normal_weight/
+    # support_weight keys, no rare_weight) fall back to the fresh RunStats.new() default
+    # rather than KeyError-ing on load.
+    stats.rare_weight = data["run_stats"].get("rare_weight", RunStats.BASE_RARE_WEIGHT)
 
     Global.current_act = data["act"]
     Global.gold = data["gold"]
