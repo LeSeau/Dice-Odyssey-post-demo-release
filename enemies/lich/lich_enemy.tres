@@ -8,6 +8,6 @@
 script = ExtResource("3_rv2x7")
 ai = ExtResource("1_a0owb")
 enemy_name = "Lich"
+content_center_x = 0.499
 max_health = 85
 art = ExtResource("2_d82ml")
-content_center_x = 0.499

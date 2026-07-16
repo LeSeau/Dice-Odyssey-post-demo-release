@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="EnemyStats" load_steps=4 format=3 uid="uid://crab1enemytier1a"]
+[gd_resource type="Resource" script_class="EnemyStats" load_steps=4 format=3 uid="uid://dn28hltncjtt5"]
 
 [ext_resource type="Script" path="res://custom_resources/enemy_stats.gd" id="1_7mfl6"]
 [ext_resource type="PackedScene" uid="uid://dbk6y12yqgre" path="res://enemies/crab/crab_enemy_ai.tscn" id="1_x0e6g"]
@@ -8,6 +8,6 @@
 script = ExtResource("1_7mfl6")
 ai = ExtResource("1_x0e6g")
 enemy_name = "Skeleton"
+content_center_x = 0.5
 max_health = 24
 art = ExtResource("2_u8pdq")
-content_center_x = 0.499
