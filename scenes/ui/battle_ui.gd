@@ -13,6 +13,8 @@ extends CanvasLayer
 @onready var discard_pile_view: CardPileView = %DiscardPileView
 @onready var deck_pile_button: CardPileOpener = %DeckPileButton
 @onready var deck_pile_view: CardPileView = %DeckPileView
+@onready var exhaust_pile_button: CardPileOpener = %ExhaustPileButton
+@onready var exhaust_pile_view: CardPileView = %ExhaustPileView
 
 # End Turn "nothing left to do" nudge: pulses the button when the player has no dice left to
 # roll, no banked power to spend, AND no Celestial card in hand (a card playable without dice) -
@@ -28,6 +30,7 @@ func _ready() -> void:
     draw_pile_button.pressed.connect(draw_pile_view.show_current_view.bind("Draw Pile", true))
     discard_pile_button.pressed.connect(discard_pile_view.show_current_view.bind("Discard Pile"))
     deck_pile_button.pressed.connect(deck_pile_view.show_current_view.bind("Deck Pile"))
+    exhaust_pile_button.pressed.connect(exhaust_pile_view.show_current_view.bind("Exhaust Pile"))
     Events.force_end_turn.connect(_on_force_end_turn)
     # hover_playable_cards already fires on every roll/dice-type-change/reset (see dice.gd) -
     # covers the dice/power side. card_played covers hand composition changing (a Celestial
@@ -40,9 +43,22 @@ func initialize_card_pile_ui() -> void:
     draw_pile_view.card_pile = char_stats.draw_pile
     discard_pile_button.card_pile = char_stats.discard
     discard_pile_view.card_pile = char_stats.discard
-    deck_pile_button.card_pile = char_stats.deck 
+    deck_pile_button.card_pile = char_stats.deck
     deck_pile_view.card_pile = char_stats.deck
-    
+    exhaust_pile_button.card_pile = char_stats.exhaust
+    exhaust_pile_view.card_pile = char_stats.exhaust
+    # Hidden until the first card actually exhausts (most fights never exhaust anything -
+    # showing an empty pile at 0 all game would just be clutter). Never re-hides once shown;
+    # nothing in the current design removes cards FROM the exhaust pile mid-fight.
+    exhaust_pile_button.visible = false
+    if not char_stats.exhaust.card_pile_size_changed.is_connected(_on_exhaust_pile_size_changed):
+        char_stats.exhaust.card_pile_size_changed.connect(_on_exhaust_pile_size_changed)
+
+
+func _on_exhaust_pile_size_changed(cards_amount: int) -> void:
+    if cards_amount > 0:
+        exhaust_pile_button.visible = true
+
 
 func _set_char_stats(value: CharacterStats) -> void:
     char_stats = value

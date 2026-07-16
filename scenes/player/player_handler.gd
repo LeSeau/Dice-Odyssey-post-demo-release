@@ -64,13 +64,19 @@ func start_battle(char_stats: CharacterStats) -> void:
     character.draw_pile.shuffle()
 
     character.discard = CardPile.new()
+    character.exhaust = CardPile.new()
     relics.relics_activated.connect(_on_relics_activated)
     player.status_handler.statuses_applied.connect(_on_statuses_applied)
     start_turn()
 
 
 func start_turn() -> void:
+    # Muscle statuses subtract lose_strength_next_turn during this emit (one-turn-only
+    # strength: fury.gd, and the Octet dice infusion). Clear it right after so the pending
+    # loss is applied exactly once - it used to never reset, so any later permanent-strength
+    # gain would keep getting silently drained by a stale value every subsequent turn.
     Events.check_if_losing_strength.emit()
+    Global.lose_strength_next_turn = 0
     character.block = 0
     Global.player.stats.block = 0
     Global.has_rolled_6_this_turn = false
@@ -183,6 +189,7 @@ func reshuffle_deck_from_discard() -> void:
 
 func _on_card_played(card: Card) -> void:
     if card.should_exhaust():
+        character.exhaust.add_card(card)
         return
 
     character.discard.add_card(card)

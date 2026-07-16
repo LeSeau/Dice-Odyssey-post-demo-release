@@ -21,6 +21,7 @@
 [ext_resource type="Script" path="res://scenes/ui/red_flash.gd" id="15_qvh8t"]
 [ext_resource type="Texture2D" uid="uid://ck7h1mmpvdha0" path="res://draw.png" id="16_xu5rp"]
 [ext_resource type="Texture2D" uid="uid://wvscmsq6vxpb" path="res://discard.png" id="17_ke8nc"]
+[ext_resource type="Texture2D" uid="uid://bmlsdq8287em7" path="res://exhaust.png" id="17_exh1a"]
 [ext_resource type="StyleBox" uid="uid://cvwok1abmdx8a" path="res://scenes/card_ui/card_hover_stylebox_v2.tres" id="17_kl2b0"]
 [ext_resource type="PackedScene" uid="uid://dfig8d63ggof1" path="res://scenes/ui/battle_over_panel.tscn" id="17_xrby7"]
 [ext_resource type="StyleBox" uid="uid://cxceq06ivjxlg" path="res://scenes/card_ui/card_base_stylebox.tres" id="18_trgx0"]
@@ -454,6 +455,41 @@ text = "99
 "
 horizontal_alignment = 1
 
+[node name="ExhaustPileButton" parent="BattleUI" node_paths=PackedStringArray("counter") instance=ExtResource("15_b2kgl")]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -116.0
+offset_top = -220.0
+offset_right = -20.0
+offset_bottom = -136.0
+grow_horizontal = 0
+grow_vertical = 0
+texture_normal = ExtResource("17_exh1a")
+counter = NodePath("Counter")
+
+[node name="Counter" type="Label" parent="BattleUI/ExhaustPileButton"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -34.0
+offset_top = -30.0
+offset_right = -4.0
+offset_bottom = -4.0
+grow_horizontal = 0
+grow_vertical = 0
+label_settings = SubResource("LabelSettings_pile_counter")
+text = "0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="JoinDiscordControl" type="Control" parent="BattleUI"]
 visible = false
 layout_mode = 3
@@ -570,6 +606,10 @@ unique_name_in_owner = true
 visible = false
 
 [node name="DeckPileView" parent="CardPileViews" instance=ExtResource("21_dky1i")]
+unique_name_in_owner = true
+visible = false
+
+[node name="ExhaustPileView" parent="CardPileViews" instance=ExtResource("21_dky1i")]
 unique_name_in_owner = true
 visible = false
 
@@ -778,5 +818,7 @@ script = ExtResource("38_tutdir")
 [connection signal="mouse_exited" from="BattleUI/DrawPileButton" to="." method="_on_draw_pile_button_mouse_exited"]
 [connection signal="mouse_entered" from="BattleUI/DiscardPileButton" to="." method="_on_discard_pile_button_mouse_entered"]
 [connection signal="mouse_exited" from="BattleUI/DiscardPileButton" to="." method="_on_discard_pile_button_mouse_exited"]
+[connection signal="mouse_entered" from="BattleUI/ExhaustPileButton" to="." method="_on_exhaust_pile_button_mouse_entered"]
+[connection signal="mouse_exited" from="BattleUI/ExhaustPileButton" to="." method="_on_exhaust_pile_button_mouse_exited"]
 [connection signal="pressed" from="ScoutPanel/ExitButton" to="." method="_on_exit_button_pressed"]
 [connection signal="pressed" from="CanvasLayer/Tutorial/WarningPowerReset/WarningButton" to="." method="_on_warning_button_pressed"]

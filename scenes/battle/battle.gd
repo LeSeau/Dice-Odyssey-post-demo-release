@@ -22,22 +22,24 @@ const ACT2_MUSCLE_BASE := {0: 2, 1: 3, 2: 4, 3: 5, 4: 4}
 var act_tier: int = -1
 
 # --- Combat background selection ------------------------------------------
-# One background per (act, act-local tier) slot, keyed exactly like the scaling
-# tables above. Act 1 arcs from open-air ruins toward a stormy sea-cliff for
-# Leviathan; act 2 arcs from indoor archives toward a mistier variant of that
-# same coastline for the Leviathan rematch (same boss both acts).
+# One background per act for the whole hallway (tiers 0-2 share it - 5 distinct
+# backgrounds per act was too much switching, especially with elites interspersed
+# breaking up the sense of "one place"), plus a dedicated elite and boss look.
+# Keyed exactly like the scaling tables above so the same act_tier resolves both.
+# Ranked 2026-07-15 against real composited renders + Julien's in-editor
+# screenshots; runner-up assets kept on disk as `bench_*.png` for a possible Act 3.
 const BACKGROUND_ACT1 := {
-    0: preload("res://assets/backgrounds/combat_bg_act1_t0_jungle.png"),
-    1: preload("res://assets/backgrounds/combat_bg_act1_t1_desert.png"),
-    2: preload("res://assets/backgrounds/combat_bg_act1_t2_throne_hall.png"),
-    3: preload("res://assets/backgrounds/combat_bg_act1_elite_lava.png"),
+    0: preload("res://assets/backgrounds/combat_bg_act1_hallway_mountain_ruins.png"),
+    1: preload("res://assets/backgrounds/combat_bg_act1_hallway_mountain_ruins.png"),
+    2: preload("res://assets/backgrounds/combat_bg_act1_hallway_mountain_ruins.png"),
+    3: preload("res://assets/backgrounds/combat_bg_act1_elite_blue_throne_hall.png"),
     4: preload("res://assets/backgrounds/combat_bg_act1_boss_coastal_storm.png"),
 }
 const BACKGROUND_ACT2 := {
-    0: preload("res://assets/backgrounds/combat_bg_act2_t0_arcane_library.png"),
-    1: preload("res://assets/backgrounds/combat_bg_act2_t1_purple_library.png"),
-    2: preload("res://assets/backgrounds/combat_bg_act2_t2_idol_shrine.png"),
-    3: preload("res://assets/backgrounds/combat_bg_act2_elite_colosseum.png"),
+    0: preload("res://assets/backgrounds/combat_bg_act2_hallway_arcane_library.png"),
+    1: preload("res://assets/backgrounds/combat_bg_act2_hallway_arcane_library.png"),
+    2: preload("res://assets/backgrounds/combat_bg_act2_hallway_arcane_library.png"),
+    3: preload("res://assets/backgrounds/combat_bg_act2_elite_cool_lava.png"),
     4: preload("res://assets/backgrounds/combat_bg_act2_boss_coastal_mist.png"),
 }
 const BACKGROUND_FALLBACK := preload("res://assets/backgrounds/20-2.jpg")
@@ -92,6 +94,9 @@ func start_battle() -> void:
     MusicPlayer.play(music, true)
     Events.stop_map_music.emit()
     background.texture = _select_background_texture()
+    # Mirrored by battle_reward.gd so the reward screen's background matches the
+    # biome you were just fighting in instead of a fixed placeholder.
+    Global.last_battle_background = background.texture
     battle_ui.char_stats = char_stats
     player.stats = char_stats
     player_handler.relics = relics
@@ -344,6 +349,14 @@ func _on_scout_effect(amount: int) -> void:
     _resize_scout_panel(visible_count)
 
     var faces = dice_faces.get(Global.dice_type, [])
+    # Dice infusions that change the value/face set (Repented Evil -> only 6, Bulky Giant ->
+    # 7-12) must show those same outcomes when scouted, or the preview would lie. Same override
+    # dice.gd applies to the real roll.
+    var override_values: Array = DiceInfusions.roll_values_override(Global.dice_type)
+    if not override_values.is_empty():
+        faces = []
+        for v in override_values:
+            faces.append(load("res://assets/images/%s%d.png" % [Global.dice_type, v]))
     if faces.is_empty():
         push_error("No faces found for dice type: %s" % Global.dice_type)
         return
@@ -690,6 +703,7 @@ func _get_scout_glow_material() -> CanvasItemMaterial:
 # EndTurnButton, that's fine since it disappears on mouse exit anyway.
 const DRAW_PILE_TOOLTIP_POS := Vector2(43, 510)
 const DISCARD_PILE_TOOLTIP_POS := Vector2(1056, 510)
+const EXHAUST_PILE_TOOLTIP_POS := Vector2(1056, 382)
 
 func _show_pile_tooltip(title: String, text: String, pos: Vector2) -> void:
     tooltip.visible = true
@@ -713,6 +727,12 @@ func _on_discard_pile_button_mouse_entered() -> void:
     _show_pile_tooltip("Discard Pile", "Cards you've played. Shuffles back into your Draw Pile once it runs out.", DISCARD_PILE_TOOLTIP_POS)
 
 func _on_discard_pile_button_mouse_exited() -> void:
+    _hide_pile_tooltip()
+
+func _on_exhaust_pile_button_mouse_entered() -> void:
+    _show_pile_tooltip("Exhaust Pile", "Cards removed from the fight - they won't return to your Draw or Discard Pile.", EXHAUST_PILE_TOOLTIP_POS)
+
+func _on_exhaust_pile_button_mouse_exited() -> void:
     _hide_pile_tooltip()
 
 

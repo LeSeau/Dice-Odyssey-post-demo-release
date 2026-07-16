@@ -252,7 +252,21 @@ func _fly_to_discard_and_free() -> void:
     var target_pos := global_position + Vector2(0, 220)  # fallback if discard pile not found
     var ui_layer := get_tree().get_first_node_in_group("ui_layer")
     if ui_layer:
-        var discard: Node = ui_layer.get_node_or_null("DiscardPileButton")
+        # A card played straight from the red-dice socket never went through the drag state
+        # on its final play (dice.gd forces BASE->AIMING->RELEASED on the red roll), so
+        # unlike every other play path it can still be a CHILD OF THE HAND here. It must
+        # leave the hand NOW: card.play() already added its Card to the discard pile via
+        # Events.card_played, so if End Turn fires during this ~1.3s fly-out,
+        # player_handler.discard_cards() would iterate it as a hand card and add the SAME
+        # Card object to the pile a second time - two copies drawn after the next reshuffle.
+        if get_parent() != ui_layer:
+            reparent(ui_layer)
+        # Exhausting cards fly to the exhaust pile instead of discard - they never actually
+        # land in the discard pile (see player_handler.gd::_on_card_played), so flying there
+        # was a visual lie. should_exhaust() reflects the same synchronous check
+        # player_handler.gd already made moments earlier via the same card.play() call.
+        var pile_name := "ExhaustPileButton" if card.should_exhaust() else "DiscardPileButton"
+        var discard: Node = ui_layer.get_node_or_null(pile_name)
         if discard and discard is Control:
             target_pos = (discard as Control).global_position
 
@@ -514,6 +528,14 @@ func _on_red_dice_rolled() -> void:
             print("Playing specific charged card: ", card.id)
             _prune_stale_targets()
             card.play(targets, char_stats, player_modifiers)
+            # Same cleanup contract as card_released_state.gd's socketed-play branch: emit
+            # while playing_red_card is still true so dice.gd flies the socket display to
+            # the discard and drops its socketed_card_ui reference even when the card's own
+            # apply_effects no-opped (whiffed requirement) and thus never emitted anything -
+            # otherwise the socket keeps showing an already-played card and playing_red_card
+            # stays stuck true for the rest of the turn.
+            Events.reset_charged_card.emit()
+            Global.playing_red_card = false
             queue_free()
         
         Events.dice_rolled.emit(Global.dice_type, Global.roll_value)
