@@ -10,3 +10,4 @@ ai = ExtResource("1_ckscd")
 enemy_name = "Marauder"
 max_health = 31
 art = ExtResource("2_578pl")
+content_center_x = 0.465

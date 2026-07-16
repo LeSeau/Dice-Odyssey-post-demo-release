@@ -46,6 +46,7 @@ var _hit_reaction_active := false
 @export var status_handler_y_offset: int = 0
 @onready var status_handler: StatusHandler = $StatusHandler
 @onready var modifier_handler: ModifierHandler = $ModifierHandler
+@onready var animation_player: AnimationPlayer = $AnimationPlayer
 
 
 var enemy_action_picker: EnemyActionPicker
@@ -64,10 +65,20 @@ var _display_name := ""
 # stats_ui - converted to a screen-space CanvasLayer offset on hover, see
 # _on_mouse_entered().
 var _name_label_local_y: float = 0.0
+# Local X of the name label, same idea - defaults to the legacy flat guess and gets
+# overridden in update_enemy() if stats.content_center_x was actually measured.
+var _name_label_local_x: float = NAME_LABEL_SPRITE_CENTER_X
 
 
 func _ready() -> void:
     _base_sprite_material = sprite_2d.material as ShaderMaterial
+
+    # Idle already started via autoplay by the time this runs (children enter the tree
+    # before their parent's _ready()) - nudge its phase/speed so multiple enemies on
+    # screen at once don't all breathe in perfect lockstep (same "idle" animation, same
+    # start time otherwise), which is exactly what read as robotic before this.
+    animation_player.speed_scale = randf_range(0.85, 1.2)
+    animation_player.seek(randf() * animation_player.current_animation_length, true)
 
 
 
@@ -151,6 +162,13 @@ func update_enemy() -> void:
         stats_ui.position.y = (tex_size.y * final_scale / 2) + stats_ui_y_offset + sprite_y_offset
         _name_label_local_y = stats_ui.position.y + stats_ui.size.y + 4
         status_handler.position.y = (tex_size.y * final_scale / 2) + stats_ui.size.y + status_handler_y_offset - 8 + sprite_y_offset
+        # sprite_2d.position.x is a fixed baseline baked into enemy.tscn's template (124,
+        # never reassigned by code, same value NAME_LABEL_SPRITE_CENTER_X was hand-copied
+        # from) - has to be added back in, not replaced, or the label loses that baseline
+        # entirely and drifts hard left. Only the content-fraction term is enemy-specific.
+        _name_label_local_x = sprite_2d.position.x
+        if stats.content_center_x >= 0.0:
+            _name_label_local_x += (stats.content_center_x - 0.5) * tex_size.x * final_scale
     sprite_2d.position.y = sprite_y_offset
 
     # Multi-enemy battle scenes (e.g. battles/tier_1_oculus_goblin.tscn) set `scale`
@@ -264,7 +282,7 @@ func _on_mouse_entered() -> void:
     # NameLabel's own rect is unscaled screen pixels inside its CanvasLayer (see
     # update_enemy()) - recomputed here rather than cached, so it's always correct even
     # if the enemy shifted (e.g. mid hit-reaction knockback) since update_enemy() last ran.
-    var world_center_x = global_position.x + NAME_LABEL_SPRITE_CENTER_X * scale.x
+    var world_center_x = global_position.x + _name_label_local_x * scale.x
     var world_y = global_position.y + _name_label_local_y * scale.y
     name_label_layer.offset = Vector2(world_center_x - NAME_LABEL_WIDTH / 2.0, world_y)
     name_label.show()

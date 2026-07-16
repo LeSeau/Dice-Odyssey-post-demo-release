@@ -10,3 +10,4 @@ ai = ExtResource("1_ai")
 enemy_name = "Skeleton"
 max_health = 28
 art = ExtResource("2_u8pdq")
+content_center_x = 0.499
