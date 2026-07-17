@@ -13,16 +13,16 @@ width = 220
 height = 220
 
 [node name="Octopus1" parent="." instance=ExtResource("1_fao5v")]
-position = Vector2(955, 444)
-scale = Vector2(0.75, 0.75)
+position = Vector2(986, 444)
+scale = Vector2(0.65, 0.65)
 stats = ExtResource("3_mwqir")
 width = 250
 height = 250
 intent_ui_y_offset = 20
 
 [node name="Octopus2" parent="." instance=ExtResource("1_fao5v")]
-position = Vector2(1081, 425)
-scale = Vector2(0.75, 0.75)
+position = Vector2(1115, 425)
+scale = Vector2(0.65, 0.65)
 stats = ExtResource("3_mwqir")
 width = 250
 height = 250

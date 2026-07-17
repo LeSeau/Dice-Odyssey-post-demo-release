@@ -6,7 +6,7 @@
 [node name="Tier0BiggerSatyrs2" type="Node2D"]
 
 [node name="Satyr1" parent="." instance=ExtResource("1_16r5g")]
-position = Vector2(1043, 445)
+position = Vector2(1043, 467)
 scale = Vector2(0.75, 0.75)
 stats = ExtResource("2_8qpbs")
 

@@ -6,7 +6,7 @@
 [node name="Tier0Crab" type="Node2D"]
 
 [node name="Crab" parent="." instance=ExtResource("1_uaugs")]
-position = Vector2(892, 391)
+position = Vector2(892, 412)
 stats = ExtResource("2_shtaq")
 sprite_y_offset = 10
 intent_ui_y_offset = 25
