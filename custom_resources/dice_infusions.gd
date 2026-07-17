@@ -19,7 +19,7 @@ const INFUSIONS := {
     "blue": {
         "id": "arcane",
         "name": "Arcane Dice",
-        "description": "Every time you roll a 6, draw 2 cards.",
+        "description": "Every time you roll a 6, deal 5 damage to all enemies.",
         # Bright identity color (power number, orbs, labels): a clearly "arcane" violet,
         # kept away from Evil's fuchsia (E14FE1). First-pass values, tune freely.
         "accent": Color("9A66FF"),
@@ -38,6 +38,77 @@ const INFUSIONS := {
         "aura_magic": Color(1.0, 0.32, 0.14, 0.95),
         "aura_accent": Color(1.0, 0.62, 0.3, 0.85),
     },
+    "evil": {
+        "id": "repented",
+        "name": "Repented Dice",
+        "description": "Remove the corrupted face. Evil Dice faces are now 6, 6, 6.",
+        # roll_values overrides the die's value/face set (see roll_values_override()). Evil
+        # was [0, 6, 6, 6]; repentance drops the crack.
+        "roll_values": [6, 6, 6],
+        "accent": Color("FFDE7A"),  # holy/redeemed gold
+        "outline": Color("5A4410"),
+        "aura_magic": Color(1.0, 0.85, 0.45, 0.9),
+        "aura_accent": Color(0.85, 0.6, 0.2, 0.83),
+    },
+    "giant": {
+        "id": "bulky",
+        "name": "Bulky Dice",
+        "description": "Remove faces 1-6. Giant Dice faces are now 7-12.",
+        "roll_values": [7, 8, 9, 10, 11, 12],
+        "preview_face": 12,
+        "accent": Color("47D65A"),  # heavy deep emerald
+        "outline": Color("0F4018"),
+        "aura_magic": Color(0.3, 0.85, 0.4, 0.9),
+        "aura_accent": Color(0.15, 0.6, 0.25, 0.83),
+    },
+    "green": {
+        "id": "gnome",
+        "name": "Gnome Dice",
+        "description": "Every time you roll a 1, Charge a Blue Dice.",
+        "preview_face": 3,  # green is a d3
+        "accent": Color("6CE05C"),
+        "outline": Color("154A18"),
+        "aura_magic": Color(0.42, 0.9, 0.35, 0.9),
+        "aura_accent": Color(0.25, 0.65, 0.2, 0.83),
+    },
+    "mech": {
+        "id": "clockwork",
+        "name": "Clockwork Dice",
+        "description": "You can add or subtract 1 Power twice after each roll.",
+        "accent": Color("E0B24A"),  # brass/gears
+        "outline": Color("4A3410"),
+        "aura_magic": Color(0.95, 0.72, 0.28, 0.9),
+        "aura_accent": Color(0.7, 0.5, 0.18, 0.83),
+    },
+    "magma": {
+        "id": "inferno",
+        "name": "Inferno Dice",
+        "description": "The first roll each turn burns all enemies twice.",
+        "accent": Color("FF8A2A"),  # white-hot lava
+        "outline": Color("5A1A00"),
+        "aura_magic": Color(1.0, 0.55, 0.15, 0.95),
+        "aura_accent": Color(1.0, 0.78, 0.3, 0.85),
+    },
+    "odd": {
+        "id": "bulwark",
+        "name": "Bulwark Dice",
+        "description": "Rolls give you Block equal to their value.",
+        "preview_face": 7,  # odd is 1/3/5/7
+        "accent": Color("5FB6E8"),  # defensive steel-blue
+        "outline": Color("0C2E4A"),
+        "aura_magic": Color(0.4, 0.7, 0.95, 0.9),
+        "aura_accent": Color(0.2, 0.45, 0.8, 0.83),
+    },
+    "even": {
+        "id": "octet",
+        "name": "Octet Dice",
+        "description": "When you roll an 8, gain 8 Strength for this turn only.",
+        "preview_face": 8,  # even is 2/4/6/8
+        "accent": Color("FF6B4A"),
+        "outline": Color("4D1200"),
+        "aura_magic": Color(1.0, 0.42, 0.28, 0.9),
+        "aura_accent": Color(0.85, 0.28, 0.18, 0.83),
+    },
 }
 
 
@@ -47,6 +118,22 @@ static func has_infusion_for(dice_type: String) -> bool:
 
 static func get_info(dice_type: String) -> Dictionary:
     return INFUSIONS.get(dice_type, {})
+
+
+# The value 6 face shown big on the infusion screen isn't valid for every die (Green is a
+# d3, Even/Odd top out at 8/7, Giant at 12) - each infusion can name its representative face.
+static func preview_face(dice_type: String) -> int:
+    return int(get_info(dice_type).get("preview_face", 6))
+
+
+# For infusions that change which values the die can roll (Repented -> [6,6,6],
+# Bulky -> [7..12]): returns the overriding value list, or [] if this die's infusion (or
+# lack of one) doesn't change its faces. Applied in BOTH the real roll (dice.gd::roll_dice)
+# and the Scout outcome preview (battle.gd) so they never disagree.
+static func roll_values_override(dice_type: String) -> Array:
+    if not Global.is_dice_infused(dice_type):
+        return []
+    return get_info(dice_type).get("roll_values", [])
 
 
 # The random different owned dice types offered on the infusion screen. Only types that

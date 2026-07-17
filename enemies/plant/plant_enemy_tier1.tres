@@ -8,5 +8,5 @@
 script = ExtResource("3_4fptl")
 ai = ExtResource("1_lr1j8")
 enemy_name = "Venom Bloom"
-max_health = 32
+max_health = 28
 art = ExtResource("2_u2alm")

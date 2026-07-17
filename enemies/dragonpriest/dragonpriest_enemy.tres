@@ -8,5 +8,6 @@
 script = ExtResource("3_jieoi")
 ai = ExtResource("1_pmflu")
 enemy_name = "Dragon Priest"
+content_center_x = -1.0
 max_health = 90
 art = ExtResource("2_qufrq")

@@ -8,5 +8,6 @@
 script = ExtResource("3_1kvni")
 ai = ExtResource("1_aw66x")
 enemy_name = "Oculus"
-max_health = 22
+content_center_x = -1.0
+max_health = 20
 art = ExtResource("2_tu8sy")

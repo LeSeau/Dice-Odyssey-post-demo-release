@@ -9,7 +9,7 @@
 [node name="Tier1OculusGoblin" type="Node2D"]
 
 [node name="Goblin" parent="." instance=ExtResource("1_2jp6t")]
-position = Vector2(749, 365)
+position = Vector2(749, 413)
 stats = ExtResource("2_2e7ne")
 width = 240
 height = 240

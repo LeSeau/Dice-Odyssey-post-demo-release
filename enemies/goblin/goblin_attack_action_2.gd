@@ -1,7 +1,7 @@
 extends EnemyAction
 
-@export var damage := 6
-var base_damage =  6
+@export var damage := 7
+var base_damage =  7
 
 func is_performable() -> bool:
     return enemy.last_action == "goblin_attack"
@@ -43,6 +43,7 @@ func update_intent_text() -> void:
     var total_modified_damage := player.modifier_handler.get_modified_value(damage_with_enemy_mods, Modifier.Type.DMG_TAKEN)
 
     # This action hits twice (see perform_action's two damage_effect.execute calls, both for
-    # the same base_damage) - the intent number must reflect the full incoming damage for the
-    # turn, same as every single-hit action's intent already does, not just one of the two hits.
-    intent.current_text = intent.base_text % (total_modified_damage * 2)
+    # the same base_damage) - shown as "2xN" (per-hit damage, same pattern as Temple Defender's
+    # defender_attack_action_2.gd) rather than the combined total, so the player can tell at a
+    # glance it's two separate strikes instead of one big hit.
+    intent.current_text = intent.base_text % total_modified_damage

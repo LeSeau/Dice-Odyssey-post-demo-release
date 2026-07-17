@@ -8,5 +8,5 @@
 script = ExtResource("3_4smsh")
 ai = ExtResource("1_7kka6")
 enemy_name = "Lurker"
-max_health = 52
+max_health = 47
 art = ExtResource("2_588mg")

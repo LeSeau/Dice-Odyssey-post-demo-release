@@ -7,9 +7,11 @@
 script = ExtResource("2_irqlu")
 id = "emanation"
 type = 0
-stack_type = 1
+stack_type = 0
 can_expire = false
 duration = 1
 stacks = 1
 icon = ExtResource("1_0g36b")
 tooltip = "Gain one more Blue Dice each turn for the rest of the fight"
+hide_when_zero = false
+hide_counter_when_zero = false

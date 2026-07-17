@@ -8,5 +8,6 @@
 script = ExtResource("3_vmw20")
 ai = ExtResource("1_5sym6")
 enemy_name = "Goblin"
-max_health = 25
+content_center_x = -1.0
+max_health = 22
 art = ExtResource("2_1okek")

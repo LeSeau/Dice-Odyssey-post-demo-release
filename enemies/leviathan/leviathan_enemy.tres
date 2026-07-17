@@ -8,5 +8,6 @@
 script = ExtResource("3_fuvpg")
 ai = ExtResource("1_kkqsu")
 enemy_name = "Leviathan"
+content_center_x = -1.0
 max_health = 140
 art = ExtResource("2_oerru")

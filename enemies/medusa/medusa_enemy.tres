@@ -8,5 +8,6 @@
 script = ExtResource("3_hdvna")
 ai = ExtResource("1_s27jt")
 enemy_name = "Medusa"
-max_health = 62
+content_center_x = -1.0
+max_health = 58
 art = ExtResource("2_rj6aq")

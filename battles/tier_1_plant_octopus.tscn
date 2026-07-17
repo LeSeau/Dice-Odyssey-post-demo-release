@@ -7,7 +7,7 @@
 [node name="Tier1PlantOctopus" type="Node2D"]
 
 [node name="Plant" parent="." instance=ExtResource("1_noo65")]
-position = Vector2(749, 394)
+position = Vector2(749, 437)
 stats = ExtResource("3_jikbk")
 width = 210
 height = 210

@@ -36,6 +36,13 @@ func on_lucky_check() -> void:
         "mech":
             values = [1,2,3,4,5,6]
 
+    # Dice infusions that change the value set (Repented Evil -> [6,6,6], Bulky Giant ->
+    # [7..12]) must be reflected here, or Lucky/Unlucky could guarantee a value the die can
+    # no longer roll (find() would miss and fall back to a random roll in dice.gd).
+    var override_values: Array = DiceInfusions.roll_values_override(dice_type)
+    if not override_values.is_empty():
+        values = override_values
+
     #if values.empty():
         #return
 

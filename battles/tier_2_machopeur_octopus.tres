@@ -10,3 +10,4 @@ weight = 1.0
 gold_reward_min = 40
 gold_reward_max = 50
 enemies = ExtResource("1_m8j8x")
+group = "marauder"

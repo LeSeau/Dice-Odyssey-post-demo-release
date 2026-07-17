@@ -8,5 +8,6 @@
 script = ExtResource("3_s0rci")
 ai = ExtResource("1_7phg0")
 enemy_name = "Lava Hound"
-max_health = 55
+content_center_x = -1.0
+max_health = 51
 art = ExtResource("2_p5com")

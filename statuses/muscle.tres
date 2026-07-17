@@ -13,3 +13,5 @@ duration = 0
 stacks = 1
 icon = ExtResource("1_dnals")
 tooltip = "to do"
+hide_when_zero = false
+hide_counter_when_zero = false

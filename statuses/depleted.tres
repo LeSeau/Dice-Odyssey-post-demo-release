@@ -13,3 +13,5 @@ duration = 1
 stacks = 1
 icon = ExtResource("1_r6nlg")
 tooltip = "Gain one less Blue Dice next turn for each stack"
+hide_when_zero = false
+hide_counter_when_zero = false

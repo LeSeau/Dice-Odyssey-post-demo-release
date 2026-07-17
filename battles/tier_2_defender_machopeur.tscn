@@ -11,6 +11,6 @@ position = Vector2(758, 418)
 stats = ExtResource("2_nay6a")
 
 [node name="Machopeur" parent="." instance=ExtResource("1_cff8f")]
-position = Vector2(1034, 411)
+position = Vector2(1034, 433)
 scale = Vector2(0.75, 0.75)
 stats = ExtResource("3_8jts3")

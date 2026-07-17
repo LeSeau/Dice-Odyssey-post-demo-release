@@ -7,9 +7,11 @@
 script = ExtResource("2_hm63f")
 id = "marionette"
 type = 0
-stack_type = 2
+stack_type = 0
 can_expire = false
 duration = 1
 stacks = 1
 icon = ExtResource("1_krxjk")
 tooltip = "At the start of each turn, gain a Scout 3 card"
+hide_when_zero = false
+hide_counter_when_zero = false

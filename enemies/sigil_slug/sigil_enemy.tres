@@ -8,5 +8,6 @@
 script = ExtResource("3_455va")
 ai = ExtResource("1_p58ir")
 enemy_name = "Sigil Slug"
-max_health = 42
+content_center_x = -1.0
+max_health = 37
 art = ExtResource("2_66hyw")

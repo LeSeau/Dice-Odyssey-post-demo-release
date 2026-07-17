@@ -1,10 +1,10 @@
 extends EnemyAction
 
-@export var damage := 9
+@export var damage := 10
 @onready var modifier_handler: ModifierHandler = $"../ModifierHandler"
 
 
-var base_damage = 9
+var base_damage = 10
 
 func is_performable() -> bool:
     return Global.fight_turn == 0
