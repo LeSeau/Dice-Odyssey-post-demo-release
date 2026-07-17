@@ -17,14 +17,20 @@ const ICONS := {
 @onready var sprite_2d: Sprite2D = $Visuals/Sprite2D
 @onready var line_2d: Line2D = $Line2D
 @onready var animation_player: AnimationPlayer = $AnimationPlayer
+@onready var affordable_badge: Area2D = $AffordableBadge
 
 const HOVER_SCALE := Vector2(1.12, 1.12)
 const HOVER_IN_DURATION := 0.12
 const HOVER_OUT_DURATION := 0.12
 
+const AFFORDABLE_BADGE_TOOLTIP_TEXT := "You have enough gold to buy a Dice in the shop. It doesn't mean you always should! Sometimes, saving up for another Dice is worth it."
+const AFFORDABLE_BADGE_TOOLTIP_SCENE := "res://scenes/ui/icon_tooltip.tscn"
+
 var available := false : set = set_available
 var room: Room : set = set_room
 var _hover_tween: Tween
+var _showing_affordable_badge := false
+var _affordable_badge_tooltip: Node
 
 func _ready() -> void:
     var test_room := Room.new()
@@ -79,6 +85,50 @@ func _on_input_event(viewport: Node, event: InputEvent, shape_idx: int) -> void:
 
 func _on_map_room_selected() -> void:
     selected.emit(room)
+
+
+# Small "you can afford a Dice" reminder shown on every currently-clickable room, driven by
+# Map.refresh_affordable_badges() (same Global.gold >= Global.cheapest_dice_price threshold as
+# the top-bar Dice Shop glow) - meant to catch the player right before they commit to a room,
+# not just on the shop icon itself which is easy to miss on the way to a fight.
+func set_show_affordable_badge(value: bool) -> void:
+    if value == _showing_affordable_badge:
+        return
+    _showing_affordable_badge = value
+    affordable_badge.visible = value
+    if not value:
+        _hide_affordable_badge_tooltip()
+
+
+# Same instantiate-on-hover/free-on-exit tooltip lifecycle as every other tooltip in the
+# project (see the "Tooltip leak pattern" note) - IconTooltip.show_tooltip() takes a raw
+# screen-space position rather than a Control (unlike its spawn_below() convenience wrapper),
+# which is what we need here since the badge lives in the Map's scrolled/zoomed world space,
+# not under a CanvasLayer.
+func _on_affordable_badge_mouse_entered() -> void:
+    if not _showing_affordable_badge:
+        return
+    _hide_affordable_badge_tooltip()
+    var layer: Node = load(AFFORDABLE_BADGE_TOOLTIP_SCENE).instantiate()
+    get_tree().root.add_child(layer)
+    var panel: IconTooltip = layer.get_node("IconTooltip")
+    var screen_pos: Vector2 = get_viewport().get_canvas_transform() * affordable_badge.global_position
+    panel.show_body_tooltip(screen_pos, AFFORDABLE_BADGE_TOOLTIP_TEXT)
+    _affordable_badge_tooltip = layer
+
+
+func _on_affordable_badge_mouse_exited() -> void:
+    _hide_affordable_badge_tooltip()
+
+
+func _hide_affordable_badge_tooltip() -> void:
+    if is_instance_valid(_affordable_badge_tooltip):
+        _affordable_badge_tooltip.queue_free()
+    _affordable_badge_tooltip = null
+
+
+func _exit_tree() -> void:
+    _hide_affordable_badge_tooltip()
 
 func _make_circle(radius: float, points: int = 32) -> void:
     line_2d.clear_points()

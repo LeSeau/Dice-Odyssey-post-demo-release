@@ -1,10 +1,14 @@
-[gd_scene load_steps=8 format=3 uid="uid://dvibmym51p1d1"]
+[gd_scene load_steps=10 format=3 uid="uid://dvibmym51p1d1"]
 
 [ext_resource type="Script" path="res://scenes/map/map_room.gd" id="1_5dnox"]
 [ext_resource type="Texture2D" uid="uid://bnrcwics06wiy" path="res://normal_fight_icon_v2.png" id="2_fvoni"]
+[ext_resource type="Texture2D" uid="uid://bgwa4qau0i542" path="res://dice shop clean outline.png" id="3_badgeicon"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_pxjol"]
 radius = 44.83
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_badge"]
+radius = 15.0
 
 [sub_resource type="Animation" id="Animation_uapga"]
 length = 0.001
@@ -114,6 +118,29 @@ libraries = {
 "": SubResource("AnimationLibrary_wbco1")
 }
 
+[node name="AffordableBadge" type="Area2D" parent="."]
+visible = false
+position = Vector2(34, -34)
+collision_layer = 8
+collision_mask = 0
+
+[node name="BackingOutline" type="Polygon2D" parent="AffordableBadge"]
+color = Color(0.145098, 0.0941176, 0.0470588, 0.9)
+polygon = PackedVector2Array(17, 0, 15.1, 8.5, 8.5, 15.1, 0, 17, -8.5, 15.1, -15.1, 8.5, -17, 0, -15.1, -8.5, -8.5, -15.1, 0, -17, 8.5, -15.1, 15.1, -8.5)
+
+[node name="Backing" type="Polygon2D" parent="AffordableBadge"]
+color = Color(0.176471, 0.501961, 0.215686, 0.95)
+polygon = PackedVector2Array(15, 0, 13.3, 7.5, 7.5, 13.3, 0, 15, -7.5, 13.3, -13.3, 7.5, -15, 0, -13.3, -7.5, -7.5, -13.3, 0, -15, 7.5, -13.3, 13.3, -7.5)
+
+[node name="Icon" type="Sprite2D" parent="AffordableBadge"]
+scale = Vector2(0.042, 0.042)
+texture = ExtResource("3_badgeicon")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AffordableBadge"]
+shape = SubResource("CircleShape2D_badge")
+
 [connection signal="input_event" from="." to="." method="_on_input_event"]
 [connection signal="mouse_entered" from="." to="." method="_on_mouse_entered"]
 [connection signal="mouse_exited" from="." to="." method="_on_mouse_exited"]
+[connection signal="mouse_entered" from="AffordableBadge" to="." method="_on_affordable_badge_mouse_entered"]
+[connection signal="mouse_exited" from="AffordableBadge" to="." method="_on_affordable_badge_mouse_exited"]

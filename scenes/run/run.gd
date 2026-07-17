@@ -882,6 +882,7 @@ func _on_check_if_can_purchase_dice() -> void:
         elif Global.gold < Global.cheapest_dice_price:
             affordable_indicator.hide()
             dice_shop.set_blinking(false)
+    map.refresh_affordable_badges()
 
 # New function to handle relic rewards from events
 func _on_show_reward_with_relic(relic: Relic) -> void:

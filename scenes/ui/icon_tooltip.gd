@@ -19,6 +19,16 @@ const GAP_BELOW_ICON := 8.0
 const SCREEN_MARGIN := 8.0
 const SAFETY_TIMEOUT := 8.0
 
+# Body variant for longer, multi-sentence explanations (map affordable-dice badge etc.) -
+# Cinzel-Bold's lowercase glyphs are styled like small caps, which reads fine for the short
+# single-word labels the other callers use ("Map", "Dice Shop"...) but makes a full sentence
+# look shouted. Swaps in the same regular body font the game's other tooltips already use for
+# description text (tooltip.tscn's TooltipText), left-aligned instead of centered/bold/gold,
+# and widened since a sentence wrapped at 150px reads as an awkward narrow column.
+const BODY_FONT := preload("res://Noto_Sans/static/NotoSans-Medium.ttf")
+const BODY_FONT_SIZE := 13
+const BODY_WIDTH := 260.0
+
 @onready var label: RichTextLabel = %TooltipLabel
 @onready var margin_container: MarginContainer = $MarginContainer
 
@@ -73,3 +83,29 @@ func show_tooltip(anchor_bottom_center: Vector2, text: String) -> void:
 
 func hide_tooltip() -> void:
     hide()
+
+
+# Same anchor-then-measure flow as show_tooltip(), but plain regular-font left-aligned text
+# at a wider fixed width - see BODY_FONT const comment above for why. anchor_top_center is the
+# point to appear just BELOW (unlike show_tooltip's anchor_bottom_center - callers spawning
+# this from a small world-space badge pass the badge's own position, not a button's bottom
+# edge, so "just below the anchor" is what actually reads correctly here).
+func show_body_tooltip(anchor_top_center: Vector2, text: String) -> void:
+    label.add_theme_font_override("normal_font", BODY_FONT)
+    label.add_theme_font_override("bold_font", BODY_FONT)
+    label.add_theme_font_size_override("normal_font_size", BODY_FONT_SIZE)
+    label.add_theme_font_size_override("bold_font_size", BODY_FONT_SIZE)
+    label.text = text
+    size.x = BODY_WIDTH
+    margin_container.offset_right = BODY_WIDTH - 2.0
+    show()
+    await get_tree().process_frame
+    var content_height: float = label.get_content_height()
+    var panel_height: float = maxf(content_height + 16.0 + 4.0, MIN_HEIGHT)
+    size.y = panel_height
+    margin_container.offset_bottom = panel_height - 2.0
+
+    var target_x := anchor_top_center.x - size.x / 2.0
+    var viewport_width := get_viewport_rect().size.x
+    target_x = clampf(target_x, SCREEN_MARGIN, viewport_width - size.x - SCREEN_MARGIN)
+    global_position = Vector2(target_x, anchor_top_center.y + GAP_BELOW_ICON)

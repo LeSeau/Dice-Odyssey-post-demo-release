@@ -295,6 +295,7 @@ func unlock_floor(which_floor: int = floors_climbed) -> void:
             map_room.available = true
 
     _refresh_line_visibility()
+    refresh_affordable_badges()
 
 
 func unlock_next_rooms() -> void:
@@ -308,6 +309,21 @@ func unlock_next_rooms() -> void:
             map_room.available = true
 
     _refresh_line_visibility()
+    refresh_affordable_badges()
+
+
+# =========================================================
+# "CAN AFFORD A DICE" REMINDER BADGE
+# =========================================================
+
+# Same threshold as the top-bar Dice Shop glow (run.gd::_on_check_if_can_purchase_dice) -
+# re-run here too, on every gold change, so the reminder shows up right where a player is
+# about to commit to a room rather than only on the shop icon itself (which is easy to miss
+# on the way to clicking a fight).
+func refresh_affordable_badges() -> void:
+    var can_afford: bool = Global.cheapest_dice_price != null and Global.gold >= Global.cheapest_dice_price
+    for map_room: MapRoom in rooms.get_children():
+        map_room.set_show_affordable_badge(can_afford and map_room.available)
 
 
 # =========================================================
@@ -387,6 +403,7 @@ func _on_map_room_selected(room: Room) -> void:
         if map_room.room.row == room.row:
             map_room.available = false
 
+    refresh_affordable_badges()
 
     last_room = room
 

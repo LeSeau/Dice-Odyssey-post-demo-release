@@ -344,9 +344,9 @@ layout_mode = 2
 text = "Floor: 1"
 label_settings = ExtResource("21_topbarlbl")
 
-[node name="Spacer" type="Control" parent="TopBar/BarItems"]
-custom_minimum_size = Vector2(10, 0)
+[node name="ExpandSpacer" type="Control" parent="TopBar/BarItems"]
 layout_mode = 2
+size_flags_horizontal = 3
 
 [node name="ConsultMapButton" type="TextureButton" parent="TopBar/BarItems"]
 unique_name_in_owner = true
@@ -375,12 +375,8 @@ grow_vertical = 2
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_map_icon_hover_glow")
 
-[node name="ExpandSpacer" type="Control" parent="TopBar/BarItems"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="Spacer4" type="Control" parent="TopBar/BarItems"]
-custom_minimum_size = Vector2(2, 0)
+[node name="SpacerMap" type="Control" parent="TopBar/BarItems"]
+custom_minimum_size = Vector2(8, 0)
 layout_mode = 2
 
 [node name="DiceShop" type="TextureButton" parent="TopBar/BarItems"]
