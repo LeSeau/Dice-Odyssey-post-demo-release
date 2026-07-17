@@ -34,6 +34,60 @@ const GLOW_PULSE_DURATION := 1.1
 const UNPLAYABLE_MODULATE_NO_POWER := Color(0.75, 0.75, 0.75, 1.0)
 const UNPLAYABLE_MODULATE_HAS_POWER := Color(0.6, 0.6, 0.6, 1.0)
 
+# Played-card send-off polish (2026-07-17): an overbright "resolve flash" the instant the card
+# is played, plus a sparse trail of dice-colored motes shed along the whole discard flight -
+# same additive-radial recipe as the power orbs / impact particles, so the flight reads as the
+# same magic moving through the world instead of a plain rectangle drifting away.
+const RESOLVE_FLASH_COLOR := Color(1.65, 1.55, 1.15, 1.0)
+const RESOLVE_FLASH_DECAY := 0.3
+const TRAIL_MOTE_INTERVAL := 0.045
+const TRAIL_MOTE_SIZE_MIN := 10.0
+const TRAIL_MOTE_SIZE_MAX := 20.0
+const TRAIL_MOTE_LIFETIME := 0.55
+const TRAIL_MOTE_ALPHA := 0.85
+# Motes render UNDER the card (z 90 vs the card's 100), so anything spawned near the card's
+# center is invisible until the card moves off it - which fast attack arcs do, but a staged
+# support card lingering at its pause point does not (Julien: "I can only see it on attack
+# cards"). Scattering across most of the card's half-extents lets motes spill past the
+# silhouette and stay visible even while the card idles on top of the emit point.
+const TRAIL_MOTE_SCATTER_X := 34.0
+const TRAIL_MOTE_SCATTER_Y := 46.0
+# Exhaust-bound cards smolder out in ember tones right before the fade - a quick visual
+# distinction between "went to discard" (plain fade) and "burned away forever".
+const EXHAUST_EMBER_COLOR := Color(1.7, 0.65, 0.3, 1.0)
+const EXHAUST_EMBER_TIME := 0.18
+
+# Soft radial gradient + additive material for the flight trail, cached statically like
+# card_particles.gd does - every play spawns motes, no point rebuilding the same texture.
+static var _trail_texture: GradientTexture2D
+static var _trail_material: CanvasItemMaterial
+
+
+static func _get_trail_texture() -> GradientTexture2D:
+    if _trail_texture:
+        return _trail_texture
+    var gradient := Gradient.new()
+    gradient.set_color(0, Color(1, 1, 1, 1))
+    gradient.set_color(1, Color(1, 1, 1, 0))
+    var tex := GradientTexture2D.new()
+    tex.gradient = gradient
+    tex.width = 32
+    tex.height = 32
+    tex.fill = GradientTexture2D.FILL_RADIAL
+    tex.fill_from = Vector2(0.5, 0.5)
+    tex.fill_to = Vector2(1.0, 0.5)
+    _trail_texture = tex
+    return _trail_texture
+
+
+static func _get_trail_material() -> CanvasItemMaterial:
+    if _trail_material:
+        return _trail_material
+    var mat := CanvasItemMaterial.new()
+    mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+    _trail_material = mat
+    return _trail_material
+
 # Shared across every CardUI/CardMenuUI instance via the .tscn (sub-resources aren't
 # resource_local_to_scene by default) - never mutate this one directly, duplicate() it first
 # (see set_upgraded_title_color below), same pattern as MUSCLE_STATUS.duplicate() in bolster.gd.
@@ -249,7 +303,13 @@ func _fly_to_discard_and_free() -> void:
     if tween and tween.is_valid():
         tween.kill()  # stop any in-progress positioning tween (e.g. the aim move-up) from fighting the fly
 
+    # Center the pivot for the whole send-off so the spin/shrink below act around the card's
+    # middle instead of its top-left corner (the default pivot the fan/hover system leaves).
+    # Safe to change here - the card has permanently left the hand by this point.
+    pivot_offset = size / 2.0
+
     var target_pos := global_position + Vector2(0, 220)  # fallback if discard pile not found
+    var pile_button: Control = null
     var ui_layer := get_tree().get_first_node_in_group("ui_layer")
     if ui_layer:
         # A card played straight from the red-dice socket never went through the drag state
@@ -268,7 +328,25 @@ func _fly_to_discard_and_free() -> void:
         var pile_name := "ExhaustPileButton" if card.should_exhaust() else "DiscardPileButton"
         var discard: Node = ui_layer.get_node_or_null(pile_name)
         if discard and discard is Control:
-            target_pos = (discard as Control).global_position
+            pile_button = discard as Control
+            # Aim the card's visual CENTER at the button's center: with the centered pivot
+            # above, the shrinking card's center stays at global_position + pivot_offset
+            # (pivot_offset is in local unscaled coords, unaffected by the scale-down).
+            target_pos = pile_button.global_position + pile_button.size / 2.0 - pivot_offset
+
+    # Resolve flash: the card discharges the instant its effect lands - a quick overbright
+    # pop + tiny scale punch, on separate tweens so the sequential fly choreography below
+    # keeps its own timings. The punch fully settles (0.13s) before the earliest scale-down
+    # in either branch starts (0.16s), so the two never fight over `scale`.
+    modulate = RESOLVE_FLASH_COLOR
+    var flash_tween := create_tween()
+    flash_tween.tween_property(self, "modulate", Color.WHITE, RESOLVE_FLASH_DECAY) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    var punch_tween := create_tween()
+    punch_tween.tween_property(self, "scale", Vector2(1.08, 1.08), 0.05) \
+        .set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+    punch_tween.tween_property(self, "scale", Vector2.ONE, 0.08) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
     var fly_tween := create_tween()
     var fade_delay: float
@@ -319,14 +397,123 @@ func _fly_to_discard_and_free() -> void:
             .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
         fade_delay = stage_time + hold_time + arc_time - 0.2
 
+    # The destination pile visibly "catches" the card the moment it arrives (the callback sits
+    # after the final sequential position tween above, in both branches).
+    if pile_button is CardPileOpener:
+        fly_tween.tween_callback((pile_button as CardPileOpener).receive_punch)
+
+    # Mote trail: shed sparks at the card's current position across the whole flight. Motes are
+    # parented to the ui_layer and own their fade tween (mote.create_tween()), so they outlive
+    # this card's queue_free below instead of vanishing with it.
+    if ui_layer:
+        var trail_color := DicePalette.accent(Global.dice_type) * 1.6
+        var trail_time := fade_delay + 0.2
+        var trail_tween := create_tween()
+        trail_tween.tween_method(_emit_flight_trail.bind(ui_layer, trail_color), 0.0, trail_time, trail_time)
+
     # Fade out only near the END of the flight (separate tween), so the card stays visible
     # long enough to read that it's travelling to the discard pile - fading it across the
     # whole trip made the destination unclear. queue_free waits for the fade so it isn't cut.
+    # Exhaust-bound cards tint to ember tones just before fading - "burned", not "filed away".
     var fade_tween := create_tween()
-    fade_tween.tween_interval(fade_delay)
+    if card.should_exhaust():
+        fade_tween.tween_interval(maxf(fade_delay - EXHAUST_EMBER_TIME, 0.0))
+        fade_tween.tween_property(self, "modulate", EXHAUST_EMBER_COLOR, EXHAUST_EMBER_TIME) \
+            .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    else:
+        fade_tween.tween_interval(fade_delay)
     fade_tween.tween_property(self, "modulate:a", 0.0, 0.2) \
         .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
     fade_tween.tween_callback(queue_free)
+
+
+# tween_method target for the flight trail above: `elapsed` sweeps 0 -> total flight time
+# linearly, and a mote is dropped every TRAIL_MOTE_INTERVAL seconds of it at the card's
+# current visual center. Kept sparse and small - it should read as a wake, not fireworks.
+var _last_trail_emit := 0.0
+
+func _emit_flight_trail(elapsed: float, layer: Node, color: Color) -> void:
+    if elapsed - _last_trail_emit < TRAIL_MOTE_INTERVAL:
+        return
+    _last_trail_emit = elapsed
+    if not is_instance_valid(layer):
+        return
+    var mote := TextureRect.new()
+    mote.texture = _get_trail_texture()
+    # Fixed 32x32 source texture - without EXPAND_IGNORE_SIZE it renders at native size no
+    # matter what .size says (same TextureRect gotcha as the power orbs / refuel icons).
+    mote.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    mote.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+    mote.material = _get_trail_material()
+    mote.modulate = color
+    mote.modulate.a = TRAIL_MOTE_ALPHA
+    mote.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    mote.z_index = 90  # just under the flying card itself (z 100)
+    layer.add_child(mote)
+    var s := randf_range(TRAIL_MOTE_SIZE_MIN, TRAIL_MOTE_SIZE_MAX)
+    mote.size = Vector2(s, s)
+    mote.pivot_offset = mote.size / 2.0
+    # Scatter follows the card's current scale: full spread while the card is big/idling,
+    # tightening into a point as it shrinks on the final arc - a fixed-size cloud around a
+    # 15%-scale card would read as detached specks instead of a wake.
+    var spread_x := TRAIL_MOTE_SCATTER_X * scale.x
+    var spread_y := TRAIL_MOTE_SCATTER_Y * scale.y
+    var center := global_position + pivot_offset + Vector2(
+        randf_range(-spread_x, spread_x),
+        randf_range(-spread_y, spread_y)
+    )
+    mote.global_position = center - mote.size / 2.0
+    var mote_tween := mote.create_tween()
+    mote_tween.tween_property(mote, "modulate:a", 0.0, TRAIL_MOTE_LIFETIME) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+    mote_tween.parallel().tween_property(mote, "scale", Vector2(0.3, 0.3), TRAIL_MOTE_LIFETIME) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+    mote_tween.parallel().tween_property(mote, "position", mote.position + Vector2(randf_range(-8.0, 8.0), randf_range(4.0, 14.0)), TRAIL_MOTE_LIFETIME) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+    mote_tween.tween_callback(mote.queue_free)
+
+
+# End-of-turn/random-discard send-off: a much quicker, plainer cousin of the played-card
+# flight above - no staging pause, no resolve flash, no trail (nothing "resolved"; the hand
+# is just being swept away, and up to 5 of these overlap on End Turn, so each one stays
+# cheap). Called by hand.gd::discard_card in place of the old instant queue_free.
+func fly_hand_discard() -> void:
+    set_process_input(false)
+    mouse_filter = Control.MOUSE_FILTER_IGNORE
+    disabled = true
+    z_index = 100
+    if tween and tween.is_valid():
+        tween.kill()
+    var ui_layer := get_tree().get_first_node_in_group("ui_layer")
+    if not ui_layer:
+        # No layer to fly on (shouldn't happen in battle) - keep the old instant behavior
+        # rather than tweening a Control that's still owned by the Hand's HBoxContainer.
+        queue_free()
+        return
+    pivot_offset = size / 2.0
+    if get_parent() != ui_layer:
+        reparent(ui_layer)
+
+    var target_pos := global_position + Vector2(0, 220)
+    var pile_button: Control = null
+    var discard: Node = ui_layer.get_node_or_null("DiscardPileButton")
+    if discard and discard is Control:
+        pile_button = discard as Control
+        target_pos = pile_button.global_position + pile_button.size / 2.0 - pivot_offset
+
+    var fly_time := 0.4
+    var fly_tween := create_tween()
+    fly_tween.tween_property(self, "global_position", target_pos, fly_time) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+    fly_tween.parallel().tween_property(self, "scale", Vector2(0.15, 0.15), fly_time) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+    fly_tween.parallel().tween_property(self, "rotation", deg_to_rad(randf_range(-25.0, 25.0)), fly_time) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+    fly_tween.parallel().tween_property(self, "modulate:a", 0.0, 0.18) \
+        .set_delay(fly_time - 0.18)
+    if pile_button is CardPileOpener:
+        fly_tween.tween_callback((pile_button as CardPileOpener).receive_punch.bind(1.12))
+    fly_tween.tween_callback(queue_free)
 
 # In your CardUI class:
 func apply_fan_rotation(angle: float) -> void:

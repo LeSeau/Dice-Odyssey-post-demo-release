@@ -172,6 +172,31 @@ const POWER_ORB_LAND_PITCH_MAX := 1.25
 const POWER_ORB_LAND_VOLUME_DB := 2.0     # bumped again from -4 (Julien: still louder) - was -10 originally
 const POWER_ORB_LAND_VOLUME_JITTER := 3.0
 
+# Support-card power orbs (2026-07-17): when a played CARD raises Power (Reinforce, Blaze,
+# From Nothing...), orbs fly from the card into the Power number - the same visual language
+# as the roll orbs above, but a card-driven gain is much rarer than a roll, so this burst is
+# deliberately bigger, slower and more ceremonial: fewer-but-chunkier orbs that first bloom
+# OUTWARD from the card's resolve point, then get pulled down into the number (the roll orbs'
+# rainbow arc would read as "just another roll"). Detection lives in _on_change_current_power:
+# "power genuinely increased in the same frame as a card play" - Card.play() emits card_played
+# as its first line and every power-raising card emits change_current_power synchronously
+# inside that same play() call, which cleanly excludes roll-adjacent sources (Blood Sword,
+# Metronome, Opening Gambit all fire on a roll frame) and the ~19 display-refresh-only
+# emitters (no actual power delta).
+const CARD_ORB_MIN_COUNT := 5
+const CARD_ORB_MAX_COUNT := 12
+const CARD_ORB_SIZE_MIN := 18.0
+const CARD_ORB_SIZE_MAX := 30.0
+const CARD_ORB_SIZE_DELTA_BONUS := 8.0    # extra size as the power gain approaches ~10
+const CARD_ORB_BRIGHTNESS := 1.8
+const CARD_ORB_FLIGHT_MIN := 0.5
+const CARD_ORB_FLIGHT_MAX := 1.1
+const CARD_ORB_LAUNCH_WINDOW := 0.35      # per-orb launch delay drawn independently across this window
+const CARD_ORB_FLING_DIST_MIN := 60.0     # how far the outward bloom reaches before curving into the number
+const CARD_ORB_FLING_DIST_MAX := 140.0
+const CARD_ORB_WOBBLE_AMP_MIN := 8.0      # slightly loopier than the roll orbs - longer flights can carry it
+const CARD_ORB_WOBBLE_AMP_MAX := 22.0
+
 # Die-glow-charges-with-power tuning (see _update_dice_aura_charge()). All 9 per-dice-type
 # shaders (blue_dice_shader.tres etc.) share a "power_intensity" uniform (hint_range 0.1-2.0)
 # that was previously left at its authored default (~1.8, near the top of its own range) at
@@ -326,6 +351,7 @@ func _ready():
     Events.update_roll_history_ui.connect(update_roll_history_ui)
     Events.refuel_happened.connect(_on_refuel_happened)
     Events.all_in_dice_consumed.connect(_spawn_all_in_consumed)
+    Events.card_played.connect(_on_card_played_track_frame)
 
     
     # Initialize the dice display with the correct texture based on dice_type
@@ -750,6 +776,110 @@ func _spawn_power_orbs(roll_val: int, type: String, is_max_roll: bool) -> void:
         # number's "delivery" reaction.
         if i == earliest_index:
             tw.tween_callback(_play_power_orb_arrival_reaction.bind(type))
+        tw.tween_callback(_play_power_orb_land_sfx)
+        tw.tween_callback(orb.queue_free)
+
+
+# Written by _on_card_played_track_frame on every card play, read by _on_change_current_power
+# to tell a CARD-driven power gain (spawn the support-card orb burst) apart from every other
+# source of that same signal - see the CARD_ORB_* constants block for the full reasoning.
+var _last_card_played_frame := -1
+
+
+func _on_card_played_track_frame(_card: Card) -> void:
+    _last_card_played_frame = Engine.get_process_frames()
+
+
+# The ceremonial cousin of _spawn_power_orbs above: fired when a played card itself raised
+# Power. Orbs bloom outward from where the card visually resolves, hang, then get drawn into
+# the Power number. Parented to the ui_layer (same as the refuel/All In flourishes) so they
+# sail OVER the dice panel and hand on the way in, matching the flying card they erupt from.
+func _spawn_support_card_orbs(power_delta: int) -> void:
+    if power_delta <= 0:
+        return
+    var parent_layer := get_tree().get_first_node_in_group("ui_layer")
+    if not parent_layer:
+        return
+    var target := current_power.get_global_rect().get_center()
+
+    # Orbs erupt from where the card was RELEASED (last_played_card_position, captured by
+    # CardUI.play() the instant of play) - Julien's explicit call after seeing a first version
+    # that launched from the card's staging pause above the dice interface instead ("seem to
+    # come from way above? I'd like them to shoot from where you release the card"). Only
+    # red-socket plays differ: their card visual never leaves the die, so the die IS the
+    # release point (and last_played_card_position would be stale there - that play path
+    # never goes through CardUI.play()).
+    var origin := Global.last_played_card_position
+    var extra_delay := 0.05
+    if Global.playing_red_card or origin == Vector2.ZERO:
+        origin = dice_display.get_global_rect().get_center()
+
+    var color := DicePalette.accent(Global.dice_type) * CARD_ORB_BRIGHTNESS
+    var texture := _get_power_orb_texture()
+    var orb_material := _get_power_orb_material()
+
+    var count := clampi(CARD_ORB_MIN_COUNT + power_delta, CARD_ORB_MIN_COUNT, CARD_ORB_MAX_COUNT)
+    var size_bonus := lerpf(0.0, CARD_ORB_SIZE_DELTA_BONUS, clampf(float(power_delta) / 10.0, 0.0, 1.0))
+
+    # Same earliest-arrival precompute as _spawn_power_orbs: launch delay and flight time are
+    # both independent random draws, so "which orb lands first" must be computed, not assumed.
+    var launch_delays: Array[float] = []
+    var flight_times: Array[float] = []
+    var earliest_index := 0
+    var earliest_arrival := INF
+    for i in count:
+        var launch_delay := extra_delay + randf_range(0.0, CARD_ORB_LAUNCH_WINDOW)
+        var flight_time := randf_range(CARD_ORB_FLIGHT_MIN, CARD_ORB_FLIGHT_MAX)
+        launch_delays.append(launch_delay)
+        flight_times.append(flight_time)
+        if launch_delay + flight_time < earliest_arrival:
+            earliest_arrival = launch_delay + flight_time
+            earliest_index = i
+
+    for i in count:
+        var orb := TextureRect.new()
+        orb.texture = texture
+        orb.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+        orb.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+        orb.material = orb_material
+        orb.modulate = color
+        orb.modulate.a = 0.0
+        orb.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        orb.z_index = 150  # ui_layer flourish convention (refuel return / All In / scout pick)
+        parent_layer.add_child(orb)
+
+        var orb_size := randf_range(CARD_ORB_SIZE_MIN, CARD_ORB_SIZE_MAX) + size_bonus
+        orb.size = Vector2(orb_size, orb_size)
+        orb.pivot_offset = orb.size / 2.0
+
+        var start := origin + Vector2(randf_range(-18.0, 18.0), randf_range(-12.0, 12.0))
+        var end := target + Vector2(randf_range(-10.0, 10.0), randf_range(-8.0, 8.0))
+        orb.global_position = start - orb.size / 2.0
+
+        # Control point flung OUTWARD from the card in a mostly-upward fan (~220 degrees
+        # centered on straight up), so with the EASE_IN acceleration profiles below each orb
+        # visibly blooms away from the card first, hangs, then sweeps into the Power number -
+        # "the card exhales its magic, and your power inhales it".
+        var fling_dir := Vector2.from_angle(deg_to_rad(randf_range(-200.0, 20.0)))
+        var control := start + fling_dir * randf_range(CARD_ORB_FLING_DIST_MIN, CARD_ORB_FLING_DIST_MAX)
+
+        var flight_time := flight_times[i]
+        var ease_profile: Array = POWER_ORB_EASE_PROFILES[randi() % POWER_ORB_EASE_PROFILES.size()]
+        var wobble_freq := randf_range(POWER_ORB_WOBBLE_FREQ_MIN, POWER_ORB_WOBBLE_FREQ_MAX)
+        var wobble_amp := randf_range(CARD_ORB_WOBBLE_AMP_MIN, CARD_ORB_WOBBLE_AMP_MAX)
+        var wobble_phase := randf_range(0.0, TAU)
+
+        var tw := create_tween()
+        tw.tween_interval(launch_delays[i])
+        tw.tween_property(orb, "modulate:a", 1.0, flight_time * 0.25)
+        tw.parallel().tween_method(
+                _orb_bezier_step.bind(orb, start, control, end, wobble_freq, wobble_amp, wobble_phase),
+                0.0, 1.0, flight_time) \
+            .set_trans(ease_profile[0]).set_ease(ease_profile[1])
+        tw.parallel().tween_property(orb, "scale", Vector2(0.2, 0.2), flight_time) \
+            .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+        if i == earliest_index:
+            tw.tween_callback(_play_power_orb_arrival_reaction.bind(Global.dice_type))
         tw.tween_callback(_play_power_orb_land_sfx)
         tw.tween_callback(orb.queue_free)
 
@@ -1332,6 +1462,12 @@ func _on_change_current_power():
         # actually changed, not a flat value - Blaze's +5 should land harder than Reinforce's +2.
         var power_delta := absf(Global.roll_value - old_power)
         Shaker.hit_stop(clampf(power_delta * 0.01, 0.03, 0.1))
+        # A power GAIN that happened in the same frame as a card play = the card itself raised
+        # Power - give it the same "orbs feed the number" treatment rolls get, scaled up (see
+        # _spawn_support_card_orbs). Same-frame is the discriminator: rolls and roll-reactive
+        # relics change power on a roll frame, never a card_played frame.
+        if Global.roll_value > old_power and Engine.get_process_frames() == _last_card_played_frame:
+            _spawn_support_card_orbs(Global.roll_value - old_power)
     else:
         animation_player_power.play("power_change")
     _update_charged_card_description()

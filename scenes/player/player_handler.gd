@@ -123,9 +123,21 @@ func end_turn() -> void:
 func draw_card() -> void:
     reshuffle_deck_from_discard()
     hand.add_card(character.draw_pile.draw_card())
+    _punch_draw_pile()
     audio_stream_player_2d.stream = preload("res://drawcardsound.wav")
     audio_stream_player_2d.play()
     reshuffle_deck_from_discard()
+
+
+# The draw pile button visibly "dispenses" each drawn card. Lives here (not in hand.add_card)
+# on purpose: cards granted straight to the hand by effects (add_card_to_hand_requested) never
+# touched the draw pile, so punching it there would be a small visual lie.
+func _punch_draw_pile() -> void:
+    var ui_layer := get_tree().get_first_node_in_group("ui_layer")
+    if ui_layer:
+        var draw_pile_button: Node = ui_layer.get_node_or_null("DrawPileButton")
+        if draw_pile_button is CardPileOpener:
+            (draw_pile_button as CardPileOpener).receive_punch(1.1)
 
 func draw_cards(amount: int) -> void:
     # Load the audio file
@@ -181,10 +193,16 @@ func reshuffle_deck_from_discard() -> void:
     if not character.draw_pile.empty():
         return
 
+    var moved_count := 0
     while not character.discard.empty():
         character.draw_pile.add_card(character.discard.draw_card())
+        moved_count += 1
 
     character.draw_pile.shuffle()
+    # Only announce a reshuffle that visibly moved something - both piles being empty (e.g.
+    # the whole deck is in hand) reaches here too, and animating that would be a lie.
+    if moved_count > 0:
+        Events.deck_reshuffled.emit(moved_count)
 
 
 func _on_card_played(card: Card) -> void:

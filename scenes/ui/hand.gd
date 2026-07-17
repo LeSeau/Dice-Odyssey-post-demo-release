@@ -46,14 +46,39 @@ func add_card(card: Card) -> void:
     new_card_ui.mouse_exited.connect(_on_card_mouse_exited.bind(new_card_ui))
 
     new_card_ui.set_playable_visual(_get_glow_state(card))
+    _play_draw_entrance(new_card_ui)
     call_deferred("_update_card_positions")
+
+
+# Draw entrance: cards used to pop into the fan fully-formed in a single frame. Deliberately
+# only touches `modulate` - the fan layout owns position/rotation (and re-stomps both on every
+# subsequent card of the same deal), and scale/pivot are owned by the hover system, so an
+# entrance on any of those either fights the layout or changes established hover behavior.
+# An overbright materialize settling into the card's real look, plus the draw pile physically
+# "dispensing" each card (receive_punch), reads as dealt without touching contested properties.
+func _play_draw_entrance(card_ui: CardUI) -> void:
+    # set_playable_visual above may have dimmed the card (most draws land before any roll) -
+    # the entrance must settle into THAT look, not force full white over the dim state.
+    var resting_modulate := card_ui.modulate
+    card_ui.modulate = Color(resting_modulate.r, resting_modulate.g, resting_modulate.b, 0.0)
+    # Tween owned by the card itself, not the Hand - if the card is freed mid-entrance the
+    # tween dies with it instead of writing to a freed object.
+    var entrance := card_ui.create_tween()
+    entrance.tween_property(card_ui, "modulate", Color(1.55, 1.45, 1.15, 1.0), 0.09) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    entrance.tween_property(card_ui, "modulate", resting_modulate, 0.22) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 
 func discard_card(card: CardUI) -> void:
     if tutorial_locked_card == card:
         tutorial_locked_card = null
     if _original_positions.has(card):
         _original_positions.erase(card)
-    card.queue_free()
+    # Sweep the card into the discard pile instead of deleting it in place (it used to just
+    # vanish from the fan). fly_hand_discard reparents it to the ui_layer immediately, so
+    # it stops counting as a hand child right away - the deferred fan update below and
+    # player_handler's discard iteration both see it as already gone, same as queue_free did.
+    card.fly_hand_discard()
     call_deferred("_update_card_positions")
 
 func disable_hand() -> void:

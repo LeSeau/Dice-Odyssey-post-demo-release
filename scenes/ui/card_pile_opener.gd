@@ -9,6 +9,22 @@ extends TextureButton
 @export var hover_tooltip_text: String = ""
 
 var _tooltip: Node
+var _punch_tween: Tween
+
+
+# Small "something just landed in this pile" squash, called by whatever animation delivers a
+# card here (played-card fly-out, end-turn discard sweep, reshuffle mini-cards, draw dispense).
+# Scales around the button's center; rapid landings restart the punch instead of stacking.
+func receive_punch(strength: float = 1.18) -> void:
+    pivot_offset = size / 2.0
+    if _punch_tween and _punch_tween.is_valid():
+        _punch_tween.kill()
+    scale = Vector2.ONE
+    _punch_tween = create_tween()
+    _punch_tween.tween_property(self, "scale", Vector2(strength, strength), 0.06) \
+        .set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+    _punch_tween.tween_property(self, "scale", Vector2.ONE, 0.22) \
+        .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 func set_card_pile(new_value: CardPile) -> void:
     card_pile = new_value

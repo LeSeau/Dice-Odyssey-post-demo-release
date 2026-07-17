@@ -23,9 +23,25 @@ extends CanvasLayer
 var _end_turn_highlight_active := false
 var _end_turn_highlight_tween: Tween
 
+# Reshuffle flourish (2026-07-17): the discard->draw reshuffle used to be an invisible counter
+# swap. A few mini "card backs" (plain Panels wearing the normal card frame stylebox - instantly
+# reads as a face-down card at this size) now arc from the discard pile button to the draw pile
+# button, each landing with a punch on the pile. Capped small: it fires mid-deal, so it has to
+# stay a quick aside, not a production number.
+const RESHUFFLE_MAX_MINI_CARDS := 5
+const RESHUFFLE_MINI_CARD_SIZE := Vector2(30, 44)
+const RESHUFFLE_MINI_CARD_STYLE := preload("res://scenes/card_ui/card_ui_normal.tres")
+const RESHUFFLE_STAGGER := 0.07
+const RESHUFFLE_FLIGHT_TIME := 0.5
+const RESHUFFLE_ARC_HEIGHT := 110.0
+# Placeholder shuffle sound: the draw tick pitched way down reads as a card riffle. Swap for a
+# dedicated shuffle SFX if Julien finds one.
+const RESHUFFLE_SFX := preload("res://drawcardsound.wav")
+
 
 func _ready() -> void:
     Events.player_hand_drawn.connect(_on_player_hand_drawn)
+    Events.deck_reshuffled.connect(_on_deck_reshuffled)
     end_turn_button.pressed.connect(_on_end_turn_button_pressed)
     draw_pile_button.pressed.connect(draw_pile_view.show_current_view.bind("Draw Pile", true))
     discard_pile_button.pressed.connect(discard_pile_view.show_current_view.bind("Discard Pile"))
@@ -138,4 +154,56 @@ func _stop_end_turn_highlight() -> void:
     if _end_turn_highlight_tween and _end_turn_highlight_tween.is_valid():
         _end_turn_highlight_tween.kill()
     end_turn_button.modulate = Color(1.0, 1.0, 1.0, 1.0)
+
+
+# tween_method target for the reshuffle arc below: quadratic bezier through an apex control
+# point, positioning the mini-card by its center (it has a centered pivot + spin, so
+# global_position is its top-left).
+func _mini_card_arc_step(t: float, node: Control, p0: Vector2, p1: Vector2, p2: Vector2) -> void:
+    node.global_position = p0.lerp(p1, t).lerp(p1.lerp(p2, t), t) - node.size / 2.0
+
+
+func _on_deck_reshuffled(card_count: int) -> void:
+    var from := discard_pile_button.global_position + discard_pile_button.size / 2.0
+    var to := draw_pile_button.global_position + draw_pile_button.size / 2.0
+    var n := mini(card_count, RESHUFFLE_MAX_MINI_CARDS)
+    discard_pile_button.receive_punch(1.1)  # the pile visibly "gives up" its cards
+    SFXPlayer.play(RESHUFFLE_SFX, false, 0.72, -2.0)
+    for i in n:
+        var mini_card := Panel.new()
+        mini_card.add_theme_stylebox_override("panel", RESHUFFLE_MINI_CARD_STYLE)
+        mini_card.size = RESHUFFLE_MINI_CARD_SIZE
+        mini_card.pivot_offset = RESHUFFLE_MINI_CARD_SIZE / 2.0
+        mini_card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        mini_card.z_index = 90
+        mini_card.rotation = deg_to_rad(randf_range(-20.0, 20.0))
+        mini_card.modulate.a = 0.0
+        add_child(mini_card)
+        mini_card.global_position = from - RESHUFFLE_MINI_CARD_SIZE / 2.0
+
+        # Apex above BOTH piles (they sit at the same bottom-row height) so the minis sail
+        # over the bottom of the screen rather than sliding straight across it. Slight per-
+        # card randomization keeps the group from tracing one identical rail (the power-orb
+        # "train" lesson).
+        var apex := Vector2(
+            lerpf(from.x, to.x, randf_range(0.35, 0.65)),
+            minf(from.y, to.y) - RESHUFFLE_ARC_HEIGHT + randf_range(-25.0, 25.0)
+        )
+        var mini_tween := create_tween()
+        mini_tween.tween_interval(RESHUFFLE_STAGGER * i)
+        mini_tween.tween_property(mini_card, "modulate:a", 1.0, 0.08)
+        mini_tween.parallel().tween_method(
+                _mini_card_arc_step.bind(mini_card, from, apex, to),
+                0.0, 1.0, RESHUFFLE_FLIGHT_TIME) \
+            .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+        mini_tween.parallel().tween_property(
+                mini_card, "rotation",
+                mini_card.rotation + deg_to_rad(randf_range(-140.0, 140.0)), RESHUFFLE_FLIGHT_TIME) \
+            .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+        # Fade out over the last stretch of the arc so the card reads as absorbed into the
+        # pile (the punch sells the landing) rather than blinking out of existence on it.
+        mini_tween.parallel().tween_property(mini_card, "modulate:a", 0.0, 0.12) \
+            .set_delay(RESHUFFLE_FLIGHT_TIME - 0.12)
+        mini_tween.tween_callback(draw_pile_button.receive_punch.bind(1.12))
+        mini_tween.tween_callback(mini_card.queue_free)
 
