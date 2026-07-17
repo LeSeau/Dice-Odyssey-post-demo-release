@@ -47,7 +47,7 @@ func hide_tooltip() -> void:
     hide()
 
 func get_tooltip_content(dice):
-    var dice_keyword := "%s Dice" % dice.capitalize()
+    var dice_keyword := "%s Dice" % KeywordColorizer.dice_display_name(dice)
     var body: String = KeywordColorizer.DICE_TOOLTIP_TEXT.get(dice_keyword, "")
     var title := dice_keyword
     var title_color := "gold"

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c3sh9plusaa14"]
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://dx2g5abfupi0m"]
 
 [ext_resource type="Texture2D" uid="uid://bki5a8ahjiimu" path="res://gptshattering.png" id="1_7h428"]
 [ext_resource type="Script" path="res://characters/warrior/cards/shattering_plus.gd" id="1_srat1"]
@@ -10,8 +10,9 @@ id = "shattering_plus"
 name = "Shattering+"
 type = 1
 target = 0
-description = "Block X. Charge 4 Green Dice"
+description = "Block X. Charge 4 Pixie Dice"
 rarity = 0
+rarity_tier = 0
 red_only = false
 can_play_without_dice = false
 requirement = 1
@@ -20,7 +21,7 @@ exhausts = false
 bonus_requirement = 0
 bonus_requirement_number = 0
 bonus_description_text = ""
-tags = "Charge, Green Dice"
+tags = "Charge, Pixie Dice"
 upgraded = true
 icon = ExtResource("1_7h428")
 tooltip_text = ""

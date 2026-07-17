@@ -22,13 +22,16 @@ func _on_dice_rolled(_dice_type: String, _roll_value: int) -> void:
     var already_given = (total - 1) / 6
 
     if strength_to_add > already_given:
+        # 2 per threshold (was 1) - paired with lowering Gargantua's base hits 11->8:
+        # softer opening turns, but he outscales his old flat damage within a few turns
+        # if the fight drags (Julien, 2026-07-16).
         var muscle := MUSCLE_STATUS.duplicate()
-        muscle.stacks = 1
+        muscle.stacks = 2
         var status_effect := StatusEffect.new()
         status_effect.status = muscle
         status_effect.execute([target])
         Events.enemy_strength_changed.emit()
-        print("Greedy: gained 1 Strength at fight roll #", total)
+        print("Greedy: gained 2 Strength at fight roll #", total)
 
     # Update stacks to show progress toward next threshold: e.g. 4/6 shows as 4
     stacks = total % 6

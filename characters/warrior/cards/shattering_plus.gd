@@ -23,7 +23,7 @@ func _on_dice_rolled():
 
 func get_dynamic_description(_modifiers: ModifierHandler, _target: Node = null) -> String:
     if is_inked():
-        return "Block ?. Charge 4 Green Dice"
+        return "Block ?. Charge 4 Pixie Dice"
     if not has_active_roll() or not meets_requirement():
-        return "Block X. Charge 4 Green Dice"
-    return "Block %d. Charge 4 Green Dice" % Global.roll_value
+        return "Block X. Charge 4 Pixie Dice"
+    return "Block %d. Charge 4 Pixie Dice" % Global.roll_value

@@ -162,7 +162,7 @@ func _build_option_panel(dice_type: String) -> PanelContainer:
     # What the die is now: "BLUE DICE", in its BASE identity color (deliberately the
     # base ACCENT const, not DicePalette.accent() - nothing is infused yet).
     var base_label := Label.new()
-    base_label.text = ("%s Dice" % dice_type).to_upper()
+    base_label.text = ("%s Dice" % KeywordColorizer.dice_display_name(dice_type)).to_upper()
     base_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     base_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
     var base_settings := LabelSettings.new()
@@ -209,7 +209,9 @@ func _build_option_panel(dice_type: String) -> PanelContainer:
     visual.add_child(glow)
 
     var die := TextureRect.new()
-    die.texture = load("res://assets/images/%s6.png" % dice_type)
+    # Not always "6": Green is a d3, Even/Odd cap at 8/7, Giant shows its new 12 (see
+    # DiceInfusions.preview_face) - loading %s6.png for green would fail outright.
+    die.texture = load("res://assets/images/%s%d.png" % [dice_type, DiceInfusions.preview_face(dice_type)])
     die.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
     die.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
     die.size = Vector2(DIE_SIZE, DIE_SIZE)

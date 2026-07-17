@@ -7,8 +7,10 @@
 [node name="Tier1MachopeurOctopus" type="Node2D"]
 
 [node name="Machopeur" parent="." instance=ExtResource("1_sl2hc")]
-position = Vector2(750, 368)
+position = Vector2(750, 435)
 stats = ExtResource("3_q3pq7")
+width = 225
+height = 225
 
 [node name="Octopus" parent="." instance=ExtResource("1_sl2hc")]
 position = Vector2(992, 450)

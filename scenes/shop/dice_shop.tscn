@@ -313,6 +313,10 @@ text = "Evil Dice"
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="DiceSpacer1" type="Control" parent="MarginContainer/Panel/HBoxContainer/Dice1"]
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
+
 [node name="Dice1Texture" type="TextureRect" parent="MarginContainer/Panel/HBoxContainer/Dice1"]
 custom_minimum_size = Vector2(200, 200)
 layout_mode = 2
@@ -376,6 +380,10 @@ theme_override_font_sizes/font_size = 19
 text = "Giant Dice"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="DiceSpacer2" type="Control" parent="MarginContainer/Panel/HBoxContainer/Dice2"]
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
 
 [node name="Dice2Texture" type="TextureRect" parent="MarginContainer/Panel/HBoxContainer/Dice2"]
 custom_minimum_size = Vector2(200, 200)
@@ -441,6 +449,10 @@ text = "Magma Dice"
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="DiceSpacer3" type="Control" parent="MarginContainer/Panel/HBoxContainer/Dice3"]
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
+
 [node name="Dice3Texture" type="TextureRect" parent="MarginContainer/Panel/HBoxContainer/Dice3"]
 custom_minimum_size = Vector2(200, 200)
 layout_mode = 2
@@ -504,6 +516,10 @@ theme_override_font_sizes/font_size = 19
 text = "Even Dice"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="DiceSpacer4" type="Control" parent="MarginContainer/Panel/HBoxContainer/Dice4"]
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
 
 [node name="Dice4Texture" type="TextureRect" parent="MarginContainer/Panel/HBoxContainer/Dice4"]
 custom_minimum_size = Vector2(200, 200)
@@ -569,6 +585,10 @@ text = "Odd Dice"
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="DiceSpacer5" type="Control" parent="MarginContainer/Panel/HBoxContainer/Dice5"]
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
+
 [node name="Dice5Texture" type="TextureRect" parent="MarginContainer/Panel/HBoxContainer/Dice5"]
 custom_minimum_size = Vector2(200, 200)
 layout_mode = 2
@@ -632,6 +652,10 @@ theme_override_font_sizes/font_size = 19
 text = "Blue Dice"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="DiceSpacer6" type="Control" parent="MarginContainer/Panel/HBoxContainer/Dice6"]
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
 
 [node name="Dice6Texture" type="TextureRect" parent="MarginContainer/Panel/HBoxContainer/Dice6"]
 custom_minimum_size = Vector2(200, 200)
@@ -697,6 +721,10 @@ text = "Red Dice"
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="DiceSpacer7" type="Control" parent="MarginContainer/Panel/HBoxContainer/Dice7"]
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
+
 [node name="Dice7Texture" type="TextureRect" parent="MarginContainer/Panel/HBoxContainer/Dice7"]
 custom_minimum_size = Vector2(200, 200)
 layout_mode = 2
@@ -757,9 +785,13 @@ theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
 theme_override_constants/outline_size = 2
 theme_override_font_sizes/font_size = 19
-text = "Green Dice"
+text = "Pixie Dice"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="DiceSpacer8" type="Control" parent="MarginContainer/Panel/HBoxContainer/Dice8"]
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
 
 [node name="Dice8Texture" type="TextureRect" parent="MarginContainer/Panel/HBoxContainer/Dice8"]
 custom_minimum_size = Vector2(200, 200)
@@ -824,6 +856,10 @@ theme_override_font_sizes/font_size = 19
 text = "Mech Dice"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="DiceSpacer9" type="Control" parent="MarginContainer/Panel/HBoxContainer/Dice9"]
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
 
 [node name="Dice9Texture" type="TextureRect" parent="MarginContainer/Panel/HBoxContainer/Dice9"]
 custom_minimum_size = Vector2(200, 200)

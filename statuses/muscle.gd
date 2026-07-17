@@ -3,7 +3,7 @@ extends Status
 
 
 func initialize_status(target: Node) -> void:
-    Events.check_if_losing_strength.connect(_on_check_if_losing_strength)
+    Events.check_if_losing_strength.connect(_on_check_if_losing_strength.bind(target))
     status_changed.connect(_on_status_changed.bind(target))
     status_changed.emit()  # ← fires once cleanly with correct stacks
     
@@ -21,6 +21,13 @@ func _on_status_changed(target: Node) -> void:
     muscle_modifier_value.flat_value = stacks
     dmg_dealt_modifier.add_new_value(muscle_modifier_value)
 
-func _on_check_if_losing_strength():
+func _on_check_if_losing_strength(target: Node) -> void:
+    # lose_strength_next_turn is a PLAYER-only mechanic (fury.gd, the Octet dice infusion):
+    # the signal is global, so every Muscle status in the battle hears it - including ones
+    # sitting on ENEMIES (Goblin buffs, act-2 scaling Muscle). Without this owner check, the
+    # player's one-turn strength expiring also drained every enemy's Strength by the same
+    # amount (even into negatives - Goblin attacking for "0x2").
+    if not target.is_in_group("player"):
+        return
     if Global.lose_strength_next_turn > 0:
-        stacks-= Global.lose_strength_next_turn
+        stacks -= Global.lose_strength_next_turn

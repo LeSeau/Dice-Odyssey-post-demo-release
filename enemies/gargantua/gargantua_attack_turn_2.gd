@@ -1,7 +1,7 @@
 extends EnemyAction
 
 
-@export var damage = 11
+@export var damage = 8
 
 func is_performable() -> bool:
     if enemy.last_action == "gargantua_first_attack":

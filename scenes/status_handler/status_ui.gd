@@ -13,10 +13,12 @@ const TooltipScene = preload("res://scenes/ui/status_tooltip.tscn")
 func set_status(new_status: Status) -> void:
     if not is_node_ready():
         await ready
-    status = new_status 
-    icon.texture = status.icon 
+    status = new_status
+    icon.texture = status.icon
     duration.visible = status.stack_type == Status.StackType.DURATION
-    stacks.visible = status.stack_type == Status.StackType.INTENSITY
+    # Stacks visibility (including the hide_counter_when_zero check) is computed in
+    # _on_status_changed(), called right below - single source of truth so it stays
+    # correct as `stacks` changes over the status's lifetime, not just at creation.
     # Always the icon's own footprint, regardless of whether a Duration/Stacks badge is
     # showing - the badge overlays the icon corner, it shouldn't inflate the grid cell.
     # It used to grow to fit the label (48x39 vs 30x30), which made GridContainer give
@@ -40,6 +42,9 @@ func _on_status_changed() -> void:
     
     duration.text = str(status.duration)
     stacks.text = str(status.stacks)
+    stacks.visible = status.stack_type == Status.StackType.INTENSITY \
+        and not (status.hide_counter_when_zero and status.stacks == 0)
+    visible = not (status.hide_when_zero and status.stacks == 0)
 
 
 var tooltip_instance_requirement: CanvasLayer

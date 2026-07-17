@@ -417,6 +417,7 @@ custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 texture_normal = ExtResource("13_pm2lc")
 counter = NodePath("Counter")
+hover_tooltip_text = "Deck"
 
 [node name="Counter" type="Label" parent="TopBar/BarItems/DeckButton"]
 custom_minimum_size = Vector2(25, 25)
@@ -445,7 +446,6 @@ process_mode = 3
 custom_minimum_size = Vector2(54, 54)
 layout_mode = 2
 size_flags_vertical = 4
-tooltip_text = "Settings"
 texture_normal = ExtResource("51_pauseicon")
 ignore_texture_size = true
 stretch_mode = 5
@@ -645,4 +645,6 @@ unique_name_in_owner = true
 [connection signal="mouse_entered" from="TopBar/BarItems/DiceShop" to="TopBar/BarItems/DiceShop" method="_on_mouse_entered"]
 [connection signal="mouse_exited" from="TopBar/BarItems/DiceShop" to="TopBar/BarItems/DiceShop" method="_on_mouse_exited"]
 [connection signal="pressed" from="TopBar/BarItems/DiceShop" to="TopBar/BarItems/DiceShop" method="_on_pressed"]
+[connection signal="mouse_entered" from="TopBar/BarItems/DeckButton" to="TopBar/BarItems/DeckButton" method="_on_mouse_entered"]
+[connection signal="mouse_exited" from="TopBar/BarItems/DeckButton" to="TopBar/BarItems/DeckButton" method="_on_mouse_exited"]
 [connection signal="pressed" from="CanvasLayer/JoinDiscordControl/JoinDiscordButton" to="." method="_on_join_discord_button_pressed"]

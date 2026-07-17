@@ -23,7 +23,7 @@ const KEYWORD_HIGHLIGHT_COLOR := "FFD700"
 const KEYWORDS: Array[String] = [
     "Charge", "Refuel", "Scout", "Boost", "Infused", "Weak", "Exposed", "Lucky", "Unlucky",
     "Depleted", "Energized", "Strength", "Muscle", "Exhaust", "Support", "REST",
-    "Blue Dice", "Red Dice", "Green Dice", "Odd Dice", "Even Dice", "Evil Dice",
+    "Blue Dice", "Red Dice", "Pixie Dice", "Odd Dice", "Even Dice", "Evil Dice",
     "Giant Dice", "Magma Dice", "Mech Dice",
 ]
 
@@ -47,7 +47,7 @@ const LEADING_NUMBER_KEYWORDS: Array[String] = ["Strength", "Muscle"]
 const DICE_KEYWORD_COLORS := {
     "Blue Dice": "3D7BFF",
     "Red Dice": "FF2F3E",
-    "Green Dice": "48D147",
+    "Pixie Dice": "48D147",
     "Odd Dice": "E9B83D",
     "Even Dice": "FF9526",
     "Evil Dice": "E14FE1",
@@ -65,7 +65,7 @@ const DICE_KEYWORD_COLORS := {
 const DICE_TOOLTIP_TEXT := {
     "Blue Dice": "Faces: 1-6",
     "Red Dice": "Faces: 1-6. Select a card before rolling the Dice.",
-    "Green Dice": "Faces: 1-3",
+    "Pixie Dice": "Faces: 1-3",
     "Odd Dice": "Faces: 1, 3, 5, 7",
     "Even Dice": "Faces: 2, 4, 6, 8",
     "Evil Dice": "Faces: 6, 6, 6, 0",
@@ -73,6 +73,22 @@ const DICE_TOOLTIP_TEXT := {
     "Magma Dice": "Faces: 1-6. Deals X damage to ALL enemies every roll.",
     "Mech Dice": "Faces: 1-6. After each roll, you can add or substract 1 Power.",
 }
+
+# Type-string -> display-name overrides, for the rare case where the internal Global.dice_type
+# string doesn't match the player-facing name. Added when "Green Dice" was renamed to "Pixie
+# Dice" (2026-07-16) WITHOUT touching the internal "green" string - that's baked into ~9 Global
+# variable trios (green_dice_current/max/bonus_amount), save data, the green dice shader, and
+# green1-3.png texture filenames, so renaming it would be a much bigger/riskier sweep for a
+# display-only change. dice_display_name() is the one place that still needs to turn a raw type
+# string into its shown name (dice_tooltip.gd's shop/battle hover tooltip title) - every other
+# consumer already reads the literal "Pixie Dice" string straight out of a card/relic's own text.
+const DICE_TYPE_DISPLAY_NAME_OVERRIDES := {
+    "green": "Pixie",
+}
+
+
+static func dice_display_name(dice_type: String) -> String:
+    return DICE_TYPE_DISPLAY_NAME_OVERRIDES.get(dice_type, dice_type.capitalize())
 
 
 # Wraps every keyword from `tags` (e.g. "Charge, Infused") that appears in `text` with a BBCode

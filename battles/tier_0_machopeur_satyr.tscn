@@ -14,6 +14,8 @@ height = 270
 sprite_y_offset = 20
 
 [node name="Machopeur" parent="." instance=ExtResource("1_5t168")]
-position = Vector2(944, 381)
+position = Vector2(944, 396)
 stats = ExtResource("2_usjit")
+width = 225
+height = 225
 sprite_y_offset = 20

@@ -1,0 +1,39 @@
+[gd_scene load_steps=4 format=3 uid="uid://dqx1n5wj3vqte"]
+
+[ext_resource type="StyleBox" uid="uid://ce8r01r8snw2g" path="res://scenes/ui/tooltip.tres" id="1_tooltipbox"]
+[ext_resource type="Script" path="res://scenes/ui/icon_tooltip.gd" id="2_icontooltip"]
+[ext_resource type="FontFile" uid="uid://b2y60c4274gkj" path="res://fonts/Cinzel-Bold.otf" id="3_cinzel"]
+
+[node name="CanvasLayer" type="CanvasLayer"]
+layer = 100
+
+[node name="IconTooltip" type="Panel" parent="."]
+visible = false
+z_index = 1000
+offset_right = 150.0
+offset_bottom = 44.0
+theme_override_styles/panel = ExtResource("1_tooltipbox")
+script = ExtResource("2_icontooltip")
+
+[node name="MarginContainer" type="MarginContainer" parent="IconTooltip"]
+layout_mode = 0
+offset_left = 2.0
+offset_top = 2.0
+offset_right = 148.0
+offset_bottom = 42.0
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 8
+
+[node name="TooltipLabel" type="RichTextLabel" parent="IconTooltip/MarginContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_fonts/normal_font = ExtResource("3_cinzel")
+theme_override_fonts/bold_font = ExtResource("3_cinzel")
+theme_override_font_sizes/normal_font_size = 15
+theme_override_font_sizes/bold_font_size = 15
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+text = "[center][color=\"gold\"][b]Map[/b][/color][/center]"

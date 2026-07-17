@@ -6,10 +6,10 @@
 [node name="Tier1Machopeur" type="Node2D"]
 
 [node name="Machopeur" parent="." instance=ExtResource("1_h50wc")]
-position = Vector2(871, 349)
+position = Vector2(871, 368)
 stats = ExtResource("2_gnjt8")
-width = 320
-height = 320
+width = 280
+height = 280
 sprite_y_offset = 20
 stats_ui_y_offset = -24
 status_handler_y_offset = -24

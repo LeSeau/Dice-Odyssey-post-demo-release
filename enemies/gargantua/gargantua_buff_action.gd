@@ -1,7 +1,7 @@
 extends EnemyAction
 
 
-@export var damage = 11
+@export var damage = 8
 
 func is_performable() -> bool:
     return Global.fight_turn==0

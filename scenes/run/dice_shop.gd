@@ -10,6 +10,7 @@ const BLINK_DURATION := 1.2
 
 var _hover_tween: Tween
 var _blink_tween: Tween
+var _tooltip: Node
 
 func _on_pressed() -> void:
     print("open dice shop")
@@ -41,6 +42,9 @@ func _on_mouse_entered() -> void:
     _hover_tween = create_tween()
     _hover_tween.tween_property(self, "modulate", HOVER_MODULATE, HOVER_DURATION) \
         .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+    if is_instance_valid(_tooltip):
+        _tooltip.queue_free()
+    _tooltip = IconTooltip.spawn_below(self, "Dice Shop")
 
 
 func _on_mouse_exited() -> void:
@@ -49,3 +53,6 @@ func _on_mouse_exited() -> void:
     _hover_tween = create_tween()
     _hover_tween.tween_property(self, "modulate", Color.WHITE, HOVER_DURATION) \
         .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+    if is_instance_valid(_tooltip):
+        _tooltip.queue_free()
+        _tooltip = null

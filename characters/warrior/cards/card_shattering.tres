@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://bki5a8ahjiimu" path="res://gptshattering.png" id="1_7h428"]
 [ext_resource type="Script" path="res://characters/warrior/cards/shattering.gd" id="1_srat1"]
 [ext_resource type="AudioStream" uid="uid://bryyjsmk8fak6" path="res://detonationsound.mp3" id="2_phi13"]
-[ext_resource type="Resource" path="res://characters/warrior/cards/card_shattering_plus.tres" id="4_plus"]
+[ext_resource type="Resource" uid="uid://dx2g5abfupi0m" path="res://characters/warrior/cards/card_shattering_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("1_srat1")
@@ -11,7 +11,7 @@ id = "shattering"
 name = "Shattering"
 type = 1
 target = 0
-description = "Block X. Charge 3 Green Dice"
+description = "Block X. Charge 3 Pixie Dice"
 rarity = 0
 rarity_tier = 0
 red_only = false
@@ -22,7 +22,7 @@ exhausts = false
 bonus_requirement = 0
 bonus_requirement_number = 0
 bonus_description_text = ""
-tags = "Charge, Green Dice"
+tags = "Charge, Pixie Dice"
 upgraded = false
 upgraded_version = ExtResource("4_plus")
 icon = ExtResource("1_7h428")

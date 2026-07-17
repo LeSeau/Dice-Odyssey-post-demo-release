@@ -502,8 +502,11 @@ func _on_battle_won() -> void:
     # right here is early enough regardless of room type.
     if map.last_room.type == Room.Type.BOSS:
         reward_scene.reward_context = BattleReward.RewardContext.BOSS
+        # Both act bosses are the Leviathan (same resource, act-2 scaled).
+        AchievementManager.unlock("marine")
     elif map.last_room.type == Room.Type.ELITE:
         reward_scene.reward_context = BattleReward.RewardContext.ELITE
+        AchievementManager.unlock("not_impressed")
 
     # Add relic reward for elite fights
 
@@ -711,16 +714,25 @@ func _on_pause_menu_closed() -> void:
     map.process_mode = Node.PROCESS_MODE_ALWAYS
 
 
+var _pause_tooltip: Node
+
+
 func _on_pause_button_mouse_entered() -> void:
     pause_button.modulate = Color(1.18, 1.18, 1.18)
     var tween := create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
     tween.tween_property(pause_button_hover_glow, "modulate:a", 1.0, 0.12)
+    if is_instance_valid(_pause_tooltip):
+        _pause_tooltip.queue_free()
+    _pause_tooltip = IconTooltip.spawn_below(pause_button, "Settings")
 
 
 func _on_pause_button_mouse_exited() -> void:
     pause_button.modulate = Color.WHITE
     var tween := create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
     tween.tween_property(pause_button_hover_glow, "modulate:a", 0.0, 0.12)
+    if is_instance_valid(_pause_tooltip):
+        _pause_tooltip.queue_free()
+        _pause_tooltip = null
 
 # Non-destructive "peek at the map" (STS-style), from battle/event/shop/treasure/
 # campfire. Unlike _show_map() (used by the debug MapButton and real map-to-map
@@ -785,18 +797,25 @@ func _close_map_consult() -> void:
 # currently applies (map_consult_mode's warm "active" tint, or plain white),
 # so hovering while the map is open doesn't fight with/override that state.
 var _map_icon_hovering := false
+var _map_tooltip: Node
 
 func _on_consult_map_button_mouse_entered() -> void:
     _map_icon_hovering = true
     _update_map_icon_modulate()
     var tween := create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
     tween.tween_property(consult_map_button_hover_glow, "modulate:a", 1.0, 0.12)
+    if is_instance_valid(_map_tooltip):
+        _map_tooltip.queue_free()
+    _map_tooltip = IconTooltip.spawn_below(consult_map_button, "Map")
 
 func _on_consult_map_button_mouse_exited() -> void:
     _map_icon_hovering = false
     _update_map_icon_modulate()
     var tween := create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
     tween.tween_property(consult_map_button_hover_glow, "modulate:a", 0.0, 0.12)
+    if is_instance_valid(_map_tooltip):
+        _map_tooltip.queue_free()
+        _map_tooltip = null
 
 func _update_map_icon_modulate() -> void:
     var base := Color(1.35, 1.15, 0.65) if map_consult_mode else Color.WHITE
@@ -971,6 +990,7 @@ func _save_checkpoint() -> void:
         "shop_initialized": Global.shop_initialized,
         "shop_dice_selection": Global.shop_dice_selection.duplicate(),
         "cheapest_dice_price": Global.cheapest_dice_price,
+        "blue_rolls_this_run": Global.blue_dice_rolled_this_run,
         "tutorials": tutorials_out,
         "used_battles": used_battles_out,
         "event_pool_remaining": event_pool_out,
@@ -1016,6 +1036,8 @@ func _load_run() -> void:
     Global.shop_initialized = data["shop_initialized"]
     Global.shop_dice_selection = data["shop_dice_selection"]
     Global.cheapest_dice_price = data["cheapest_dice_price"]
+    # .get with default: saves written before the achievement system lack the key.
+    Global.blue_dice_rolled_this_run = data.get("blue_rolls_this_run", 0)
 
     for flag: String in SAVED_TUTORIAL_FLAGS:
         if data["tutorials"].has(flag):

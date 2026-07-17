@@ -48,8 +48,12 @@ func on_input(event: InputEvent) -> void:
     var cancel = event.is_action_pressed("right_mouse")
     var confirm = event.is_action_released("left_mouse") or event.is_action_pressed("left_mouse")
     
-    # Transition to AIMING on mouse motion (existing behavior)
-    if single_targeted and mouse_motion and card_ui.targets.size() > 0 and Global.dice_type != "red":
+    # Transition to AIMING on mouse motion (existing behavior). On red dice, single-targeted
+    # cards normally skip AIMING (they get released onto the socket instead) - EXCEPT
+    # Celestials, which never socket and play directly, so they still need the aiming flow
+    # to pick a target (otherwise they'd be discarded with no effect, see released state).
+    var aims_on_red: bool = Global.dice_type != "red" or card_ui.card.can_play_without_dice
+    if single_targeted and mouse_motion and card_ui.targets.size() > 0 and aims_on_red:
         transition_requested.emit(self, CardState.State.AIMING)
         return
     
@@ -61,8 +65,10 @@ func on_input(event: InputEvent) -> void:
         transition_requested.emit(self, CardState.State.BASE)
     elif minimum_drag_time_elapsed and confirm:
         get_viewport().set_input_as_handled()
-        # If it's a single-targeted card and not red dice, go to AIMING instead of RELEASED
-        if single_targeted and Global.dice_type != "red":
+        # If it's a single-targeted card and not red dice, go to AIMING instead of RELEASED.
+        # Celestials also aim on red (they play directly, never socket - same reasoning as
+        # the mouse-motion transition above).
+        if single_targeted and (Global.dice_type != "red" or card_ui.card.can_play_without_dice):
             transition_requested.emit(self, CardState.State.AIMING)
         else:
             transition_requested.emit(self, CardState.State.RELEASED)

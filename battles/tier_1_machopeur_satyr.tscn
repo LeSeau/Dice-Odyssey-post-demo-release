@@ -7,8 +7,10 @@
 [node name="Tier1MachopeurSatyr" type="Node2D"]
 
 [node name="Machopeur" parent="." instance=ExtResource("1_ppjke")]
-position = Vector2(760, 371)
+position = Vector2(760, 411)
 stats = ExtResource("3_fmr0d")
+width = 225
+height = 225
 sprite_y_offset = 20
 
 [node name="B Satyr" parent="." instance=ExtResource("1_ppjke")]

@@ -50,7 +50,15 @@ extends Control
 
 
 var ink_is_on = false
-var mech_adjustment_used := false
+# How many ±1 power adjustments have been spent on the CURRENT mech roll. Base mech allows 1;
+# the Clockwork infusion (Mech) allows 2 (see _mech_adjustments_allowed).
+var mech_adjustments_used := 0
+# Inferno infusion (Magma): only the FIRST magma roll of a turn double-burns. Reset in
+# _on_player_turn_started.
+var _magma_burned_this_turn := false
+# Gap between Inferno's two burns - fired back-to-back they merged into what read as a
+# single hit/number; the beat makes the double-burn legible (Julien, 2026-07-16).
+const INFERNO_SECOND_BURN_DELAY := 0.35
 
 # Guards against the Roll button's ~0.25s toss animation: the actual dice-count
 # decrement only happens in dice_interface.gd::_on_dice_rolled, reacting to the
@@ -408,6 +416,7 @@ func roll_dice():
     play_dice_roll_sound()
     Global.fight_dice_rolled+=1
     Global.dice_amount_rolled_this_turn+=1
+    AchievementManager.report_dice_rolled_this_turn(Global.dice_amount_rolled_this_turn)
     # Setup dice faces and values (unified for both modes)
     var faces = []
     var values = []
@@ -444,6 +453,17 @@ func roll_dice():
                 load("res://assets/images/" + dice_type + "5.png"),
                 load("res://assets/images/" + dice_type + "6.png")
             ]
+
+    # Dice infusions that change the value/face set (Repented -> [6,6,6], Bulky -> [7..12]).
+    # Rebuild faces to stay index-aligned with the overriding values, keyed by the same
+    # "<type><value>.png" convention every die uses. Kept in sync with the Scout preview
+    # (battle.gd applies the same override to its dice_faces list).
+    var override_values := DiceInfusions.roll_values_override(dice_type)
+    if not override_values.is_empty():
+        values = override_values
+        faces = []
+        for v: int in override_values:
+            faces.append(load("res://assets/images/%s%d.png" % [dice_type, v]))
 
     # Determine the roll result index
     var roll_index = randi() % values.size()
@@ -786,6 +806,10 @@ func _tween_aura_shader_param(t: Tween, param_name: String, value, duration: flo
 # Helper function to apply the roll result (unified logic)
 func _apply_roll_result(roll_index: int, values: Array, faces: Array):
     Global.last_roll = values[roll_index]
+    # Snake Eyes / Hot Hand / Ice Cold streaks - values/faces already carry the full set
+    # this roll was drawn from (including infusion overrides), so min/max here match
+    # exactly what the player could have rolled.
+    AchievementManager.report_dice_roll(dice_type, Global.last_roll, values.min(), values.max())
 
     # Update dice display
     if dice_type in ["evil", "even", "odd", "magma", "green", "mech"]:
@@ -795,6 +819,8 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
 
     Global.roll_value += Global.last_roll
     Global.power_generated_this_turn += Global.last_roll
+    # Lifetime power counter ("Unlimited Power" achievement) - mirrors the increment above.
+    AchievementManager.add_stat("power_generated", Global.last_roll)
     current_power.modulate.a = 1.0
     _spawn_roll_popup(Global.last_roll)
     var power_punch = 1.2 + (Global.last_roll / 20.0)  # 1.25 on 1, 1.5 on 6, 1.8 on 12
@@ -813,14 +839,32 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
     flash_tween.tween_property(current_power, "modulate", base_power_color, 0.18)
 
     # Magma dice special effect
-    if dice_type == "magma": 
+    if dice_type == "magma":
         print("magma dice on")
-        var damage_effect := DamageEffect.new() 
-        var base_damage = Global.last_roll 
-        damage_effect.amount = base_damage 
-        var enemies = get_tree().get_nodes_in_group("enemies") 
+        var enemies = get_tree().get_nodes_in_group("enemies")
+        var base_damage = Global.last_roll
+        var damage_effect := DamageEffect.new()
+        damage_effect.amount = base_damage
         damage_effect.execute(enemies)
-    
+        AchievementManager.report_magma_hit(enemies.size())
+        # Inferno infusion: the FIRST magma roll each turn burns a second time (double AoE
+        # on that roll). _magma_burned_this_turn is reset in _on_player_turn_started.
+        # The second burn lands after a short beat (INFERNO_SECOND_BURN_DELAY) so the two
+        # hits read as two distinct impacts; targets are re-queried at fire time because
+        # the first burn may have killed (freed) some of them in the meantime.
+        if Global.is_dice_infused("magma") and not _magma_burned_this_turn:
+            get_tree().create_timer(INFERNO_SECOND_BURN_DELAY, false).timeout.connect(func():
+                if not is_instance_valid(self):
+                    return
+                var burn_targets := get_tree().get_nodes_in_group("enemies")
+                if burn_targets.is_empty():
+                    return
+                var second_burn := DamageEffect.new()
+                second_burn.amount = base_damage
+                second_burn.execute(burn_targets)
+            )
+        _magma_burned_this_turn = true
+
     # High roll sound: celebrate this die's own best possible face (max of its values,
     # not literally 6 - e.g. 12 on Giant, 8 on Even, 3 on Green), same definition of
     # "max roll" used for the landing flourish in roll_dice().
@@ -837,13 +881,22 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
     if Global.last_roll == 6:
         Global.has_rolled_6_this_turn = true
 
-    # Arcane infusion (Blue act-2 infusion): a NATURAL 6 on the Blue die draws 2 cards.
-    # Checked on last_roll (the rolled face itself), BEFORE next_roll_modifier is applied
-    # below - so a Scout/Lucky-guaranteed 6 counts (they force the actual face), while a
-    # Boosted 5->6 does not (Julien's call, 2026-07-14). Reuses the same draw_card event
-    # ~20 cards already emit mid-turn.
+    # Arcane infusion (Blue act-2 infusion): a NATURAL 6 on the Blue die deals ARCANE_AOE_DAMAGE
+    # to all enemies. Checked on last_roll (the rolled face itself), BEFORE next_roll_modifier
+    # is applied below - so a Scout/Lucky-guaranteed 6 counts (they force the actual face),
+    # while a Boosted 5->6 does not (Julien's call, 2026-07-14). Flat AoE via DamageEffect
+    # (same pattern as Magma), so it picks up each target's own DMG_TAKEN modifiers (Exposed)
+    # but not the player's Strength - consistent with magma, and berserker_boost_active is
+    # false here since this fires on a roll, not during a socketed card play.
     if dice_type == "blue" and Global.last_roll == 6 and Global.is_dice_infused("blue"):
-        Events.draw_card.emit(2)
+        var arcane_effect := DamageEffect.new()
+        arcane_effect.amount = ARCANE_AOE_DAMAGE
+        arcane_effect.execute(get_tree().get_nodes_in_group("enemies"))
+
+    # More infusion on-roll triggers, all keyed to the NATURAL rolled face (Global.last_roll),
+    # same as Arcane above and BEFORE next_roll_modifier - and all ON TOP of the normal Power
+    # this roll already generated (Julien: additive, not a replacement).
+    _apply_infusion_roll_effects()
 
     # Status checks
     Events.check_canalize_status.emit()
@@ -880,10 +933,45 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
         Events.red_dice_rolled.emit()
     _check_sigil_trigger()
     Events.hover_playable_cards.emit()
-    mech_adjustment_used = false
+    mech_adjustments_used = 0
     _update_mech_buttons()
     _update_charged_card_description()
     _roll_in_progress = false
+
+
+const OCTET_MUSCLE_STATUS := preload("res://statuses/muscle.tres")
+const BULWARK_BLOCK_SFX := preload("res://art/block.ogg")
+const ARCANE_AOE_DAMAGE := 5  # Arcane infusion: damage dealt to all enemies on a natural 6
+
+# On-roll dice-infusion effects that grant something extra (charge / block / strength) on top
+# of the roll's normal Power. Keyed to the NATURAL rolled face (Global.last_roll), consistent
+# with Arcane. Called from _apply_roll_result before next_roll_modifier is applied.
+func _apply_infusion_roll_effects() -> void:
+    # Gnome (Green): a natural 1 charges a Blue Dice (same trio of calls as the Sigil trigger).
+    if dice_type == "green" and Global.last_roll == 1 and Global.is_dice_infused("green"):
+        Global.blue_dice_current_amount += 1
+        Events.dice_amount_changed.emit()
+        Events.charge_dice_animation.emit()
+
+    # Bulwark (Odd): every roll ALSO grants Block equal to its value (Julien: on top of Power).
+    if dice_type == "odd" and Global.last_roll > 0 and Global.is_dice_infused("odd"):
+        var block_effect := BlockEffect.new()
+        block_effect.amount = Global.last_roll
+        block_effect.sound = BULWARK_BLOCK_SFX
+        var block_targets: Array[Node] = [Global.player]
+        block_effect.execute(block_targets)
+
+    # Octet (Even): a natural 8 grants 8 Strength for THIS turn only - removed at the start of
+    # next turn via lose_strength_next_turn (the same one-turn-strength mechanism fury.gd uses;
+    # player_handler.start_turn now clears the global after applying it, see the fix there).
+    if dice_type == "even" and Global.last_roll == 8 and Global.is_dice_infused("even"):
+        var status_effect := StatusEffect.new()
+        var muscle := OCTET_MUSCLE_STATUS.duplicate()
+        muscle.stacks = 8
+        status_effect.status = muscle
+        var muscle_targets: Array[Node] = [Global.player]
+        status_effect.execute(muscle_targets)
+        Global.lose_strength_next_turn += 8
 
 
 # Light landing tick, fired on EVERY orb (unlike _play_power_orb_arrival_reaction below, which
@@ -893,7 +981,11 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
 func _play_power_orb_land_sfx() -> void:
     var pitch := randf_range(POWER_ORB_LAND_PITCH_MIN, POWER_ORB_LAND_PITCH_MAX)
     var volume := POWER_ORB_LAND_VOLUME_DB + randf_range(-POWER_ORB_LAND_VOLUME_JITTER, POWER_ORB_LAND_VOLUME_JITTER)
-    SFXPlayer.play(POWER_ORB_LAND_SFX, false, pitch, volume)
+    # Low priority (-1, see sound_player.gd): a burst of these (up to ~15 on a big roll) must
+    # never starve the pooled voices out from under a real gameplay sound (e.g. Recombobulate's
+    # refuel sound going missing when playing fast) - decorative plinks are the first to get
+    # stolen, never the ones doing the stealing.
+    SFXPlayer.play(POWER_ORB_LAND_SFX, false, pitch, volume, -1)
 
 
 # A second, smaller reaction on the Power number, purely additive - the number itself already
@@ -1033,6 +1125,7 @@ func play_strong_dice_sound():
 func _on_player_turn_started() -> void:
     Global.roll_history = []
     Global.power_generated_this_turn = 0
+    _magma_burned_this_turn = false
     if socketed_card_ui != null:
         _on_cancel_red_card_pressed()
     if Global.starting_power_next_turn!=0:
@@ -1048,7 +1141,7 @@ func _on_player_turn_started() -> void:
     _update_dice_aura_charge()
     # If you have a variable tracking the roll value, reset it here too
     # Global.roll_value = 0  # This is now handled in the dice_interface.gd
-    mech_adjustment_used = false
+    mech_adjustments_used = 0
     _update_mech_buttons()
 
 func _on_dice_roll_reset() -> void:
@@ -1076,7 +1169,7 @@ func _on_dice_roll_reset() -> void:
         _update_power_float()
         _update_dice_aura_charge()
         update_roll_history_ui()
-    mech_adjustment_used = false
+    mech_adjustments_used = 0
     _update_mech_buttons()
     Events.hover_playable_cards.emit()
     _update_charged_card_description()
@@ -1197,10 +1290,22 @@ func _on_reset_charged_card():
         return
     if Global.playing_red_card and is_instance_valid(socketed_card_ui):
         _flying_charged_card_to_discard = true
+        # Drop the reference NOW, not at the end of the fly tween: the fly only animates
+        # card_drop_area visuals and never reads socketed_card_ui. Keeping the pointer
+        # alive for the ~1s animation let End Turn's clear_socket "cancel" an already-
+        # played card back into the hand (-> its Card added to the discard pile a second
+        # time by discard_cards() -> duplicated card next reshuffle), and would let the
+        # fly's end-callback null out a NEWLY socketed card dropped in mid-animation.
+        socketed_card_ui = null
+        Global.charged_card_instance_id = 0
         _fly_charged_card_to_discard()
         return
 
-    if charged_card_texture.texture != null:
+    # Generic-cleanup emits must NOT wipe a socket that's still legitimately occupied -
+    # e.g. playing a Celestial (which plays directly, never socketing) while another card
+    # sits in the red socket. Emptying the display here would null the texture (making the
+    # red die unrollable) while the socketed card stayed hidden in the hand.
+    if charged_card_texture.texture != null and socketed_card_ui == null:
         _set_socket_empty()
    
 
@@ -1497,9 +1602,9 @@ func _check_sigil_trigger() -> void:
 
 
 func _on_mech_increase_pressed() -> void:
-    if mech_adjustment_used or Global.roll_value == 0:
+    if mech_adjustments_used >= _mech_adjustments_allowed() or Global.roll_value == 0:
         return
-    mech_adjustment_used = true
+    mech_adjustments_used += 1
     Global.roll_value += 1
     SFXPlayer.play(load("res://sounds/blacksmithsound.wav"))
     Events.change_current_power.emit()
@@ -1507,17 +1612,22 @@ func _on_mech_increase_pressed() -> void:
     _update_mech_buttons()
 
 func _on_mech_decrease_pressed() -> void:
-    if mech_adjustment_used or Global.roll_value == 0:
+    if mech_adjustments_used >= _mech_adjustments_allowed() or Global.roll_value == 0:
         return
-    mech_adjustment_used = true
+    mech_adjustments_used += 1
     Global.roll_value -= 1
     SFXPlayer.play(load("res://sounds/blacksmithsound.wav"))
     Events.change_current_power.emit()
     _mech_decrease_tween = _play_mech_arrow_punch(mech_decrease, _mech_decrease_tween)
     _update_mech_buttons()
 
+# Clockwork infusion (Mech) lets you adjust twice per roll instead of once.
+func _mech_adjustments_allowed() -> int:
+    return 2 if Global.is_dice_infused("mech") else 1
+
+
 func _update_mech_buttons() -> void:
-    var usable = not mech_adjustment_used and Global.roll_value > 0
+    var usable = mech_adjustments_used < _mech_adjustments_allowed() and Global.roll_value > 0
     mech_section.modulate.a = 1.0 if usable else 0.3
     mech_increase.disabled = not usable
     mech_decrease.disabled = not usable
@@ -1875,8 +1985,13 @@ func _fly_charged_card_to_discard() -> void:
     fade_tween.tween_property(card_drop_area, "modulate:a", 0.0, 0.2) \
         .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
     fade_tween.tween_callback(func():
-        _set_socket_empty()
-        socketed_card_ui = null
+        # socketed_card_ui is deliberately NOT touched here anymore - it was already
+        # nulled when the fly started (_on_reset_charged_card), and nulling it again
+        # would clobber a NEW card socketed while this animation was still playing.
+        # Same reason for the guard below: only reset the display if nothing new
+        # took the socket mid-flight.
+        if socketed_card_ui == null:
+            _set_socket_empty()
         card_drop_area.global_position = origin_pos
         card_drop_area.rotation = 0.0
         card_drop_area.modulate.a = 1.0

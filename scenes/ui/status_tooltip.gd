@@ -53,7 +53,7 @@ func get_tooltip_content(status: Status) -> void:
         "sigil":
             text = "Everytime your power hits exactly the Sigil number, gain 1 Blue Dice. The Sigil number changes every turn."
         "greedy":
-            text = "Gains 1 Strength for every 6 dice rolled this fight."
+            text = "Gains 2 Strength for every 6 dice rolled this fight."
         "parasite":
             text = "Gains 3 Strength if you generate more than 15 Power in the same turn."
         "depleted":
@@ -69,7 +69,9 @@ func get_tooltip_content(status: Status) -> void:
         _:
             text = status.tooltip if status.tooltip != "" else "No description available."
 
-    title_bbcode = "[center][color=gold][b]" + status.id.capitalize() + "[/b][/color][/center]"
+    # Upgraded blessings reuse their base status with a "_plus" id - the player-facing
+    # name stays the base name ("Marionette", never "Marionette Plus").
+    title_bbcode = "[center][color=gold][b]" + status.id.trim_suffix("_plus").capitalize() + "[/b][/color][/center]"
     var text_bbcode = "[b][center]" + text + "[/center][/b]"
 
     tooltip_title.bbcode_enabled = true

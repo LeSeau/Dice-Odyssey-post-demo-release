@@ -7,43 +7,64 @@ func enter() -> void:
     Events.fan_hand_requested.emit()
     played = false
     
-    if Global.playing_red_card: 
+    if Global.playing_red_card:
         # We're PLAYING a socketed card (rolling dice with it)
         if card_ui.card.target == Card.Target.SINGLE_ENEMY:
             if card_ui.targets.is_empty():
                 print("No target for single enemy card, returning to AIMING")
                 transition_requested.emit(self, CardState.State.AIMING)
                 return
-            
+
             played = true
             card_ui.play()
+            # Emit BEFORE clearing playing_red_card: dice.gd's _on_reset_charged_card only
+            # takes its "socketed card was actually played" branch (fly the socket display
+            # to discard + drop socketed_card_ui) while the flag is still true. The old
+            # order cleared the flag first, so a card whose apply_effects never emits
+            # reset_charged_card itself (e.g. Low Blow whiffing its Max requirement = a
+            # full no-op) left dice.gd pointing at the played CardUI; End Turn's
+            # clear_socket then "canceled" the already-played card back into the hand,
+            # where the end-of-turn discard added it to the discard pile a SECOND time -
+            # the same Card object twice in the pile = duplicate copies drawn next shuffle.
+            Events.reset_charged_card.emit()
             Global.playing_red_card = false
             queue_free()
-            Events.reset_charged_card.emit()
         else:
             card_ui.play()
+            Events.reset_charged_card.emit()
             Global.playing_red_card = false
             queue_free()
-            Events.reset_charged_card.emit()
     else:
         # We're on red dice but NOT currently playing
         if Global.dice_type == "red":
             if card_ui.card.can_play_without_dice:
+                # Celestial cards never socket - they play directly even on red. But a
+                # single-targeted one (e.g. Slash) still needs a target: playing it with
+                # an empty targets array would just discard it with zero effect, so route
+                # it through AIMING exactly like the non-red flow does.
+                if card_ui.card.is_single_targeted() and card_ui.targets.is_empty():
+                    transition_requested.emit(self, CardState.State.AIMING)
+                    return
                 print("Card can be played without dice, playing directly")
                 played = true
                 card_ui.play()
                 queue_free()
                 Events.reset_charged_card.emit()
+                # This card was PLAYED, not socketed - don't fall through to the
+                # charged_card_instance_id assignment below, which would overwrite the id
+                # of a card legitimately sitting in the socket (its red roll would then
+                # fail the instance_id match and never play).
+                return
             else:
                 # SOCKETING a card (not playing yet)
                 Events.card_charged.emit(card_ui)
                 # DON'T set Global.playing_red_card here
                 # It should only be set when actually rolling dice with the card
-        
+
         if Global.dice_type == "red":
             print("current dice is red")
             Global.charged_card_instance_id = card_ui.card.instance_id
-    
+
 
             
         elif not card_ui.targets.is_empty():
