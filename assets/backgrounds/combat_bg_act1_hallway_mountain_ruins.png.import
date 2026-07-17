@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bc2af6yjdpanx"
-path="res://.godot/imported/combat_bg_act2_t0_arcane_library.png-040a506ece24c39810eed74e5590ba2e.ctex"
+uid="uid://l7al4niio4fw"
+path="res://.godot/imported/combat_bg_act1_hallway_mountain_ruins.png-ee6d7f3f7b4fc4a1e4aeb238ec4ac534.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/backgrounds/combat_bg_act2_t0_arcane_library.png"
-dest_files=["res://.godot/imported/combat_bg_act2_t0_arcane_library.png-040a506ece24c39810eed74e5590ba2e.ctex"]
+source_file="res://assets/backgrounds/combat_bg_act1_hallway_mountain_ruins.png"
+dest_files=["res://.godot/imported/combat_bg_act1_hallway_mountain_ruins.png-ee6d7f3f7b4fc4a1e4aeb238ec4ac534.ctex"]
 
 [params]
 

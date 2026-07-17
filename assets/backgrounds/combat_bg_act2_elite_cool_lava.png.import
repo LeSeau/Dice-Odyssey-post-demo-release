@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cix2uyuyr7u2d"
-path="res://.godot/imported/combat_bg_act2_t1_purple_library.png-cc2590362603dd358a8878a56e2cf093.ctex"
+uid="uid://c10d3oqy80h7a"
+path="res://.godot/imported/combat_bg_act2_elite_cool_lava.png-6749cf203d4f48e7ac5449332a0dfbf8.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/backgrounds/combat_bg_act2_t1_purple_library.png"
-dest_files=["res://.godot/imported/combat_bg_act2_t1_purple_library.png-cc2590362603dd358a8878a56e2cf093.ctex"]
+source_file="res://assets/backgrounds/combat_bg_act2_elite_cool_lava.png"
+dest_files=["res://.godot/imported/combat_bg_act2_elite_cool_lava.png-6749cf203d4f48e7ac5449332a0dfbf8.ctex"]
 
 [params]
 
