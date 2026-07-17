@@ -22,6 +22,7 @@ Shaker="*res://global/shaker.gd"
 MusicPlayer="*res://global/music_player.tscn"
 SFXPlayer="*res://global/sfx_player.tscn"
 Global="*res://global.gd"
+AchievementManager="*res://global/achievement_manager.gd"
 
 [display]
 

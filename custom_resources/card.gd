@@ -188,10 +188,17 @@ func play(targets: Array[Node], char_stats: CharacterStats, modifiers: ModifierH
     if berserker_boost:
         Global.berserker_boost_active = true
 
+    # Kaboom achievement: sum every point of damage enemies take during this one card
+    # play (damage_effect.gd reports each hit while the window is open, so multi-hit
+    # and AoE cards count as a single total).
+    AchievementManager.begin_card_damage_window()
+
     if is_single_targeted():
         apply_effects(targets, modifiers)
     else:
         apply_effects(_get_targets(targets), modifiers)
+
+    AchievementManager.end_card_damage_window()
 
     if berserker_boost:
         Global.berserker_boost_active = false

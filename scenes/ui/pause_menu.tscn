@@ -115,14 +115,15 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -225.0
-offset_top = -262.0
+offset_top = -292.0
 offset_right = 225.0
-offset_bottom = 262.0
+offset_bottom = 292.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
 [node name="Title" type="Label" parent="Panel"]
+unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
@@ -270,6 +271,36 @@ theme_override_styles/pressed = ExtResource("6_btn_p")
 theme_override_styles/normal = ExtResource("4_btn_n")
 text = "Fullscreen: Off"
 
+[node name="DiscordButton" type="Button" parent="Panel/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 46)
+layout_mode = 2
+theme_override_colors/font_hover_color = Color(1, 0.843137, 0, 1)
+theme_override_colors/font_color = Color(0.92549, 0.890196, 0.815686, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.6)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("2_cinzel")
+theme_override_font_sizes/font_size = 19
+theme_override_styles/hover = ExtResource("5_btn_h")
+theme_override_styles/pressed = ExtResource("6_btn_p")
+theme_override_styles/normal = ExtResource("4_btn_n")
+text = "Join Discord"
+
+[node name="AchievementsButton" type="Button" parent="Panel/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 46)
+layout_mode = 2
+theme_override_colors/font_hover_color = Color(1, 0.843137, 0, 1)
+theme_override_colors/font_color = Color(0.92549, 0.890196, 0.815686, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.6)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("2_cinzel")
+theme_override_font_sizes/font_size = 19
+theme_override_styles/hover = ExtResource("5_btn_h")
+theme_override_styles/pressed = ExtResource("6_btn_p")
+theme_override_styles/normal = ExtResource("4_btn_n")
+text = "Achievements"
+
 [node name="Spacer2" type="Control" parent="Panel/Content"]
 layout_mode = 2
 size_flags_vertical = 3
@@ -305,8 +336,9 @@ theme_override_styles/normal = ExtResource("4_btn_n")
 text = "Quit to Main Menu"
 
 [node name="Note" type="Label" parent="Panel/Content"]
+unique_name_in_owner = true
 layout_mode = 2
-text = "Your run is saved at the last map checkpoint."
+text = "Your progress is saved at each floor."
 label_settings = SubResource("LabelSettings_note")
 horizontal_alignment = 1
 autowrap_mode = 2
@@ -346,7 +378,7 @@ offset_top = 64.0
 offset_right = -26.0
 offset_bottom = 112.0
 grow_horizontal = 2
-text = "Don't worry — your progress is saved at each floor."
+text = "Don't worry, your progress is saved at each floor."
 label_settings = SubResource("LabelSettings_confirm_body")
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -395,3 +427,73 @@ theme_override_styles/hover = ExtResource("5_btn_h")
 theme_override_styles/pressed = ExtResource("6_btn_p")
 theme_override_styles/normal = ExtResource("4_btn_n")
 text = "Cancel"
+
+[node name="AchievementsPanel" type="Panel" parent="."]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -310.0
+offset_top = -292.0
+offset_right = 310.0
+offset_bottom = 292.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="AchTitle" type="Label" parent="AchievementsPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 20.0
+offset_bottom = 66.0
+grow_horizontal = 2
+text = "ACHIEVEMENTS"
+label_settings = SubResource("LabelSettings_title")
+horizontal_alignment = 1
+
+[node name="AchScroll" type="ScrollContainer" parent="AchievementsPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = 82.0
+offset_right = -24.0
+offset_bottom = -76.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_scroll_mode = 0
+
+[node name="AchList" type="VBoxContainer" parent="AchievementsPanel/AchScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="AchBackButton" type="Button" parent="AchievementsPanel"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -110.0
+offset_top = -62.0
+offset_right = 110.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_hover_color = Color(1, 0.843137, 0, 1)
+theme_override_colors/font_color = Color(0.92549, 0.890196, 0.815686, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.6)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("2_cinzel")
+theme_override_font_sizes/font_size = 19
+theme_override_styles/hover = ExtResource("5_btn_h")
+theme_override_styles/pressed = ExtResource("6_btn_p")
+theme_override_styles/normal = ExtResource("4_btn_n")
+text = "Back"

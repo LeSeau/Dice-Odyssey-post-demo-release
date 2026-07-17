@@ -13,7 +13,7 @@ var testing_mode: bool = false
 var tutorial_on = false
 var tutorial_reset_power_warning = true
 
-var gold = 7575
+var gold = 75
 var player_hp = 66
 var player_max_hp = 66
 
@@ -81,6 +81,10 @@ var shop_dice_selection = []  # Stores which dice are shown
 
 var lose_strength_next_turn = 0
 var has_blocked_last_turn = false
+
+# Run-scoped counter for the "They see me rollin" achievement (20 Blue rolls in one run).
+# Incremented by AchievementManager on Events.dice_rolled; saved/restored by run.gd.
+var blue_dice_rolled_this_run = 0
 
 # Relic-driven passive modifiers (set on initialize_relic, reset on deactivate_relic,
 # same lifecycle as any other per-battle relic effect):
@@ -160,6 +164,14 @@ var dice_infusions := {}
 # +50% damage. Never true outside that synchronous window.
 var berserker_boost_active := false
 
+# The Sprite2D texture battle.gd picked for the fight just finished (see
+# Battle._select_background_texture()) - battle_reward.gd mirrors it on the reward
+# screen so the background matches the biome you were just fighting in, instead of
+# always showing the same static placeholder. Null before any battle has happened
+# yet this run (e.g. a Treasure room reward on floor 1), in which case battle_reward
+# keeps its .tscn-authored default.
+var last_battle_background: Texture2D = null
+
 
 func is_dice_infused(dice_type: String) -> bool:
     return dice_infusions.has(dice_type)
@@ -227,6 +239,7 @@ func reset_run_state() -> void:
     enemy_last_move = ""
     lose_strength_next_turn = 0
     has_blocked_last_turn = false
+    blue_dice_rolled_this_run = 0
     has_rolled_6_this_turn = false
     has_rolled_1_this_fight = false
     hound_debuff_attack_done = false
@@ -245,6 +258,7 @@ func reset_run_state() -> void:
     upgrading_card = false
     current_act = 1
     dice_infusions = {}
+    last_battle_background = null
     berserker_boost_active = false
     is_final_boss_fight = false
     game_over_state = false
