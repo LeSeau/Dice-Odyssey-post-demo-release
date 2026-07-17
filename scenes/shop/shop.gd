@@ -97,7 +97,8 @@ func _on_button_pressed() -> void:
 func _on_buy_dice_1_pressed() -> void:
     if Global.gold >= evil_dice_price:
         Events.dice_bought.emit("evil")
-        SFXPlayer.play(load("res://sounds/buydicesound.wav")) 
+        SFXPlayer.play(load("res://sounds/buydicesound.wav"))
+        AchievementManager.unlock("customer")
         Global.evil_dice_max_amount+=1
         Global.evil_dice_current_amount+=1
         Global.gold-= evil_dice_price
@@ -116,7 +117,8 @@ func _on_buy_dice_2_pressed() -> void:
         Global.gold-= giant_dice_price
         Events.gold_changed.emit()
         Events.dice_bought.emit("giant")
-        SFXPlayer.play(load("res://sounds/buydicesound.wav")) 
+        SFXPlayer.play(load("res://sounds/buydicesound.wav"))
+        AchievementManager.unlock("customer")
         Global.giant_dice_max_amount+=1
         Global.giant_dice_current_amount+=1
         if Global.giant_dice_current_amount == 1:
@@ -130,7 +132,8 @@ func _on_buy_dice_3_pressed() -> void:
         Global.gold-= magma_dice_price
         Events.gold_changed.emit()
         Events.dice_bought.emit("magma")
-        SFXPlayer.play(load("res://sounds/buydicesound.wav")) 
+        SFXPlayer.play(load("res://sounds/buydicesound.wav"))
+        AchievementManager.unlock("customer")
         Global.magma_dice_max_amount+=1
         Global.magma_dice_current_amount+=1
         if Global.magma_dice_current_amount == 1:
@@ -144,7 +147,8 @@ func _on_buy_dice_4_pressed() -> void:
         Global.gold-= even_dice_price
         Events.gold_changed.emit()
         Events.dice_bought.emit("even")
-        SFXPlayer.play(load("res://sounds/buydicesound.wav")) 
+        SFXPlayer.play(load("res://sounds/buydicesound.wav"))
+        AchievementManager.unlock("customer")
         Global.even_dice_max_amount+=1
         Global.even_dice_current_amount+=1
         if Global.even_dice_current_amount == 1:
@@ -158,7 +162,8 @@ func _on_buy_dice_5_pressed() -> void:
         Global.gold-= odd_dice_price
         Events.gold_changed.emit()
         Events.dice_bought.emit("odd")
-        SFXPlayer.play(load("res://sounds/buydicesound.wav")) 
+        SFXPlayer.play(load("res://sounds/buydicesound.wav"))
+        AchievementManager.unlock("customer")
         Global.odd_dice_max_amount+=1
         Global.odd_dice_current_amount+=1
         if Global.odd_dice_current_amount == 1:
@@ -204,7 +209,8 @@ func _on_buy_dice_6_pressed() -> void:
         Global.gold-= blue_dice_price
         Events.gold_changed.emit()
         Events.dice_bought.emit("blue")
-        SFXPlayer.play(load("res://sounds/buydicesound.wav")) 
+        SFXPlayer.play(load("res://sounds/buydicesound.wav"))
+        AchievementManager.unlock("customer")
         Global.blue_dice_max_amount+=1
         Global.blue_dice_current_amount+=1
         if Global.blue_dice_current_amount == 1:
@@ -219,7 +225,8 @@ func _on_buy_dice_7_pressed() -> void:
         Global.gold-= red_dice_price
         Events.gold_changed.emit()
         Events.dice_bought.emit("red")
-        SFXPlayer.play(load("res://sounds/buydicesound.wav")) 
+        SFXPlayer.play(load("res://sounds/buydicesound.wav"))
+        AchievementManager.unlock("customer")
         Global.red_dice_max_amount+=1
         Global.red_dice_current_amount+=1
         if Global.red_dice_current_amount == 1:
@@ -233,7 +240,8 @@ func _on_buy_dice_8_pressed() -> void:
         Global.gold-= green_dice_price
         Events.gold_changed.emit()
         Events.dice_bought.emit("green")
-        SFXPlayer.play(load("res://sounds/buydicesound.wav")) 
+        SFXPlayer.play(load("res://sounds/buydicesound.wav"))
+        AchievementManager.unlock("customer")
         Global.green_dice_max_amount+=1
         Global.green_dice_current_amount+=1
         if Global.green_dice_current_amount == 1:
@@ -247,7 +255,8 @@ func _on_buy_dice_9_pressed() -> void:
         Global.gold-= mech_dice_price
         Events.gold_changed.emit()
         Events.dice_bought.emit("mech")
-        SFXPlayer.play(load("res://sounds/buydicesound.wav")) 
+        SFXPlayer.play(load("res://sounds/buydicesound.wav"))
+        AchievementManager.unlock("customer")
         Global.mech_dice_max_amount+=1
         Global.mech_dice_current_amount+=1
         if Global.mech_dice_current_amount == 1:

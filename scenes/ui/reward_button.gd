@@ -18,11 +18,11 @@ func set_reward_icon(new_icon: Texture) -> void:
 
 func set_reward_text(new_text: String) -> void:
     reward_text = new_text
-    
+
     if not is_node_ready():
         await ready
-        
+
     custom_text.text = reward_text
-    
+
 func _on_pressed() -> void:
     queue_free()

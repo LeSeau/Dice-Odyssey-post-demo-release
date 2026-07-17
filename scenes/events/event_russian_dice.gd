@@ -153,6 +153,12 @@ func _on_play_button_pressed() -> void:
 
 
 func _on_roll_dice_1_pressed() -> void:
+    # Guard against spam-clicking the same die while its roll/reward await
+    # chain is still running (each _on_roll_dice_N_pressed only disables its
+    # own button on SUCCESS, further down - not immediately on click).
+    if roll_dice_1.disabled:
+        return
+    roll_dice_1.disabled = true
 
     var number_of_outcomes = faces.size()
     
@@ -190,6 +196,10 @@ func _on_roll_dice_1_pressed() -> void:
 
 
 func _on_roll_dice_2_pressed() -> void:
+    if roll_dice_2.disabled:
+        return
+    roll_dice_2.disabled = true
+
     var number_of_outcomes = faces.size()
     
     # Step 1: Roll several times quickly
@@ -244,6 +254,9 @@ func _on_winner_exit_button_pressed() -> void:
 
 
 func _on_roll_dice_3_pressed() -> void:
+    if roll_dice_3.disabled:
+        return
+    roll_dice_3.disabled = true
 
     var number_of_outcomes = faces.size()
     
@@ -280,6 +293,10 @@ func _on_roll_dice_3_pressed() -> void:
 
 
 func _on_roll_dice_4_pressed() -> void:
+    if roll_dice_4.disabled:
+        return
+    roll_dice_4.disabled = true
+
     var number_of_outcomes = faces.size()
     
     # Step 1: Roll several times quickly
@@ -315,6 +332,10 @@ func _on_roll_dice_4_pressed() -> void:
 
 
 func _on_roll_dice_5_pressed() -> void:
+    if roll_dice_5.disabled:
+        return
+    roll_dice_5.disabled = true
+
     var number_of_outcomes = faces.size()
     
     # Step 1: Roll several times quickly

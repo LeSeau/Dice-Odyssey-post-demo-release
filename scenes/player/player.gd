@@ -5,10 +5,11 @@ const WHITE_SPRITE_MATERIAL := preload("res://art/white_sprite_material.tres")
 
 @export var stats: CharacterStats : set = set_character_stats
 
-@onready var sprite_2d: Sprite2D = $Sprite2D
+@onready var sprite_2d: Sprite2D = $SpriteRoot/Sprite2D
 @onready var stats_ui: StatsUI = $StatsUI
 @onready var status_handler: StatusHandler = $StatusHandler
 @onready var modifier_handler: ModifierHandler = $ModifierHandler
+@onready var animation_player: AnimationPlayer = $AnimationPlayer
 
 # Hit-reaction state (knockback + squash), mirrors Enemy.take_damage.
 var _hit_pos_tween: Tween
@@ -25,6 +26,13 @@ func _ready() -> void:
     #var infused := preload("res://statuses//infused.tres")
     #infused.duration = 1
     #status_handler.add_status(infused)
+
+    # Idle already started via autoplay by the time this runs (children enter the tree
+    # before their parent's _ready()) - nudge its phase/speed per-battle so it isn't
+    # always the exact same breathing cycle every fight (see Enemy._ready() for the
+    # same trick, there it also avoids every enemy on screen breathing in lockstep).
+    animation_player.speed_scale = randf_range(0.9, 1.15)
+    animation_player.seek(randf() * animation_player.current_animation_length, true)
 
 
 
@@ -76,7 +84,8 @@ func take_damage(damage: int, which_modifier: Modifier.Type) -> void:
 
 
 # Knockback + squash on hit. self.position and Sprite2D.scale are both free of the idle
-# animation (which only drives Sprite2D:position), so neither tween fights it.
+# animation (which drives SpriteRoot's scale/rotation/position - a wrapper node between
+# Player and Sprite2D, same layering as Enemy), so neither tween fights it.
 func _play_hit_reaction() -> void:
     if not _hit_reaction_active:
         _hit_rest_position = position

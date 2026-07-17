@@ -18,7 +18,7 @@ func _ready() -> void:
     Events.stop_battle_music.emit()
 
 
-const WIN_AUTO_ADVANCE_DELAY := 1.0
+const WIN_AUTO_ADVANCE_DELAY := 0.7
 
 func show_screen(text: String, type: Type) -> void:
     if type == Type.LOSE:

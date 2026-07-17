@@ -28,8 +28,16 @@ func _on_button_pressed() -> void:
     print("rolling golden dice")
 
 func _on_roll_dice_pressed() -> void:
+    # Guard against spam-clicking while the roll animation/reward await chain
+    # below is still running - Button.disabled blocks further "pressed"
+    # signals immediately, unlike a script-side flag which could still race
+    # with a click landing in the same frame.
+    if roll_dice.disabled:
+        return
+    roll_dice.disabled = true
+
     print("rolling event dice")
-    
+
     var faces = [
         load("res://assets/images/blue1.png"),
         load("res://assets/images/blue2.png"),

@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://custom_resources/event_stats.gd" id="1_1o3oj"]
 [ext_resource type="Script" path="res://custom_resources/event_stats_pool.gd" id="2_ry2tl"]
-[ext_resource type="Resource" uid="uid://b8r3s5w2b3qbu" path="res://scenes/events/event_test.tres" id="3_vdhyb"]
+[ext_resource type="Resource" uid="uid://b8r3s5w2b3qbu" path="res://scenes/events/event_deonassius.tres" id="3_vdhyb"]
 [ext_resource type="Resource" uid="uid://cjautetwo4uuo" path="res://scenes/events/events_gold_dice.tres" id="4_37for"]
 [ext_resource type="Resource" uid="uid://c1mwjvhhjeavx" path="res://scenes/events/event_dice_machine.tres" id="5_5uosp"]
 [ext_resource type="Resource" uid="uid://crujh6g6gxcy3" path="res://scenes/events/event_fountain_heal.tres" id="6_yfmgm"]

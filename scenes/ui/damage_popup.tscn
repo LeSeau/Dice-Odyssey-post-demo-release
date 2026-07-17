@@ -1,15 +1,15 @@
 [gd_scene load_steps=4 format=3 uid="uid://dwpj2qhe04ne4"]
 
 [ext_resource type="Script" path="res://damage_popup.gd" id="1_s416q"]
-[ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="2_4voy7"]
+[ext_resource type="FontFile" uid="uid://dltntsanjiykq" path="res://fonts/LuckiestGuy-Regular.ttf" id="2_4voy7"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_8t4me"]
 font = ExtResource("2_4voy7")
-font_size = 45
+font_size = 38
 font_color = Color(1, 0.266667, 0, 1)
-outline_size = 1
+outline_size = 4
 outline_color = Color(0.290196, 0.0392157, 0, 1)
-shadow_size = 5
+shadow_size = 4
 shadow_color = Color(0.227451, 0, 0, 1)
 
 [node name="DamagePopup" type="Node2D"]

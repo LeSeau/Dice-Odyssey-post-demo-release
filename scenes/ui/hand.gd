@@ -11,10 +11,12 @@ const CARD_UI_SCENE := preload("res://scenes/card_ui/card_ui.tscn")
 @export var hover_lift: float = -20.0  # How much the card lifts when hovered
 @export var hover_time: float = 0.15   # Animation time for hovering
 
-# Tutorial lift is bigger than a normal hover (lifted higher + scaled more) so the one card
-# the tutorial wants clicked reads as clearly picked out from the rest of the fan.
-const TUTORIAL_LIFT := -64.0
-const TUTORIAL_SCALE := Vector2(1.22, 1.22)
+# Deliberately a SLIGHT, held lift - just enough to pick the card out of the fan and read as
+# "play me", not a big pop. A previous pass lifted it -64 + scaled 1.22, which Julien found
+# "weird"; he asked to simply lift it slightly from the hand and keep it there. The other cards
+# being gated (dimmed) already does most of the "this is the one" work, so the lift stays gentle.
+const TUTORIAL_LIFT := -30.0
+const TUTORIAL_SCALE := Vector2(1.06, 1.06)
 
 # The tutorial "locks" a card lifted. While locked, hover-in/out on that card re-asserts the
 # lift instead of resetting to base - otherwise hovering it and moving away would drop it back

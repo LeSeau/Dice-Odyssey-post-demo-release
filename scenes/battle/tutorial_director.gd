@@ -669,9 +669,12 @@ func _step_t3_2() -> void:
 func _step_t3_3() -> void:
     Global.tutorial_forced_scout_faces = [2, 6, 4]
     overlay.set_dim(TutorialOverlay.Dim.NONE)
+    # "above_hand" (bottom) instead of "top": the Scout panel of 3 face options opens at the
+    # top-center, and a top box sat right on top of it (Julien: "explanation box is hiding the
+    # scout panel; put it lower"). Bottom of the screen leaves the Scout panel fully visible.
     overlay.set_text(
         "[center]The Skeleton has [color=gold]6 HP[/color]. A gambler would pray for a 6. You're not a gambler - the die is showing you [color=gold]three possible futures[/color], and you get to [color=gold]choose[/color]. Take the 6.",
-        "top", false)
+        "above_hand", false)
     _gate_scout_faces(1)
     _wait(Events.next_roll_determined)
 

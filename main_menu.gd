@@ -4,6 +4,9 @@ extends Control
 @onready var load_run_button: Button = $LoadRun
 @onready var load_run_confirm_panel: Panel = $LoadRunConfirmPanel
 @onready var load_run_confirm_info: Label = $LoadRunConfirmPanel/InfoLabel
+@onready var settings_button: TextureButton = %SettingsButton
+@onready var settings_button_hover_glow: Panel = get_node("%SettingsButton/SettingsHoverGlow")
+@onready var pause_menu: PauseMenu = %PauseMenu
 
 
 const RUN_SCENE := preload("res://scenes/run/run.tscn")
@@ -94,3 +97,20 @@ func _on_start_without_tutorial_pressed() -> void:
     SFXPlayer.play(new_run_sound)
     await get_tree().create_timer(new_run_sound.get_length()).timeout
     get_tree().change_scene_to_packed(RUN_SCENE)
+
+
+func _on_settings_button_pressed() -> void:
+    pause_menu.toggle()
+
+
+# Same hover-glow treatment as the in-run gear button (run.gd::_on_pause_button_*).
+func _on_settings_button_mouse_entered() -> void:
+    settings_button.modulate = Color(1.18, 1.18, 1.18)
+    var tween := create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+    tween.tween_property(settings_button_hover_glow, "modulate:a", 1.0, 0.12)
+
+
+func _on_settings_button_mouse_exited() -> void:
+    settings_button.modulate = Color.WHITE
+    var tween := create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+    tween.tween_property(settings_button_hover_glow, "modulate:a", 0.0, 0.12)
