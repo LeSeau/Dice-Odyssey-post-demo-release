@@ -295,7 +295,7 @@ func _show_map() -> void:
     if dice_shop_instance:
         dice_shop_instance.queue_free()
         dice_shop_instance = null
-    dice_shop.show()
+    dice_shop.set_available(true)
     map.show_map()
     map.unlock_next_rooms()
     # The save checkpoint: every return to the map (post-battle-reward, post-event,
@@ -357,7 +357,7 @@ func _on_battle_room_entered(room: Room) ->  void:
     battle_scene.battle_stats = battle_stats
     
     battle_scene.start_battle()
-    dice_shop.hide()
+    dice_shop.set_available(false)
     
 func _on_treasure_room_entered() -> void:
     var treasure_scene := _change_view(TREASURE_SCENE) as Treasure
@@ -380,7 +380,7 @@ func _on_campfire_room_entered() -> Node:
 
 func _on_shop_entered() -> void:
     var shop := _change_view(SHOP_SCENE) as Shop
-    dice_shop.hide()
+    dice_shop.set_available(false)
     shop.char_stats = character
     shop.run_stats = stats
     shop.relic_handler = relic_handler
@@ -468,7 +468,7 @@ func _on_event_room_entered(room: Room) ->  void:
     event_scene.char_stats = character 
     event_scene.event_stats = room.event_stats
     #event_scene.start_battle()
-    dice_shop.hide()
+    dice_shop.set_available(false)
     audio_player.stream = load("res://sounds/openshopsound.wav")
     audio_player.play()
 
@@ -542,7 +542,7 @@ func _on_battle_won() -> void:
 # the map. It reads Global itself (owned dice types) and reports back through
 # Events.dice_infusion_completed - no setup args needed.
 func _show_dice_infusion() -> void:
-    dice_shop.hide()
+    dice_shop.set_available(false)
     _change_view(DICE_INFUSION_SCENE)
 
 
@@ -630,8 +630,8 @@ func _on_map_exited(room: Room) -> void:
             else:
                 # No events left, use default
                 _change_view(EVENT_SCENE)
-                
-            dice_shop.hide()
+
+            dice_shop.set_available(false)
 
 
 
@@ -1094,7 +1094,7 @@ func _load_run() -> void:
     else:
         map.unlock_floor(0)
     map.show_map()
-    dice_shop.show()
+    dice_shop.set_available(true)
     _update_floor_label()
     Events.hp_changed.emit()
     Events.check_if_can_purchase_dice.emit()

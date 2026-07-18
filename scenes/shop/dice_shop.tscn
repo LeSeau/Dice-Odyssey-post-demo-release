@@ -250,8 +250,8 @@ anchors_preset = 14
 anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
-offset_top = -208.0
-offset_bottom = -160.0
+offset_top = -238.0
+offset_bottom = -190.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(1, 1, 0.227451, 1)
@@ -270,9 +270,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -500.0
-offset_top = -141.0
+offset_top = -171.0
 offset_right = 500.0
-offset_bottom = 279.0
+offset_bottom = 249.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 30
@@ -323,6 +323,10 @@ layout_mode = 2
 size_flags_horizontal = 4
 texture = ExtResource("3_xrjxn")
 expand_mode = 1
+
+[node name="DiceBuySpacer1" type="Control" parent="MarginContainer/Panel/HBoxContainer/Dice1"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
 
 [node name="BuyDice1" type="Button" parent="MarginContainer/Panel/HBoxContainer/Dice1"]
 custom_minimum_size = Vector2(0, 48)
@@ -392,6 +396,10 @@ size_flags_horizontal = 4
 texture = ExtResource("4_1cdv7")
 expand_mode = 1
 
+[node name="DiceBuySpacer2" type="Control" parent="MarginContainer/Panel/HBoxContainer/Dice2"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+
 [node name="BuyDice2" type="Button" parent="MarginContainer/Panel/HBoxContainer/Dice2"]
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
@@ -459,6 +467,10 @@ layout_mode = 2
 size_flags_horizontal = 4
 texture = ExtResource("5_bdtub")
 expand_mode = 1
+
+[node name="DiceBuySpacer3" type="Control" parent="MarginContainer/Panel/HBoxContainer/Dice3"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
 
 [node name="BuyDice3" type="Button" parent="MarginContainer/Panel/HBoxContainer/Dice3"]
 custom_minimum_size = Vector2(0, 48)
@@ -528,6 +540,10 @@ size_flags_horizontal = 4
 texture = ExtResource("6_my6g0")
 expand_mode = 1
 
+[node name="DiceBuySpacer4" type="Control" parent="MarginContainer/Panel/HBoxContainer/Dice4"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+
 [node name="BuyDice4" type="Button" parent="MarginContainer/Panel/HBoxContainer/Dice4"]
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
@@ -595,6 +611,10 @@ layout_mode = 2
 size_flags_horizontal = 4
 texture = ExtResource("7_tsadf")
 expand_mode = 1
+
+[node name="DiceBuySpacer5" type="Control" parent="MarginContainer/Panel/HBoxContainer/Dice5"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
 
 [node name="BuyDice5" type="Button" parent="MarginContainer/Panel/HBoxContainer/Dice5"]
 custom_minimum_size = Vector2(0, 48)
@@ -664,6 +684,10 @@ size_flags_horizontal = 4
 texture = ExtResource("8_mw01n")
 expand_mode = 1
 
+[node name="DiceBuySpacer6" type="Control" parent="MarginContainer/Panel/HBoxContainer/Dice6"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+
 [node name="BuyDice6" type="Button" parent="MarginContainer/Panel/HBoxContainer/Dice6"]
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
@@ -731,6 +755,10 @@ layout_mode = 2
 size_flags_horizontal = 4
 texture = ExtResource("9_oasbf")
 expand_mode = 1
+
+[node name="DiceBuySpacer7" type="Control" parent="MarginContainer/Panel/HBoxContainer/Dice7"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
 
 [node name="BuyDice7" type="Button" parent="MarginContainer/Panel/HBoxContainer/Dice7"]
 custom_minimum_size = Vector2(0, 48)
@@ -800,6 +828,10 @@ size_flags_horizontal = 4
 texture = ExtResource("10_qav0k")
 expand_mode = 1
 
+[node name="DiceBuySpacer8" type="Control" parent="MarginContainer/Panel/HBoxContainer/Dice8"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+
 [node name="BuyDice8" type="Button" parent="MarginContainer/Panel/HBoxContainer/Dice8"]
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
@@ -868,6 +900,10 @@ size_flags_horizontal = 4
 texture = ExtResource("11_81ont")
 expand_mode = 1
 
+[node name="DiceBuySpacer9" type="Control" parent="MarginContainer/Panel/HBoxContainer/Dice9"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+
 [node name="BuyDice9" type="Button" parent="MarginContainer/Panel/HBoxContainer/Dice9"]
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
@@ -922,9 +958,9 @@ anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
 offset_left = -150.0
-offset_top = -185.0
+offset_top = -177.0
 offset_right = 150.0
-offset_bottom = -137.0
+offset_bottom = -129.0
 grow_horizontal = 2
 grow_vertical = 0
 size_flags_vertical = 8

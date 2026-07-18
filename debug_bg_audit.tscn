@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://dbgaudit2607a"]
+
+[ext_resource type="Script" path="res://debug_bg_audit.gd" id="1_dbgaud"]
+
+[node name="BgAudit" type="Node"]
+script = ExtResource("1_dbgaud")
