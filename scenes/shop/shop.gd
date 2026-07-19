@@ -99,6 +99,7 @@ func _on_buy_dice_1_pressed() -> void:
         Events.dice_bought.emit("evil")
         SFXPlayer.play(load("res://sounds/buydicesound.wav"))
         AchievementManager.unlock("customer")
+        AchievementManager.add_stat("dice_bought_from_shop", 1)
         Global.evil_dice_max_amount+=1
         Global.evil_dice_current_amount+=1
         Global.gold-= evil_dice_price
@@ -119,6 +120,7 @@ func _on_buy_dice_2_pressed() -> void:
         Events.dice_bought.emit("giant")
         SFXPlayer.play(load("res://sounds/buydicesound.wav"))
         AchievementManager.unlock("customer")
+        AchievementManager.add_stat("dice_bought_from_shop", 1)
         Global.giant_dice_max_amount+=1
         Global.giant_dice_current_amount+=1
         if Global.giant_dice_current_amount == 1:
@@ -134,6 +136,7 @@ func _on_buy_dice_3_pressed() -> void:
         Events.dice_bought.emit("magma")
         SFXPlayer.play(load("res://sounds/buydicesound.wav"))
         AchievementManager.unlock("customer")
+        AchievementManager.add_stat("dice_bought_from_shop", 1)
         Global.magma_dice_max_amount+=1
         Global.magma_dice_current_amount+=1
         if Global.magma_dice_current_amount == 1:
@@ -149,6 +152,7 @@ func _on_buy_dice_4_pressed() -> void:
         Events.dice_bought.emit("even")
         SFXPlayer.play(load("res://sounds/buydicesound.wav"))
         AchievementManager.unlock("customer")
+        AchievementManager.add_stat("dice_bought_from_shop", 1)
         Global.even_dice_max_amount+=1
         Global.even_dice_current_amount+=1
         if Global.even_dice_current_amount == 1:
@@ -164,6 +168,7 @@ func _on_buy_dice_5_pressed() -> void:
         Events.dice_bought.emit("odd")
         SFXPlayer.play(load("res://sounds/buydicesound.wav"))
         AchievementManager.unlock("customer")
+        AchievementManager.add_stat("dice_bought_from_shop", 1)
         Global.odd_dice_max_amount+=1
         Global.odd_dice_current_amount+=1
         if Global.odd_dice_current_amount == 1:
@@ -211,6 +216,7 @@ func _on_buy_dice_6_pressed() -> void:
         Events.dice_bought.emit("blue")
         SFXPlayer.play(load("res://sounds/buydicesound.wav"))
         AchievementManager.unlock("customer")
+        AchievementManager.add_stat("dice_bought_from_shop", 1)
         Global.blue_dice_max_amount+=1
         Global.blue_dice_current_amount+=1
         if Global.blue_dice_current_amount == 1:
@@ -227,6 +233,7 @@ func _on_buy_dice_7_pressed() -> void:
         Events.dice_bought.emit("red")
         SFXPlayer.play(load("res://sounds/buydicesound.wav"))
         AchievementManager.unlock("customer")
+        AchievementManager.add_stat("dice_bought_from_shop", 1)
         Global.red_dice_max_amount+=1
         Global.red_dice_current_amount+=1
         if Global.red_dice_current_amount == 1:
@@ -242,6 +249,7 @@ func _on_buy_dice_8_pressed() -> void:
         Events.dice_bought.emit("green")
         SFXPlayer.play(load("res://sounds/buydicesound.wav"))
         AchievementManager.unlock("customer")
+        AchievementManager.add_stat("dice_bought_from_shop", 1)
         Global.green_dice_max_amount+=1
         Global.green_dice_current_amount+=1
         if Global.green_dice_current_amount == 1:
@@ -257,6 +265,7 @@ func _on_buy_dice_9_pressed() -> void:
         Events.dice_bought.emit("mech")
         SFXPlayer.play(load("res://sounds/buydicesound.wav"))
         AchievementManager.unlock("customer")
+        AchievementManager.add_stat("dice_bought_from_shop", 1)
         Global.mech_dice_max_amount+=1
         Global.mech_dice_current_amount+=1
         if Global.mech_dice_current_amount == 1:

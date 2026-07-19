@@ -526,6 +526,7 @@ func _on_battle_won() -> void:
     if map.last_room.type == Room.Type.BOSS and Global.current_act >= 2:
         run_finished = true
         SaveManager.delete_save()
+        AchievementManager.unlock("conqueror")
 
     Global.fight_turn = 0
 

@@ -51,6 +51,7 @@ func add_relic(relic: Relic) -> void:
     relics.add_child(new_relic_ui)
     new_relic_ui.relic = relic  # set_relic handles initialize_relic already
     print("ADDED: ", relic.id)
+    AchievementManager.report_relic_count(relics.get_child_count())
 
 func _resize_for_top_bar(relic_ui: RelicUI) -> void:
     relic_ui.custom_minimum_size = Vector2(TOP_BAR_ICON_SIZE, TOP_BAR_ICON_SIZE)

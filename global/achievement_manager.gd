@@ -38,6 +38,17 @@ const SCORCHED_EARTH_ENEMIES := 3  # enemies hit by one Magma roll
 const OVERKILL_MARGIN := 15    # damage beyond what the target had left
 const GLASS_CANNON_DAMAGE := 20  # single hit taken (and survived)
 
+# Third wave (2026-07-19), same philosophy as the second wave above: no new mechanics,
+# just new lifetime stats / one-shot checks wired onto signals and choke points that
+# already existed (Events.*, RelicHandler.add_relic, shop.gd's dice-buy handlers).
+const RESHUFFLE_MIN := 5           # cards moved discard->draw in one reshuffle
+const GOLD_HOARD_TARGET := 300     # Gold held at once
+const RELIC_HOARD_TARGET := 8      # Relics owned at once, single run
+const TREASURE_CHESTS_TARGET := 15 # lifetime treasure rooms opened
+const SHOP_CARDS_TARGET := 20      # lifetime cards bought from shops
+const DICE_BOUGHT_TARGET := 30     # lifetime dice bought from the Dice Shop
+const EVENTS_COMPLETED_TARGET := 25  # lifetime narrative events completed
+
 # Display order for the pause menu's Achievements panel. "stat"+"target" = lifetime
 # counter tracked here; "run_counter"+"target" = per-run counter read from Global.
 const ACHIEVEMENTS: Array[Dictionary] = [
@@ -107,10 +118,66 @@ const ACHIEVEMENTS: Array[Dictionary] = [
 		"name": "Glass Cannon",
 		"desc": "Take 20 or more damage in a single hit and live to tell the tale.",
 	},
+	{
+		"id": "untouchable",
+		"name": "Untouchable",
+		"desc": "Win a battle without losing a single HP.",
+	},
+	{
+		"id": "full_cycle",
+		"name": "Full Cycle",
+		"desc": "Reshuffle 5 or more cards into your draw pile at once.",
+	},
+	{"id": "loaded", "name": "Loaded", "desc": "Hold 300 Gold at once."},
+	{
+		"id": "hoarder",
+		"name": "Hoarder",
+		"desc": "Own 8 Relics at the same time, in a single run.",
+	},
+	{
+		"id": "conqueror",
+		"name": "Conqueror",
+		"desc": "Defeat the Leviathan a second time and finish a full run.",
+	},
+	{
+		"id": "treasure_hunter",
+		"name": "Treasure Hunter",
+		"desc": "Open 15 treasure chests across your runs.",
+		"stat": "treasure_chests_opened",
+		"target": TREASURE_CHESTS_TARGET,
+	},
+	{
+		"id": "retail_therapy",
+		"name": "Retail Therapy",
+		"desc": "Buy 20 cards from shops across your runs.",
+		"stat": "cards_bought",
+		"target": SHOP_CARDS_TARGET,
+	},
+	{
+		"id": "dice_addict",
+		"name": "Dice Addict",
+		"desc": "Buy 30 Dice from the Dice Shop across your runs.",
+		"stat": "dice_bought_from_shop",
+		"target": DICE_BOUGHT_TARGET,
+	},
+	{
+		"id": "well_traveled",
+		"name": "Well Traveled",
+		"desc": "Complete 25 narrative events across your runs.",
+		"stat": "events_completed",
+		"target": EVENTS_COMPLETED_TARGET,
+	},
 ]
 
 var _unlocked := {}
-var _stats := {"power_refueled": 0, "power_generated": 0}
+var _stats := {
+	"power_refueled": 0,
+	"power_generated": 0,
+	"treasure_chests_opened": 0,
+	"cards_bought": 0,
+	"dice_bought_from_shop": 0,
+	"events_completed": 0,
+}
 # Stats change every roll, so they're flushed at quiet moments (turn end / battle end /
 # quit) instead of writing the cfg file on every increment. Unlocks flush immediately.
 var _dirty := false
@@ -134,6 +201,18 @@ var _evil_crack_streak := 0
 var _hot_streak := 0
 var _cold_streak := 0
 
+# Untouchable: reset on every real battle start, flipped by any HP loss, checked when
+# the battle-over screen is dismissed. player_hit (character_stats.gd) only fires on an
+# actual health decrease, so fully-blocked damage doesn't trip this - "hit" here means
+# "lost HP", not "was attacked".
+var _battle_hit_this_fight := false
+# The tutorial fight's own victory path (tutorial_director.gd::_on_victory_continue_pressed)
+# sets Global.tutorial_on = false BEFORE emitting battle_won, so unlock()'s usual tutorial
+# gate doesn't catch it here - and the scripted tutorial never lets the player take a real
+# hit, so every player would "earn" Untouchable for free on turn one. Snapshot tutorial_on
+# at battle start instead of trusting its value at battle_won time.
+var _battle_was_tutorial := false
+
 
 func _ready() -> void:
 	# ALWAYS: toasts keep animating (and can still pop) while the tree is paused by the
@@ -152,6 +231,15 @@ func _ready() -> void:
 	Events.player_turn_ended.connect(_flush_if_dirty)
 	Events.battle_won.connect(_flush_if_dirty)
 	Events.player_died.connect(_flush_if_dirty)
+
+	Events.battle_started.connect(_on_battle_started)
+	Events.player_hit.connect(_on_player_hit)
+	Events.battle_won.connect(_check_untouchable)
+	Events.deck_reshuffled.connect(_on_deck_reshuffled)
+	Events.gold_changed.connect(_check_gold_hoard)
+	Events.treasure_room_exited.connect(_on_treasure_room_exited)
+	Events.shop_card_bought.connect(_on_shop_card_bought)
+	Events.event_exited.connect(_on_event_exited)
 
 
 func _notification(what: int) -> void:
@@ -281,6 +369,51 @@ func report_enemy_hit(hp_before: int, damage_dealt: int) -> void:
 func report_player_hit(damage_taken: int, survived: bool) -> void:
 	if survived and damage_taken >= GLASS_CANNON_DAMAGE:
 		unlock("glass_cannon")
+
+
+# Called from relic_handler.gd::add_relic, the single choke point every relic the
+# player owns (top-bar row) passes through - counts however many are on the bar right now.
+func report_relic_count(count: int) -> void:
+	if count >= RELIC_HOARD_TARGET:
+		unlock("hoarder")
+
+
+# --- third-wave signal handlers ---
+
+func _on_battle_started() -> void:
+	_battle_hit_this_fight = false
+	_battle_was_tutorial = Global.tutorial_on
+
+
+func _on_player_hit() -> void:
+	_battle_hit_this_fight = true
+
+
+func _check_untouchable() -> void:
+	if not _battle_hit_this_fight and not _battle_was_tutorial:
+		unlock("untouchable")
+
+
+func _on_deck_reshuffled(card_count: int) -> void:
+	if card_count >= RESHUFFLE_MIN:
+		unlock("full_cycle")
+
+
+func _check_gold_hoard() -> void:
+	if Global.gold >= GOLD_HOARD_TARGET:
+		unlock("loaded")
+
+
+func _on_treasure_room_exited(_found_relic: Relic) -> void:
+	add_stat("treasure_chests_opened", 1)
+
+
+func _on_shop_card_bought(_card: Card, _gold_cost: int) -> void:
+	add_stat("cards_bought", 1)
+
+
+func _on_event_exited() -> void:
+	add_stat("events_completed", 1)
 
 
 # --- signal handlers ---

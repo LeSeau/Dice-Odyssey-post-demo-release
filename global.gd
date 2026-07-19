@@ -1,12 +1,38 @@
 extends Node
 
+# Custom cursor - thick/bulky hooked-arrow shape (deliberately not a literal die, to stay
+# distinct from both the OS cursor and other engines' dice-shaped ones) with a gold flat
+# fill and an emerald accent near the tail, matching the game's gold-trim UI language.
+# Idle and pressed textures were cropped from a SHARED bounding box (union of both
+# images' alpha bboxes, not each image's own) before resizing, specifically so the tip
+# lands at the same pixel in both - swapping textures on click can't jitter the hotspot.
+# Hotspot sits right at that tip (near the top-left of the cropped asset), not the visual
+# center of the icon.
+const CURSOR_TEXTURE := preload("res://assets/images/cursor_pointer.png")
+const CURSOR_TEXTURE_PRESSED := preload("res://assets/images/cursor_pointer_pressed.png")
+const CURSOR_HOTSPOT := Vector2(3, 1)
+
 
 # App-scoped player settings (volumes, fullscreen) - loaded once at startup and
 # applied to the audio buses/window here; the pause menu updates them live afterwards
 # through SettingsManager. Deliberately NOT part of reset_run_state()/the run save:
 # these belong to the player, not to a run.
 func _ready() -> void:
+    # ALWAYS: the pressed-state swap below (_input) must keep working even while the
+    # tree is paused (pause menu, map consult, battle-over panel all pause it) - same
+    # reasoning as AchievementManager's toast layer.
+    process_mode = Node.PROCESS_MODE_ALWAYS
     SettingsManager.load_and_apply()
+    Input.set_custom_mouse_cursor(CURSOR_TEXTURE, Input.CURSOR_ARROW, CURSOR_HOTSPOT)
+
+
+# Global left-click press/release swaps the whole cursor to a visually "active" variant -
+# read-only observation, never consumes the event, so it can't interfere with the actual
+# click going to whatever button/card/dice is under the mouse.
+func _input(event: InputEvent) -> void:
+    if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+        var texture := CURSOR_TEXTURE_PRESSED if event.pressed else CURSOR_TEXTURE
+        Input.set_custom_mouse_cursor(texture, Input.CURSOR_ARROW, CURSOR_HOTSPOT)
 
 
 var testing_mode: bool = false
