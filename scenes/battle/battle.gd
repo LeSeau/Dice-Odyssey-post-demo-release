@@ -4,18 +4,43 @@ extends Node2D
 var initialized= false
 const RUN_SCENE = preload("res://scenes/run/run.tscn")
 
-# --- Act 2 runtime scaling (placeholder) ----------------------------------
-# Act 2 recycles act-1 fights (run.gd draws them from higher act-1 pools); the
-# recycled enemies are scaled here at spawn time instead of duplicating ~40
-# .tres/.tscn files: an HP multiplier plus a flat starting Muscle grant per
-# enemy. Muscle feeds the DMG_DEALT modifier, which every enemy attack applies
-# to BOTH its real damage and its displayed intent (systemic fix of 2026-07-04),
-# so one status raises every hit honestly and visibly. Keyed by the act-LOCAL
-# tier (0-2 hallway by depth, 3 elite, 4 boss) that run.gd sets on `act_tier`.
-# Tune the whole act from these two tables.
-const ACT2_MUSCLE_STATUS := preload("res://statuses/muscle.tres")
+# --- Act 2 runtime reskin + scaling (placeholder) -------------------------
+# Act 2 recycles act-1 fights (run.gd draws them from higher act-1 pools); rather
+# than duplicating ~40 .tres/.tscn files, each recycled enemy is reskinned and
+# scaled here at spawn time: an HP multiplier, a flat damage bonus BAKED straight
+# into the DMG_DEALT modifier (no visible Strength icon, so it reads as a native
+# act-2 enemy rather than a buffed act-1 one), and an art+name swap so the roster
+# looks distinct from act 1. The AI/moves are unchanged (same enemy scripts) - only
+# the look, name, HP and flat damage differ. Keyed by the act-LOCAL tier (0-2
+# hallway by depth, 3 elite, 4 boss) that run.gd sets on `act_tier`. Tune from here.
 const ACT2_HP_MULT := {0: 1.55, 1: 1.3, 2: 1.75, 3: 1.75, 4: 1.6}
-const ACT2_MUSCLE_BASE := {0: 2, 1: 3, 2: 4, 3: 5, 4: 4}
+# Flat damage added to every attack (was the "starting Muscle" value - identical
+# numbers, now invisible). Per-FIGHT budget, not per-body (see _apply_act2_scaling).
+const ACT2_DAMAGE_BASE := {0: 2, 1: 3, 2: 4, 3: 5, 4: 4}
+# Act-1 design name (Enemy._display_name) -> new act-2 look. Loaded at RUNTIME (not
+# preload) so battle.gd still parses even if the textures haven't been imported yet;
+# a missing/unimported texture just skips the art swap (enemy keeps its act-1 look)
+# instead of blanking the sprite. Names are display-only (hover label) - the internal
+# enemy type/AI never changes, so nothing else in the game needs these.
+const ACT2_RESKIN := {
+    "Skeleton":        {"art": "res://assets/enemies_act2/act2_skeleton.png",     "name": "Gnawer"},
+    "Satyr":           {"art": "res://assets/enemies_act2/act2_satyr.png",        "name": "Screecher"},
+    "Kraken":          {"art": "res://assets/enemies_act2/act2_kraken.png",       "name": "Deepling"},
+    "Goblin":          {"art": "res://assets/enemies_act2/act2_goblin.png",       "name": "Bog Hag"},
+    "Venom Bloom":     {"art": "res://assets/enemies_act2/act2_plant.png",        "name": "Thornheart"},
+    "Lurker":          {"art": "res://assets/enemies_act2/act2_lurker.png",       "name": "Harlequin"},
+    "Marauder":        {"art": "res://assets/enemies_act2/act2_marauder.png",     "name": "Ravager"},
+    "Temple Defender": {"art": "res://assets/enemies_act2/act2_defender.png",     "name": "Warden"},
+    "Oculus":          {"art": "res://assets/enemies_act2/act2_oculus.png",       "name": "Onlooker"},
+    "Sigil Slug":      {"art": "res://assets/enemies_act2/act2_sigil.png",        "name": "Wisp"},
+    "Lava Hound":      {"art": "res://assets/enemies_act2/act2_hound.png",        "name": "Ember Fiend"},
+    "Medusa":          {"art": "res://assets/enemies_act2/act2_medusa.png",       "name": "Gorgon"},
+    "Maelstrom":       {"art": "res://assets/enemies_act2/act2_maelstrom.png",    "name": "Tempest"},
+    "Lich":            {"art": "res://assets/enemies_act2/act2_lich.png",         "name": "Necromancer"},
+    "Dragon Priest":   {"art": "res://assets/enemies_act2/act2_dragonpriest.png", "name": "Cinderlord"},
+    "Gargantua":       {"art": "res://assets/enemies_act2/act2_gargantua.png",    "name": "Devourer"},
+    "Leviathan":       {"art": "res://assets/enemies_act2/act2_leviathan.png",    "name": "The Dicelord"},
+}
 
 # Act-local tier set by run.gd at room entry; -1 (debug launches without run.gd)
 # falls back to the source battle's own tier label.
@@ -133,23 +158,57 @@ func _apply_act2_scaling() -> void:
     # setup_enemies() removes battle.tscn's editor-placed placeholder enemy (the
     # CrabEnemy under EnemyHandler) with queue_free(), which is DEFERRED - it's
     # still a child this frame, so it must be filtered out here or it inflates
-    # the body count below and eats one point of the Muscle budget (a solo act-2
-    # elite showed 4 stacks instead of 5 because of it).
+    # the body count below and eats one point of the damage budget (a solo act-2
+    # elite showed 4 instead of 5 because of it).
     var enemies := enemy_handler.get_children().filter(
         func(child): return child is Enemy and not child.is_queued_for_deletion()
     )
-    # The Muscle base is a per-FIGHT damage budget, not per-body: swarms already
-    # multiply their damage output by body count, so each extra body shrinks the
-    # per-enemy grant (solo gets the full base, a 4-pack gets base-3 each, min 1).
-    var muscle_per_enemy: int = maxi(1, int(ACT2_MUSCLE_BASE.get(tier, 0)) - (enemies.size() - 1))
+    # The damage base is a per-FIGHT budget, not per-body: swarms already multiply
+    # their damage output by body count, so each extra body shrinks the per-enemy
+    # bonus (solo gets the full base, a 4-pack gets base-3 each, min 1).
+    var bonus_damage: int = maxi(1, int(ACT2_DAMAGE_BASE.get(tier, 0)) - (enemies.size() - 1))
     for enemy in enemies:
         if enemy.stats == null:
             continue
         enemy.stats.max_health = roundi(enemy.stats.max_health * hp_mult)
         enemy.stats.health = enemy.stats.max_health
-        var muscle: Status = ACT2_MUSCLE_STATUS.duplicate()
-        muscle.stacks = muscle_per_enemy
-        enemy.status_handler.add_status(muscle)
+        _bake_bonus_damage(enemy, bonus_damage)
+        _reskin_enemy(enemy)
+
+
+# Adds the act-2 damage bonus as an invisible flat DMG_DEALT modifier value instead
+# of a Muscle status: same effect on every attack (real damage AND intent both read
+# get_modified_value(base, DMG_DEALT)) but no Strength icon. Its own source key keeps
+# it separate from an enemy's own Muscle (Goblin buff, Oculus/Parasite, Gargantua/
+# Greedy), so those still stack on top and are never overwritten by this.
+func _bake_bonus_damage(enemy: Enemy, amount: int) -> void:
+    if amount <= 0:
+        return
+    var dmg_mod: Modifier = enemy.modifier_handler.get_modifier(Modifier.Type.DMG_DEALT)
+    if dmg_mod == null:
+        return
+    var value := ModifierValue.create_new_modifier("act2_power", ModifierValue.Type.FLAT)
+    value.flat_value = amount
+    dmg_mod.add_new_value(value)
+
+
+# Swaps the enemy's art + hover name to its act-2 look (see ACT2_RESKIN). The AI/moves
+# are untouched - only the look and name change. update_enemy() re-renders the sprite
+# and re-fits it into the Enemy node's existing width/height box, so grounding is
+# best-effort (not per-fight tuned - Julien will polish act 2 properly later).
+func _reskin_enemy(enemy: Enemy) -> void:
+    var skin: Dictionary = ACT2_RESKIN.get(enemy._display_name, {})
+    if skin.is_empty():
+        return
+    var tex: Texture2D = load(skin["art"])
+    if tex == null:
+        return  # texture not imported yet - keep the act-1 art rather than blanking it
+    enemy.stats.art = tex
+    enemy._display_name = skin["name"]
+    # New art has its own proportions; the act-1 name-label centering no longer
+    # applies, so fall back to canvas-centered rather than a stale per-enemy value.
+    enemy.stats.content_center_x = 0.5
+    enemy.update_enemy()
 
 
 # Debug launches (act_tier still -1) and any unrecognized tier fall back to the
@@ -703,7 +762,14 @@ func _get_scout_glow_material() -> CanvasItemMaterial:
 # EndTurnButton, that's fine since it disappears on mouse exit anyway.
 const DRAW_PILE_TOOLTIP_POS := Vector2(43, 510)
 const DISCARD_PILE_TOOLTIP_POS := Vector2(1056, 510)
-const EXHAUST_PILE_TOOLTIP_POS := Vector2(1056, 382)
+# Exhaust pile sits top-right, just below the always-on-top Discord button (that button
+# lives in run.tscn's CanvasLayer layer=100, design rect x:[1210,1276] y:[83,124] - NOT in
+# battle.tscn, which is why earlier passes kept guessing wrong). Pile icon: x:[1164,1260]
+# y:[132,216]. Tooltip panel is 204x108 (tooltip.tscn) and show_tooltip() anchors its
+# TOP-LEFT corner, so it pops LEFT of the icon with a small gap (panel right edge ~10px
+# left of the icon's left edge) rather than right (would run off-screen) or below (would
+# land on the right-side enemy).
+const EXHAUST_PILE_TOOLTIP_POS := Vector2(950, 120)
 
 func _show_pile_tooltip(title: String, text: String, pos: Vector2) -> void:
     tooltip.visible = true

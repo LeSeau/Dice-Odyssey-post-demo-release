@@ -6,10 +6,10 @@
 [resource]
 script = ExtResource("1_ktbnd")
 id = "card_oracle"
-name = "Oracle"
+name = "Scout 3"
 type = 1
 target = 0
-description = "Exhaust: Scout 3"
+description = "Scout 3. Exhaust"
 rarity = 1
 red_only = false
 can_play_without_dice = true

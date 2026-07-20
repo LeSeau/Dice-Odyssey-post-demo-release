@@ -30,7 +30,6 @@ res://scenes/card_ui/card_requirement_none_celestial.tres
 res://scenes/card_ui/celestial_card_description_label.tres
 res://art/white_sprite_material.gdshader
 res://global/sound_player.gd
-res://statuses/muscle.tres
 res://scenes/dices/blue_dice_shader.tres
 res://scenes/card_ui/card_background.tres
 res://scenes/card_ui/card_banner.tres
@@ -96,6 +95,7 @@ res://characters/warrior/cards/card_occultism.tres
 res://characters/warrior/cards/blaze.tres
 res://characters/warrior/cards/geomancy.tres
 res://characters/warrior/cards/card_flurry.tres
+res://statuses/muscle.tres
 res://characters/warrior/cards/card_fortify.tres
 res://characters/warrior/cards/card_bolster.tres
 res://statuses/status_berserk.tres
@@ -221,3 +221,5 @@ res://scenes/dices/dice_interface.gdshader
 res://scenes/dices/ink.gdshader
 res://button_shine.gdshader
 res://scenes/events/event_deonassius.tscn
+res://scenes/run/run.tscn
+res://scenes/map/map.tscn

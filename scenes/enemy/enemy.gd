@@ -130,6 +130,60 @@ func update_action() -> void:
 const MAX_ENEMY_WIDTH := 256.0
 const MAX_ENEMY_HEIGHT := 256.0
 
+# Keep the status-icon row clear of the End Turn button (BattleUI, bottom-right:
+# x 1060..1254 in the 1280x720 design space). The row is an HBox that grows
+# rightward from its start x, so the START is clamped to leave ~2-3 icons of slack
+# before the button's left edge. Calibrated from real placements (probe_feet):
+# Oculus starts at gx 1017 (the one that overlapped End Turn) and gets pulled in;
+# Gargantua at 951 is comfortably clear and must NOT move (a 910 threshold wrongly
+# yanked its status 41px left). Screen-space constant, not a live BattleUI lookup:
+# the battle camera is identity (centered on the 1280x720 design rect) and enemy.gd
+# has no clean handle into the BattleUI CanvasLayer. The Y guard keeps a
+# hypothetical high-placed enemy's status from being nudged for no reason.
+const STATUS_ROW_MAX_GLOBAL_X := 970.0
+const STATUS_ROW_CLAMP_MIN_GLOBAL_Y := 500.0
+
+# Alpha-bbox of each enemy texture's actual content, cached per texture path -
+# feet-anchoring (below) needs it once per texture, and get_image() on an
+# imported texture decompresses (cheap enough once, wasteful per battle).
+static var _content_rect_cache := {}
+# Shared soft radial gradient used by every enemy's ground shadow.
+static var _shadow_texture: GradientTexture2D
+
+var _ground_shadow: Sprite2D
+
+
+static func _get_shadow_texture() -> GradientTexture2D:
+    if _shadow_texture == null:
+        var gradient := Gradient.new()
+        gradient.colors = PackedColorArray([
+            Color(0, 0, 0, 0.55), Color(0, 0, 0, 0.32), Color(0, 0, 0, 0.0)
+        ])
+        gradient.offsets = PackedFloat32Array([0.0, 0.55, 1.0])
+        _shadow_texture = GradientTexture2D.new()
+        _shadow_texture.gradient = gradient
+        _shadow_texture.width = 256
+        _shadow_texture.height = 256
+        _shadow_texture.fill = GradientTexture2D.FILL_RADIAL
+        _shadow_texture.fill_from = Vector2(0.5, 0.5)
+        _shadow_texture.fill_to = Vector2(0.5, 0.0)
+    return _shadow_texture
+
+
+static func _get_content_rect(tex: Texture2D) -> Rect2:
+    var key := tex.resource_path if tex.resource_path != "" else str(tex.get_instance_id())
+    if _content_rect_cache.has(key):
+        return _content_rect_cache[key]
+    var rect := Rect2(Vector2.ZERO, tex.get_size())
+    var img := tex.get_image()
+    if img != null:
+        var used := img.get_used_rect()
+        if used.size.x > 0 and used.size.y > 0:
+            rect = Rect2(used)
+    _content_rect_cache[key] = rect
+    return rect
+
+
 func update_enemy() -> void:
     if not stats is Stats:
         return
@@ -150,18 +204,37 @@ func update_enemy() -> void:
         var height_scale = target_height / tex_size.y
         var final_scale = min(width_scale, height_scale)
         sprite_2d.scale = Vector2(final_scale, final_scale)
-        
+
         var sprite_display_height = tex_size.y * final_scale
-        # sprite_2d.position.y is set to sprite_y_offset below - the whole UI stack
-        # (intent/HP bar/name/statuses) has to shift by that same amount, or it stays
-        # anchored to where the sprite WOULD be at offset 0 while the art itself moves
-        # down (most battle files use +10/+20 here). That mismatch is why a Satyr's own
-        # legs could hang past its HP bar - the bar was placed too high for where the
-        # sprite actually got drawn.
-        intent_ui.position.y = -sprite_display_height / 2 - 30 - intent_ui_y_offset + sprite_y_offset
-        stats_ui.position.y = (tex_size.y * final_scale / 2) + stats_ui_y_offset + sprite_y_offset
+
+        # --- Feet-anchoring (2026-07-19, re-fixed 2026-07-20) --------------------
+        # Put the art's CONTENT bottom (alpha bbox) on the BOX bottom - the ground line
+        # the level designer tuned position.y against (they placed enemies assuming the
+        # sprite fills its box). For a padding-free texture this is a no-op (content
+        # bottom already = box bottom); for one with bottom padding it pushes the sprite
+        # down so the *visible* feet reach the ground instead of floating above it.
+        # feet_line_y is the single source of truth for "where the feet are" - the sprite,
+        # the HP bar, the status row and the shadow all derive from it below.
+        var content := _get_content_rect(sprite_2d.texture)
+        var content_bottom_from_center: float = (content.end.y - tex_size.y / 2.0) * final_scale
+        var feet_line_y: float = sprite_y_offset + sprite_display_height / 2.0
+        sprite_2d.position.y = feet_line_y - content_bottom_from_center
+
+        # --- HP bar / status / name hang from the VISIBLE FEET, never above them ------
+        # THIS is the fix for the endless "sprite overlaps its own HP bar" saga. The bar
+        # used to be computed from the box + per-fight stats_ui_y_offset, and a NEGATIVE
+        # offset (Marauder -24, Vortex -10, Lurker+Crab -8) yanked it UP into the body.
+        # Now the bar sits AT the feet line; the offsets survive only as DOWNWARD nudges
+        # (maxf(.,0)) so the bar can never ride up into the sprite no matter what any
+        # present-or-future per-fight tuning says. Enemies with a 0 offset are unchanged.
+        stats_ui.position.y = feet_line_y + maxf(stats_ui_y_offset, 0.0)
+        status_handler.position.y = stats_ui.position.y + stats_ui.size.y - 8.0 + maxf(status_handler_y_offset, 0.0)
         _name_label_local_y = stats_ui.position.y + stats_ui.size.y + 4
-        status_handler.position.y = (tex_size.y * final_scale / 2) + stats_ui.size.y + status_handler_y_offset - 8 + sprite_y_offset
+
+        # Intent floats above the head (box-based; unchanged - it clears the head fine and
+        # its per-fight intent_ui_y_offset tuning is still honored).
+        intent_ui.position.y = -sprite_display_height / 2 - 30 - intent_ui_y_offset + sprite_y_offset
+
         # sprite_2d.position.x is a fixed baseline baked into enemy.tscn's template (124,
         # never reassigned by code, same value NAME_LABEL_SPRITE_CENTER_X was hand-copied
         # from) - has to be added back in, not replaced, or the label loses that baseline
@@ -169,13 +242,39 @@ func update_enemy() -> void:
         _name_label_local_x = sprite_2d.position.x
         if stats.content_center_x >= 0.0:
             _name_label_local_x += (stats.content_center_x - 0.5) * tex_size.x * final_scale
-    sprite_2d.position.y = sprite_y_offset
 
-    # Multi-enemy battle scenes (e.g. battles/tier_1_oculus_goblin.tscn) set `scale`
-    # directly on the Enemy root to fit several enemies on screen. StatusHandler is a
-    # plain child of that root, so it inherited the shrink too - status icons ended up
-    # smaller in any multi-enemy fight regardless of enemy size. Counter-scale it so
-    # icon size stays constant no matter what the root's own scale is.
+        # --- Ground shadow (2026-07-19) ------------------------------------------
+        # Soft ellipse at the feet line, STS-style: sells grounding even for art drawn
+        # in a mid-leap/diagonal pose (Lava Hound) that no offset can fix, and makes
+        # deliberate floaters read as "hovering above their shadow" instead of just
+        # misplaced. Child of the Enemy root, NOT SpriteRoot - the idle bob animates
+        # SpriteRoot, and the shadow must stay put while the body bobs.
+        if _ground_shadow == null:
+            _ground_shadow = Sprite2D.new()
+            _ground_shadow.texture = _get_shadow_texture()
+            add_child(_ground_shadow)
+            move_child(_ground_shadow, 0)  # draw behind SpriteRoot
+        var content_center_x_local: float = sprite_2d.position.x \
+            + (content.get_center().x - tex_size.x / 2.0) * final_scale
+        var shadow_width: float = content.size.x * final_scale * 0.82
+        # Just below the feet (feet at feet_line_y), so it peeks out around them.
+        _ground_shadow.position = Vector2(content_center_x_local, feet_line_y + 5.0)
+        _ground_shadow.scale = Vector2(shadow_width / 256.0, shadow_width * 0.24 / 256.0)
+    else:
+        sprite_2d.position.y = sprite_y_offset
+
+    # Clamp the status row's start so its icons can't run into the End Turn button
+    # (right-edge enemies: Oculus in tier_1_oculus_goblin had its status icons sitting on
+    # the button). Only for statuses low enough to reach the button band.
+    if scale.x != 0:
+        var status_global_x: float = global_position.x + status_handler.position.x * scale.x
+        var status_global_y: float = global_position.y + status_handler.position.y * scale.y
+        if status_global_x > STATUS_ROW_MAX_GLOBAL_X and status_global_y > STATUS_ROW_CLAMP_MIN_GLOBAL_Y:
+            status_handler.position.x = (STATUS_ROW_MAX_GLOBAL_X - global_position.x) / scale.x
+
+    # Multi-enemy battle scenes set `scale` on the Enemy root to fit several bodies. The
+    # StatusHandler inherits that shrink; counter-scale it so status icons stay a constant
+    # size no matter the enemy's own scale.
     if scale.x != 0 and scale.y != 0:
         status_handler.scale = Vector2(1.0 / scale.x, 1.0 / scale.y)
     arrow.position = Vector2.RIGHT * (sprite_2d.get_rect().size.x * sprite_2d.scale.x / 2 + ARROW_OFFSET)
@@ -185,7 +284,7 @@ func update_enemy() -> void:
     update_stats()
 
 func update_intent() -> void:
-    if current_action: 
+    if current_action:
         current_action.update_intent_text()
         intent_ui.update_intent(current_action.intent)
 
@@ -279,12 +378,22 @@ func _on_area_exited(_area: Area2D) -> void:
 
 func _on_mouse_entered() -> void:
     name_label.text = _display_name
-    # NameLabel's own rect is unscaled screen pixels inside its CanvasLayer (see
-    # update_enemy()) - recomputed here rather than cached, so it's always correct even
-    # if the enemy shifted (e.g. mid hit-reaction knockback) since update_enemy() last ran.
-    var world_center_x = global_position.x + _name_label_local_x * scale.x
-    var world_y = global_position.y + _name_label_local_y * scale.y
-    name_label_layer.offset = Vector2(world_center_x - NAME_LABEL_WIDTH / 2.0, world_y)
+    # Center the label on the visible red HealthBar's actual on-screen center - that bar
+    # is the anchor the player reads "centered" against, and it sidesteps per-art
+    # content-centering guesswork entirely (a swapped act-2 sprite lines up as well as a
+    # hand-tuned act-1 one). NOTE: StatsUI is an HBoxContainer, so its own rect center is
+    # NOT the bar center (the bar is one child among Block/Health/Margin) - we must read
+    # the HealthBar node itself. The label lives in a CanvasLayer (screen space), so the
+    # bar's canvas-space center is pushed through the viewport's canvas transform first;
+    # the old code used raw canvas coords as screen offsets AND the sprite center rather
+    # than the bar, which drifted the name off-center. Recomputed each hover so it stays
+    # correct even if the enemy shifted (e.g. mid hit-reaction knockback).
+    var health_bar := stats_ui.get_node_or_null("Health/HealthBar") as Control
+    var bar_center_x: float = health_bar.get_global_rect().get_center().x if health_bar \
+        else stats_ui.get_global_rect().get_center().x
+    var world_y := global_position.y + _name_label_local_y * scale.y
+    var screen: Vector2 = get_viewport().get_canvas_transform() * Vector2(bar_center_x, world_y)
+    name_label_layer.offset = Vector2(screen.x - NAME_LABEL_WIDTH / 2.0, screen.y)
     name_label.show()
 
 

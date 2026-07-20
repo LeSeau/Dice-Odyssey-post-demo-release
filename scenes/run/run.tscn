@@ -26,7 +26,7 @@
 [ext_resource type="Texture2D" uid="uid://b1my7ua56jx7t" path="res://tutorial_arrow.png" id="33_ys7td"]
 [ext_resource type="PackedScene" path="res://scenes/ui/act_banner.tscn" id="34_actbn"]
 [ext_resource type="Texture2D" uid="uid://nowr3vqyi4ax" path="res://assets/images/map_button_icon.png" id="50_mapicon"]
-[ext_resource type="Texture2D" path="res://assets/images/pause_menu_icon.png" id="51_pauseicon"]
+[ext_resource type="Texture2D" uid="uid://bbhk8pdh4refe" path="res://assets/images/pause_menu_icon.png" id="51_pauseicon"]
 [ext_resource type="PackedScene" uid="uid://c2mvqx4n1p0a1" path="res://scenes/ui/pause_menu.tscn" id="52_pausemenu"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_topbar_bg"]

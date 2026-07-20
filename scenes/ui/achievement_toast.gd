@@ -9,7 +9,7 @@ extends Control
 signal finished
 
 const CANVAS := Vector2(1280, 720)
-const TOAST_SIZE := Vector2(354, 92)
+const TOAST_SIZE := Vector2(354, 110)
 const MARGIN := Vector2(18, 16)
 const SLIDE_IN_TIME := 0.45
 const HOLD_TIME := 3.8
@@ -69,7 +69,10 @@ func _ready() -> void:
 		"ACHIEVEMENT UNLOCKED", TITLE_FONT, 11, GOLD, Vector2(86, 12), Vector2(252, 16)))
 	panel.add_child(_make_label(
 		_name_text, BODY_FONT, 20, CREAM, Vector2(86, 30), Vector2(252, 26)))
-	var desc := _make_label(_desc_text, BODY_FONT, 13, DIM, Vector2(86, 56), Vector2(252, 32))
+	# Box tall/wide enough for the longest descriptions to wrap to 3 lines without
+	# spilling out of the panel (e.g. Glass Cannon's "Take 20 or more damage in a single
+	# hit and live to tell the tale."). Font nudged 13->12 for a bit more margin.
+	var desc := _make_label(_desc_text, BODY_FONT, 12, DIM, Vector2(86, 52), Vector2(258, 50))
 	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	panel.add_child(desc)
 

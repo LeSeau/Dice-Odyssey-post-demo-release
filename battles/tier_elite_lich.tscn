@@ -6,7 +6,7 @@
 [node name="TierEliteLich" type="Node2D"]
 
 [node name="Enemy" parent="." instance=ExtResource("1_47act")]
-position = Vector2(860, 396)
+position = Vector2(860, 376)
 stats = ExtResource("2_6s1fn")
 height = 292
 sprite_y_offset = 10

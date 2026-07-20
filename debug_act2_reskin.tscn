@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://c2act2reskinvrfy"]
+
+[ext_resource type="Script" path="res://debug_act2_reskin.gd" id="1_a2rsk"]
+
+[node name="DebugAct2Reskin" type="Node"]
+script = ExtResource("1_a2rsk")

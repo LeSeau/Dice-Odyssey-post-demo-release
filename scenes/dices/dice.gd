@@ -83,6 +83,12 @@ var _mech_decrease_tween: Tween
 # rather than whatever mid-flash brightened value modulate happens to hold.
 var _power_clang_scale_tween: Tween
 var _power_clang_flash_tween: Tween
+# Roll/orb-arrival flashes tween current_power.modulate back to a SNAPSHOT of the
+# color taken when they started. If the active dice type switches mid-flash (playing a
+# red card then hopping to blue before the 0.2s flash finishes), that snapshot is the
+# OLD dice color and the flash restores it on top of the new type's color - the power
+# number "stays red". Tracked here so the dice switch can kill it. See _on_active_dice_changed.
+var _power_color_flash_tween: Tween
 var _power_clang_rattle_tween: Tween
 var _power_resting_modulate := Color.WHITE
 # Last power value shown on screen (kept current by _set_power_text). The clang only fires
@@ -964,9 +970,11 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
     power_tween.tween_property(current_power, "scale", Vector2(power_rest_scale, power_rest_scale), 0.14).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
 
     var base_power_color = current_power.modulate
-    var flash_tween = create_tween()
-    flash_tween.tween_property(current_power, "modulate", base_power_color.lightened(0.6), 0.05)
-    flash_tween.tween_property(current_power, "modulate", base_power_color, 0.18)
+    if _power_color_flash_tween and _power_color_flash_tween.is_valid():
+        _power_color_flash_tween.kill()
+    _power_color_flash_tween = create_tween()
+    _power_color_flash_tween.tween_property(current_power, "modulate", base_power_color.lightened(0.6), 0.05)
+    _power_color_flash_tween.tween_property(current_power, "modulate", base_power_color, 0.18)
 
     # Magma dice special effect
     if dice_type == "magma":
@@ -1134,9 +1142,11 @@ func _play_power_orb_arrival_reaction(type: String) -> void:
         .set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
 
     var base_color := current_power.modulate
-    var flash_tween := create_tween()
-    flash_tween.tween_property(current_power, "modulate", DicePalette.accent(type).lightened(0.35), 0.05)
-    flash_tween.tween_property(current_power, "modulate", base_color, 0.15)
+    if _power_color_flash_tween and _power_color_flash_tween.is_valid():
+        _power_color_flash_tween.kill()
+    _power_color_flash_tween = create_tween()
+    _power_color_flash_tween.tween_property(current_power, "modulate", DicePalette.accent(type).lightened(0.35), 0.05)
+    _power_color_flash_tween.tween_property(current_power, "modulate", base_color, 0.15)
 
 
 func _on_active_dice_changed(new_dice_type):
@@ -1149,6 +1159,13 @@ func _on_active_dice_changed(new_dice_type):
     Global.next_guaranteed_roll = -1
     next_roll_panel.hide()
     Events.hover_playable_cards.emit()
+    # Kill any in-flight power-color flashes first: they'd otherwise finish by restoring the
+    # PREVIOUS dice type's color on top of the new one update_dice_display() is about to set
+    # (the "power stays red after switching to blue" bug when playing fast).
+    if _power_color_flash_tween and _power_color_flash_tween.is_valid():
+        _power_color_flash_tween.kill()
+    if _power_clang_flash_tween and _power_clang_flash_tween.is_valid():
+        _power_clang_flash_tween.kill()
     update_dice_display()
 
     # Small landing pop when the new die takes the socket - the swap was previously an
