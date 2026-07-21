@@ -2,6 +2,8 @@ extends Card
 
 # Dice Avalanche+ : identical to base (throw one Dice of each type you own, each deals its
 # roll) but does NOT Exhaust. Own script only so the dynamic description drops "Exhaust".
+# "Own" = permanent (max_amount) OR currently-held-temporarily (current_amount) - see
+# dice_avalanche.gd for the full rationale (Julien, 2026-07-21 Occultism/Charge bug).
 
 
 func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
@@ -13,7 +15,8 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     var throws: Array = []
     var i := 0
     for dice_type in DICE_FACE_VALUES:
-        if int(Global.get("%s_dice_max_amount" % dice_type)) <= 0:
+        if int(Global.get("%s_dice_max_amount" % dice_type)) <= 0 \
+                and int(Global.get("%s_dice_current_amount" % dice_type)) <= 0:
             continue
         var faces: Array = DICE_FACE_VALUES[dice_type]
         var value: int = faces[randi() % faces.size()]
@@ -28,7 +31,8 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
 func _owned_type_count() -> int:
     var count := 0
     for dice_type in DICE_FACE_VALUES:
-        if int(Global.get("%s_dice_max_amount" % dice_type)) > 0:
+        if int(Global.get("%s_dice_max_amount" % dice_type)) > 0 \
+                or int(Global.get("%s_dice_current_amount" % dice_type)) > 0:
             count += 1
     return count
 

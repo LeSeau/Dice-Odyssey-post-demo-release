@@ -1,7 +1,11 @@
 extends Card
 
-# Celestial rare: conjures one die of every type you OWN (max_amount > 0 - your pool is
-# untouched, unlike All In) and hurls them all at the target, each dealing its own roll.
+# Celestial rare: conjures one die of every type you OWN and hurls them all at the target,
+# each dealing its own roll - your real pool is untouched, unlike All In. "Own" means either
+# a permanent type (max_amount > 0, from the shop) OR a type you currently have at least one
+# of temporarily (current_amount > 0, from Charge/Occultism/relics/etc.) - checking max_amount
+# alone missed a Giant Dice granted purely via Charge on a run that never bought one (Julien,
+# 2026-07-21: Occultism into Dice Avalanche skipped the Giant Dice it had just charged).
 # SUPPORT flag: never resets your Power. Exhausts.
 
 
@@ -14,7 +18,8 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     var throws: Array = []
     var i := 0
     for dice_type in DICE_FACE_VALUES:
-        if int(Global.get("%s_dice_max_amount" % dice_type)) <= 0:
+        if int(Global.get("%s_dice_max_amount" % dice_type)) <= 0 \
+                and int(Global.get("%s_dice_current_amount" % dice_type)) <= 0:
             continue
         var faces: Array = DICE_FACE_VALUES[dice_type]
         var value: int = faces[randi() % faces.size()]
@@ -31,7 +36,8 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
 func _owned_type_count() -> int:
     var count := 0
     for dice_type in DICE_FACE_VALUES:
-        if int(Global.get("%s_dice_max_amount" % dice_type)) > 0:
+        if int(Global.get("%s_dice_max_amount" % dice_type)) > 0 \
+                or int(Global.get("%s_dice_current_amount" % dice_type)) > 0:
             count += 1
     return count
 
