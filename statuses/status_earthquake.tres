@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="EarthquakeStatus" load_steps=3 format=3 uid="uid://dq4ker7h3quak"]
+
+[ext_resource type="Texture2D" path="res://status_earthquake_icon.png" id="1_icon"]
+[ext_resource type="Script" path="res://statuses/status_earthquake.gd" id="2_script"]
+
+[resource]
+script = ExtResource("2_script")
+id = "earthquake"
+type = 0
+stack_type = 1
+can_expire = true
+duration = 1
+stacks = 0
+icon = ExtResource("1_icon")
+tooltip = "At the start of your next turn, deal this much damage to all enemies"

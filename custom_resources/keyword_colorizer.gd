@@ -21,8 +21,8 @@ const KEYWORD_HIGHLIGHT_COLOR := "FFD700"
 # system already reads in tooltip.gd::get_tooltip_content(), so tagging a card/relic for
 # tooltip purposes also makes it eligible for colorized keywords, with no separate bookkeeping.
 const KEYWORDS: Array[String] = [
-    "Charge", "Refuel", "Scout", "Boost", "Infused", "Weak", "Exposed", "Lucky", "Unlucky",
-    "Depleted", "Energized", "Strength", "Muscle", "Exhaust", "Support", "REST",
+    "Charge", "Refuel", "Scout", "Boost", "Throw", "Infused", "Weak", "Exposed", "Lucky",
+    "Unlucky", "Depleted", "Energized", "Strength", "Muscle", "Exhaust", "Support", "REST",
     "Blue Dice", "Red Dice", "Pixie Dice", "Odd Dice", "Even Dice", "Evil Dice",
     "Giant Dice", "Magma Dice", "Mech Dice",
 ]

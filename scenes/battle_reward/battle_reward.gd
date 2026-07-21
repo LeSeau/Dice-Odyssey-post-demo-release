@@ -45,6 +45,10 @@ var warning_dismissed := false
 @onready var rewards: VBoxContainer = %Rewards
 @onready var reward_panel: VBoxContainer = $VBoxContainer
 @onready var background: TextureRect = $Background
+@onready var background_dimmer: ColorRect = $BackgroundDimmer
+@onready var title_label: Label = $VBoxContainer/Label
+@onready var reward_container: PanelContainer = $VBoxContainer/RewardContainer
+@onready var back_button: Button = $VBoxContainer/BackButton
 @onready var audio_player: AudioStreamPlayer2D = $AudioStreamPlayer2D
 
 @onready var warning_panel: Panel = $WarningPanel
@@ -91,17 +95,71 @@ func _ready() -> void:
     else:
         gg_panel.hide()
 
-    _play_panel_entrance()
+    _play_entrance_sequence()
 
-const PANEL_FADE_DURATION := 0.6
+const BACKDROP_FADE_DURATION := 0.3
+const FRAME_FADE_DELAY := 0.16
+const FRAME_FADE_DURATION := 0.42
+const REWARD_ENTRANCE_BASE_DELAY := 0.4
+const REWARD_ENTRANCE_STAGGER := 0.14
+const REWARD_ENTRANCE_DURATION := 0.4
+const REWARD_ENTRANCE_START_SCALE := 0.94
 
-# Simple fade-in, Slay the Spire style - no movement/bounce, the reward panel just
-# settles into view via a plain alpha fade. Replaces an earlier "rises up like a
-# trophy" version that read as too much once actually played.
-func _play_panel_entrance() -> void:
-    reward_panel.modulate.a = 0.0
-    var tween := create_tween()
-    tween.tween_property(reward_panel, "modulate:a", 1.0, PANEL_FADE_DURATION).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+# Counts reward buttons as they're registered (add_gold_reward/add_card_reward/
+# add_relic_reward, called by run.gd right after this scene is created) so each one
+# gets its own stagger slot in the entrance below.
+var _reward_entrance_index := 0
+
+# Three-beat reveal instead of the old single flat fade on the whole panel: backdrop
+# settles in first, then the frame (title/box/back button), then each reward button
+# pops in on its own with a short stagger. Reads as "the rewards are being revealed"
+# rather than "a panel appeared". Kept to alpha + a subtle scale, no rise/bounce -
+# Julien already called an earlier "rises up like a trophy" version too much once
+# actually played.
+func _play_entrance_sequence() -> void:
+    reward_panel.modulate.a = 1.0
+    _reward_entrance_index = 0
+
+    background.modulate.a = 0.0
+    background_dimmer.modulate.a = 0.0
+    var backdrop_tween := create_tween()
+    backdrop_tween.tween_property(background, "modulate:a", 1.0, BACKDROP_FADE_DURATION).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+    backdrop_tween.parallel().tween_property(background_dimmer, "modulate:a", 1.0, BACKDROP_FADE_DURATION).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+    title_label.modulate.a = 0.0
+    reward_container.modulate.a = 0.0
+    back_button.modulate.a = 0.0
+    var frame_tween := create_tween()
+    frame_tween.tween_interval(FRAME_FADE_DELAY)
+    frame_tween.tween_property(title_label, "modulate:a", 1.0, FRAME_FADE_DURATION).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+    frame_tween.parallel().tween_property(reward_container, "modulate:a", 1.0, FRAME_FADE_DURATION).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+    frame_tween.parallel().tween_property(back_button, "modulate:a", 1.0, FRAME_FADE_DURATION).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+# Queues an individual reveal for a reward button. Called right after each
+# add_*_reward() queues its rewards.add_child.call_deferred(...) - deferring the
+# animation start too (in that same order) guarantees the button already exists in
+# the tree by the time this runs.
+func _register_reward_entrance(button: Control) -> void:
+    var index := _reward_entrance_index
+    _reward_entrance_index += 1
+    _animate_reward_entrance.call_deferred(button, index)
+
+func _animate_reward_entrance(button: Control, index: int) -> void:
+    if not is_instance_valid(button):
+        return
+    button.modulate.a = 0.0
+    button.scale = Vector2(REWARD_ENTRANCE_START_SCALE, REWARD_ENTRANCE_START_SCALE)
+    # One more frame so the VBoxContainer has actually sorted/sized this button -
+    # otherwise button.size can still be last frame's (or zero), throwing off the
+    # center pivot below. Invisible either way since alpha is already 0.
+    await get_tree().process_frame
+    if not is_instance_valid(button):
+        return
+    button.pivot_offset = button.size / 2.0
+    var tween := button.create_tween()
+    tween.tween_interval(REWARD_ENTRANCE_BASE_DELAY + index * REWARD_ENTRANCE_STAGGER)
+    tween.tween_property(button, "modulate:a", 1.0, REWARD_ENTRANCE_DURATION).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+    tween.parallel().tween_property(button, "scale", Vector2.ONE, REWARD_ENTRANCE_DURATION).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
 func add_gold_reward(amount: int) -> void:
     var gold_reward := REWARD_BUTTON.instantiate() as RewardButton
@@ -110,6 +168,7 @@ func add_gold_reward(amount: int) -> void:
     gold_reward.reward_text = GOLD_TEXT % amount
     gold_reward.pressed.connect(on_gold_reward_taken.bind(amount))
     rewards.add_child.call_deferred(gold_reward)
+    _register_reward_entrance(gold_reward)
 
 func add_card_reward() -> void:
     var card_reward := REWARD_BUTTON.instantiate() as RewardButton
@@ -118,6 +177,7 @@ func add_card_reward() -> void:
     card_reward.reward_text = CARD_TEXT
     card_reward.pressed.connect(_show_card_rewards)
     rewards.add_child.call_deferred(card_reward)
+    _register_reward_entrance(card_reward)
 
 func add_relic_reward(relic: Relic) -> void:
     var relic_reward := REWARD_BUTTON.instantiate() as RewardButton
@@ -130,6 +190,7 @@ func add_relic_reward(relic: Relic) -> void:
 
     relic_reward.pressed.connect(_on_relic_reward_taken.bind(relic))
     rewards.add_child.call_deferred(relic_reward)
+    _register_reward_entrance(relic_reward)
 
 
 # Tooltips live under get_tree().root, not this node - free them explicitly whenever this

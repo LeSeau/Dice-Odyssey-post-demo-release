@@ -217,4 +217,43 @@ func play(targets: Array[Node], char_stats: CharacterStats, modifiers: ModifierH
 
 func apply_effects(_targets: Array[Node], modifiers: ModifierHandler) -> void:
     pass
-    
+
+
+# Face-value pools per dice type, shared by the thrown-dice cards (Meteor, Fastball, Cursed
+# Toss, Pixie Volley, Dice Avalanche...). Same table as all_in.gd::DISPLAY_FACE_VALUES - the
+# rolled value both drives the damage AND picks the face texture in the flight visual
+# (dice.gd::_spawn_thrown_dice), so what the player sees land is exactly what hits.
+const DICE_FACE_VALUES := {
+    "blue": [1, 2, 3, 4, 5, 6], "red": [1, 2, 3, 4, 5, 6],
+    "magma": [1, 2, 3, 4, 5, 6], "mech": [1, 2, 3, 4, 5, 6],
+    "giant": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+    "evil": [0, 6, 6, 6],
+    "even": [2, 4, 6, 8],
+    "odd": [1, 3, 5, 7],
+    "green": [1, 2, 3],
+}
+
+
+# Lands a thrown die's damage when its flight visual arrives (schedule with
+# Global.DICE_THROW_FLIGHT_TIME to match the Events.dice_thrown animation). Deliberately
+# raw damage - the die deals ITS roll, not a Strength-modified hit (the target's own
+# DMG_TAKEN modifiers like Exposed still apply inside take_damage). If the target died
+# mid-flight the die bounces to a random living enemy; if the fight is over, it lands on
+# nothing.
+func _land_thrown_die(tree: SceneTree, target: Node, damage: int, delay: float, hit_sound: AudioStream) -> void:
+    var timer := tree.create_timer(delay, false)
+    timer.timeout.connect(_on_thrown_die_landed.bind(tree, target, damage, hit_sound))
+
+
+func _on_thrown_die_landed(tree: SceneTree, target: Node, damage: int, hit_sound: AudioStream) -> void:
+    var final_target := target
+    if final_target == null or not is_instance_valid(final_target):
+        var alive := tree.get_nodes_in_group("enemies")
+        if alive.is_empty():
+            return
+        final_target = alive[randi() % alive.size()]
+    var die_hit := DamageEffect.new()
+    die_hit.amount = damage
+    die_hit.sound = hit_sound
+    die_hit.execute([final_target])
+

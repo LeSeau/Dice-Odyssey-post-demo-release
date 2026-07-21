@@ -24,6 +24,15 @@ signal refuel_happened(amount)
 # Flywheel - All In destroys dice, the opposite, so it needs its own signal rather than
 # piggybacking on that one).
 signal all_in_dice_consumed(consumed: Array, target_position: Vector2)
+# Thrown-dice cards (Meteor, Fastball, Cursed Toss, Pixie Volley, Dice Avalanche): visual-only
+# request to fly dice from `origin` to their targets, rolling in the air and landing on each
+# throw's final face. Each entry: {"type": String, "value": int, "target": Node}. The DAMAGE is
+# scheduled separately by the card via Card._land_thrown_die() using the same
+# Global.DICE_THROW_FLIGHT_TIME/_STAGGER constants, so the hit lands as the die arrives.
+signal dice_thrown(throws: Array, origin: Vector2)
+# Double or Nothing: visual-only coin toss from `origin`. The card resolves the outcome after
+# Global.COIN_FLIP_TIME on its own timer; this just animates the flip + reveal.
+signal coin_flip(heads: bool, origin: Vector2)
 # Emitted by player_handler.reshuffle_deck_from_discard() only when cards ACTUALLY moved
 # (never at battle start, where the draw pile is built full and the guard returns early).
 # Purely visual for now: battle_ui.gd flies mini card-backs from the discard pile button to

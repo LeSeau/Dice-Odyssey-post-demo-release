@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CoiledSpringStatus" load_steps=3 format=3 uid="uid://bcoil5pr1ngzt"]
+
+[ext_resource type="Texture2D" path="res://status_coiled_spring_icon.png" id="1_icon"]
+[ext_resource type="Script" path="res://statuses/status_coiled_spring.gd" id="2_script"]
+
+[resource]
+script = ExtResource("2_script")
+id = "coiled_spring"
+type = 2
+stack_type = 0
+can_expire = true
+duration = 1
+stacks = 1
+icon = ExtResource("1_icon")
+tooltip = "Next turn, your first Dice roll counts triple towards your Power"

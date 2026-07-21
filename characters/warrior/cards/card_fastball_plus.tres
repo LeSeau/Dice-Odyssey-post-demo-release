@@ -1,0 +1,28 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://cfastb4llplus"]
+
+[ext_resource type="Texture2D" uid="uid://d3ea06dvejqj" path="res://javelin.png" id="1_icon"]
+[ext_resource type="Script" path="res://characters/warrior/cards/fastball_plus.gd" id="2_script"]
+[ext_resource type="AudioStream" uid="uid://cvjv56ti6hkis" path="res://impact1.ogg" id="3_sound"]
+
+[resource]
+script = ExtResource("2_script")
+id = "card_fastball_plus"
+name = "Fastball+"
+type = 0
+target = 1
+description = "Spend 1 of your active Dice: it deals triple its roll"
+rarity = 1
+rarity_tier = 1
+red_only = false
+can_play_without_dice = true
+requirement = 0
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Throw"
+upgraded = true
+icon = ExtResource("1_icon")
+tooltip_text = ""
+sound = ExtResource("3_sound")

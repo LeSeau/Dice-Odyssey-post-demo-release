@@ -1,0 +1,30 @@
+[gd_resource type="Resource" load_steps=5 format=3 uid="uid://b0vercl0ck49r"]
+
+[ext_resource type="Texture2D" uid="uid://cpb12px7xr3nt" path="res://resonance_good.png" id="1_icon"]
+[ext_resource type="Script" path="res://characters/warrior/cards/overclock.gd" id="2_script"]
+[ext_resource type="AudioStream" uid="uid://d66mkrcpmfir" path="res://chargedicesound.mp3" id="3_sound"]
+[ext_resource type="Resource" uid="uid://b0vercl0plus1" path="res://characters/warrior/cards/card_overclock_plus.tres" id="4_plus"]
+
+[resource]
+script = ExtResource("2_script")
+id = "card_overclock"
+name = "Overclock"
+type = 1
+target = 0
+description = "Draw 2 cards. Charge 2. Exhaust"
+rarity = 1
+rarity_tier = 2
+red_only = false
+can_play_without_dice = true
+requirement = 0
+requirement_number = 0
+exhausts = true
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Charge, Exhaust"
+upgraded = false
+upgraded_version = ExtResource("4_plus")
+icon = ExtResource("1_icon")
+tooltip_text = ""
+sound = ExtResource("3_sound")

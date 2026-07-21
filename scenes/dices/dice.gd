@@ -357,6 +357,8 @@ func _ready():
     Events.update_roll_history_ui.connect(update_roll_history_ui)
     Events.refuel_happened.connect(_on_refuel_happened)
     Events.all_in_dice_consumed.connect(_spawn_all_in_consumed)
+    Events.dice_thrown.connect(_spawn_thrown_dice)
+    Events.coin_flip.connect(_spawn_coin_flip)
     Events.card_played.connect(_on_card_played_track_frame)
 
     
@@ -2044,6 +2046,181 @@ func _spawn_all_in_consumed(consumed: Array, target_position: Vector2 = Vector2.
         flight.parallel().tween_property(icon, "modulate:a", 0.0, ALL_IN_CONSUMED_BURN * 0.5) \
             .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
         flight.chain().tween_callback(icon.queue_free)
+
+
+# Thrown-dice cards (Meteor, Fastball, Cursed Toss, Pixie Volley, Dice Avalanche): each throw
+# arcs from the played card to its target, tumbling through random faces mid-flight, then
+# snaps to its FINAL face right as it lands - synced with the damage the card scheduled via
+# Card._land_thrown_die (both sides use Global.DICE_THROW_FLIGHT_TIME/_STAGGER). Purely
+# visual: the roll was already decided at play time. Icons live on the ui_layer with the same
+# z convention as the other dice flourishes. Target positions are captured at SPAWN time, so
+# a die whose target dies mid-flight still lands where it was aimed (the damage side handles
+# retargeting separately - a tiny spatial lie, accepted for v1).
+const THROWN_DIE_SIZE := 56.0
+const THROWN_DIE_ARC_RISE := 120.0
+const THROWN_DIE_TUMBLE_INTERVAL := 0.07
+const THROWN_DIE_LINGER := 0.35
+
+
+func _spawn_thrown_dice(throws: Array, origin: Vector2) -> void:
+    if throws.is_empty():
+        return
+    var parent_layer := get_tree().get_first_node_in_group("ui_layer")
+    if not parent_layer:
+        return
+    var spawn_origin := origin
+    if spawn_origin == Vector2.ZERO:
+        spawn_origin = dice_display.get_global_rect().get_center()
+    for i in throws.size():
+        var entry: Dictionary = throws[i]
+        var throw_type: String = entry.get("type", "blue")
+        var value: int = entry.get("value", 1)
+        var target = entry.get("target")
+        var land_pos := spawn_origin + Vector2(0.0, -160.0)
+        if target != null and is_instance_valid(target) and target is Node2D:
+            land_pos = (target as Node2D).global_position + Vector2(0.0, -30.0)
+        _animate_thrown_die(parent_layer, throw_type, value, spawn_origin, land_pos, Global.DICE_THROW_STAGGER * i)
+
+
+func _animate_thrown_die(parent_layer: Node, throw_type: String, value: int, from_pos: Vector2, to_pos: Vector2, delay: float) -> void:
+    var icon := TextureRect.new()
+    icon.texture = _get_dice_face_texture_for(throw_type, value)
+    icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+    icon.custom_minimum_size = Vector2(THROWN_DIE_SIZE, THROWN_DIE_SIZE)
+    icon.size = Vector2(THROWN_DIE_SIZE, THROWN_DIE_SIZE)
+    icon.pivot_offset = icon.size / 2.0
+    icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    icon.z_index = 150
+    icon.visible = false
+    parent_layer.add_child(icon)
+    icon.global_position = from_pos - icon.size / 2.0
+
+    var faces: Array = Card.DICE_FACE_VALUES.get(throw_type, [1, 2, 3, 4, 5, 6])
+    var tween := create_tween()
+    if delay > 0.0:
+        tween.tween_interval(delay)
+    tween.tween_callback(icon.show)
+    tween.tween_callback(_start_die_tumble.bind(icon, throw_type, faces, Global.DICE_THROW_FLIGHT_TIME))
+    # Accelerating arc into the target (sin-hump on the straight lerp - same family of feel
+    # as the card comet, no bezier plumbing needed).
+    tween.tween_method(_thrown_die_flight_step.bind(icon, from_pos, to_pos), 0.0, 1.0, Global.DICE_THROW_FLIGHT_TIME) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+    tween.tween_callback(_finish_thrown_die.bind(icon, throw_type, value))
+    tween.tween_property(icon, "scale", Vector2(1.32, 1.32), 0.08) \
+        .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+    tween.tween_property(icon, "scale", Vector2.ONE, 0.1)
+    tween.tween_interval(THROWN_DIE_LINGER)
+    tween.tween_property(icon, "modulate:a", 0.0, 0.2)
+    tween.tween_callback(icon.queue_free)
+
+
+func _thrown_die_flight_step(t: float, icon: TextureRect, from_pos: Vector2, to_pos: Vector2) -> void:
+    if not is_instance_valid(icon):
+        return
+    var pos := from_pos.lerp(to_pos, t)
+    pos.y -= THROWN_DIE_ARC_RISE * sin(t * PI)
+    icon.global_position = pos - icon.size / 2.0
+    icon.rotation = t * TAU * 1.5
+
+
+func _start_die_tumble(icon: TextureRect, throw_type: String, faces: Array, duration: float) -> void:
+    if not is_instance_valid(icon):
+        return
+    var steps := maxi(1, int(duration / THROWN_DIE_TUMBLE_INTERVAL))
+    var tumble := icon.create_tween()
+    for i in steps:
+        tumble.tween_callback(_set_random_die_face.bind(icon, throw_type, faces))
+        tumble.tween_interval(THROWN_DIE_TUMBLE_INTERVAL)
+    icon.set_meta("tumble", tumble)
+
+
+func _set_random_die_face(icon: TextureRect, throw_type: String, faces: Array) -> void:
+    if not is_instance_valid(icon):
+        return
+    icon.texture = _get_dice_face_texture_for(throw_type, int(faces[randi() % faces.size()]))
+
+
+func _finish_thrown_die(icon: TextureRect, throw_type: String, value: int) -> void:
+    if not is_instance_valid(icon):
+        return
+    if icon.has_meta("tumble"):
+        var tumble: Tween = icon.get_meta("tumble")
+        if tumble != null and tumble.is_valid():
+            tumble.kill()
+    icon.rotation = 0.0
+    icon.texture = _get_dice_face_texture_for(throw_type, value)
+    if throw_type == "evil" and value == 0:
+        play_crack_sound()
+
+
+# Double or Nothing's coin: tossed from the played card, spins (scale.x oscillation reads as
+# the flip), then reveals at exactly Global.COIN_FLIP_TIME - the same moment the card's own
+# timer resolves the damage (heads) or nothing (tails), so the reveal and the outcome land
+# together. Heads flashes overbright gold; tails desaturates and drops away.
+const COIN_TEXTURE := preload("res://daiso_coin_icon.png")
+const COIN_SIZE := 64.0
+const COIN_TOSS_RISE := 110.0
+const COIN_SPIN_HALF := 0.1
+
+
+func _spawn_coin_flip(heads: bool, origin: Vector2) -> void:
+    var parent_layer := get_tree().get_first_node_in_group("ui_layer")
+    if not parent_layer:
+        return
+    var spawn_origin := origin
+    if spawn_origin == Vector2.ZERO:
+        spawn_origin = dice_display.get_global_rect().get_center()
+    var coin := TextureRect.new()
+    coin.texture = COIN_TEXTURE
+    coin.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    coin.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+    coin.custom_minimum_size = Vector2(COIN_SIZE, COIN_SIZE)
+    coin.size = Vector2(COIN_SIZE, COIN_SIZE)
+    coin.pivot_offset = coin.size / 2.0
+    coin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    coin.z_index = 150
+    parent_layer.add_child(coin)
+    coin.global_position = spawn_origin - coin.size / 2.0
+
+    var spin := coin.create_tween()
+    var spins := maxi(1, int(Global.COIN_FLIP_TIME / (COIN_SPIN_HALF * 2.0)))
+    for i in spins:
+        spin.tween_property(coin, "scale:x", 0.08, COIN_SPIN_HALF) \
+            .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+        spin.tween_property(coin, "scale:x", 1.0, COIN_SPIN_HALF) \
+            .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+    coin.set_meta("spin", spin)
+
+    var tween := create_tween()
+    tween.tween_property(coin, "global_position:y", spawn_origin.y - COIN_TOSS_RISE - coin.size.y / 2.0, Global.COIN_FLIP_TIME * 0.55) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    tween.tween_property(coin, "global_position:y", spawn_origin.y - COIN_TOSS_RISE * 0.45 - coin.size.y / 2.0, Global.COIN_FLIP_TIME * 0.45) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+    tween.tween_callback(_reveal_coin.bind(coin, heads))
+
+
+func _reveal_coin(coin: TextureRect, heads: bool) -> void:
+    if not is_instance_valid(coin):
+        return
+    if coin.has_meta("spin"):
+        var spin: Tween = coin.get_meta("spin")
+        if spin != null and spin.is_valid():
+            spin.kill()
+    coin.scale = Vector2.ONE
+    var tween := coin.create_tween()
+    if heads:
+        tween.tween_property(coin, "modulate", Color(2.0, 1.8, 1.1, 1.0), 0.1)
+        tween.parallel().tween_property(coin, "scale", Vector2(1.35, 1.35), 0.1) \
+            .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+        tween.tween_interval(0.25)
+        tween.tween_property(coin, "modulate:a", 0.0, 0.18)
+    else:
+        tween.tween_property(coin, "modulate", Color(0.45, 0.5, 0.6, 1.0), 0.12)
+        tween.tween_property(coin, "global_position:y", coin.global_position.y + 46.0, 0.32) \
+            .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+        tween.parallel().tween_property(coin, "modulate:a", 0.0, 0.32)
+    tween.tween_callback(coin.queue_free)
 
 
 func _on_refuel_happened(amount: int) -> void:

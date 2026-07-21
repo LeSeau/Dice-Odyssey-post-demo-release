@@ -12,6 +12,14 @@ const CURSOR_TEXTURE := preload("res://assets/images/cursor_pointer.png")
 const CURSOR_TEXTURE_PRESSED := preload("res://assets/images/cursor_pointer_pressed.png")
 const CURSOR_HOTSPOT := Vector2(3, 1)
 
+# Thrown-dice cards (Meteor, Fastball, Cursed Toss...): one shared flight time so the card
+# scripts (which schedule the damage landing, Card._land_thrown_die) and dice.gd (which
+# animates the throw on Events.dice_thrown) stay in sync. STAGGER spaces multi-die volleys.
+const DICE_THROW_FLIGHT_TIME := 0.55
+const DICE_THROW_STAGGER := 0.12
+# Double or Nothing: how long the coin spins before the outcome resolves (damage or nothing).
+const COIN_FLIP_TIME := 0.6
+
 
 # App-scoped player settings (volumes, fullscreen) - loaded once at startup and
 # applied to the audio buses/window here; the pause menu updates them live afterwards

@@ -1,0 +1,30 @@
+[gd_resource type="Resource" load_steps=5 format=3 uid="uid://cblackj4ck215"]
+
+[ext_resource type="Texture2D" uid="uid://la13ogwo12er" path="res://executioner.png" id="1_icon"]
+[ext_resource type="Script" path="res://characters/warrior/cards/blackjack.gd" id="2_script"]
+[ext_resource type="AudioStream" uid="uid://cvjv56ti6hkis" path="res://impact1.ogg" id="3_sound"]
+[ext_resource type="Resource" uid="uid://cblackj4plus2" path="res://characters/warrior/cards/card_blackjack_plus.tres" id="4_plus"]
+
+[resource]
+script = ExtResource("2_script")
+id = "card_blackjack"
+name = "Blackjack"
+type = 0
+target = 1
+description = "Kill the enemy. Exhaust"
+rarity = 0
+rarity_tier = 2
+red_only = false
+can_play_without_dice = false
+requirement = 7
+requirement_number = 21
+exhausts = true
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Exhaust"
+upgraded = false
+upgraded_version = ExtResource("4_plus")
+icon = ExtResource("1_icon")
+tooltip_text = ""
+sound = ExtResource("3_sound")

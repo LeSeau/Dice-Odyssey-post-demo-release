@@ -1,0 +1,28 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://bpix1ev0plus3"]
+
+[ext_resource type="Texture2D" uid="uid://b0271oj6u4bm1" path="res://fireflies.png" id="1_icon"]
+[ext_resource type="Script" path="res://characters/warrior/cards/pixie_volley.gd" id="2_script"]
+[ext_resource type="AudioStream" uid="uid://cvjv56ti6hkis" path="res://impact1.ogg" id="3_sound"]
+
+[resource]
+script = ExtResource("2_script")
+id = "card_pixie_volley_plus"
+name = "Pixie Volley+"
+type = 0
+target = 2
+description = "Throw X Pixie Dice at random enemies. Each deals double its roll"
+rarity = 0
+rarity_tier = 0
+red_only = false
+can_play_without_dice = false
+requirement = 2
+requirement_number = 6
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Throw"
+upgraded = true
+icon = ExtResource("1_icon")
+tooltip_text = ""
+sound = ExtResource("3_sound")

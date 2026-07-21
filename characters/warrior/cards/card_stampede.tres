@@ -1,0 +1,30 @@
+[gd_resource type="Resource" load_steps=5 format=3 uid="uid://cst4mp3de5d1c"]
+
+[ext_resource type="Texture2D" uid="uid://dra058bxhgcns" path="res://lunge.png" id="1_icon"]
+[ext_resource type="Script" path="res://characters/warrior/cards/stampede.gd" id="2_script"]
+[ext_resource type="AudioStream" uid="uid://cvjv56ti6hkis" path="res://impact1.ogg" id="3_sound"]
+[ext_resource type="Resource" uid="uid://cst4mp3d3plus" path="res://characters/warrior/cards/card_stampede_plus.tres" id="4_plus"]
+
+[resource]
+script = ExtResource("2_script")
+id = "card_stampede"
+name = "Stampede"
+type = 0
+target = 1
+description = "Deal X damage. If you rolled 5+ Dice this turn, deal it twice"
+rarity = 0
+rarity_tier = 1
+red_only = false
+can_play_without_dice = false
+requirement = 0
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = ""
+upgraded = false
+upgraded_version = ExtResource("4_plus")
+icon = ExtResource("1_icon")
+tooltip_text = ""
+sound = ExtResource("3_sound")

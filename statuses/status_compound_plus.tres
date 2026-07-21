@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CompoundPlusStatus" load_steps=3 format=3 uid="uid://c0mp0undplus7"]
+
+[ext_resource type="Texture2D" path="res://status_compound_icon.png" id="1_icon"]
+[ext_resource type="Script" path="res://statuses/status_compound_plus.gd" id="2_script"]
+
+[resource]
+script = ExtResource("2_script")
+id = "compound_plus"
+type = 0
+stack_type = 1
+can_expire = true
+duration = 1
+stacks = 1
+icon = ExtResource("1_icon")
+tooltip = "At the start of your next turn, draw 3 cards and Charge 2 Blue Dice"

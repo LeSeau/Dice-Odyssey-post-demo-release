@@ -1,0 +1,30 @@
+[gd_resource type="Resource" load_steps=5 format=3 uid="uid://cc0mp0und48dr"]
+
+[ext_resource type="Texture2D" uid="uid://cupqwontxtnxc" path="res://stockpile.png" id="1_icon"]
+[ext_resource type="Script" path="res://characters/warrior/cards/compound.gd" id="2_script"]
+[ext_resource type="AudioStream" uid="uid://d66mkrcpmfir" path="res://chargedicesound.mp3" id="3_sound"]
+[ext_resource type="Resource" uid="uid://cc0mp0undplus" path="res://characters/warrior/cards/card_compound_plus.tres" id="4_plus"]
+
+[resource]
+script = ExtResource("2_script")
+id = "card_compound"
+name = "Compound"
+type = 1
+target = 0
+description = "Next turn, draw 2 cards and Charge 2 Blue Dice"
+rarity = 0
+rarity_tier = 0
+red_only = false
+can_play_without_dice = false
+requirement = 0
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Charge"
+upgraded = false
+upgraded_version = ExtResource("4_plus")
+icon = ExtResource("1_icon")
+tooltip_text = ""
+sound = ExtResource("3_sound")

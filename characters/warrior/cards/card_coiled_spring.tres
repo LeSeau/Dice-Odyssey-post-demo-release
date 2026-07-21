@@ -1,0 +1,30 @@
+[gd_resource type="Resource" load_steps=5 format=3 uid="uid://cc01ledspr1ng"]
+
+[ext_resource type="Texture2D" uid="uid://dblly6whandt8" path="res://elasticity.png" id="1_icon"]
+[ext_resource type="Script" path="res://characters/warrior/cards/coiled_spring.gd" id="2_script"]
+[ext_resource type="AudioStream" uid="uid://d66mkrcpmfir" path="res://chargedicesound.mp3" id="3_sound"]
+[ext_resource type="Resource" uid="uid://cc01ledspplus" path="res://characters/warrior/cards/card_coiled_spring_plus.tres" id="4_plus"]
+
+[resource]
+script = ExtResource("2_script")
+id = "card_coiled_spring"
+name = "Coiled Spring"
+type = 1
+target = 0
+description = "Next turn, your first roll counts triple. Exhaust"
+rarity = 1
+rarity_tier = 1
+red_only = false
+can_play_without_dice = true
+requirement = 0
+requirement_number = 0
+exhausts = true
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Exhaust"
+upgraded = false
+upgraded_version = ExtResource("4_plus")
+icon = ExtResource("1_icon")
+tooltip_text = ""
+sound = ExtResource("3_sound")

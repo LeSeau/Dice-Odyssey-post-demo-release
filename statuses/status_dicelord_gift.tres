@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="DicelordGiftStatus" load_steps=3 format=3 uid="uid://d1cel0rdg1ftz"]
+
+[ext_resource type="Texture2D" path="res://status_dicelord_gift_icon.png" id="1_icon"]
+[ext_resource type="Script" path="res://statuses/status_dicelord_gift.gd" id="2_script"]
+
+[resource]
+script = ExtResource("2_script")
+id = "dicelord_gift"
+type = 0
+stack_type = 0
+can_expire = false
+duration = 1
+stacks = 1
+icon = ExtResource("1_icon")
+tooltip = "Charge a random Dice at the start of each turn"
