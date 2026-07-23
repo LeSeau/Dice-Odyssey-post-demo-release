@@ -330,6 +330,7 @@ func take_damage(damage: int, which_modifier: Modifier.Type) -> void:
                 # sprite while it's assigned. The enemy is about to be
                 # freed anyway, so it no longer needs highlight capability.
                 sprite_2d.material = null
+                Global.run_stat_enemies_slain += 1
                 Events.enemy_died.emit(self)
                 var death_tween := create_tween()
                 death_tween.tween_property(self, "modulate:a", 0.0, 0.4)

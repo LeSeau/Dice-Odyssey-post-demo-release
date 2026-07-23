@@ -42,8 +42,12 @@ func execute(targets: Array[Node]) -> void:
             if target is Enemy:
                 AchievementManager.track_card_damage(Global.damage_to_display)
                 AchievementManager.report_enemy_hit(hp_before, Global.damage_to_display)
+                # End-of-run screens: any damage on an Enemy is player-caused
+                # (enemies never hit each other), so this IS the player's biggest hit.
+                Global.run_stat_biggest_hit = maxi(Global.run_stat_biggest_hit, Global.damage_to_display)
             elif target is Player:
                 AchievementManager.report_player_hit(Global.damage_to_display, target.stats.health > 0)
+                Global.run_stat_damage_taken += Global.damage_to_display
             var is_big_hit := final_amount >= BIG_HIT_THRESHOLD
 
             var camera = target.get_tree().get_first_node_in_group("camera")

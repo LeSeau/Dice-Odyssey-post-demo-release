@@ -959,6 +959,9 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
     Global.power_generated_this_turn += Global.last_roll
     # Lifetime power counter ("Unlimited Power" achievement) - mirrors the increment above.
     AchievementManager.add_stat("power_generated", Global.last_roll)
+    # Run-lifetime stats for the end-of-run screens.
+    Global.run_stat_dice_rolled += 1
+    Global.run_stat_power_generated += Global.last_roll
     current_power.modulate.a = 1.0
     _spawn_roll_popup(Global.last_roll)
     var power_punch = 1.2 + (Global.last_roll / 20.0)  # 1.25 on 1, 1.5 on 6, 1.8 on 12
@@ -2048,18 +2051,35 @@ func _spawn_all_in_consumed(consumed: Array, target_position: Vector2 = Vector2.
         flight.chain().tween_callback(icon.queue_free)
 
 
-# Thrown-dice cards (Meteor, Fastball, Cursed Toss, Pixie Volley, Dice Avalanche): each throw
-# arcs from the played card to its target, tumbling through random faces mid-flight, then
-# snaps to its FINAL face right as it lands - synced with the damage the card scheduled via
-# Card._land_thrown_die (both sides use Global.DICE_THROW_FLIGHT_TIME/_STAGGER). Purely
-# visual: the roll was already decided at play time. Icons live on the ui_layer with the same
-# z convention as the other dice flourishes. Target positions are captured at SPAWN time, so
-# a die whose target dies mid-flight still lands where it was aimed (the damage side handles
-# retargeting separately - a tiny spatial lie, accepted for v1).
+# Thrown-dice cards (Meteor, Fastball, Cursed Toss, Pixie Volley, Dice Avalanche + the
+# support throws Windfall/Rampart/Kickstart): each throw is a 3-beat mini-story synced to
+# the effect the card scheduled via Card._land_thrown_die / its own timer. Both sides use
+# Global.DICE_THROW_FLIGHT_TIME as the TOTAL time from emit to landing - the windup is
+# carved OUT of that budget here, never added on top, so lengthening the sequence only
+# ever means raising the Global constant (every card stays in sync automatically).
+#   1. WINDUP - the die pops out of the played card and hangs above it, tumbling faces,
+#      coiling (vertical stretch) right before launch. Anticipation.
+#   2. FLIGHT - whip-whoosh + recoil motes, then an accelerating arc into the target:
+#      tumbling, swelling mid-arc (sells height), accent-colored mote trail on the path.
+#   3. IMPACT - snaps to the FINAL face as it lands: overbright flash, hard squash,
+#      radial mote burst + soft shock puff (gold-warm + bigger when the face is the die's
+#      MAX), lingers so the roll can be read, then drops off the body like a spent die
+#      (enemy lands) or shrink-dissolves into its effect (air lands - the support throws).
+# Purely visual: the roll was already decided at play time. Icons live on the ui_layer
+# with the same z convention as the other dice flourishes. Target positions are captured
+# at SPAWN time, so a die whose target dies mid-flight still lands where it was aimed
+# (the damage side handles retargeting separately - a tiny spatial lie, accepted).
 const THROWN_DIE_SIZE := 56.0
-const THROWN_DIE_ARC_RISE := 120.0
-const THROWN_DIE_TUMBLE_INTERVAL := 0.07
-const THROWN_DIE_LINGER := 0.35
+const THROWN_DIE_ARC_RISE := 150.0
+const THROWN_DIE_TUMBLE_INTERVAL := 0.06
+const THROWN_DIE_LINGER := 0.45
+const THROWN_DIE_WINDUP_RISE := 54.0
+const THROWN_DIE_TRAIL_GAP_MS := 28
+# whipsound was freed up when the evil-0 crack moved to glass_sound - it reads as a clean
+# throw "whip" here. The air-land clack is the tightest of the three roll sounds pitched
+# up into a short clatter (placeholder until Julien finds a dedicated single-die clack).
+const THROWN_DIE_WHOOSH := preload("res://whipsound.mp3")
+const THROWN_DIE_AIR_LAND_SFX := preload("res://sounds/dicerollsound3.mp3")
 
 
 func _spawn_thrown_dice(throws: Array, origin: Vector2) -> void:
@@ -2076,13 +2096,31 @@ func _spawn_thrown_dice(throws: Array, origin: Vector2) -> void:
         var throw_type: String = entry.get("type", "blue")
         var value: int = entry.get("value", 1)
         var target = entry.get("target")
+        var has_target := false
         var land_pos := spawn_origin + Vector2(0.0, -160.0)
         if target != null and is_instance_valid(target) and target is Node2D:
-            land_pos = (target as Node2D).global_position + Vector2(0.0, -30.0)
-        _animate_thrown_die(parent_layer, throw_type, value, spawn_origin, land_pos, Global.DICE_THROW_STAGGER * i)
+            has_target = true
+            land_pos = _thrown_die_impact_pos(target)
+            if throws.size() > 1:
+                # Volleys pelt the body, not one exact pixel - tiny per-die scatter.
+                land_pos += Vector2(randf_range(-16.0, 16.0), randf_range(-12.0, 12.0))
+        _animate_thrown_die(parent_layer, throw_type, value, spawn_origin, land_pos,
+                Global.DICE_THROW_STAGGER * i, has_target)
 
 
-func _animate_thrown_die(parent_layer: Node, throw_type: String, value: int, from_pos: Vector2, to_pos: Vector2, delay: float) -> void:
+# The enemy ROOT's global_position is not the visual center - enemy.tscn bakes the Sprite2D
+# at local x=124 (the same baseline the name-label centering fix documented), so landing on
+# the root put every thrown die ~124px LEFT of the body. Aim at the sprite node itself:
+# update_enemy() anchors the content bottom to the feet line, which leaves the sprite node
+# sitting at the torso center - exactly where a hit should land.
+func _thrown_die_impact_pos(target: Node2D) -> Vector2:
+    var sprite = target.get("sprite_2d")
+    if sprite is Sprite2D and is_instance_valid(sprite):
+        return (sprite as Sprite2D).global_position
+    return target.global_position + Vector2(0.0, -30.0)
+
+
+func _animate_thrown_die(parent_layer: Node, throw_type: String, value: int, from_pos: Vector2, to_pos: Vector2, delay: float, has_target: bool) -> void:
     var icon := TextureRect.new()
     icon.texture = _get_dice_face_texture_for(throw_type, value)
     icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -2093,35 +2131,137 @@ func _animate_thrown_die(parent_layer: Node, throw_type: String, value: int, fro
     icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
     icon.z_index = 150
     icon.visible = false
+    icon.scale = Vector2(0.35, 0.35)
     parent_layer.add_child(icon)
     icon.global_position = from_pos - icon.size / 2.0
 
     var faces: Array = Card.DICE_FACE_VALUES.get(throw_type, [1, 2, 3, 4, 5, 6])
+    var windup := minf(Global.DICE_THROW_WINDUP_TIME, Global.DICE_THROW_FLIGHT_TIME * 0.45)
+    var flight := Global.DICE_THROW_FLIGHT_TIME - windup
+    var hang_pos := from_pos + Vector2(randf_range(-10.0, 10.0), -THROWN_DIE_WINDUP_RISE)
+    var spin_dir := 1.0 if randf() < 0.5 else -1.0
+
     var tween := create_tween()
     if delay > 0.0:
         tween.tween_interval(delay)
     tween.tween_callback(icon.show)
-    tween.tween_callback(_start_die_tumble.bind(icon, throw_type, faces, Global.DICE_THROW_FLIGHT_TIME))
-    # Accelerating arc into the target (sin-hump on the straight lerp - same family of feel
-    # as the card comet, no bezier plumbing needed).
-    tween.tween_method(_thrown_die_flight_step.bind(icon, from_pos, to_pos), 0.0, 1.0, Global.DICE_THROW_FLIGHT_TIME) \
-        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-    tween.tween_callback(_finish_thrown_die.bind(icon, throw_type, value))
-    tween.tween_property(icon, "scale", Vector2(1.32, 1.32), 0.08) \
+    tween.tween_callback(_start_die_tumble.bind(icon, throw_type, faces, windup + flight))
+    # WINDUP: pop out of the card and hang above it, then coil (vertical stretch) - the
+    # anticipation beat that makes the launch read as a real throw.
+    tween.tween_property(icon, "global_position", hang_pos - icon.size / 2.0, windup * 0.55) \
         .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-    tween.tween_property(icon, "scale", Vector2.ONE, 0.1)
+    tween.parallel().tween_property(icon, "scale", Vector2(1.15, 1.15), windup * 0.55) \
+        .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+    tween.tween_property(icon, "scale", Vector2(0.88, 1.24), windup * 0.45) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+    # LAUNCH + FLIGHT: whoosh/recoil, then the accelerating arc (position, tumble spin,
+    # mid-arc swell and the trail all live in the flight step).
+    tween.tween_callback(_launch_thrown_die_fx.bind(icon, hang_pos, throw_type))
+    tween.tween_method(_thrown_die_flight_step.bind(icon, hang_pos, to_pos, spin_dir, throw_type), 0.0, 1.0, flight) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+    # IMPACT: snap to the final face + flash/squash/burst (own tweens inside), then linger
+    # long enough for the roll to be read.
+    tween.tween_callback(_finish_thrown_die.bind(icon, throw_type, value, has_target))
     tween.tween_interval(THROWN_DIE_LINGER)
-    tween.tween_property(icon, "modulate:a", 0.0, 0.2)
+    # EXIT: a spent die tumbles off the body; an air-land dissolves into its effect.
+    if has_target:
+        tween.tween_property(icon, "global_position:y", to_pos.y - icon.size.y / 2.0 + 52.0, 0.3) \
+            .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+        tween.parallel().tween_property(icon, "rotation", randf_range(-0.7, 0.7), 0.3)
+        tween.parallel().tween_property(icon, "modulate:a", 0.0, 0.24)
+    else:
+        tween.tween_property(icon, "scale", Vector2.ZERO, 0.22) \
+            .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+        tween.parallel().tween_property(icon, "modulate:a", 0.0, 0.2)
     tween.tween_callback(icon.queue_free)
 
 
-func _thrown_die_flight_step(t: float, icon: TextureRect, from_pos: Vector2, to_pos: Vector2) -> void:
+func _launch_thrown_die_fx(icon: TextureRect, hang_pos: Vector2, throw_type: String) -> void:
+    # Decorative (priority -1): a Dice Avalanche fires 9 of these 0.15s apart - they must
+    # never starve a real beat out of the SFX pool. Pitch jitter keeps volleys organic.
+    SFXPlayer.play(THROWN_DIE_WHOOSH, false, randf_range(1.0, 1.25), -6.0, -1)
+    if not is_instance_valid(icon):
+        return
+    var accent := DicePalette.accent(throw_type)
+    for i in 5:
+        var dir := Vector2.from_angle(randf_range(0.0, TAU))
+        _spawn_thrown_die_mote(icon.get_parent(), hang_pos, accent,
+                randf_range(8.0, 14.0), dir * randf_range(18.0, 42.0), 0.28)
+
+
+func _thrown_die_flight_step(t: float, icon: TextureRect, from_pos: Vector2, to_pos: Vector2, spin_dir: float, throw_type: String) -> void:
     if not is_instance_valid(icon):
         return
     var pos := from_pos.lerp(to_pos, t)
     pos.y -= THROWN_DIE_ARC_RISE * sin(t * PI)
     icon.global_position = pos - icon.size / 2.0
-    icon.rotation = t * TAU * 1.5
+    icon.rotation = t * TAU * 1.5 * spin_dir
+    # Mid-arc the die swells (reads as closer to camera) and settles back by landing.
+    var height := sin(t * PI)
+    icon.scale = Vector2.ONE * (1.0 + 0.24 * height)
+    # Accent mote trail, throttled in real time (same trick as the card comet trail - the
+    # step fires every frame, the throttle keeps density framerate-independent).
+    var now := Time.get_ticks_msec()
+    var last := int(icon.get_meta("trail_last_ms", 0))
+    if now - last >= THROWN_DIE_TRAIL_GAP_MS:
+        icon.set_meta("trail_last_ms", now)
+        _spawn_thrown_die_mote(icon.get_parent(), pos, DicePalette.accent(throw_type),
+                randf_range(10.0, 18.0),
+                Vector2(randf_range(-14.0, 14.0), randf_range(4.0, 26.0)), 0.32)
+
+
+# One additive accent mote with its own tween (parented to the ui_layer, so it outlives the
+# die that spawned it) - shared by the flight trail, the launch recoil and the impact burst.
+func _spawn_thrown_die_mote(parent: Node, pos: Vector2, color: Color, mote_size: float, drift: Vector2, life: float) -> void:
+    if parent == null:
+        return
+    var mote := TextureRect.new()
+    mote.texture = _get_power_orb_texture()
+    mote.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    mote.stretch_mode = TextureRect.STRETCH_SCALE
+    mote.size = Vector2(mote_size, mote_size)
+    mote.pivot_offset = mote.size / 2.0
+    mote.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    mote.material = _get_power_orb_material()
+    mote.modulate = color
+    mote.z_index = 149
+    parent.add_child(mote)
+    mote.global_position = pos - mote.size / 2.0
+    var tw := mote.create_tween()
+    tw.tween_property(mote, "global_position", pos + drift - mote.size / 2.0, life) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    tw.parallel().tween_property(mote, "scale", Vector2(0.15, 0.15), life) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+    tw.parallel().tween_property(mote, "modulate:a", 0.0, life) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+    tw.tween_callback(mote.queue_free)
+
+
+# Soft expanding shock puff at the landing point - kept at modest alpha so it never
+# overexposes when it stacks with the burst motes (additive-blend stacking lesson).
+func _spawn_thrown_die_shock(parent: Node, pos: Vector2, color: Color, big: bool) -> void:
+    if parent == null:
+        return
+    var puff := TextureRect.new()
+    puff.texture = _get_power_orb_texture()
+    puff.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    puff.stretch_mode = TextureRect.STRETCH_SCALE
+    puff.size = Vector2(46.0, 46.0)
+    puff.pivot_offset = puff.size / 2.0
+    puff.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    puff.material = _get_power_orb_material()
+    puff.modulate = Color(color.r, color.g, color.b, 0.5)
+    puff.z_index = 148
+    puff.scale = Vector2(0.6, 0.6)
+    parent.add_child(puff)
+    puff.global_position = pos - puff.size / 2.0
+    var target_scale := 3.2 if big else 2.4
+    var tw := puff.create_tween()
+    tw.tween_property(puff, "scale", Vector2.ONE * target_scale, 0.28) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    tw.parallel().tween_property(puff, "modulate:a", 0.0, 0.28) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+    tw.tween_callback(puff.queue_free)
 
 
 func _start_die_tumble(icon: TextureRect, throw_type: String, faces: Array, duration: float) -> void:
@@ -2141,7 +2281,7 @@ func _set_random_die_face(icon: TextureRect, throw_type: String, faces: Array) -
     icon.texture = _get_dice_face_texture_for(throw_type, int(faces[randi() % faces.size()]))
 
 
-func _finish_thrown_die(icon: TextureRect, throw_type: String, value: int) -> void:
+func _finish_thrown_die(icon: TextureRect, throw_type: String, value: int, has_target: bool) -> void:
     if not is_instance_valid(icon):
         return
     if icon.has_meta("tumble"):
@@ -2150,6 +2290,33 @@ func _finish_thrown_die(icon: TextureRect, throw_type: String, value: int) -> vo
             tumble.kill()
     icon.rotation = 0.0
     icon.texture = _get_dice_face_texture_for(throw_type, value)
+    var faces: Array = Card.DICE_FACE_VALUES.get(throw_type, [1, 2, 3, 4, 5, 6])
+    var is_max_face: bool = value == int(faces.max())
+    var accent := DicePalette.accent(throw_type)
+    var burst_color := DicePalette.burst(throw_type) if is_max_face else accent
+    # Overbright flash + hard squash, springing back to rest while the face lingers.
+    # Max faces flash warmer/bigger - the "it rolled its best" jackpot micro-beat.
+    icon.modulate = Color(2.4, 2.3, 1.9, 1.0) if is_max_face else Color(1.9, 1.85, 1.7, 1.0)
+    icon.scale = Vector2(1.5, 0.62) if has_target else Vector2(1.3, 1.3)
+    var impact := icon.create_tween()
+    impact.tween_property(icon, "scale", Vector2(1.12, 1.12), 0.14) \
+        .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+    impact.parallel().tween_property(icon, "modulate", Color.WHITE, 0.22) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    impact.tween_property(icon, "scale", Vector2.ONE, 0.1)
+    # Radial burst + shock puff at the landing point.
+    var parent := icon.get_parent()
+    var center := icon.global_position + icon.size / 2.0
+    var mote_count := 14 if is_max_face else (10 if has_target else 6)
+    for i in mote_count:
+        var dir := Vector2.from_angle(randf_range(0.0, TAU))
+        _spawn_thrown_die_mote(parent, center, burst_color,
+                randf_range(9.0, 16.0), dir * randf_range(30.0, 90.0), randf_range(0.25, 0.4))
+    _spawn_thrown_die_shock(parent, center, burst_color, is_max_face)
+    # Air lands (support throws) had NO landing sound at all - give the die a settle clack.
+    # Enemy lands already get the card's own hit sound from the damage side, synced.
+    if not has_target:
+        SFXPlayer.play(THROWN_DIE_AIR_LAND_SFX, false, randf_range(1.35, 1.5), -4.0, -1)
     if throw_type == "evil" and value == 0:
         play_crack_sound()
 

@@ -1,67 +1,124 @@
-[gd_scene load_steps=17 format=3 uid="uid://dfig8d63ggof1"]
+[gd_scene load_steps=23 format=3 uid="uid://dfig8d63ggof1"]
 
 [ext_resource type="Script" path="res://scenes/ui/battle_over_panel.gd" id="1_msgmm"]
 [ext_resource type="FontFile" uid="uid://b1es4i7nr43mv" path="res://fonts/CinzelDecorative-Bold.otf" id="2_0nyfr"]
-[ext_resource type="Script" path="res://scenes/ui/continue_button.gd" id="2_liiol"]
 [ext_resource type="AudioStream" uid="uid://bu8uvjhi41uik" path="res://success.mp3" id="3_4jgu0"]
 [ext_resource type="Texture2D" uid="uid://bsyxep800b5tf" path="res://gameover.png" id="4_nwuo5"]
 [ext_resource type="FontFile" uid="uid://bfgwr7o37ol1j" path="res://Noto_Sans/static/NotoSans-Regular.ttf" id="5_pe1oi"]
 [ext_resource type="FontFile" uid="uid://bm3deysyi2y55" path="res://Belwe Bold/Belwe Bold.otf" id="6_f3kgd"]
 [ext_resource type="Texture2D" uid="uid://c6w3p47gbm7w4" path="res://discordlogo.png" id="7_fgrpp"]
+[ext_resource type="Script" path="res://scenes/ui/run_stats_panel.gd" id="8_rstat"]
+[ext_resource type="StyleBox" uid="uid://c8k2n5xr9j7wq" path="res://scenes/shop/shop_button_normal.tres" id="9_shbn"]
+[ext_resource type="StyleBox" uid="uid://dqm3v7x8k2n5w" path="res://scenes/shop/shop_button_hover.tres" id="10_shbh"]
+[ext_resource type="StyleBox" uid="uid://bx6v9n3k8q2wr" path="res://scenes/shop/shop_button_pressed.tres" id="11_shbp"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dhly6"]
-bg_color = Color(0, 0, 0, 0.67451)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dim"]
+bg_color = Color(0, 0, 0, 0.72)
 
-[sub_resource type="LabelSettings" id="LabelSettings_bijyl"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lostpanel"]
+bg_color = Color(0.129412, 0.164706, 0.243137, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.788235, 0.635294, 0.152941, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+shadow_color = Color(0, 0, 0, 0.55)
+shadow_size = 14
+shadow_offset = Vector2(0, 5)
+
+[sub_resource type="LabelSettings" id="LabelSettings_losetitle"]
 font = ExtResource("2_0nyfr")
-font_size = 48
-font_color = Color(0.784314, 0.572549, 0.164706, 1)
-outline_size = 3
-outline_color = Color(0, 0, 0, 1)
+font_size = 44
+font_color = Color(0.85098, 0.341176, 0.270588, 1)
+outline_size = 6
+outline_color = Color(0.0901961, 0.0392157, 0.0392157, 1)
+shadow_size = 4
+shadow_color = Color(0, 0, 0, 0.6)
+shadow_offset = Vector2(2, 3)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_11wms"]
-bg_color = Color(0.144787, 0.273985, 0.277578, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_x1svp"]
-bg_color = Color(0.311214, 0, 0.0696221, 1)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_elckq"]
-bg_color = Color(0.246036, 0.403102, 0.363782, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0, 0, 0, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_artframe"]
+bg_color = Color(0.0509804, 0.0627451, 0.0980392, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.788235, 0.635294, 0.152941, 0.55)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ymoyn"]
-bg_color = Color(0.6, 0.6, 0.6, 0)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_discord"]
+bg_color = Color(0.345098, 0.396078, 0.94902, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(1, 1, 0.227451, 1)
+border_color = Color(0.192157, 0.223529, 0.611765, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0, 0, 0.35)
+shadow_size = 5
+shadow_offset = Vector2(0, 3)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_discord_btn_normal"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_discord_btn_hover"]
+bg_color = Color(1, 1, 1, 0.09)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 1, 1, 0.9)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_discord_btn_pressed"]
+bg_color = Color(0, 0, 0, 0.14)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_menu_normal"]
+bg_color = Color(0, 0, 0, 0.25)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.6, 0.55, 0.45, 0.5)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7bkcs"]
-bg_color = Color(0.6, 0.6, 0.6, 0)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_menu_hover"]
+bg_color = Color(0, 0, 0, 0.35)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.788235, 0.635294, 0.152941, 0.9)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_805a1"]
-bg_color = Color(0.6, 0.6, 0.6, 0)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_menu_pressed"]
+bg_color = Color(0, 0, 0, 0.45)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
 [node name="BattleOverPanel" type="Panel"]
 process_mode = 3
@@ -70,46 +127,8 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_dhly6")
+theme_override_styles/panel = SubResource("StyleBoxFlat_dim")
 script = ExtResource("1_msgmm")
-
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
-custom_minimum_size = Vector2(300, 0)
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -20.0
-offset_top = -20.0
-offset_right = 20.0
-offset_bottom = 20.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="Label" type="Label" parent="VBoxContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Victory!"
-label_settings = SubResource("LabelSettings_bijyl")
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="ContinueButton" type="Button" parent="VBoxContainer"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(200, 50)
-layout_mode = 2
-size_flags_horizontal = 4
-text = "Roll on!"
-script = ExtResource("2_liiol")
-
-[node name="RestartButton" type="Button" parent="VBoxContainer"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(50, 16)
-layout_mode = 2
-size_flags_horizontal = 4
-text = "Restart"
 
 [node name="AudioPlayer" type="AudioStreamPlayer2D" parent="."]
 stream = ExtResource("3_4jgu0")
@@ -117,71 +136,104 @@ stream = ExtResource("3_4jgu0")
 [node name="LostPanel" type="Panel" parent="."]
 visible = false
 layout_mode = 0
-offset_left = 230.0
-offset_top = 111.0
-offset_right = 1085.0
-offset_bottom = 625.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_11wms")
+offset_left = 213.0
+offset_top = 85.0
+offset_right = 1068.0
+offset_bottom = 635.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_lostpanel")
 
-[node name="LostTexture" type="TextureRect" parent="LostPanel"]
+[node name="TitleLabel" type="Label" parent="LostPanel"]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -397.5
-offset_top = -177.0
-offset_right = -127.5
-offset_bottom = 178.0
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 18.0
+offset_bottom = 76.0
+grow_horizontal = 2
+text = "Game Over"
+label_settings = SubResource("LabelSettings_losetitle")
+horizontal_alignment = 1
+
+[node name="MessageLabel" type="RichTextLabel" parent="LostPanel"]
+layout_mode = 0
+offset_left = 90.0
+offset_top = 82.0
+offset_right = 765.0
+offset_bottom = 168.0
+theme_override_colors/default_color = Color(0.92549, 0.890196, 0.815686, 1)
+theme_override_fonts/normal_font = ExtResource("5_pe1oi")
+theme_override_font_sizes/normal_font_size = 16
+bbcode_enabled = true
+scroll_active = false
+text = "[center][color=#f2a7c3]Luck was not with you today...[/color] but every legend starts with a few bad rolls.
+
+Got feedback, questions, or insults for the dev? [color=#98a7ff]The Discord awaits you![/color][/center]"
+
+[node name="ArtFrame" type="Panel" parent="LostPanel"]
+layout_mode = 0
+offset_left = 36.0
+offset_top = 176.0
+offset_right = 268.0
+offset_bottom = 470.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_artframe")
+
+[node name="Art" type="TextureRect" parent="LostPanel/ArtFrame"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 3.0
+offset_top = 3.0
+offset_right = -3.0
+offset_bottom = -3.0
 grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("4_nwuo5")
 expand_mode = 1
+stretch_mode = 6
 
-[node name="LostLabelTitle" type="Label" parent="LostPanel"]
-layout_mode = 1
-anchors_preset = 10
-anchor_right = 1.0
-offset_top = 22.0
-offset_bottom = 54.0
-grow_horizontal = 2
-theme_override_colors/font_color = Color(1, 1, 0.227451, 1)
-theme_override_styles/normal = SubResource("StyleBoxFlat_x1svp")
-text = "Game over"
-horizontal_alignment = 1
+[node name="RunStats" type="PanelContainer" parent="LostPanel"]
+layout_mode = 0
+offset_left = 298.0
+offset_top = 176.0
+offset_right = 819.0
+offset_bottom = 470.0
+script = ExtResource("8_rstat")
 
-[node name="LostLabelText" type="RichTextLabel" parent="LostPanel"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -115.5
-offset_top = -182.0
-offset_right = 395.5
-offset_bottom = 223.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_fonts/normal_font = ExtResource("5_pe1oi")
-bbcode_enabled = true
-text = "[color=pink]Luck was not with you today.[/color] Thanks for playing Dice Odyssey! 
+[node name="MainMenuButton" type="Button" parent="LostPanel"]
+layout_mode = 0
+offset_left = 36.0
+offset_top = 496.0
+offset_right = 196.0
+offset_bottom = 542.0
+theme_override_colors/font_color = Color(0.85, 0.81, 0.72, 1)
+theme_override_colors/font_hover_color = Color(0.988235, 0.933333, 0.843137, 1)
+theme_override_fonts/font = ExtResource("5_pe1oi")
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_menu_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_menu_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_menu_pressed")
+text = "Main Menu"
 
-Want to ask a question, share your opinion, or insult the dev? 
-
-[color=gold]We'd love to see you on our Discord![/color]
-"
+[node name="TryAgainButton" type="Button" parent="LostPanel"]
+layout_mode = 0
+offset_left = 300.0
+offset_top = 490.0
+offset_right = 540.0
+offset_bottom = 548.0
+theme_override_colors/font_color = Color(0.933333, 0.709804, 0.164706, 1)
+theme_override_fonts/font = ExtResource("6_f3kgd")
+theme_override_font_sizes/font_size = 28
+theme_override_styles/normal = ExtResource("9_shbn")
+theme_override_styles/hover = ExtResource("10_shbh")
+theme_override_styles/pressed = ExtResource("11_shbp")
+text = "Try Again"
 
 [node name="JoinDiscordControl" type="Control" parent="LostPanel"]
-layout_mode = 3
-anchors_preset = 0
-offset_left = 333.0
-offset_top = 348.0
-offset_right = 757.0
-offset_bottom = 451.0
-size_flags_horizontal = 8
-size_flags_vertical = 0
+layout_mode = 0
+offset_left = 576.0
+offset_top = 490.0
+offset_right = 818.0
+offset_bottom = 548.0
 
 [node name="JoinDiscordOption" type="Panel" parent="LostPanel/JoinDiscordControl"]
 layout_mode = 1
@@ -190,36 +242,38 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_elckq")
+theme_override_styles/panel = SubResource("StyleBoxFlat_discord")
 
 [node name="JoinDiscordLabel" type="Label" parent="LostPanel/JoinDiscordControl/JoinDiscordOption"]
 layout_mode = 1
-anchors_preset = 14
-anchor_top = 0.5
+anchors_preset = 15
 anchor_right = 1.0
-anchor_bottom = 0.5
-offset_left = 23.0
-offset_top = -28.0
-offset_right = 23.0
-offset_bottom = 28.0
+anchor_bottom = 1.0
+offset_left = 12.0
+offset_right = -50.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.45)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 2
 theme_override_fonts/font = ExtResource("6_f3kgd")
-theme_override_font_sizes/font_size = 46
+theme_override_font_sizes/font_size = 23
 text = "Join Discord!"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="DiscordLogo" type="TextureRect" parent="LostPanel/JoinDiscordControl/JoinDiscordOption"]
-custom_minimum_size = Vector2(26, 26)
 layout_mode = 1
 anchors_preset = 6
 anchor_left = 1.0
 anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
-offset_left = -98.0
-offset_top = -35.5
-offset_right = -19.0
-offset_bottom = 40.5
+offset_left = -48.0
+offset_top = -17.0
+offset_right = -12.0
+offset_bottom = 17.0
 grow_horizontal = 0
 grow_vertical = 2
 texture = ExtResource("7_fgrpp")
@@ -233,9 +287,8 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/hover = SubResource("StyleBoxFlat_ymoyn")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_7bkcs")
-theme_override_styles/normal = SubResource("StyleBoxFlat_805a1")
+theme_override_styles/normal = SubResource("StyleBoxFlat_discord_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_discord_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_discord_btn_pressed")
 
-[connection signal="pressed" from="VBoxContainer/ContinueButton" to="." method="_on_continue_button_pressed"]
 [connection signal="pressed" from="LostPanel/JoinDiscordControl/JoinDiscordButton" to="." method="_on_join_discord_button_pressed"]

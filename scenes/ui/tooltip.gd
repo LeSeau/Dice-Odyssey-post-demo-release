@@ -63,7 +63,7 @@ func get_tooltip_content(requirement):
     elif requirement == "Boost":
         text += "Increases your Power after your next roll"
     elif requirement == "Throw":
-        text += "Rolls an extra Dice, separate from your own, that resolves moments later with its own result"
+        text += "Rolls a bonus Dice without using any of your own"
     elif requirement == "Support":
         text += "Cards that don't attack or block but instead manipulate Power"
     elif requirement == "REST":

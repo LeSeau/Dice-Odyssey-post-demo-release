@@ -1,11 +1,10 @@
-[gd_scene load_steps=26 format=3 uid="uid://c8jey0cxdu81o"]
+[gd_scene load_steps=31 format=3 uid="uid://c8jey0cxdu81o"]
 
 [ext_resource type="Script" path="res://scenes/battle_reward/battle_reward.gd" id="1_a043u"]
 [ext_resource type="Theme" uid="uid://c8cqncsqlplyu" path="res://main_theme.tres" id="1_q6qpk"]
 [ext_resource type="Texture2D" uid="uid://b6n22vtc7dr20" path="res://assets/backgrounds/20-2.jpg" id="2_deyfh"]
 [ext_resource type="FontFile" uid="uid://b1es4i7nr43mv" path="res://fonts/CinzelDecorative-Bold.otf" id="3_otbk4"]
 [ext_resource type="PackedScene" uid="uid://cx5xkggna3b7" path="res://scenes/ui/reward_button.tscn" id="4_64d8x"]
-[ext_resource type="StyleBox" uid="uid://dx1bqkh30y5r0" path="res://scenes/card_ui/card_pressed_stylebox.tres" id="5_l2flf"]
 [ext_resource type="Texture2D" uid="uid://dkru2p65j706x" path="res://assets/images/gold.png" id="5_y3r08"]
 [ext_resource type="AudioStream" uid="uid://bu8uvjhi41uik" path="res://success.mp3" id="7_62kpv"]
 [ext_resource type="Texture2D" uid="uid://dsoxpivfgbykx" path="res://card_cover_icon.png" id="8_hqcvj"]
@@ -17,6 +16,7 @@
 [ext_resource type="StyleBox" uid="uid://c8k2n5xr9j7wq" path="res://scenes/shop/shop_button_normal.tres" id="13_act2n"]
 [ext_resource type="StyleBox" uid="uid://dqm3v7x8k2n5w" path="res://scenes/shop/shop_button_hover.tres" id="14_act2h"]
 [ext_resource type="StyleBox" uid="uid://bx6v9n3k8q2wr" path="res://scenes/shop/shop_button_pressed.tres" id="15_act2p"]
+[ext_resource type="Script" path="res://scenes/ui/run_stats_panel.gd" id="16_rstat"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_l7wgc"]
 font = ExtResource("3_otbk4")
@@ -29,49 +29,110 @@ shadow_offset = Vector2(2, 2)
 
 [sub_resource type="Theme" id="Theme_chlki"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8ubid"]
-bg_color = Color(0.144787, 0.273985, 0.277578, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ggpanel"]
+bg_color = Color(0.129412, 0.164706, 0.243137, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
+border_color = Color(0.788235, 0.635294, 0.152941, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+shadow_color = Color(0, 0, 0, 0.55)
+shadow_size = 14
+shadow_offset = Vector2(0, 5)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8m67b"]
-bg_color = Color(0, 0.705882, 0.105882, 1)
+[sub_resource type="LabelSettings" id="LabelSettings_ggtitle"]
+font = ExtResource("3_otbk4")
+font_size = 42
+font_color = Color(0.933333, 0.709804, 0.164706, 1)
+outline_size = 6
+outline_color = Color(0.0901961, 0.0627451, 0.0196078, 1)
+shadow_size = 4
+shadow_color = Color(0, 0, 0, 0.6)
+shadow_offset = Vector2(2, 3)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_socmn"]
-bg_color = Color(0.246036, 0.403102, 0.363782, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0, 0, 0, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ggart"]
+bg_color = Color(0.0509804, 0.0627451, 0.0980392, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.788235, 0.635294, 0.152941, 0.55)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_82g21"]
-bg_color = Color(0.6, 0.6, 0.6, 0)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_discord"]
+bg_color = Color(0.345098, 0.396078, 0.94902, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(1, 1, 0.227451, 1)
+border_color = Color(0.192157, 0.223529, 0.611765, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0, 0, 0.35)
+shadow_size = 5
+shadow_offset = Vector2(0, 3)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_discord_btn_normal"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_discord_btn_hover"]
+bg_color = Color(1, 1, 1, 0.09)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 1, 1, 0.9)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_discord_btn_pressed"]
+bg_color = Color(0, 0, 0, 0.14)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_menu_normal"]
+bg_color = Color(0, 0, 0, 0.25)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.6, 0.55, 0.45, 0.5)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sgx8g"]
-bg_color = Color(0.6, 0.6, 0.6, 0)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_menu_hover"]
+bg_color = Color(0, 0, 0, 0.35)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.788235, 0.635294, 0.152941, 0.9)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_j1kkp"]
-bg_color = Color(0.6, 0.6, 0.6, 0)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_menu_pressed"]
+bg_color = Color(0, 0, 0, 0.45)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
 [node name="BattleReward" type="Control"]
 layout_mode = 3
@@ -118,18 +179,19 @@ offset_right = 275.0
 offset_bottom = 278.0
 grow_horizontal = 2
 grow_vertical = 2
+alignment = 1
+theme_override_constants/separation = 16
 
 [node name="Label" type="Label" parent="VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 4
-text = "Rewards
-"
+text = "Rewards"
 label_settings = SubResource("LabelSettings_l7wgc")
 
 [node name="RewardContainer" type="PanelContainer" parent="VBoxContainer"]
 custom_minimum_size = Vector2(550, 300)
 layout_mode = 2
-theme_override_styles/panel = ExtResource("5_l2flf")
+theme_override_styles/panel = SubResource("StyleBoxFlat_ggpanel")
 
 [node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/RewardContainer"]
 layout_mode = 2
@@ -141,7 +203,7 @@ theme_override_constants/margin_bottom = 25
 [node name="Rewards" type="VBoxContainer" parent="VBoxContainer/RewardContainer/MarginContainer"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 8
 
 [node name="GoldRewardButton" parent="VBoxContainer/RewardContainer/MarginContainer/Rewards" instance=ExtResource("4_64d8x")]
 layout_mode = 2
@@ -155,9 +217,15 @@ reward_icon = ExtResource("8_hqcvj")
 reward_text = "Add New Card"
 
 [node name="BackButton" type="Button" parent="VBoxContainer"]
-custom_minimum_size = Vector2(60, 15)
+custom_minimum_size = Vector2(230, 54)
 layout_mode = 2
 size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0.933333, 0.709804, 0.164706, 1)
+theme_override_fonts/font = ExtResource("11_nmt2g")
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = ExtResource("13_act2n")
+theme_override_styles/hover = ExtResource("14_act2h")
+theme_override_styles/pressed = ExtResource("15_act2p")
 text = "Continue"
 
 [node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
@@ -170,7 +238,7 @@ offset_left = 313.0
 offset_top = 140.0
 offset_right = 998.0
 offset_bottom = 557.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_8ubid")
+theme_override_styles/panel = SubResource("StyleBoxFlat_ggpanel")
 
 [node name="TextureRect" type="TextureRect" parent="WarningPanel"]
 layout_mode = 1
@@ -199,6 +267,12 @@ offset_right = 2.0
 offset_bottom = 17.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_colors/font_color = Color(0.92549, 0.890196, 0.815686, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.5)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 2
+theme_override_fonts/font = ExtResource("9_4s5dy")
+theme_override_font_sizes/font_size = 20
 text = "You still have rewards to claim! "
 horizontal_alignment = 1
 
@@ -210,81 +284,91 @@ anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
 offset_left = -181.0
-offset_top = -69.0
+offset_top = -75.0
 offset_right = 181.0
 offset_bottom = -21.0
 grow_horizontal = 2
 grow_vertical = 0
+theme_override_colors/font_color = Color(0.933333, 0.709804, 0.164706, 1)
+theme_override_fonts/font = ExtResource("11_nmt2g")
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = ExtResource("13_act2n")
+theme_override_styles/hover = ExtResource("14_act2h")
+theme_override_styles/pressed = ExtResource("15_act2p")
 text = "I know what I'm doing"
 
 [node name="GGPanel" type="Panel" parent="."]
 visible = false
 layout_mode = 0
-offset_left = 230.0
-offset_top = 111.0
-offset_right = 1085.0
-offset_bottom = 625.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_8ubid")
-
-[node name="GGTexture" type="TextureRect" parent="GGPanel"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -360.5
-offset_top = -180.0
-offset_right = -127.5
-offset_bottom = 125.0
-grow_horizontal = 2
-grow_vertical = 2
-texture = ExtResource("9_7bn3q")
-expand_mode = 1
+offset_left = 213.0
+offset_top = 85.0
+offset_right = 1068.0
+offset_bottom = 635.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_ggpanel")
 
 [node name="GGLabelTitle" type="Label" parent="GGPanel"]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_top = 22.0
-offset_bottom = 54.0
+offset_top = 16.0
+offset_bottom = 72.0
 grow_horizontal = 2
-theme_override_colors/font_color = Color(1, 1, 0.227451, 1)
-theme_override_styles/normal = SubResource("StyleBoxFlat_8m67b")
-text = "Congratulations!"
+text = "Dungeon Conquered!"
+label_settings = SubResource("LabelSettings_ggtitle")
 horizontal_alignment = 1
 
 [node name="GGLabelText" type="RichTextLabel" parent="GGPanel"]
+layout_mode = 0
+offset_left = 90.0
+offset_top = 74.0
+offset_right = 765.0
+offset_bottom = 184.0
+theme_override_colors/default_color = Color(0.92549, 0.890196, 0.815686, 1)
+theme_override_fonts/normal_font = ExtResource("9_4s5dy")
+theme_override_font_sizes/normal_font_size = 15
+bbcode_enabled = true
+scroll_active = false
+text = "[center][color=#f2a7c3]The Dicelord has fallen![/color] You conquered every floor of the dungeon — a legendary run.
+
+This is where the adventure ends... [color=#f0c040]for now[/color]. Dice Odyssey's official release is being forged as we speak. [color=#98a7ff]Join the Discord to follow the journey![/color][/center]"
+
+[node name="ArtFrame" type="Panel" parent="GGPanel"]
+layout_mode = 0
+offset_left = 36.0
+offset_top = 186.0
+offset_right = 268.0
+offset_bottom = 472.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_ggart")
+
+[node name="GGTexture" type="TextureRect" parent="GGPanel/ArtFrame"]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -115.5
-offset_top = -182.0
-offset_right = 395.5
-offset_bottom = 223.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 3.0
+offset_top = 3.0
+offset_right = -3.0
+offset_bottom = -3.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_fonts/normal_font = ExtResource("9_4s5dy")
-bbcode_enabled = true
-text = "[color=pink]Looks like you know how to roll Dice![/color] Thanks for playing Dice Odyssey! 
+texture = ExtResource("9_7bn3q")
+expand_mode = 1
+stretch_mode = 5
 
-We're super excited to hear your opinion and keep on improving the game. 
-
-[color=gold]We'd love to see you on our Discord![/color]
-"
+[node name="GGRunStats" type="PanelContainer" parent="GGPanel"]
+layout_mode = 0
+offset_left = 298.0
+offset_top = 186.0
+offset_right = 819.0
+offset_bottom = 472.0
+script = ExtResource("16_rstat")
 
 [node name="JoinDiscordControl" type="Control" parent="GGPanel"]
-layout_mode = 3
-anchors_preset = 0
-offset_left = 333.0
-offset_top = 348.0
-offset_right = 757.0
-offset_bottom = 451.0
-size_flags_horizontal = 8
-size_flags_vertical = 0
+layout_mode = 0
+offset_left = 120.0
+offset_top = 490.0
+offset_right = 440.0
+offset_bottom = 548.0
 
 [node name="JoinDiscordOption" type="Panel" parent="GGPanel/JoinDiscordControl"]
 layout_mode = 1
@@ -293,36 +377,38 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_socmn")
+theme_override_styles/panel = SubResource("StyleBoxFlat_discord")
 
 [node name="JoinDiscordLabel" type="Label" parent="GGPanel/JoinDiscordControl/JoinDiscordOption"]
 layout_mode = 1
-anchors_preset = 14
-anchor_top = 0.5
+anchors_preset = 15
 anchor_right = 1.0
-anchor_bottom = 0.5
-offset_left = 23.0
-offset_top = -28.0
-offset_right = 23.0
-offset_bottom = 28.0
+anchor_bottom = 1.0
+offset_left = 12.0
+offset_right = -54.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.45)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 2
 theme_override_fonts/font = ExtResource("11_nmt2g")
-theme_override_font_sizes/font_size = 46
+theme_override_font_sizes/font_size = 25
 text = "Join Discord!"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="DiscordLogo" type="TextureRect" parent="GGPanel/JoinDiscordControl/JoinDiscordOption"]
-custom_minimum_size = Vector2(26, 26)
 layout_mode = 1
 anchors_preset = 6
 anchor_left = 1.0
 anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
-offset_left = -98.0
-offset_top = -35.5
-offset_right = -19.0
-offset_bottom = 40.5
+offset_left = -50.0
+offset_top = -18.0
+offset_right = -12.0
+offset_bottom = 18.0
 grow_horizontal = 0
 grow_vertical = 2
 texture = ExtResource("12_gb0mm")
@@ -336,24 +422,40 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/hover = SubResource("StyleBoxFlat_82g21")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_sgx8g")
-theme_override_styles/normal = SubResource("StyleBoxFlat_j1kkp")
+theme_override_styles/normal = SubResource("StyleBoxFlat_discord_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_discord_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_discord_btn_pressed")
 
 [node name="ContinueAct2Button" type="Button" parent="GGPanel"]
 visible = false
 layout_mode = 0
-offset_left = 333.0
-offset_top = 348.0
-offset_right = 757.0
-offset_bottom = 451.0
+offset_left = 480.0
+offset_top = 490.0
+offset_right = 820.0
+offset_bottom = 548.0
 theme_override_colors/font_color = Color(0.933333, 0.709804, 0.164706, 1)
 theme_override_fonts/font = ExtResource("11_nmt2g")
-theme_override_font_sizes/font_size = 40
+theme_override_font_sizes/font_size = 30
 theme_override_styles/normal = ExtResource("13_act2n")
 theme_override_styles/hover = ExtResource("14_act2h")
 theme_override_styles/pressed = ExtResource("15_act2p")
 text = "Continue to Act 2"
+
+[node name="GGMainMenuButton" type="Button" parent="GGPanel"]
+visible = false
+layout_mode = 0
+offset_left = 540.0
+offset_top = 496.0
+offset_right = 780.0
+offset_bottom = 542.0
+theme_override_colors/font_color = Color(0.85, 0.81, 0.72, 1)
+theme_override_colors/font_hover_color = Color(0.988235, 0.933333, 0.843137, 1)
+theme_override_fonts/font = ExtResource("9_4s5dy")
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_menu_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_menu_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_menu_pressed")
+text = "Main Menu"
 
 [connection signal="pressed" from="VBoxContainer/BackButton" to="." method="_on_back_button_pressed"]
 [connection signal="pressed" from="WarningPanel/ConfirmButton" to="." method="_on_confirm_button_pressed"]

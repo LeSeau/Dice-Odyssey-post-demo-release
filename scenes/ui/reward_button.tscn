@@ -1,33 +1,58 @@
-[gd_scene load_steps=7 format=3 uid="uid://cx5xkggna3b7"]
+[gd_scene load_steps=8 format=3 uid="uid://cx5xkggna3b7"]
 
 [ext_resource type="Script" path="res://scenes/ui/reward_button.gd" id="1_vy02q"]
 [ext_resource type="Texture2D" uid="uid://clibtud31k586" path="res://coin_gold_icon_v2.png" id="2_vqh4b"]
+[ext_resource type="FontFile" uid="uid://bm3deysyi2y55" path="res://Belwe Bold/Belwe Bold.otf" id="3_belwe"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_u4jpg"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_c56ci"]
-content_margin_left = 0.0
-content_margin_top = 0.0
-content_margin_right = 0.0
-content_margin_bottom = 0.0
-bg_color = Color(0.550051, 0.449542, 0.379628, 0.6)
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_right = 3
-corner_radius_bottom_left = 3
-corner_detail = 5
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_reward_normal"]
+bg_color = Color(1, 1, 1, 0.055)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.788235, 0.635294, 0.152941, 0.35)
+corner_radius_top_left = 9
+corner_radius_top_right = 9
+corner_radius_bottom_right = 9
+corner_radius_bottom_left = 9
 
-[sub_resource type="Theme" id="Theme_v5dyl"]
-Panel/styles/panel = SubResource("StyleBoxFlat_c56ci")
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_reward_hover"]
+bg_color = Color(1, 1, 1, 0.1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.941176, 0.752941, 0.25098, 0.95)
+corner_radius_top_left = 9
+corner_radius_top_right = 9
+corner_radius_bottom_right = 9
+corner_radius_bottom_left = 9
+shadow_color = Color(0.941176, 0.752941, 0.25098, 0.2)
+shadow_size = 6
 
-[sub_resource type="Theme" id="Theme_87rbf"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_reward_pressed"]
+bg_color = Color(0, 0, 0, 0.28)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.788235, 0.635294, 0.152941, 0.55)
+corner_radius_top_left = 9
+corner_radius_top_right = 9
+corner_radius_bottom_right = 9
+corner_radius_bottom_left = 9
 
 [node name="RewardButton" type="Button"]
 material = SubResource("ShaderMaterial_u4jpg")
 custom_minimum_size = Vector2(0, 70)
 offset_right = 375.0
 offset_bottom = 70.0
-theme = SubResource("Theme_v5dyl")
+theme_override_styles/normal = SubResource("StyleBoxFlat_reward_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_reward_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_reward_pressed")
+theme_override_styles/focus = SubResource("StyleBoxFlat_reward_normal")
 script = ExtResource("1_vy02q")
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
@@ -45,12 +70,11 @@ theme_override_constants/margin_bottom = 10
 [node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer"]
 layout_mode = 2
 size_flags_vertical = 4
-theme = SubResource("Theme_87rbf")
-theme_override_constants/separation = 10
+theme_override_constants/separation = 14
 
 [node name="CustomIcon" type="TextureRect" parent="MarginContainer/HBoxContainer"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(60, 60)
+custom_minimum_size = Vector2(54, 54)
 layout_mode = 2
 texture = ExtResource("2_vqh4b")
 expand_mode = 1
@@ -60,6 +84,12 @@ stretch_mode = 5
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 1
+theme_override_colors/font_color = Color(0.92549, 0.890196, 0.815686, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.5)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 2
+theme_override_fonts/font = ExtResource("3_belwe")
+theme_override_font_sizes/font_size = 22
 text = "99 Gold"
 vertical_alignment = 1
 

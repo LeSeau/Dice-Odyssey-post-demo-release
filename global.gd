@@ -14,9 +14,13 @@ const CURSOR_HOTSPOT := Vector2(3, 1)
 
 # Thrown-dice cards (Meteor, Fastball, Cursed Toss...): one shared flight time so the card
 # scripts (which schedule the damage landing, Card._land_thrown_die) and dice.gd (which
-# animates the throw on Events.dice_thrown) stay in sync. STAGGER spaces multi-die volleys.
-const DICE_THROW_FLIGHT_TIME := 0.55
-const DICE_THROW_STAGGER := 0.12
+# animates the throw on Events.dice_thrown) stay in sync. FLIGHT_TIME is the TOTAL time
+# from emit to landing - dice.gd carves WINDUP_TIME out of it for the pop-out/hang
+# anticipation beat, the rest is the actual arc. Cards never need to know about the split;
+# they schedule at FLIGHT_TIME (+ STAGGER per extra die) and stay synced automatically.
+const DICE_THROW_WINDUP_TIME := 0.32
+const DICE_THROW_FLIGHT_TIME := 0.95
+const DICE_THROW_STAGGER := 0.15
 # Double or Nothing: how long the coin spins before the outcome resolves (damage or nothing).
 const COIN_FLIP_TIME := 0.6
 
@@ -119,6 +123,19 @@ var has_blocked_last_turn = false
 # Run-scoped counter for the "They see me rollin" achievement (20 Blue rolls in one run).
 # Incremented by AchievementManager on Events.dice_rolled; saved/restored by run.gd.
 var blue_dice_rolled_this_run = 0
+
+# Run-lifetime stats shown on the end-of-run screens (Game Over panel + the boss GG
+# panels), rendered by scenes/ui/run_stats_panel.gd. Incremented at the same choke
+# points the achievements already use (dice.gd roll apply, damage_effect.gd,
+# card.gd::play, enemy.gd death, run.gd floor label). Reset in reset_run_state(),
+# saved/restored by run.gd ("run_screen_stats" key in the save dict).
+var run_stat_dice_rolled := 0
+var run_stat_power_generated := 0
+var run_stat_biggest_hit := 0
+var run_stat_damage_taken := 0
+var run_stat_cards_played := 0
+var run_stat_enemies_slain := 0
+var run_stat_highest_floor := 1
 
 # Relic-driven passive modifiers (set on initialize_relic, reset on deactivate_relic,
 # same lifecycle as any other per-battle relic effect):
@@ -274,6 +291,13 @@ func reset_run_state() -> void:
     lose_strength_next_turn = 0
     has_blocked_last_turn = false
     blue_dice_rolled_this_run = 0
+    run_stat_dice_rolled = 0
+    run_stat_power_generated = 0
+    run_stat_biggest_hit = 0
+    run_stat_damage_taken = 0
+    run_stat_cards_played = 0
+    run_stat_enemies_slain = 0
+    run_stat_highest_floor = 1
     has_rolled_6_this_turn = false
     has_rolled_1_this_fight = false
     hound_debuff_attack_done = false

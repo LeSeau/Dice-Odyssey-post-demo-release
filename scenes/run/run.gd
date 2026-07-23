@@ -261,7 +261,11 @@ func _start_run() -> void:
 func _update_floor_label() -> void:
     var floor_in_act := mini(map.floors_climbed + 1, MapGenerator.FLOORS)
     var completed_acts_offset := (Global.current_act - 1) * MapGenerator.FLOORS
-    floor_label.text = "Floor: %d" % (completed_acts_offset + floor_in_act)
+    var current_floor := completed_acts_offset + floor_in_act
+    floor_label.text = "Floor: %d" % current_floor
+    # End-of-run screens stat: deepest floor the run has reached (maxi keeps it
+    # monotonic - re-showing the map can only re-show a floor, never un-reach it).
+    Global.run_stat_highest_floor = maxi(Global.run_stat_highest_floor, current_floor)
 
 
 
@@ -993,6 +997,15 @@ func _save_checkpoint() -> void:
         "shop_dice_selection": Global.shop_dice_selection.duplicate(),
         "cheapest_dice_price": Global.cheapest_dice_price,
         "blue_rolls_this_run": Global.blue_dice_rolled_this_run,
+        "run_screen_stats": {
+            "dice_rolled": Global.run_stat_dice_rolled,
+            "power_generated": Global.run_stat_power_generated,
+            "biggest_hit": Global.run_stat_biggest_hit,
+            "damage_taken": Global.run_stat_damage_taken,
+            "cards_played": Global.run_stat_cards_played,
+            "enemies_slain": Global.run_stat_enemies_slain,
+            "highest_floor": Global.run_stat_highest_floor,
+        },
         "tutorials": tutorials_out,
         "used_battles": used_battles_out,
         "event_pool_remaining": event_pool_out,
@@ -1040,6 +1053,16 @@ func _load_run() -> void:
     Global.cheapest_dice_price = data["cheapest_dice_price"]
     # .get with default: saves written before the achievement system lack the key.
     Global.blue_dice_rolled_this_run = data.get("blue_rolls_this_run", 0)
+
+    # .get with defaults: saves written before the end-screen stats (2026-07-21) lack the key.
+    var screen_stats: Dictionary = data.get("run_screen_stats", {})
+    Global.run_stat_dice_rolled = screen_stats.get("dice_rolled", 0)
+    Global.run_stat_power_generated = screen_stats.get("power_generated", 0)
+    Global.run_stat_biggest_hit = screen_stats.get("biggest_hit", 0)
+    Global.run_stat_damage_taken = screen_stats.get("damage_taken", 0)
+    Global.run_stat_cards_played = screen_stats.get("cards_played", 0)
+    Global.run_stat_enemies_slain = screen_stats.get("enemies_slain", 0)
+    Global.run_stat_highest_floor = screen_stats.get("highest_floor", 1)
 
     for flag: String in SAVED_TUTORIAL_FLAGS:
         if data["tutorials"].has(flag):

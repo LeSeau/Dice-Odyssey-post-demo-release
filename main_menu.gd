@@ -3,7 +3,8 @@ extends Control
 @onready var enable_tutorial_panel: Panel = $EnableTutorialPanel
 @onready var load_run_button: Button = $LoadRun
 @onready var load_run_confirm_panel: Panel = $LoadRunConfirmPanel
-@onready var load_run_confirm_info: Label = $LoadRunConfirmPanel/InfoLabel
+@onready var load_run_confirm_subtitle: Label = $LoadRunConfirmPanel/SubtitleLabel
+@onready var load_run_stats: PanelContainer = $LoadRunConfirmPanel/RunStats
 @onready var settings_button: TextureButton = %SettingsButton
 @onready var settings_button_hover_glow: Panel = get_node("%SettingsButton/SettingsHoverGlow")
 @onready var pause_menu: PauseMenu = %PauseMenu
@@ -32,25 +33,44 @@ func _on_load_run_pressed() -> void:
         _start_load_run()
         return
     _populate_load_confirm_panel(data)
-    load_run_confirm_panel.show()
+    _show_load_confirm_panel()
 
 
 func _populate_load_confirm_panel(data: Dictionary) -> void:
+    var act: int = data.get("act", 1)
     var floors_climbed: int = data.get("map", {}).get("floors_climbed", 0)
-    var floor_num: int = mini(floors_climbed + 1, MapGenerator.FLOORS)
+    var floor_in_act: int = mini(floors_climbed + 1, MapGenerator.FLOORS)
+    # Same act-offset numbering as the top bar's Floor label (act 2 continues the
+    # count instead of restarting at 1).
+    var global_floor: int = (act - 1) * MapGenerator.FLOORS + floor_in_act
     var total_dice := 0
     for amount: int in data.get("dice_max", {}).values():
         total_dice += amount
-    load_run_confirm_info.text = "Floor %d • Act %d\nGold: %d • HP: %d/%d\nDeck: %d cards • Relics: %d • Dice: %d" % [
-        floor_num,
-        data.get("act", 1),
-        data.get("gold", 0),
-        data.get("health", 0),
-        data.get("max_health", 0),
-        data.get("deck", []).size(),
-        data.get("relics", []).size(),
-        total_dice,
-    ]
+
+    load_run_confirm_subtitle.text = "Act %d  ·  Floor %d" % [act, global_floor]
+    load_run_stats.build_rows([
+        {"label": "Gold", "icon": "res://gold_icon_v2.png", "value": int(data.get("gold", 0))},
+        {"label": "Health", "icon": "res://assets/images/heart.png", "text": "%d / %d" % [int(data.get("health", 0)), int(data.get("max_health", 0))]},
+        {"label": "Cards in Deck", "icon": "res://card_cover_icon.png", "value": data.get("deck", []).size()},
+        {"label": "Relics", "icon": "res://crown.png", "value": data.get("relics", []).size()},
+        {"label": "Dice Owned", "icon": "res://assets/images/blue6.png", "value": total_dice},
+    ])
+
+
+const LOAD_PANEL_ENTRANCE_TIME := 0.3
+const LOAD_PANEL_STATS_DELAY := 0.15
+
+# Same settle-in pop + staggered scoreboard reveal beat as the end-of-run screens.
+func _show_load_confirm_panel() -> void:
+    load_run_confirm_panel.show()
+    load_run_confirm_panel.pivot_offset = load_run_confirm_panel.size / 2.0
+    load_run_confirm_panel.modulate.a = 0.0
+    load_run_confirm_panel.scale = Vector2(0.94, 0.94)
+    var tween := create_tween()
+    tween.tween_property(load_run_confirm_panel, "modulate:a", 1.0, LOAD_PANEL_ENTRANCE_TIME).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+    tween.parallel().tween_property(load_run_confirm_panel, "scale", Vector2.ONE, LOAD_PANEL_ENTRANCE_TIME).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+    tween.tween_interval(LOAD_PANEL_STATS_DELAY)
+    tween.tween_callback(load_run_stats.animate_in)
 
 
 func _on_confirm_load_pressed() -> void:
@@ -97,6 +117,10 @@ func _on_start_without_tutorial_pressed() -> void:
     SFXPlayer.play(new_run_sound)
     await get_tree().create_timer(new_run_sound.get_length()).timeout
     get_tree().change_scene_to_packed(RUN_SCENE)
+
+
+func _on_discord_button_pressed() -> void:
+    OS.shell_open("https://discord.gg/fah8A2qQx2")
 
 
 func _on_settings_button_pressed() -> void:

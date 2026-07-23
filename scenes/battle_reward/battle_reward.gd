@@ -20,7 +20,7 @@ const ELITE_RARE_MULT := 4.0
 const CARD_REWARDS = preload("res://scenes/ui/card_rewards.tscn")
 const REWARD_BUTTON = preload("res://scenes/ui/reward_button.tscn")
 const GOLD_ICON := preload("res://gold_icon_v2.png")
-const GOLD_TEXT := "%s gold"
+const GOLD_TEXT := "%s Gold"
 const CARD_ICON := preload("res://card_cover_ok.png")
 const CARD_TEXT := "Add New Card"
 
@@ -58,6 +58,8 @@ var warning_dismissed := false
 @onready var gg_label_text: RichTextLabel = $GGPanel/GGLabelText
 @onready var join_discord_control: Control = $GGPanel/JoinDiscordControl
 @onready var continue_act_2_button: Button = $GGPanel/ContinueAct2Button
+@onready var gg_run_stats: PanelContainer = $GGPanel/GGRunStats
+@onready var gg_main_menu_button: Button = $GGPanel/GGMainMenuButton
 
 
 var card_reward_total_weight := 0.0
@@ -85,12 +87,17 @@ func _ready() -> void:
     audio_player.stream = load("res://success.mp3")
     audio_player.play()
     # Show GG panel if a boss was defeated: after the act-1 boss it becomes the
-    # act-transition panel (retitled + Continue button), after the act-2 boss it
-    # stays the original final "thanks for playing" panel from the .tscn.
+    # act-transition panel (retitled + Continue to Act 2 button), after the act-2
+    # boss it stays the final "run complete" panel authored in the .tscn (plus the
+    # Main Menu button, hidden by default). Both variants share the run-stats
+    # scoreboard and the Discord CTA.
     if Global.is_final_boss_fight:
         if Global.current_act == 1:
             _setup_act_transition_panel()
-        gg_panel.show()
+        else:
+            gg_main_menu_button.show()
+        gg_main_menu_button.pressed.connect(_on_gg_main_menu_button_pressed)
+        _show_gg_panel()
         Global.is_final_boss_fight = false
     else:
         gg_panel.hide()
@@ -422,23 +429,45 @@ func _on_join_discord_button_pressed() -> void:
     OS.shell_open("https://discord.gg/fah8A2qQx2")
 
 
-# Act-1-complete variant of the GG panel: same panel, retitled, Discord control
-# swapped out for the Continue button. The actual act switch is armed in run.gd
-# (_on_battle_won) and fires on the next return to the map - this button only
-# dismisses the panel, so the boss gold/card rewards underneath can still be
-# collected before leaving.
+const GG_ENTRANCE_TIME := 0.34
+const GG_STATS_REVEAL_DELAY := 0.25
+
+# Settle-in pop for the GG panel, then hand off to the run-stats scoreboard's own
+# staggered reveal (same beat structure as the Game Over screen).
+func _show_gg_panel() -> void:
+    gg_panel.show()
+    gg_panel.pivot_offset = gg_panel.size / 2.0
+    gg_panel.modulate.a = 0.0
+    gg_panel.scale = Vector2(0.93, 0.93)
+    var tween := create_tween()
+    tween.tween_property(gg_panel, "modulate:a", 1.0, GG_ENTRANCE_TIME).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+    tween.parallel().tween_property(gg_panel, "scale", Vector2.ONE, GG_ENTRANCE_TIME).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+    tween.tween_interval(GG_STATS_REVEAL_DELAY)
+    tween.tween_callback(gg_run_stats.animate_in)
+
+
+# Act-1-complete variant of the GG panel: retitled, act-2 "early preview" notice,
+# and the Continue button next to the (always-visible) Discord CTA. The actual act
+# switch is armed in run.gd (_on_battle_won) and fires on the next return to the
+# map - this button only dismisses the panel, so the boss gold/card rewards
+# underneath can still be collected before leaving.
 func _setup_act_transition_panel() -> void:
     gg_label_title.text = "Act 1 Complete!"
-    gg_label_text.text = "[color=pink]Looks like you know how to roll Dice![/color] But the dungeon runs deeper...
+    gg_label_text.text = """[center][color=#f2a7c3]Well rolled, adventurer![/color] But the dungeon runs deeper — and the dice grow stranger. [color=#f0c040]You will be fully healed upon entering Act 2.[/color]
 
-Gather your rewards, then continue when you're ready.
-
-[color=gold]You will be fully healed upon entering Act 2.[/color]
-"
-    join_discord_control.hide()
+Act 2 is an [color=#f0c040]early preview[/color]: most of it will be properly reworked for the official launch of Dice Odyssey. [color=#98a7ff]To stay up to date, join the Discord![/color][/center]"""
     continue_act_2_button.show()
+    gg_main_menu_button.hide()
 
 
 func _on_continue_act_2_button_pressed() -> void:
     SFXPlayer.play(Global.sfx_click)
     gg_panel.hide()
+
+
+func _on_gg_main_menu_button_pressed() -> void:
+    # Same recipe as the pause menu's quit: the music autoloads survive the scene
+    # change, so without these the run's music would keep looping under the menu.
+    MusicPlayer.stop()
+    SFXPlayer.stop()
+    get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")

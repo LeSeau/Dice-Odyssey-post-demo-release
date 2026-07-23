@@ -167,6 +167,7 @@ func _get_targets(targets: Array[Node]) -> Array[Node]:
 func play(targets: Array[Node], char_stats: CharacterStats, modifiers: ModifierHandler) -> void:
 
     Global.cards_played_this_turn+=1
+    Global.run_stat_cards_played += 1
     Events.card_played.emit(self)
     Events.check_ink_status.emit()
 

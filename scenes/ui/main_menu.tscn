@@ -1,10 +1,18 @@
-[gd_scene load_steps=19 format=3 uid="uid://btktlydklchb4"]
+[gd_scene load_steps=36 format=3 uid="uid://btktlydklchb4"]
 
 [ext_resource type="Script" path="res://main_menu.gd" id="1_vi5tj"]
 [ext_resource type="Texture2D" uid="uid://crd5hg4i57lek" path="res://main_menu_v4.png" id="2_2uw4g"]
 [ext_resource type="FontFile" uid="uid://c4mfyi0ta8qeq" path="res://fonts/MinionPro-Semibold.otf" id="3_lj8do"]
 [ext_resource type="Texture2D" uid="uid://bbhk8pdh4refe" path="res://assets/images/pause_menu_icon.png" id="4_gearicon"]
 [ext_resource type="PackedScene" uid="uid://c2mvqx4n1p0a1" path="res://scenes/ui/pause_menu.tscn" id="5_pausemenu"]
+[ext_resource type="FontFile" uid="uid://b1es4i7nr43mv" path="res://fonts/CinzelDecorative-Bold.otf" id="6_cinzd"]
+[ext_resource type="FontFile" uid="uid://bfgwr7o37ol1j" path="res://Noto_Sans/static/NotoSans-Regular.ttf" id="7_notos"]
+[ext_resource type="FontFile" uid="uid://bm3deysyi2y55" path="res://Belwe Bold/Belwe Bold.otf" id="8_belwe"]
+[ext_resource type="Script" path="res://scenes/ui/run_stats_panel.gd" id="9_rstat"]
+[ext_resource type="StyleBox" path="res://scenes/shop/shop_button_normal.tres" id="10_shbn"]
+[ext_resource type="StyleBox" path="res://scenes/shop/shop_button_hover.tres" id="11_shbh"]
+[ext_resource type="StyleBox" path="res://scenes/shop/shop_button_pressed.tres" id="12_shbp"]
+[ext_resource type="Texture2D" uid="uid://c6w3p47gbm7w4" path="res://discordlogo.png" id="13_discord"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_settings_hover_glow"]
 bg_color = Color(1, 1, 1, 0)
@@ -17,6 +25,43 @@ corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_discord_panel"]
+bg_color = Color(0.345098, 0.396078, 0.94902, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.192157, 0.223529, 0.611765, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0, 0, 0.35)
+shadow_size = 5
+shadow_offset = Vector2(0, 3)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_discord_btn_hover"]
+bg_color = Color(1, 1, 1, 0.09)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 1, 1, 0.9)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_discord_btn_pressed"]
+bg_color = Color(0, 0, 0, 0.14)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_discord_btn_normal"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_menu_btn_hover"]
 bg_color = Color(0.423529, 0.0862745, 0.164706, 1)
@@ -163,6 +208,62 @@ corner_radius_top_right = 14
 corner_radius_bottom_right = 14
 corner_radius_bottom_left = 14
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_loadpanel"]
+bg_color = Color(0.129412, 0.164706, 0.243137, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.788235, 0.635294, 0.152941, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+shadow_color = Color(0, 0, 0, 0.55)
+shadow_size = 14
+shadow_offset = Vector2(0, 5)
+
+[sub_resource type="LabelSettings" id="LabelSettings_loadtitle"]
+font = ExtResource("6_cinzd")
+font_size = 30
+font_color = Color(0.933333, 0.709804, 0.164706, 1)
+outline_size = 5
+outline_color = Color(0.0901961, 0.0627451, 0.0196078, 1)
+shadow_size = 3
+shadow_color = Color(0, 0, 0, 0.6)
+shadow_offset = Vector2(2, 2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_loadmenu_hover"]
+bg_color = Color(0, 0, 0, 0.35)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.788235, 0.635294, 0.152941, 0.9)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_loadmenu_pressed"]
+bg_color = Color(0, 0, 0, 0.45)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_loadmenu_normal"]
+bg_color = Color(0, 0, 0, 0.25)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.6, 0.55, 0.45, 0.5)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
 [node name="MainMenu" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -209,6 +310,69 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_settings_hover_glow")
+
+[node name="JoinDiscordControl" type="Control" parent="."]
+anchors_preset = 0
+offset_left = 978.0
+offset_top = 24.0
+offset_right = 1178.0
+offset_bottom = 72.0
+
+[node name="JoinDiscordOption" type="Panel" parent="JoinDiscordControl"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_discord_panel")
+
+[node name="JoinDiscordLabel" type="Label" parent="JoinDiscordControl/JoinDiscordOption"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_right = -46.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.45)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 2
+theme_override_fonts/font = ExtResource("8_belwe")
+theme_override_font_sizes/font_size = 20
+text = "Join Discord!"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="DiscordLogo" type="TextureRect" parent="JoinDiscordControl/JoinDiscordOption"]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -44.0
+offset_top = -16.0
+offset_right = -12.0
+offset_bottom = 16.0
+grow_horizontal = 0
+grow_vertical = 2
+texture = ExtResource("13_discord")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="JoinDiscordButton" type="Button" parent="JoinDiscordControl"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/hover = SubResource("StyleBoxFlat_discord_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_discord_btn_pressed")
+theme_override_styles/normal = SubResource("StyleBoxFlat_discord_btn_normal")
 
 [node name="PauseMenu" parent="." instance=ExtResource("5_pausemenu")]
 unique_name_in_owner = true
@@ -340,59 +504,74 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -320.0
-offset_top = -160.0
+offset_top = -210.0
 offset_right = 320.0
-offset_bottom = 160.0
+offset_bottom = 210.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_1ahky")
+theme_override_styles/panel = SubResource("StyleBoxFlat_loadpanel")
 
 [node name="Label" type="Label" parent="LoadRunConfirmPanel"]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_top = 20.0
-offset_bottom = 52.0
+offset_top = 16.0
+offset_bottom = 58.0
 grow_horizontal = 2
-text = "Continue this run?"
-label_settings = SubResource("LabelSettings_5kukv")
+text = "Continue Your Odyssey?"
+label_settings = SubResource("LabelSettings_loadtitle")
 horizontal_alignment = 1
 
-[node name="InfoLabel" type="Label" parent="LoadRunConfirmPanel"]
+[node name="SubtitleLabel" type="Label" parent="LoadRunConfirmPanel"]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_top = 90.0
-offset_bottom = 200.0
+offset_top = 60.0
+offset_bottom = 88.0
 grow_horizontal = 2
-text = "Floor 1 • Act 1
-Gold: 0 • HP: 0/0
-Deck: 0 cards • Relics: 0 • Dice: 0"
-label_settings = SubResource("LabelSettings_ud1vm")
+theme_override_colors/font_color = Color(0.941176, 0.752941, 0.25098, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.85)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("7_notos")
+theme_override_font_sizes/font_size = 17
+text = "Act 1  ·  Floor 1"
 horizontal_alignment = 1
+
+[node name="RunStats" type="PanelContainer" parent="LoadRunConfirmPanel"]
+layout_mode = 0
+offset_left = 70.0
+offset_top = 98.0
+offset_right = 570.0
+offset_bottom = 316.0
+script = ExtResource("9_rstat")
 
 [node name="ConfirmLoadButton" type="Button" parent="LoadRunConfirmPanel"]
 layout_mode = 0
-offset_left = 40.0
-offset_top = 245.0
-offset_right = 300.0
-offset_bottom = 297.0
-theme_override_colors/font_hover_color = Color(0.7, 1, 0.75, 1)
-theme_override_colors/font_color = Color(0, 0.854902, 0, 1)
-theme_override_styles/hover = SubResource("StyleBoxFlat_enable_hover")
-theme_override_styles/normal = SubResource("StyleBoxFlat_enable_normal")
+offset_left = 70.0
+offset_top = 334.0
+offset_right = 330.0
+offset_bottom = 392.0
+theme_override_colors/font_color = Color(0.933333, 0.709804, 0.164706, 1)
+theme_override_fonts/font = ExtResource("8_belwe")
+theme_override_font_sizes/font_size = 22
+theme_override_styles/hover = ExtResource("11_shbh")
+theme_override_styles/pressed = ExtResource("12_shbp")
+theme_override_styles/normal = ExtResource("10_shbn")
 text = "Yes, that's my run!"
 
 [node name="CancelLoadButton" type="Button" parent="LoadRunConfirmPanel"]
 layout_mode = 0
-offset_left = 340.0
-offset_top = 245.0
-offset_right = 600.0
-offset_bottom = 297.0
-theme_override_colors/font_hover_color = Color(1, 0.7, 0.7, 1)
-theme_override_colors/font_color = Color(0.856481, 0.000105334, 5.87195e-05, 0.941176)
-theme_override_styles/hover = SubResource("StyleBoxFlat_skip_hover")
-theme_override_styles/normal = SubResource("StyleBoxFlat_skip_normal")
+offset_left = 380.0
+offset_top = 340.0
+offset_right = 570.0
+offset_bottom = 386.0
+theme_override_colors/font_hover_color = Color(0.988235, 0.933333, 0.843137, 1)
+theme_override_colors/font_color = Color(0.85, 0.81, 0.72, 1)
+theme_override_fonts/font = ExtResource("7_notos")
+theme_override_font_sizes/font_size = 16
+theme_override_styles/hover = SubResource("StyleBoxFlat_loadmenu_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_loadmenu_pressed")
+theme_override_styles/normal = SubResource("StyleBoxFlat_loadmenu_normal")
 text = "Cancel"
 
 [node name="CloseButton" type="Button" parent="LoadRunConfirmPanel"]
@@ -416,6 +595,7 @@ text = "X"
 [connection signal="mouse_entered" from="SettingsButton" to="." method="_on_settings_button_mouse_entered"]
 [connection signal="mouse_exited" from="SettingsButton" to="." method="_on_settings_button_mouse_exited"]
 [connection signal="pressed" from="SettingsButton" to="." method="_on_settings_button_pressed"]
+[connection signal="pressed" from="JoinDiscordControl/JoinDiscordButton" to="." method="_on_discord_button_pressed"]
 [connection signal="pressed" from="NewRun" to="." method="_on_new_run_pressed"]
 [connection signal="pressed" from="LoadRun" to="." method="_on_load_run_pressed"]
 [connection signal="pressed" from="EnableTutorialPanel/StartWithTutorial" to="." method="_on_start_with_tutorial_pressed"]
