@@ -60,6 +60,10 @@ var blocked_last_turn: bool = false
 # duplicated Resource doesn't reliably keep the original's resource_path, so deriving the
 # fallback name from the file later (once `stats` only holds the duplicate) wouldn't work.
 var _display_name := ""
+# Source .tres basename, captured for the same reason - lets the idle-sway archetype tell
+# the small octopus (octopus_enemy*) from the bigger one (bigger_octopus_enemy*), which
+# share the "Kraken" display name and so can't be told apart by name alone.
+var _source_stats_file := ""
 
 # Local (unscaled) Y of the name label's box, computed in update_enemy() alongside
 # stats_ui - converted to a screen-space CanvasLayer offset on hover, see
@@ -71,14 +75,19 @@ var _name_label_local_x: float = NAME_LABEL_SPRITE_CENTER_X
 
 
 func _ready() -> void:
+    # Force a per-instance copy of the outline+sway material: resource_local_to_scene
+    # already gives one per scene instantiation, but enemy_handler's duplicate() path
+    # shouldn't be trusted to preserve that - shared params would sync every enemy's
+    # sway phase (and target highlight) in a fight.
+    sprite_2d.material = sprite_2d.material.duplicate()
     _base_sprite_material = sprite_2d.material as ShaderMaterial
 
-    # Idle already started via autoplay by the time this runs (children enter the tree
-    # before their parent's _ready()) - nudge its phase/speed so multiple enemies on
-    # screen at once don't all breathe in perfect lockstep (same "idle" animation, same
-    # start time otherwise), which is exactly what read as robotic before this.
-    animation_player.speed_scale = randf_range(0.85, 1.2)
-    animation_player.seek(randf() * animation_player.current_animation_length, true)
+    # Per-enemy phase/speed jitter so multiple enemies on screen never breathe in
+    # lockstep. Replaces the old AnimationPlayer phase-randomization trick - the idle
+    # is now a shader-side deformation (see enemy.gdshader / _update_sway_params()),
+    # the transform bob is retired and the "idle" animation no longer autoplays.
+    _base_sprite_material.set_shader_parameter("sway_phase", randf() * 60.0)
+    _base_sprite_material.set_shader_parameter("sway_speed", randf_range(0.85, 1.2))
 
 
 
@@ -89,6 +98,7 @@ func set_current_action(value: EnemyAction) -> void:
 
 func set_enemy_stats(value: EnemyStats) -> void:
     _display_name = _compute_display_name(value)
+    _source_stats_file = value.resource_path.get_file().get_basename()
     stats = value.create_instance()
     
     if not stats.stats_changed.is_connected(update_stats):
@@ -131,17 +141,37 @@ const MAX_ENEMY_WIDTH := 256.0
 const MAX_ENEMY_HEIGHT := 256.0
 
 # Keep the status-icon row clear of the End Turn button (BattleUI, bottom-right:
-# x 1060..1254 in the 1280x720 design space). The row is an HBox that grows
-# rightward from its start x, so the START is clamped to leave ~2-3 icons of slack
-# before the button's left edge. Calibrated from real placements (probe_feet):
-# Oculus starts at gx 1017 (the one that overlapped End Turn) and gets pulled in;
-# Gargantua at 951 is comfortably clear and must NOT move (a 910 threshold wrongly
-# yanked its status 41px left). Screen-space constant, not a live BattleUI lookup:
-# the battle camera is identity (centered on the 1280x720 design rect) and enemy.gd
-# has no clean handle into the BattleUI CanvasLayer. The Y guard keeps a
-# hypothetical high-placed enemy's status from being nudged for no reason.
-const STATUS_ROW_MAX_GLOBAL_X := 970.0
-const STATUS_ROW_CLAMP_MIN_GLOBAL_Y := 500.0
+# x 1060..1254, y 592..635 in the 1280x720 design space). The row grows rightward/down
+# from its start; on far-right, low enemies (Oculus, scaled multi-fights) it can reach
+# the button. We pull the row left by JUST enough to clear the button's left edge - never
+# to a fixed far-left x. The old fixed-970 yank detached right-side enemies' status far
+# left of their own body (the Plant's Strength landed next to the Skeleton, Oculus's in
+# the gap), so now we only clamp when the row actually INTERSECTS the button rect (both
+# axes), not merely "is somewhat right and somewhat low". Gargantua (row at gx 951) and
+# any status sitting above the button's y-band stay untouched. Screen-space constants:
+# the battle camera is identity on the 1280x720 design rect and enemy.gd has no clean
+# handle into the BattleUI CanvasLayer.
+const END_TURN_LEFT := 1060.0
+const END_TURN_TOP := 592.0
+const STATUS_ICON_EXTENT := 42.0  # one counter-scaled status icon (30px min * ~1.33)
+const STATUS_ROW_END_TURN_GAP := 8.0
+
+# Feet-planted idle sway (2026-07-23, replaces the whole-sprite AnimationPlayer bob).
+# Amplitudes are in SCREEN pixels - _update_sway_params() converts to texture pixels
+# per enemy. Tuned via the idle_sway_preview GIF A/B approved by Julien.
+const SWAY_ARCHETYPES := {
+    "organic": {"sway_px": 4.0, "head_px": 2.2, "head_lag": 0.8, "breathe_px": 2.8, "breathe_hz": 0.5, "drift_px": 0.0},
+    "armored": {"sway_px": 1.8, "head_px": 1.0, "head_lag": 0.7, "breathe_px": 3.5, "breathe_hz": 0.25, "drift_px": 0.0},
+    "floater": {"sway_px": 3.5, "head_px": 2.0, "head_lag": 1.1, "breathe_px": 1.0, "breathe_hz": 0.5, "drift_px": 3.0},
+}
+# Keyed on _display_name; anything not listed gets "organic". The floater archetype is
+# NOT here - it's the SMALL octopus only, resolved by file in _update_sway_params()
+# (the bigger octopus shares the "Kraken" name but stays grounded, per Julien 2026-07-23).
+const SWAY_ARCHETYPE_BY_NAME := {
+    "Marauder": "armored",
+    "Temple Defender": "armored",
+    "Ravager": "armored",
+}
 
 # Alpha-bbox of each enemy texture's actual content, cached per texture path -
 # feet-anchoring (below) needs it once per texture, and get_image() on an
@@ -247,8 +277,9 @@ func update_enemy() -> void:
         # Soft ellipse at the feet line, STS-style: sells grounding even for art drawn
         # in a mid-leap/diagonal pose (Lava Hound) that no offset can fix, and makes
         # deliberate floaters read as "hovering above their shadow" instead of just
-        # misplaced. Child of the Enemy root, NOT SpriteRoot - the idle bob animates
-        # SpriteRoot, and the shadow must stay put while the body bobs.
+        # misplaced. Child of the Enemy root, NOT SpriteRoot - hit squash/knockback
+        # animate the sprite, and the shadow must stay put while the body moves above
+        # it (the idle itself is a shader deformation that never moves the feet).
         if _ground_shadow == null:
             _ground_shadow = Sprite2D.new()
             _ground_shadow.texture = _get_shadow_texture()
@@ -260,17 +291,23 @@ func update_enemy() -> void:
         # Just below the feet (feet at feet_line_y), so it peeks out around them.
         _ground_shadow.position = Vector2(content_center_x_local, feet_line_y + 5.0)
         _ground_shadow.scale = Vector2(shadow_width / 256.0, shadow_width * 0.24 / 256.0)
+
+        _update_sway_params(final_scale)
     else:
         sprite_2d.position.y = sprite_y_offset
 
-    # Clamp the status row's start so its icons can't run into the End Turn button
-    # (right-edge enemies: Oculus in tier_1_oculus_goblin had its status icons sitting on
-    # the button). Only for statuses low enough to reach the button band.
+    # Clamp the status row's start ONLY when it would actually run into the End Turn
+    # button, and pull it in just enough to clear the button's left edge - keeping it
+    # under the enemy's own body rather than yanking it far to the left (which detached
+    # right-side enemies' status next to their neighbour).
     if scale.x != 0:
-        var status_global_x: float = global_position.x + status_handler.position.x * scale.x
-        var status_global_y: float = global_position.y + status_handler.position.y * scale.y
-        if status_global_x > STATUS_ROW_MAX_GLOBAL_X and status_global_y > STATUS_ROW_CLAMP_MIN_GLOBAL_Y:
-            status_handler.position.x = (STATUS_ROW_MAX_GLOBAL_X - global_position.x) / scale.x
+        var row_left: float = global_position.x + status_handler.position.x * scale.x
+        var row_top: float = global_position.y + status_handler.position.y * scale.y
+        var hits_button := row_left + STATUS_ICON_EXTENT > END_TURN_LEFT \
+            and row_top + STATUS_ICON_EXTENT > END_TURN_TOP
+        if hits_button:
+            var target_left: float = END_TURN_LEFT - STATUS_ICON_EXTENT - STATUS_ROW_END_TURN_GAP
+            status_handler.position.x = (target_left - global_position.x) / scale.x
 
     # Multi-enemy battle scenes set `scale` on the Enemy root to fit several bodies. The
     # StatusHandler inherits that shrink; counter-scale it so status icons stay a constant
@@ -282,6 +319,35 @@ func update_enemy() -> void:
     update_stats()
     setup_ai()
     update_stats()
+
+# Push the feet-planted idle-sway params to this enemy's material (enemy.gdshader).
+# Called from update_enemy() so a texture/scale change (the act-2 reskin re-runs it)
+# re-derives the pixel conversion; the per-enemy phase/speed jitter is set once in
+# _ready(). Amplitudes are tuned in SCREEN px - divide by every scale between texture
+# and screen (the sprite's final_scale, then the per-fight Enemy root scale).
+func _update_sway_params(final_scale: float) -> void:
+    if _base_sprite_material == null:
+        # First update_enemy() awaits `ready`, which fires after _ready(), so this only
+        # trips if the material was externally cleared - nothing to configure then.
+        return
+    var archetype: String = SWAY_ARCHETYPE_BY_NAME.get(_display_name, "organic")
+    # Floater = the SMALL octopus ONLY (Julien 2026-07-23). Small octopus .tres files
+    # begin with "octopus_enemy", bigger ones with "bigger_octopus_enemy", and both share
+    # the "Kraken" display name in act 1 - so name alone can't split them, hence the file
+    # check. Gating on the "Kraken" name too keeps the act-2 small-octopus reskin (renamed
+    # Deepling, a grounded rock octopus) organic.
+    if _display_name == "Kraken" and _source_stats_file.begins_with("octopus_enemy"):
+        archetype = "floater"
+    var preset: Dictionary = SWAY_ARCHETYPES[archetype]
+    var to_tex := 1.0 / maxf(final_scale * scale.x, 0.001)
+    _base_sprite_material.set_shader_parameter("sway_px", preset["sway_px"] * to_tex)
+    _base_sprite_material.set_shader_parameter("head_px", preset["head_px"] * to_tex)
+    _base_sprite_material.set_shader_parameter("head_lag", preset["head_lag"])
+    _base_sprite_material.set_shader_parameter("breathe_px", preset["breathe_px"] * to_tex)
+    _base_sprite_material.set_shader_parameter("breathe_hz", preset["breathe_hz"])
+    _base_sprite_material.set_shader_parameter("drift_px", preset["drift_px"] * to_tex)
+    _base_sprite_material.set_shader_parameter("margin_px", 6.0 * to_tex)
+
 
 func update_intent() -> void:
     if current_action:
@@ -341,8 +407,8 @@ func take_damage(damage: int, which_modifier: Modifier.Type) -> void:
 
 
 # Directional knockback + sprite squash on hit. Knockback rides self.position (the same
-# property Shaker.shake used safely - the idle animation owns SpriteRoot, not the root),
-# squash rides Sprite2D.scale directly (idle owns SpriteRoot's transform, not the sprite's).
+# property Shaker.shake uses safely), squash rides Sprite2D.scale directly - the idle is
+# a shader deformation now, so nothing else fights over these transforms.
 func _play_hit_reaction() -> void:
     if not _hit_reaction_active:
         _hit_rest_position = position

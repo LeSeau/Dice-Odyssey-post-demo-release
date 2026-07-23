@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://dbgidleingame23"]
+
+[ext_resource type="Script" path="res://debug_idle_ingame.gd" id="1_idleingame"]
+
+[node name="IdleIngameCheck" type="Node"]
+script = ExtResource("1_idleingame")

@@ -134,4 +134,3 @@ type = 1
 libraries = {
 "": SubResource("AnimationLibrary_ho4ub")
 }
-autoplay = "idle"

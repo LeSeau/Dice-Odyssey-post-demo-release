@@ -2,6 +2,9 @@ class_name Player
 extends Node2D
 
 const WHITE_SPRITE_MATERIAL := preload("res://art/white_sprite_material.tres")
+# Outline+sway shader shared with enemies (outline disabled here) - the feet-planted
+# idle deformation that replaced the AnimationPlayer transform bob (2026-07-23).
+const SWAY_SHADER := preload("res://scenes/enemy/enemy.gdshader")
 
 @export var stats: CharacterStats : set = set_character_stats
 
@@ -17,6 +20,7 @@ var _hit_squash_tween: Tween
 var _hit_rest_position: Vector2
 var _hit_rest_sprite_scale: Vector2
 var _hit_reaction_active := false
+var _sway_material: ShaderMaterial
 
 
 func _ready() -> void:
@@ -27,12 +31,27 @@ func _ready() -> void:
     #infused.duration = 1
     #status_handler.add_status(infused)
 
-    # Idle already started via autoplay by the time this runs (children enter the tree
-    # before their parent's _ready()) - nudge its phase/speed per-battle so it isn't
-    # always the exact same breathing cycle every fight (see Enemy._ready() for the
-    # same trick, there it also avoids every enemy on screen breathing in lockstep).
-    animation_player.speed_scale = randf_range(0.9, 1.15)
-    animation_player.seek(randf() * animation_player.current_animation_length, true)
+    # Feet-planted idle sway (replaces the AnimationPlayer transform bob, which no
+    # longer autoplays): boots stay welded to the ground, shoulders/cape lean with the
+    # hood trailing a beat, chest rises on the inhale. Hero preset tuned in SCREEN px
+    # via the idle_sway_preview A/B (approved by Julien 2026-07-23); the shader wants
+    # texture px, hence the divide by the sprite's baked scale. Random phase/speed so
+    # the cycle differs per battle.
+    _sway_material = ShaderMaterial.new()
+    _sway_material.shader = SWAY_SHADER
+    var to_tex := 1.0 / sprite_2d.scale.x
+    _sway_material.set_shader_parameter("outline_thickness", 0.0)
+    _sway_material.set_shader_parameter("anti_aliasing", 0.0)
+    _sway_material.set_shader_parameter("sway_px", 4.0 * to_tex)
+    _sway_material.set_shader_parameter("head_px", 2.0 * to_tex)
+    _sway_material.set_shader_parameter("head_lag", 0.9)
+    _sway_material.set_shader_parameter("breathe_px", 3.0 * to_tex)
+    _sway_material.set_shader_parameter("margin_px", 6.0 * to_tex)
+    _sway_material.set_shader_parameter("sway_hz", 0.19)
+    _sway_material.set_shader_parameter("breathe_hz", 0.38)
+    _sway_material.set_shader_parameter("sway_phase", randf() * 60.0)
+    _sway_material.set_shader_parameter("sway_speed", randf_range(0.9, 1.15))
+    sprite_2d.material = _sway_material
 
 
 
@@ -71,12 +90,13 @@ func take_damage(damage: int, which_modifier: Modifier.Type) -> void:
     stats.take_damage(modified_damage)
     Events.hp_changed.emit()
 
-    # Short, sharp white flash (was 0.17s).
+    # Short, sharp white flash (was 0.17s). Restore the sway material, NOT null -
+    # null would permanently freeze the idle deformation after the first hit taken.
     var flash_tween := create_tween()
     flash_tween.tween_interval(0.06)
     flash_tween.tween_callback(
         func():
-            sprite_2d.material = null
+            sprite_2d.material = _sway_material
             if stats.health <= 0:
                 Events.player_died.emit()
                 queue_free()
@@ -84,8 +104,8 @@ func take_damage(damage: int, which_modifier: Modifier.Type) -> void:
 
 
 # Knockback + squash on hit. self.position and Sprite2D.scale are both free of the idle
-# animation (which drives SpriteRoot's scale/rotation/position - a wrapper node between
-# Player and Sprite2D, same layering as Enemy), so neither tween fights it.
+# (a shader-side deformation since 2026-07-23 - nothing animates SpriteRoot anymore),
+# so neither tween fights it.
 func _play_hit_reaction() -> void:
     if not _hit_reaction_active:
         _hit_rest_position = position

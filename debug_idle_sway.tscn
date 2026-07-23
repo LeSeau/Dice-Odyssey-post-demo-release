@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://dbgidlesway2307"]
+
+[ext_resource type="Script" path="res://debug_idle_sway.gd" id="1_idlesway"]
+
+[node name="IdleSwayPreview" type="Node"]
+script = ExtResource("1_idlesway")
