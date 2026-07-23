@@ -29,36 +29,38 @@ const TooltipScene = preload("res://scenes/ui/dice_tooltip.tscn")
 
 @export var run_stats: RunStats
 
-var evil_dice_base_price = 240
-var giant_dice_base_price = 240
-var magma_dice_base_price = 270
-var even_dice_base_price = 210
-var odd_dice_base_price = 190
-var blue_dice_base_price = 180
-var red_dice_base_price = 180
-var green_dice_base_price = 150
-var mech_dice_base_price = 200
-
 var reroll_price = 20
 
-# Every dice purchase (ANY type) raises ALL dice prices by this factor. Replaces the old
-# per-type-only escalation, which almost never fired in practice (players diversify types,
-# so each new type came at base price and a 2nd die was affordable too early mid-run).
-# Die #1 at base = the happy milestone; die #2 at ~1.4x = late-run stretch; die #3 = trophy.
-const GLOBAL_DICE_PRICE_ESCALATION := 1.4
-
-var evil_dice_price = evil_dice_base_price
-var giant_dice_price = giant_dice_base_price
-var magma_dice_price = magma_dice_base_price
-var even_dice_price = even_dice_base_price
-var odd_dice_price = odd_dice_base_price
-var blue_dice_price = blue_dice_base_price
-var red_dice_price = red_dice_base_price
-var green_dice_price = green_dice_base_price
-var mech_dice_price = mech_dice_base_price
+# Base prices + the global x1.4 escalation now live in Global (DICE_BASE_PRICES /
+# DICE_PRICE_ESCALATION / current_dice_price(), moved 2026-07-23) so the card shop's
+# discounted "deal die" always reads the same numbers as this shop. The deal die itself
+# is SOLD in the card shop, not here - this shop only re-picks which type it is on
+# reroll (it must stay outside the 3 types shown here).
+var evil_dice_price = 0
+var giant_dice_price = 0
+var magma_dice_price = 0
+var even_dice_price = 0
+var odd_dice_price = 0
+var blue_dice_price = 0
+var red_dice_price = 0
+var green_dice_price = 0
+var mech_dice_price = 0
 
 
 var existing_dices = 9
+
+const COIN_TEXTURE := preload("res://gold_icon_v2.png")
+# All coin-adjacent numbers use LuckiestGuy (the game's established "numbers" font -
+# top bar, run stats) via a shared FontVariation whose baseline_offset is CALIBRATED so
+# digits sit at the true optical center of their line box. CinzelDecorative was tried
+# and rejected: its digits aren't uniform lining figures, so "37" and "180" center
+# differently and no single offset can fix all price strings.
+const PRICE_FONT := preload("res://fonts/luckiest_guy_numbers.tres")
+# Number labels built in code inside each Buy button (index-aligned with dice_nodes /
+# DICE_TYPE_ORDER). A real coin sprite + Label reads far better than a bbcode inline
+# image, which renders small and sits low on the text baseline.
+var _dice_price_labels: Array[Label] = []
+var _reroll_price_label: Label = null
 
 
 
@@ -70,27 +72,87 @@ func _ready():
     for dice in dice_nodes:
         dice.hide()
     
-    # Only randomize if this is first time opening the shop
-    if not Global.shop_initialized:
-        # Generate the random selection
-        var chosen_indexes := []
-        while chosen_indexes.size() < 3:
-            var rand_index = randi() % existing_dices
-            if not chosen_indexes.has(rand_index):
-                chosen_indexes.append(rand_index)
-        
-        # Store the selection in Global
-        Global.shop_dice_selection = chosen_indexes
-        Global.shop_initialized = true
+    # Only randomize if this is first time opening the shop (shared with the card shop,
+    # which needs the same state for its deal die - whichever room opens first wins)
+    Global.ensure_dice_shop_state()
 
-    
     # Show the dice that were selected (either just now or previously)
     for index in Global.shop_dice_selection:
         dice_nodes[index].show()
+
+    # Each die is bought with its own Buy BUTTON (the .tscn wires pressed -> buy). Replace
+    # the button's plain bbcode price label with a centered coin-sprite + number row so the
+    # coin is a properly sized, vertically-centered image.
+    _dice_price_labels.clear()
+    for i in dice_nodes.size():
+        var col: VBoxContainer = dice_nodes[i]
+        var buy_btn: Button = col.get_node("BuyDice%d" % (i + 1))
+        buy_btn.get_node("BuyDice%dLabel" % (i + 1)).hide()
+        var row := _build_coin_row(30, 22)
+        buy_btn.add_child(row["hbox"])
+        _dice_price_labels.append(row["label"])
+
+    # Reroll button: same coin-sprite row, with a "Reroll" word + spacer before the coin
+    # (replaces the bbcode label so the coin isn't small/baseline-low with a wide gap).
+    var reroll_btn: Button = $RerollButton
+    reroll_btn.get_node("RichTextLabel").hide()
+    var rrow := _build_coin_row(30, 22)
+    var word := Label.new()
+    word.text = "Reroll"
+    word.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+    word.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+    word.add_theme_font_size_override("font_size", 26)
+    word.add_theme_color_override("font_outline_color", Color(0.08, 0.05, 0.01))
+    word.add_theme_constant_override("outline_size", 5)
+    word.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    var spacer := Control.new()
+    spacer.custom_minimum_size = Vector2(12, 0)
+    spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    rrow["hbox"].add_child(word)
+    rrow["hbox"].add_child(spacer)
+    rrow["hbox"].move_child(word, 0)
+    rrow["hbox"].move_child(spacer, 1)
+    rrow["label"].text = str(reroll_price)
+    _reroll_price_label = rrow["label"]
+    reroll_btn.add_child(rrow["hbox"])
+
     update_dice_price()
 
 func _on_button_pressed() -> void:
     Events.shop_exited.emit()
+
+
+# A centered [coin sprite][number] row that fills its parent, mouse-transparent so it
+# never blocks the button/click underneath. Returns {hbox, label} for later updates.
+func _build_coin_row(coin_px: int, font_px: int) -> Dictionary:
+    var hbox := HBoxContainer.new()
+    hbox.set_anchors_preset(Control.PRESET_FULL_RECT)
+    hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+    # 0 (not the default 4): the coin art carries ~15% transparent padding, so 0 already
+    # leaves a snug ~4px visible gap; positive values read as "too far apart".
+    hbox.add_theme_constant_override("separation", 0)
+    hbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+    var coin := TextureRect.new()
+    coin.texture = COIN_TEXTURE
+    coin.custom_minimum_size = Vector2(coin_px, coin_px)
+    coin.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+    coin.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    coin.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+    coin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    hbox.add_child(coin)
+
+    var label := Label.new()
+    label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+    label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+    label.add_theme_font_override("font", PRICE_FONT)
+    label.add_theme_font_size_override("font_size", font_px)
+    label.add_theme_color_override("font_outline_color", Color(0.08, 0.05, 0.01))
+    label.add_theme_constant_override("outline_size", 5)
+    label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    hbox.add_child(label)
+
+    return {"hbox": hbox, "label": label}
 
 
 
@@ -178,30 +240,30 @@ func _on_buy_dice_5_pressed() -> void:
         update_dice_price()
         
 func update_dice_price() -> void:
-    var total_dice_purchased := 0
-    for count in Global.purchased_dice_counts.values():
-        total_dice_purchased += count
-    var escalation := pow(GLOBAL_DICE_PRICE_ESCALATION, total_dice_purchased)
-    evil_dice_price  = int(evil_dice_base_price  * escalation)
-    giant_dice_price = int(giant_dice_base_price * escalation)
-    magma_dice_price = int(magma_dice_base_price * escalation)
-    even_dice_price  = int(even_dice_base_price  * escalation)
-    odd_dice_price   = int(odd_dice_base_price   * escalation)
-    blue_dice_price  = int(blue_dice_base_price  * escalation)
-    red_dice_price   = int(red_dice_base_price   * escalation)
-    green_dice_price = int(green_dice_base_price * escalation)
-    mech_dice_price  = int(mech_dice_base_price  * escalation)
+    evil_dice_price  = Global.current_dice_price("evil")
+    giant_dice_price = Global.current_dice_price("giant")
+    magma_dice_price = Global.current_dice_price("magma")
+    even_dice_price  = Global.current_dice_price("even")
+    odd_dice_price   = Global.current_dice_price("odd")
+    blue_dice_price  = Global.current_dice_price("blue")
+    red_dice_price   = Global.current_dice_price("red")
+    green_dice_price = Global.current_dice_price("green")
+    mech_dice_price  = Global.current_dice_price("mech")
 
 
-    buy_dice_1_label.text = "[center]Buy ([color=#FFD700]" + str(evil_dice_price) + "G[/color])[/center]"
-    buy_dice_2_label.text = "[center]Buy ([color=#FFD700]" + str(giant_dice_price) + "G[/color])[/center]"
-    buy_dice_3_label.text = "[center]Buy ([color=#FFD700]" + str(magma_dice_price) + "G[/color])[/center]"
-    buy_dice_4_label.text = "[center]Buy ([color=#FFD700]" + str(even_dice_price) + "G[/color])[/center]"
-    buy_dice_5_label.text = "[center]Buy ([color=#FFD700]" + str(odd_dice_price) + "G[/color])[/center]"
-    buy_dice_6_label.text = "[center]Buy ([color=#FFD700]" + str(blue_dice_price) + "G[/color])[/center]"
-    buy_dice_7_label.text = "[center]Buy ([color=#FFD700]" + str(red_dice_price) + "G[/color])[/center]"
-    buy_dice_8_label.text = "[center]Buy ([color=#FFD700]" + str(green_dice_price) + "G[/color])[/center]"
-    buy_dice_9_label.text = "[center]Buy ([color=#FFD700]" + str(mech_dice_price) + "G[/color])[/center]"
+    # Index-aligned with dice_nodes / DICE_TYPE_ORDER (Dice1=evil ... Dice9=mech).
+    var prices := [evil_dice_price, giant_dice_price, magma_dice_price, even_dice_price,
+            odd_dice_price, blue_dice_price, red_dice_price, green_dice_price, mech_dice_price]
+    for i in _dice_price_labels.size():
+        var lbl := _dice_price_labels[i]
+        lbl.text = str(prices[i])
+        var affordable: bool = Global.gold >= prices[i]
+        lbl.add_theme_color_override("font_color", Color("FFD700") if affordable else Color("FF4444"))
+
+    if _reroll_price_label:
+        var can_reroll: bool = Global.gold >= reroll_price
+        _reroll_price_label.add_theme_color_override("font_color",
+                Color("FFD700") if can_reroll else Color("FF4444"))
 
     get_cheapest_available_dice_price()
 
@@ -567,8 +629,10 @@ func reroll_shop_dice() -> void:
         if not chosen_indexes.has(rand_index):
             chosen_indexes.append(rand_index)
 
-    # Save the selection in Global
+    # Save the selection in Global. The card shop's deal die must stay outside the 3
+    # types shown here, so a reroll re-picks it too.
     Global.shop_dice_selection = chosen_indexes
+    Global.shop_dice_deal_index = Global.pick_dice_deal_index()
 
     # Show the new dice
     for index in chosen_indexes:

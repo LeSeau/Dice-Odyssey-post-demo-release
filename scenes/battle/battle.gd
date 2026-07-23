@@ -69,6 +69,11 @@ const BACKGROUND_ACT2 := {
 }
 const BACKGROUND_FALLBACK := preload("res://assets/backgrounds/20-2.jpg")
 
+# Elite and boss fights (act_tier 3/4, same keying as the tables above) swap to a
+# more intense track instead of the scene's own `music` export (the standard
+# hallway fight_music.ogg).
+const MUSIC_ELITE_BOSS := preload("res://final_boss_battle.mp3")
+
 @export var battle_stats: BattleStats
 @export var char_stats: CharacterStats
 @export var music: AudioStream
@@ -116,7 +121,7 @@ func _ready() -> void:
 
 func start_battle() -> void:
     get_tree().paused = false
-    MusicPlayer.play(music, true)
+    MusicPlayer.play(_select_music_track(), true)
     Events.stop_map_music.emit()
     background.texture = _select_background_texture()
     # Mirrored by battle_reward.gd so the reward screen's background matches the
@@ -218,6 +223,14 @@ func _select_background_texture() -> Texture2D:
         return BACKGROUND_FALLBACK
     var pool: Dictionary = BACKGROUND_ACT2 if Global.current_act >= 2 else BACKGROUND_ACT1
     return pool.get(act_tier, BACKGROUND_FALLBACK)
+
+
+# Debug launches (act_tier still -1) fall back to the scene's own `music` export
+# rather than guessing, same convention as _select_background_texture() above.
+func _select_music_track() -> AudioStream:
+    if act_tier == 3 or act_tier == 4:
+        return MUSIC_ELITE_BOSS
+    return music
 
 
 func _on_enemies_child_order_changed() -> void:

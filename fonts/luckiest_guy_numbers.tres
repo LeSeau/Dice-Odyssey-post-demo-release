@@ -1,0 +1,7 @@
+[gd_resource type="FontVariation" load_steps=2 format=3 uid="uid://clgnumfontvar1"]
+
+[ext_resource type="FontFile" uid="uid://dltntsanjiykq" path="res://fonts/LuckiestGuy-Regular.ttf" id="1_base"]
+
+[resource]
+base_font = ExtResource("1_base")
+baseline_offset = 0.2

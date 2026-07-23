@@ -995,6 +995,8 @@ func _save_checkpoint() -> void:
         "purchased_dice_counts": Global.purchased_dice_counts.duplicate(),
         "shop_initialized": Global.shop_initialized,
         "shop_dice_selection": Global.shop_dice_selection.duplicate(),
+        "shop_dice_deal_index": Global.shop_dice_deal_index,
+        "card_removals_bought": Global.card_removals_bought,
         "cheapest_dice_price": Global.cheapest_dice_price,
         "blue_rolls_this_run": Global.blue_dice_rolled_this_run,
         "run_screen_stats": {
@@ -1050,6 +1052,9 @@ func _load_run() -> void:
     Global.purchased_dice_counts = data["purchased_dice_counts"]
     Global.shop_initialized = data["shop_initialized"]
     Global.shop_dice_selection = data["shop_dice_selection"]
+    # .get with defaults: saves written before the shop rework (2026-07-23) lack these keys.
+    Global.shop_dice_deal_index = data.get("shop_dice_deal_index", -1)
+    Global.card_removals_bought = data.get("card_removals_bought", 0)
     Global.cheapest_dice_price = data["cheapest_dice_price"]
     # .get with default: saves written before the achievement system lack the key.
     Global.blue_dice_rolled_this_run = data.get("blue_rolls_this_run", 0)

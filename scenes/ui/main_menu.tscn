@@ -9,9 +9,9 @@
 [ext_resource type="FontFile" uid="uid://bfgwr7o37ol1j" path="res://Noto_Sans/static/NotoSans-Regular.ttf" id="7_notos"]
 [ext_resource type="FontFile" uid="uid://bm3deysyi2y55" path="res://Belwe Bold/Belwe Bold.otf" id="8_belwe"]
 [ext_resource type="Script" path="res://scenes/ui/run_stats_panel.gd" id="9_rstat"]
-[ext_resource type="StyleBox" path="res://scenes/shop/shop_button_normal.tres" id="10_shbn"]
-[ext_resource type="StyleBox" path="res://scenes/shop/shop_button_hover.tres" id="11_shbh"]
-[ext_resource type="StyleBox" path="res://scenes/shop/shop_button_pressed.tres" id="12_shbp"]
+[ext_resource type="StyleBox" uid="uid://d33nvcmlyrn4o" path="res://scenes/shop/shop_button_normal.tres" id="10_shbn"]
+[ext_resource type="StyleBox" uid="uid://btiy0p7cdp753" path="res://scenes/shop/shop_button_hover.tres" id="11_shbh"]
+[ext_resource type="StyleBox" uid="uid://0f1dsnbsuyaw" path="res://scenes/shop/shop_button_pressed.tres" id="12_shbp"]
 [ext_resource type="Texture2D" uid="uid://c6w3p47gbm7w4" path="res://discordlogo.png" id="13_discord"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_settings_hover_glow"]

@@ -1,6 +1,6 @@
-[gd_resource type="LabelSettings" load_steps=2 format=3 uid="uid://c8x4k2n9wq3rt"]
+[gd_resource type="LabelSettings" load_steps=2 format=3 uid="uid://dko24yqmrk8ye"]
 
-[ext_resource type="FontFile" uid="uid://dltntsanjiykq" path="res://fonts/LuckiestGuy-Regular.ttf" id="1_font"]
+[ext_resource type="FontVariation" path="res://fonts/luckiest_guy_numbers.tres" id="1_font"]
 
 [resource]
 font = ExtResource("1_font")

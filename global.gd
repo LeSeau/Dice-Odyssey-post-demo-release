@@ -116,6 +116,59 @@ var roll_history = []
 var last_played_card_position: Vector2 = Vector2.ZERO  # global center of the most recently played card; used as the origin for the refuel "dice fly back" effect
 var shop_initialized = false  # Whether the shop has been initialized
 var shop_dice_selection = []  # Stores which dice are shown
+# Column index (0-8, DICE_TYPE_ORDER space) of the discounted "deal die" sold in the CARD
+# shop - always a type NOT among the 3 regular dice-shop picks, -1 = none (old saves /
+# just bought). Re-picked when the dice shop rerolls and when a card shop opens with -1.
+var shop_dice_deal_index = -1
+# Card-removal services bought this run - the card shop's removal price escalates off this
+# (50, 75, 100... like STS purges). Reset in reset_run_state(), saved/restored by run.gd.
+var card_removals_bought = 0
+
+# --- Dice-shop economics, shared between the dice shop (scenes/shop/shop.gd) and the
+# card shop's discounted deal-die slot (scenes/shop/card_shop.gd). Moved here 2026-07-23
+# so both shops always read the same numbers.
+# Column order of the dice shop - shop_dice_selection / shop_dice_deal_index index space.
+const DICE_TYPE_ORDER := ["evil", "giant", "magma", "even", "odd", "blue", "red", "green", "mech"]
+const DICE_BASE_PRICES := {
+    "evil": 240, "giant": 240, "magma": 270, "even": 210, "odd": 190,
+    "blue": 180, "red": 180, "green": 150, "mech": 200,
+}
+# Every dice purchase (ANY type) raises ALL dice prices by this factor. Die #1 at base =
+# the happy milestone; die #2 at ~1.4x = late-run stretch; die #3 = trophy.
+const DICE_PRICE_ESCALATION := 1.4
+const DICE_DEAL_DISCOUNT := 0.8  # the deal die sells at 80% of the current escalated price
+
+
+func current_dice_price(type: String) -> int:
+    var total_purchased := 0
+    for count in purchased_dice_counts.values():
+        total_purchased += count
+    return int(DICE_BASE_PRICES[type] * pow(DICE_PRICE_ESCALATION, float(total_purchased)))
+
+
+# First-visit init of the dice-shop state - called by BOTH shops, since either room can be
+# the first one the player sees (the deal die needs the selection to exclude).
+func ensure_dice_shop_state() -> void:
+    if shop_initialized:
+        return
+    var chosen_indexes := []
+    while chosen_indexes.size() < 3:
+        var rand_index := randi() % DICE_TYPE_ORDER.size()
+        if not chosen_indexes.has(rand_index):
+            chosen_indexes.append(rand_index)
+    shop_dice_selection = chosen_indexes
+    shop_dice_deal_index = pick_dice_deal_index()
+    shop_initialized = true
+
+
+# Deal die is drawn from the 6 types NOT in the current dice-shop selection, so the card
+# shop always offers something the dice shop doesn't have right now.
+func pick_dice_deal_index() -> int:
+    var candidates := []
+    for i in DICE_TYPE_ORDER.size():
+        if not shop_dice_selection.has(i):
+            candidates.append(i)
+    return candidates[randi() % candidates.size()]
 
 var lose_strength_next_turn = 0
 var has_blocked_last_turn = false
@@ -311,6 +364,8 @@ func reset_run_state() -> void:
     cheapest_dice_price = null
     shop_initialized = false
     shop_dice_selection = []
+    shop_dice_deal_index = -1
+    card_removals_bought = 0
 
     removing_card = false
     upgrading_card = false

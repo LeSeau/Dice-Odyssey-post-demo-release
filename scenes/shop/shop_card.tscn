@@ -1,11 +1,10 @@
-[gd_scene load_steps=7 format=3 uid="uid://bel25lww6qcw4"]
+[gd_scene load_steps=6 format=3 uid="uid://bel25lww6qcw4"]
 
 [ext_resource type="PackedScene" uid="uid://d2vlobkkv27hu" path="res://scenes/ui/card_menu_ui.tscn" id="1_8kp2e"]
 [ext_resource type="Script" path="res://scenes/shop/shop_card.gd" id="1_payxm"]
 [ext_resource type="Resource" uid="uid://ba8qphrt5lu44" path="res://characters/warrior/cards/card_electrify.tres" id="2_3tkqa"]
-[ext_resource type="StyleBox" uid="uid://c8k2n5xr9j7wq" path="res://scenes/shop/shop_button_normal.tres" id="4_btn_n"]
-[ext_resource type="StyleBox" uid="uid://dqm3v7x8k2n5w" path="res://scenes/shop/shop_button_hover.tres" id="5_btn_h"]
-[ext_resource type="StyleBox" uid="uid://bx6v9n3k8q2wr" path="res://scenes/shop/shop_button_pressed.tres" id="6_btn_p"]
+[ext_resource type="Texture2D" uid="uid://dowk6are8jaul" path="res://gold_icon_v2.png" id="4_coin"]
+[ext_resource type="FontVariation" uid="uid://clgnumfontvar1" path="res://fonts/luckiest_guy_numbers.tres" id="5_pricefont"]
 
 [node name="ShopCard" type="VBoxContainer"]
 custom_minimum_size = Vector2(120, 261)
@@ -23,35 +22,29 @@ layout_mode = 2
 
 [node name="Price" type="HBoxContainer" parent="."]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 25)
+custom_minimum_size = Vector2(0, 34)
 layout_mode = 2
 alignment = 1
+theme_override_constants/separation = 0
 
-[node name="BuyButton" type="Button" parent="Price"]
+[node name="Coin" type="TextureRect" parent="Price"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("4_coin")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="PriceLabel" type="Label" parent="Price"]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 3
-theme_override_styles/normal = ExtResource("4_btn_n")
-theme_override_styles/hover = ExtResource("5_btn_h")
-theme_override_styles/pressed = ExtResource("6_btn_p")
-theme_override_styles/disabled = ExtResource("6_btn_p")
-
-[node name="PriceLabel" type="RichTextLabel" parent="Price/BuyButton"]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_top = 3.0
-offset_bottom = 3.0
-grow_horizontal = 2
-grow_vertical = 2
-size_flags_horizontal = 3
+size_flags_vertical = 4
 mouse_filter = 2
-theme_override_font_sizes/normal_font_size = 14
-bbcode_enabled = true
-text = "[center]Buy ([color=#FFD700]250G[/color])[/center]
-"
-scroll_active = false
-
-[connection signal="pressed" from="Price/BuyButton" to="." method="_on_buy_button_pressed"]
+theme_override_colors/font_color = Color(1, 0.843137, 0, 1)
+theme_override_colors/font_outline_color = Color(0.08, 0.05, 0.01, 1)
+theme_override_constants/outline_size = 5
+theme_override_fonts/font = ExtResource("5_pricefont")
+theme_override_font_sizes/font_size = 21
+text = "250"
+vertical_alignment = 1

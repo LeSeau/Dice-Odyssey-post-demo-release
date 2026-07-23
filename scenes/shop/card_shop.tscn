@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://bgkue8tsbpylp"]
+[gd_scene load_steps=14 format=3 uid="uid://bgkue8tsbpylp"]
 
 [ext_resource type="Script" path="res://scenes/shop/card_shop.gd" id="1_sj8q3"]
 [ext_resource type="PackedScene" uid="uid://bel25lww6qcw4" path="res://scenes/shop/shop_card.tscn" id="3_h1sm7"]
@@ -8,6 +8,25 @@
 [ext_resource type="StyleBox" path="res://scenes/shop/shop_button_hover.tres" id="20_btn_h"]
 [ext_resource type="StyleBox" path="res://scenes/shop/shop_button_pressed.tres" id="21_btn_p"]
 [ext_resource type="Resource" path="res://shop_relic_pool.tres" id="22_pool"]
+[ext_resource type="StyleBox" path="res://scenes/card_ui/card_ui_normal.tres" id="23_cardback"]
+[ext_resource type="StyleBox" path="res://scenes/shop/shop_price_normal.tres" id="24_price_n"]
+[ext_resource type="StyleBox" path="res://scenes/shop/shop_price_hover.tres" id="25_price_h"]
+[ext_resource type="StyleBox" path="res://scenes/shop/shop_price_pressed.tres" id="26_price_p"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dealpanel"]
+bg_color = Color(0.05, 0.1, 0.1, 0.88)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.788235, 0.635294, 0.152941, 0.9)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0, 0, 0, 0.35)
+shadow_size = 6
+shadow_offset = Vector2(0, 3)
 
 [node name="CardShop" type="Control"]
 layout_mode = 3
@@ -44,13 +63,187 @@ color = Color(0.00392157, 0, 0, 0.443137)
 [node name="Button" type="Button" parent="."]
 layout_mode = 0
 offset_left = 1024.0
-offset_top = 587.0
+offset_top = 612.0
 offset_right = 1236.0
-offset_bottom = 645.0
+offset_bottom = 670.0
 theme_override_styles/hover = ExtResource("20_btn_h")
 theme_override_styles/pressed = ExtResource("21_btn_p")
 theme_override_styles/normal = ExtResource("19_btn_n")
 text = "Leave"
+
+[node name="DealStall" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 1032.0
+offset_top = 130.0
+offset_right = 1232.0
+offset_bottom = 380.0
+mouse_filter = 0
+
+[node name="DealPanel" type="Panel" parent="DealStall"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_dealpanel")
+
+[node name="DealHeader" type="Label" parent="DealStall"]
+layout_mode = 0
+offset_right = 200.0
+offset_bottom = 30.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.84, 0.35, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.85)
+theme_override_colors/font_outline_color = Color(0.12, 0.08, 0.02, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 19
+text = "Daily Deal"
+horizontal_alignment = 1
+vertical_alignment = 2
+
+[node name="DealTitle" type="Label" parent="DealStall"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_top = 32.0
+offset_right = 200.0
+offset_bottom = 54.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.84, 0.35, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.85)
+theme_override_colors/font_outline_color = Color(0.12, 0.08, 0.02, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 17
+text = "Magma Dice"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="DealDieTexture" type="TextureRect" parent="DealStall"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 42.0
+offset_top = 60.0
+offset_right = 158.0
+offset_bottom = 176.0
+pivot_offset = Vector2(58, 58)
+mouse_filter = 1
+expand_mode = 1
+stretch_mode = 5
+
+[node name="DealBuyLabel" type="RichTextLabel" parent="DealStall"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 12.0
+offset_top = 190.0
+offset_right = 188.0
+offset_bottom = 232.0
+mouse_filter = 2
+theme_override_colors/font_outline_color = Color(0.08, 0.05, 0.01, 1)
+theme_override_constants/outline_size = 4
+bbcode_enabled = true
+text = ""
+
+[node name="RemoveStall" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 1032.0
+offset_top = 396.0
+offset_right = 1232.0
+offset_bottom = 588.0
+mouse_filter = 0
+
+[node name="RemovePanel" type="Panel" parent="RemoveStall"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_dealpanel")
+
+[node name="RemoveTitle" type="Label" parent="RemoveStall"]
+layout_mode = 0
+offset_top = 6.0
+offset_right = 200.0
+offset_bottom = 32.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.84, 0.35, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.85)
+theme_override_colors/font_outline_color = Color(0.12, 0.08, 0.02, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 19
+text = "Remove a Card"
+horizontal_alignment = 1
+vertical_alignment = 2
+
+[node name="CardFan" type="Control" parent="RemoveStall"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_top = 16.0
+offset_right = 200.0
+offset_bottom = 146.0
+pivot_offset = Vector2(100, 75)
+mouse_filter = 2
+
+[node name="CardBack1" type="Panel" parent="RemoveStall/CardFan"]
+layout_mode = 0
+offset_left = 58.0
+offset_top = 40.0
+offset_right = 110.0
+offset_bottom = 116.0
+rotation = -0.12
+mouse_filter = 2
+theme_override_styles/panel = ExtResource("23_cardback")
+
+[node name="CardBack2" type="Panel" parent="RemoveStall/CardFan"]
+layout_mode = 0
+offset_left = 96.0
+offset_top = 34.0
+offset_right = 148.0
+offset_bottom = 110.0
+rotation = 0.14
+mouse_filter = 2
+theme_override_styles/panel = ExtResource("23_cardback")
+
+[node name="RemoveX" type="Label" parent="RemoveStall/CardFan"]
+layout_mode = 0
+offset_left = 72.0
+offset_top = 42.0
+offset_right = 128.0
+offset_bottom = 106.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.3, 0.27, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.85)
+theme_override_colors/font_outline_color = Color(0.2, 0.02, 0.02, 1)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 46
+text = "X"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RemoveCardLabel" type="RichTextLabel" parent="RemoveStall"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 12.0
+offset_top = 134.0
+offset_right = 188.0
+offset_bottom = 176.0
+mouse_filter = 2
+theme_override_colors/font_outline_color = Color(0.08, 0.05, 0.01, 1)
+theme_override_constants/outline_size = 4
+bbcode_enabled = true
+text = ""
 
 [node name="ShopContent" type="VBoxContainer" parent="."]
 layout_mode = 1
