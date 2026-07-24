@@ -51,6 +51,11 @@ const DICE_TYPE_TO_AMOUNT = {
 
 
 var tooltip_instance: CanvasLayer
+# Looping pulse tweens on slots that still have dice while the active type is spent AND no
+# Power is banked. _nudge_nodes tracks which slots are currently pulsing so a refresh whose
+# nudge-set is unchanged leaves the running tweens alone (no restart-mid-breath).
+var _nudge_tweens: Array[Tween] = []
+var _nudge_nodes: Array = []
 
 
 
@@ -76,6 +81,10 @@ func _ready() -> void:
     _resize_panel_for_dice_inventory()
     Events.temporary_dice_added.connect(_on_temporary_dice_added)
     Events.active_dice_changed.connect(update_selected_highlight)
+    # Fires after every roll AND after a card spends your Power to 0 (end of the reset
+    # handler, past the red path's await) - the moment the "you're out, switch" nudge
+    # should start or stop. Idempotent, so re-firing without a state change is a no-op.
+    Events.hover_playable_cards.connect(_on_hover_playable_cards)
     await get_tree().process_frame
     update_selected_highlight(Global.dice_type)
 
@@ -269,6 +278,9 @@ func _on_player_turn_started() -> void:
     initialize_dices()
     update_selected_highlight()
     _play_panel_refill_burst()
+
+func _on_hover_playable_cards() -> void:
+    update_selected_highlight()
 
 func _on_dice_amount_changed():
     dice_1_label.text = str(Global.blue_dice_current_amount, "/", Global.blue_dice_max_amount)
@@ -473,8 +485,43 @@ func _on_dice_9_mouse_exited() -> void:
 
 
 func update_selected_highlight(selected_type: String = Global.dice_type) -> void:
+    var active_empty: bool = Global.get(DICE_TYPE_TO_AMOUNT.get(selected_type, "blue_dice_current_amount")) <= 0
+    # Nudge toward another die only once the current die is spent AND no Power is banked -
+    # otherwise it nags "switch to me!" while you still have Power to spend on a card first
+    # (you rolled blue, blue's now empty, but you're about to Strike with that Power). Once
+    # a card consumes the Power (roll_value -> 0), hover_playable_cards fires and the nudge
+    # kicks in. Suppressed during the tutorial - it gates/spotlights slots itself.
+    var want_nudge := active_empty and Global.roll_value <= 0 and not Global.tutorial_on
+
+    # Which slots should be pulsing this pass (deterministic dict order, so the array can be
+    # compared by value below).
+    var new_nudge: Array = []
+    if want_nudge:
+        for dice_type in DICE_TYPE_TO_NODE:
+            if dice_type == selected_type:
+                continue
+            var n = get(DICE_TYPE_TO_NODE[dice_type])
+            if Global.get(DICE_TYPE_TO_AMOUNT[dice_type]) > 0 and n.visible:
+                new_nudge.append(n)
+
+    # Only tear down / rebuild the looping pulses when the SET actually changes, so the
+    # frequent refresh signals this listens to (rolls, power changes, switches) can't
+    # restart the breathing animation every time. A pulsing slot's modulate/scale are owned
+    # by its tween, so those nodes are skipped in the styling loop while their set holds.
+    var nudge_changed: bool = new_nudge != _nudge_nodes
+    if nudge_changed:
+        for t in _nudge_tweens:
+            if t and t.is_valid():
+                t.kill()
+        _nudge_tweens.clear()
+        _nudge_nodes = new_nudge
+
     for dice_type in DICE_TYPE_TO_NODE:
         var node = get(DICE_TYPE_TO_NODE[dice_type])
+        if node in _nudge_nodes:
+            if nudge_changed:
+                _start_nudge_pulse(node)
+            continue
         var amount: int = Global.get(DICE_TYPE_TO_AMOUNT[dice_type])
         var depleted := amount <= 0
         if dice_type == selected_type and not depleted:
@@ -488,6 +535,24 @@ func update_selected_highlight(selected_type: String = Global.dice_type) -> void
         else:
             node.modulate = Color(0.72, 0.72, 0.72, 1.0)
             node.scale = Vector2(1.0, 1.0)
+
+
+# Soft looping "I'm still ready" pulse on an available slot while the active die is out
+# of rolls. Deliberately subtle: a warm brightening from the idle gray plus a whisper of
+# scale - the gold-ish tint matches the game's established "actionable" language (End
+# Turn pulse, tutorial glow) without competing with the selected slot's accent pop.
+func _start_nudge_pulse(node: Control) -> void:
+    node.pivot_offset = node.size / 2.0
+    var tween := create_tween().set_loops()
+    tween.tween_property(node, "modulate", Color(1.12, 1.05, 0.85, 1.0), 0.55) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+    tween.parallel().tween_property(node, "scale", Vector2(1.06, 1.06), 0.55) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+    tween.tween_property(node, "modulate", Color(0.72, 0.72, 0.72, 1.0), 0.55) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+    tween.parallel().tween_property(node, "scale", Vector2(1.0, 1.0), 0.55) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+    _nudge_tweens.append(tween)
 
 
 # Small "back up!" punch played on a dice slot that just got refilled from

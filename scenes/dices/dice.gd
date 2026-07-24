@@ -111,6 +111,7 @@ var _power_orb_texture: GradientTexture2D
 # hover above it (giving the player a moment to register "those are the dice I just rolled"),
 # then fly back into the die, showing they've been put back into your pool.
 const REFUEL_RETURN_MAX_ICONS := 8    # cap so a huge roll_history doesn't spawn a swarm
+const HISTORY_FACE_SIZE := 22         # px size of the mini die faces in the roll-history row
 const REFUEL_RETURN_RISE := 0.14      # pop out of the card + rise to hover, time
 const REFUEL_RETURN_HOVER := 0.4      # how long they float above the card before flying in
 const REFUEL_RETURN_HOVER_BOB := 7.0  # small vertical drift while hovering, so it reads as floating, not paused
@@ -374,6 +375,10 @@ func _ready():
     Events.card_played.connect(_on_card_played_track_frame)
 
     
+    # Long chains (Turbo Mode territory, 8+ rolls) wrap to a second row of mini faces
+    # instead of clipping at the RichTextLabel's fixed width (fit_content grows height).
+    roll_history.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
+
     # Initialize the dice display with the correct texture based on dice_type
     update_dice_display()
 
@@ -1800,24 +1805,32 @@ func update_roll_history_ui():
         roll_history.visible = false  # don't leave an empty backing pill floating there
         return
 
-    # Build text: "2, 5, 3"
-    var text := ""
-    for i in range(Global.roll_history.size()):
-        if i == 0:
-            text += str(Global.roll_history[i])
-        else:
-            text += ", " + str(Global.roll_history[i])
-
-    # Dice-type accent, lightened toward white so it stays legible on the dark backing pill
-    # regardless of type.
-    var color := DicePalette.accent(Global.dice_type).lerp(Color.WHITE, 0.35)
-
-    # Apply with RichText formatting
+    # The chain rendered as MINI DIE FACES instead of plain "4, 5" text - the stacking
+    # story made visible (2026-07-24, Julien's pick from the combat quick-wins list).
+    # History entries are NATURAL faces of the ACTIVE type (roll_history is cleared on
+    # every reset AND type switch, and infusion overrides are subsets of real faces), so
+    # a face texture exists for every entry - verified for all 9 types. The text branch
+    # is a safety net for any future entry without art, not an expected path.
+    # Lives CENTERED UNDER the ROLL button (moved 2026-07-24: its old spot right of the
+    # die was the same rectangle as NextRollPanel, so a scouted face stacked on top of
+    # the history faces) - the trail sits below the die, the guaranteed NEXT roll keeps
+    # the marquee spot beside it.
     roll_history.visible = true
     roll_history.clear()
-    roll_history.push_color(color)
-    roll_history.add_text(text)
-    roll_history.pop()
+    roll_history.push_paragraph(HORIZONTAL_ALIGNMENT_CENTER)
+    var first := true
+    for value in Global.roll_history:
+        if not first:
+            roll_history.add_text(" ")
+        first = false
+        var tex_path := "res://assets/images/%s%d.png" % [Global.dice_type, value]
+        if ResourceLoader.exists(tex_path):
+            roll_history.add_image(load(tex_path), HISTORY_FACE_SIZE, HISTORY_FACE_SIZE)
+        else:
+            roll_history.push_color(DicePalette.accent(Global.dice_type).lerp(Color.WHITE, 0.35))
+            roll_history.add_text(str(value))
+            roll_history.pop()
+    roll_history.pop()  # close the centered paragraph
 
 func _check_sigil_trigger() -> void:
     for enemy in get_tree().get_nodes_in_group("enemies"):

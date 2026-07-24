@@ -855,10 +855,10 @@ text = "+4"
 
 [node name="RollHistory" type="RichTextLabel" parent="."]
 layout_mode = 0
-offset_left = 150.0
-offset_top = 128.0
-offset_right = 262.0
-offset_bottom = 162.0
+offset_left = 0.0
+offset_top = 196.0
+offset_right = 154.0
+offset_bottom = 234.0
 fit_content = true
 scroll_active = false
 autowrap_mode = 0

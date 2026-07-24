@@ -1,5 +1,5 @@
 ea4bc82a6ad023ab7ee23ee620429895
-::res://::1784869192
+::res://::1784870649
 absorb_icon_v2.png::CompressedTexture2D::2269441077768529910::1783669866::1783670028::1::::<><>::
 adrenaline.png::CompressedTexture2D::9051958842146872986::1783575666::1783576309::1::::<><>::
 aegis.png::CompressedTexture2D::6663191619369050099::1779436016::1781152046::1::::<><>::
@@ -63,7 +63,7 @@ buff_icon.png::CompressedTexture2D::5463792359898030528::1745061064::1771677035:
 buff_icon_intent.png::CompressedTexture2D::2975793720186141234::1745061155::1771677035::1::::<><>::
 bullseye.png::CompressedTexture2D::1912234821898015959::1784214374::1784214465::1::::<><>::
 bulwark.png::CompressedTexture2D::4886669032485258860::1783575666::1783576309::1::::<><>::
-button_shine.gdshader::Shader::-1::1784869192::0::1::::<><>::
+button_shine.gdshader::Shader::-1::1784870595::0::1::::<><>::
 buy_relic_event.png::CompressedTexture2D::5374820992019302856::1766921620::1771677035::1::::<><>::
 campfire_bg.png::CompressedTexture2D::5429263324005161236::1771829484::1781152185::1::::<><>::
 campfire_icon.png::CompressedTexture2D::7120194025886343228::1756292226::1771677056::1::::<><>::
@@ -79,7 +79,7 @@ card_icon_v4.png::CompressedTexture2D::6374089767793111855::1780054461::17811520
 card_pool_analysis.md::TextFile::-1::1782221903::0::1::::<><>::
 card_pool_expansion_2026-07.md::TextFile::-1::1783401823::0::1::::<><>::
 card_shop_background.png::CompressedTexture2D::8486134718446411558::1777546871::1781152096::1::::<><>::
-card_socket_shader.gdshader::Shader::-1::1784869192::0::1::::<><>::
+card_socket_shader.gdshader::Shader::-1::1784870595::0::1::::<><>::
 carnage.png::CompressedTexture2D::2364742085227235735::1777281463::1781152115::1::::<><>::
 cartographers_quill.png::CompressedTexture2D::5324320951275664021::1783757529::1783757727::1::::<><>::
 cascade.png::CompressedTexture2D::3891179171470629682::1783575666::1783576309::1::::<><>::
@@ -93,7 +93,7 @@ catapult.png::CompressedTexture2D::8617920346499836754::1767097406::1771677056::
 chargedicesound.mp3::AudioStreamMP3::276466449199139461::1745913300::1771653268::1::::<><>::
 charge_dice_icon.png::CompressedTexture2D::4060261398404491712::1746179484::1771677056::1::::<><>::
 clank.png::CompressedTexture2D::831607369967737829::1777273714::1781152115::1::::<><>::
-CLAUDE.md::TextFile::-1::1784868744::0::1::::<><>::
+CLAUDE.md::TextFile::-1::1784870131::0::1::::<><>::
 cloak.png::CompressedTexture2D::3448652125965938187::1779435055::1781152046::1::::<><>::
 clover_bath.png::CompressedTexture2D::3737671151440530625::1767022042::1771677056::1::::<><>::
 clover_v2.png::CompressedTexture2D::3850510524641087478::1777465686::1781152095::1::::<><>::
@@ -134,7 +134,7 @@ debug_act2_reskin.gd::GDScript::-1::1784459759::0::1::::<>Node<>::
 debug_act2_reskin.tscn::PackedScene::766263837074514174::1784449918::0::1::::<><>::res://debug_act2_reskin.gd
 debug_bg_audit.gd::GDScript::-1::1784182382::0::1::::<>Node<>::
 debug_bg_audit.tscn::PackedScene::-1::1784126447::0::1::::<><>::
-debug_dice_glow.gd::GDScript::-1::1784867447::0::1::::<>Node<>::
+debug_dice_glow.gd::GDScript::-1::1784869923::0::1::::<>Node<>::
 debug_dice_glow.tscn::PackedScene::-1::1784815967::0::1::::<><>::res://debug_dice_glow.gd
 debug_dice_infusion_render.gd::GDScript::-1::1784210687::0::1::::<>Node<>::
 debug_dice_infusion_render.tscn::PackedScene::-1::1784210625::0::1::::<><>::
@@ -172,7 +172,7 @@ dicebagv4.png::CompressedTexture2D::8353101384765844752::1755595343::1771677055:
 dicelord_gift.png::CompressedTexture2D::7483963778747563860::1784617467::1784617816::1::::<><>::
 dice_arcanist.png::CompressedTexture2D::1865804648196206072::1777545238::1781152096::1::::<><>::
 dice_chip.png::CompressedTexture2D::7318524960236871619::1784869210::1784869233::1::::<><>::
-dice_glow.gdshader::Shader::-1::1784869192::0::1::::<><>::
+dice_glow.gdshader::Shader::-1::1784870595::0::1::::<><>::
 dice_shop_other2.png::CompressedTexture2D::8690164978438472259::1784272563::1784369996::1::::<><>::
 dice_shop_other.png::CompressedTexture2D::5895430667676162773::1784272570::1784369996::1::::<><>::
 dice_slap.png::CompressedTexture2D::5232281310205415614::1777274555::1781152115::1::::<><>::
@@ -452,7 +452,7 @@ red3.png::CompressedTexture2D::7816228012291087789::1783583980::1783584025::1:::
 red4.png::CompressedTexture2D::2669252735170514891::1783583980::1783584025::1::::<><>::
 red5.png::CompressedTexture2D::4552703751175157039::1783583980::1783584025::1::::<><>::
 red6.png::CompressedTexture2D::6613359144068853949::1783583980::1783584025::1::::<><>::
-red_dice_shader.gdshader::Shader::-1::1784869192::0::1::::<><>::
+red_dice_shader.gdshader::Shader::-1::1784870595::0::1::::<><>::
 relic_or_cards_vector.png::CompressedTexture2D::985897352480881019::1777736457::1781152096::1::::<><>::
 relic_or_heal.png::CompressedTexture2D::942889199167354621::1777542856::1781152095::1::::<><>::
 relic_treasure.png::CompressedTexture2D::4195900732014422292::1755677398::1771677315::1::::<><>::
@@ -576,7 +576,7 @@ war_horn.png::CompressedTexture2D::5997672506737784931::1767035417::1771677378::
 wayside_shrine.png::CompressedTexture2D::2087368002358850871::1783684413::1783684434::1::::<><>::
 whetstone_shrine.png::CompressedTexture2D::6804270701242113279::1783684413::1783684434::1::::<><>::
 whipsound.mp3::AudioStreamMP3::4306006920618769339::1745912721::1771653268::1::::<><>::
-::res://art/::1784869192
+::res://art/::1784870595
 arrow.png::CompressedTexture2D::2515448857286657013::1742119698::1771653270::1::::<><>::
 axe.ogg::AudioStreamOggVorbis::4255609869805307097::1742119698::1771653268::1::::<><>::
 block.ogg::AudioStreamOggVorbis::7575971621101921150::1742119698::1771653268::1::::<><>::
@@ -584,7 +584,7 @@ enemy_attack.ogg::AudioStreamOggVorbis::220495020690451987::1742119699::17716532
 enemy_block.ogg::AudioStreamOggVorbis::770794073115788987::1742119699::1771653268::1::::<><>::
 heart.png::CompressedTexture2D::8922467373508231783::1742119699::1771653270::1::::<><>::
 slash.ogg::AudioStreamOggVorbis::7768880665528329024::1742119699::1771653268::1::::<><>::
-white_sprite_material.gdshader::Shader::-1::1784869192::0::1::::<><>::
+white_sprite_material.gdshader::Shader::-1::1784870595::0::1::::<><>::
 white_sprite_material.tres::ShaderMaterial::9176188161803125320::1742119701::0::1::::<><>::res://art/white_sprite_material.gdshader
 ::res://assets/::1784449150
 OFL.txt::TextFile::-1::1743590060::0::1::::<><>::
@@ -1701,7 +1701,7 @@ campfire.tscn::PackedScene::7776515885534448929::1784783330::0::1::::<><>::res:/
 card_arc.tscn::PackedScene::9144931054622623369::1782114515::0::1::::<><>::
 card_target_selector.gd::GDScript::-1::1783685648::0::1::::<>Node2D<>::
 card_target_selector.tscn::PackedScene::8744573153581868638::1782114506::0::1::::<><>::res://scenes/card_target_selector/card_target_selector.gd<>uid://d3j4xcg8ufof6::::res://scenes/card_target_selector/card_arc.tscn
-::res://scenes/card_ui/::1784869192
+::res://scenes/card_ui/::1784870595
 blessing_card_description_label.tres::LabelSettings::178219783943544786::1783153248::0::1::::<><>::uid://c4mfyi0ta8qeq::::res://fonts/MinionPro-Semibold.otf
 card_background.tres::StyleBoxFlat::2691083727655014938::1784866437::0::1::::<><>::
 card_banner.tres::StyleBoxFlat::3403469898962743822::1784866437::0::1::::<><>::
@@ -1741,7 +1741,7 @@ card_requirement_red.tres::StyleBoxFlat::7114870151132619601::1784866436::0::1::
 card_state_machine.gd::GDScript::-1::1744958164::0::1::::CardStateMachine<>Node<>::
 card_title.tres::LabelSettings::6519292454900174696::1784866436::0::1::::<><>::uid://b2y60c4274gkj::::res://fonts/Cinzel-Bold.otf
 card_ui.gd::GDScript::-1::1784817088::0::1::::CardUI<>Control<>::
-card_ui.gdshader::Shader::-1::1784869192::0::1::::<><>::
+card_ui.gdshader::Shader::-1::1784870595::0::1::::<><>::
 card_ui.tscn::PackedScene::4614138687533644378::1784121574::0::1::::<><>::uid://bcdb8cbop4w8o::::res://scenes/dices/blue_dice_shader.tres<>res://scenes/card_ui/card_ui.gd<>uid://belt0xy3pi11o::::res://scenes/card_ui/card_background.tres<>res://scenes/card_ui/card_state_machine.gd<>uid://bn1oyc7jrh7sb::::res://assets/images/duo.jpg<>uid://boqwwfxsajq1s::::res://scenes/card_ui/card_banner.tres<>res://scenes/card_ui/card_states/card_base_state.gd<>uid://cy482afjc3tjk::::res://scenes/card_ui/card_title.tres<>res://scenes/card_ui/card_states/card_clicked_state.gd<>uid://cjypcaytp7ubr::::res://scenes/card_ui/card_ui_normal.tres<>res://scenes/card_ui/card_states/card_dragging_state.gd<>uid://ba5f3gvin2wmm::::res://scenes/card_ui/card_panel.tres<>uid://sxiw6df36trq::::res://assets/images/blue6.png<>res://scenes/card_ui/card_states/card_released_state.gd<>res://scenes/card_ui/card_states/card_aiming_state.gd<>uid://bxyflqo45i4i4::::res://scenes/card_ui/card_requirement_multiple.tres<>uid://begfebqtrbbkl::::res://scenes/card_ui/card_ui_requirement_ribbon.tres<>uid://bx326akbkj0gi::::res://charge_dice_icon.png<>uid://duq08xoimq50p::::res://scenes/card_ui/card_ui_description_panel.tres<>uid://48tau48u3kqx::::res://scenes/card_ui/card_bonus_requirement_exact.tres<>uid://bhrpkq50bp811::::res://scenes/card_ui/card_ui_bonus_requirement_label.tres<>uid://c4mfyi0ta8qeq::::res://fonts/MinionPro-Semibold.otf
 card_ui_blessing.tres::StyleBoxFlat::2394599256385474591::1783153248::0::1::::<><>::
 card_ui_bonus_effect_label.tres::LabelSettings::6236279055291377187::1784866438::0::1::::<><>::uid://c4mfyi0ta8qeq::::res://fonts/MinionPro-Semibold.otf
@@ -1775,25 +1775,25 @@ card_clicked_state.gd::GDScript::-1::1744958162::0::1::::<>CardState<>::
 card_dragging_state.gd::GDScript::-1::1784193326::0::1::::<>CardState<>::
 card_released_state.gd::GDScript::-1::1784193243::0::1::::<>CardState<>::
 card_state.gd::GDScript::-1::1744958163::0::1::::CardState<>Node<>::
-::res://scenes/dices/::1784869192
+::res://scenes/dices/::1784870595
 blue_dice.gd::GDScript::-1::1782112155::0::1::::<>Resource<>::
 blue_dice.tres::Resource::6256970892441149176::1741961066::0::1::::<><>::res://scenes/dices/blue_dice.gd
 blue_dice_shader.tres::ShaderMaterial::2533111259671785248::1784866437::0::1::::<><>::res://dice_glow.gdshader
 button.gd::GDScript::-1::1782813032::0::1::::<>Button<>::
-dice.gd::GDScript::-1::1784817345::0::1::::Dice<>Control<>::
-dice.gdshader::Shader::-1::1784869192::0::1::::<><>::
+dice.gd::GDScript::-1::1784870046::0::1::::Dice<>Control<>::
+dice.gdshader::Shader::-1::1784870595::0::1::::<><>::
 dice.tscn::PackedScene::8398463521012410973::1784816663::0::1::::<><>::uid://c17qq0sj25epy::::res://assets/images/blue1.png<>res://scenes/dices/dice.gd<>uid://c5ebdqhhhfy3i::::res://scenes/button/base_button.tres<>uid://c8cqncsqlplyu::::res://main_theme.tres<>res://scenes/dices/button.gd<>uid://bcdb8cbop4w8o::::res://scenes/dices/blue_dice_shader.tres<>uid://belt0xy3pi11o::::res://scenes/card_ui/card_background.tres<>uid://dh1akl0w2wb7w::::res://ink_on_dice.png<>res://card_socket_shader.gdshader<>uid://babawuw4jquuw::::res://tutorial_arrow_down.png<>uid://boqwwfxsajq1s::::res://scenes/card_ui/card_banner.tres<>uid://cy482afjc3tjk::::res://scenes/card_ui/card_title.tres<>uid://ba5f3gvin2wmm::::res://scenes/card_ui/card_panel.tres<>uid://b1es4i7nr43mv::::res://fonts/CinzelDecorative-Bold.otf<>uid://v7ibmopcuf0s::::res://fonts/Cinzel-Black.otf<>uid://cn5cvioavhfx1::::res://Metamorphous-Regular.ttf<>uid://7xp641so2k1u::::res://PirataOne-Regular.ttf<>uid://cjypcaytp7ubr::::res://scenes/card_ui/card_ui_normal.tres<>uid://bxyflqo45i4i4::::res://scenes/card_ui/card_requirement_multiple.tres<>uid://djfmi1eok7bdc::::res://scenes/dices/roll_button_style.tres<>res://scenes/dices/dice_emanation.gdshader<>uid://0utduvjaqe4u::::res://undo_icon_v2 (2).png<>uid://begfebqtrbbkl::::res://scenes/card_ui/card_ui_requirement_ribbon.tres<>uid://sxiw6df36trq::::res://assets/images/blue6.png<>uid://duq08xoimq50p::::res://scenes/card_ui/card_ui_description_panel.tres<>uid://bl0evkb1ud5ic::::res://scenes/card_ui/card_description_label.tres<>uid://48tau48u3kqx::::res://scenes/card_ui/card_bonus_requirement_exact.tres<>uid://dltntsanjiykq::::res://fonts/LuckiestGuy-Regular.ttf<>uid://bhrpkq50bp811::::res://scenes/card_ui/card_ui_bonus_requirement_label.tres<>uid://cu35utjlrjheh::::res://scenes/card_ui/card_ui_bonus_effect_label.tres<>res://scenes/dices/power_float.gdshader
 dice_1_texture.gd::GDScript::-1::1782112211::0::1::::<>TextureRect<>::
 dice_emanation.gdshader::Shader::-1::1784868805::0::1::::<><>::
-dice_interface.gd::GDScript::-1::1783828955::0::1::::DiceInterface<>Control<>::
-dice_interface.gdshader::Shader::-1::1784869192::0::1::::<><>::
+dice_interface.gd::GDScript::-1::1784869865::0::1::::DiceInterface<>Control<>::
+dice_interface.gdshader::Shader::-1::1784870595::0::1::::<><>::
 dice_interface.tscn::PackedScene::9066454855880008834::1782996934::0::1::::<><>::res://daiso_theme.tres<>res://scenes/dices/dice_interface.gd<>uid://c17qq0sj25epy::::res://assets/images/blue1.png<>uid://c8cqncsqlplyu::::res://main_theme.tres<>res://scenes/dices/dice_1_texture.gd<>uid://cdpcpjn0arvjp::::res://assets/images/red1.png<>uid://klo4n2sp4ar6::::res://fonts/MinionPro-Bold.otf<>uid://bq8i15ehnrypf::::res://assets/images/evil6.png<>uid://q3ok1r0215cq::::res://giant12.png<>uid://bm4ljubtmf3vd::::res://assets/images/magma6.png<>uid://ckr0ifje35um6::::res://assets/images/even8.png<>uid://br8qll0nj8dy6::::res://assets/images/odd7.png<>uid://ffjm2ac2wjyh::::res://assets/images/green1.png<>uid://qfff0bysul00::::res://assets/images/mech1.png
 dice_scout.tscn::PackedScene::3225717690646921847::1746432738::0::1::::<><>::uid://klo4n2sp4ar6::::res://fonts/MinionPro-Bold.otf<>uid://c17qq0sj25epy::::res://assets/images/blue1.png
 even_dice_shader.tres::ShaderMaterial::5232373197451882205::1784866437::0::1::::<><>::res://dice_glow.gdshader
 evil_dice_shader.tres::ShaderMaterial::2358184292210517990::1784866437::0::1::::<><>::res://dice_glow.gdshader
 giant_dice_shader.tres::ShaderMaterial::2032765292377892747::1784866437::0::1::::<><>::res://dice_glow.gdshader
 green_dice_shader.tres::ShaderMaterial::3474815380378190036::1784866437::0::1::::<><>::res://dice_glow.gdshader
-ink.gdshader::Shader::-1::1784869192::0::1::::<><>::
+ink.gdshader::Shader::-1::1784870595::0::1::::<><>::
 magma_dice_shader.tres::ShaderMaterial::2294884439633907671::1784866437::0::1::::<><>::res://dice_glow.gdshader
 mech_dice_shader.tres::ShaderMaterial::4940707029027168377::1784866437::0::1::::<><>::res://dice_glow.gdshader
 odd_dice_shader.tres::ShaderMaterial::7151503556603352854::1784866437::0::1::::<><>::res://dice_glow.gdshader
@@ -1803,9 +1803,9 @@ roll_button_style.tres::StyleBoxFlat::7802027795293369932::1784866438::0::1::::<
 ::res://scenes/dice_infusion/::1784210551
 dice_infusion.gd::GDScript::-1::1784210551::0::1::::<>Control<>::
 dice_infusion.tscn::PackedScene::8294347144871811234::1784021746::0::1::::<><>::res://scenes/dice_infusion/dice_infusion.gd
-::res://scenes/enemy/::1784869192
+::res://scenes/enemy/::1784870595
 enemy.gd::GDScript::-1::1784789439::0::1::::Enemy<>Area2D<>::
-enemy.gdshader::Shader::-1::1784869192::0::1::::<><>::
+enemy.gdshader::Shader::-1::1784870595::0::1::::<><>::
 enemy.tscn::PackedScene::8922587126746801501::1784788099::0::1::::<><>::res://scenes/enemy/enemy.gd<>res://scenes/enemy/enemy.gdshader<>uid://bb3rcs5nqntir::::res://art/arrow.png<>uid://kokyyek4i435::::res://gptenemy.png<>uid://ph0oi5od64u5::::res://scenes/ui/stats_ui.tscn<>uid://b6p08ajglydq8::::res://scenes/ui/intent_ui.tscn<>uid://c6qcxv2m34hwv::::res://scenes/status_handler/status_handler.tscn<>uid://cj610j1wjtrwi::::res://scenes/modifier_handler/modifier_handler.tscn<>uid://cntarjcc6q8hs::::res://scenes/modifier_handler/modifier.tscn
 enemy_action.gd::GDScript::-1::1782112229::0::1::::EnemyAction<>Node<>::
 enemy_action_picker.gd::GDScript::-1::1782112231::0::1::::EnemyActionPicker<>Node<>::

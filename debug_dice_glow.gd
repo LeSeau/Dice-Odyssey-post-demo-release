@@ -76,6 +76,8 @@ func _ready() -> void:
 		dice._on_active_dice_changed(type)
 		for power in powers:
 			Global.roll_value = power
+			Global.roll_history = _fake_history(power)
+			dice.update_roll_history_ui()
 			dice._set_power_text(power)
 			dice._update_dice_aura_charge()
 			for i in SETTLE_FRAMES:
@@ -84,6 +86,61 @@ func _ready() -> void:
 			var img := vp.get_texture().get_image()
 			img.save_png(out_dir.path_join("%s_p%02d.png" % [type, power]))
 			print("[dice-glow] saved %s p%d" % [type, power])
+
+	# Scout-collision scenario (DICE_GLOW_SCOUT=1): banked history AND an armed
+	# guaranteed next roll shown together - the exact case where the old history spot
+	# stacked under NextRollPanel.
+	if OS.get_environment("DICE_GLOW_SCOUT") != "":
+		dice._on_active_dice_changed("blue")
+		Global.roll_value = 9
+		Global.roll_history = [4, 5]
+		dice.update_roll_history_ui()
+		dice._set_power_text(9)
+		dice._update_dice_aura_charge()
+		Global.next_guaranteed_roll = 6
+		dice.next_roll_panel.get_node("NextRollTexture").texture = load("res://assets/images/blue6.png")
+		dice.next_roll_panel.show()
+		for i in 20:
+			await get_tree().process_frame
+		await RenderingServer.frame_post_draw
+		vp.get_texture().get_image().save_png(out_dir.path_join("scout_collision.png"))
+		dice.next_roll_panel.hide()
+		Global.next_guaranteed_roll = -1
+		print("[dice-glow] scout collision shot saved")
+
+	# Nudge scenario (DICE_GLOW_NUDGE=1): active blue at 0 rolls with red still holding a die.
+	# First the WRONG-to-nudge state (Power still banked -> red must stay plain), then the
+	# correct state (Power spent to 0 -> red pulses), two shots apart to catch both phases.
+	if OS.get_environment("DICE_GLOW_NUDGE") != "":
+		dice._on_active_dice_changed("blue")
+		Global.blue_dice_current_amount = 0
+		# Power banked: nudge must NOT fire.
+		Global.roll_value = 9
+		Global.roll_history = [4, 5]
+		dice.update_roll_history_ui()
+		dice._set_power_text(9)
+		dice._update_dice_aura_charge()
+		dice_interface.update_selected_highlight()
+		for i in 20:
+			await get_tree().process_frame
+		await RenderingServer.frame_post_draw
+		vp.get_texture().get_image().save_png(out_dir.path_join("nudge_power_banked.png"))
+		# Power spent to 0 (simulating a card play): nudge SHOULD fire on red.
+		Global.roll_value = 0
+		Global.roll_history = []
+		dice.update_roll_history_ui()
+		dice._set_power_text(0)
+		dice._update_dice_aura_charge()
+		Events.hover_playable_cards.emit()
+		for i in 20:
+			await get_tree().process_frame
+		await RenderingServer.frame_post_draw
+		vp.get_texture().get_image().save_png(out_dir.path_join("nudge_no_power_a.png"))
+		for i in 33:
+			await get_tree().process_frame
+		await RenderingServer.frame_post_draw
+		vp.get_texture().get_image().save_png(out_dir.path_join("nudge_no_power_b.png"))
+		print("[dice-glow] nudge shots saved")
 
 	# Optional motion capture: DICE_GLOW_ANIM="type:power" saves a frame sequence
 	# (every 2nd frame for ~2s), with a landing surge spiked at the start so the
@@ -116,3 +173,16 @@ func _ready() -> void:
 
 	print("[dice-glow] done -> ", out_dir)
 	get_tree().quit()
+
+
+# Decompose a power total into plausible d6-ish faces so the roll-history row has
+# something realistic to show (e.g. 15 -> [6, 6, 3]).
+func _fake_history(power: int) -> Array:
+	var faces := []
+	var remaining := power
+	while remaining > 6:
+		faces.append(6)
+		remaining -= 6
+	if remaining > 0:
+		faces.append(remaining)
+	return faces
