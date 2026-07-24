@@ -16,12 +16,14 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     var tree := targets[0].get_tree()
     var faces: Array = thrown_faces_for("green")
     var throws: Array = []
+    # Shared volley stagger keeps each pixie's hit landing exactly on its die's slam.
+    var stagger := Global.dice_throw_volley_stagger(count)
     for i in count:
         var value: int = faces[randi() % faces.size()]
         var target: Node = targets[randi() % targets.size()]
         throws.append({"type": "green", "value": value, "target": target})
         var die_damage := modifiers.get_modified_value(value * 2, Modifier.Type.DMG_DEALT)
-        _land_thrown_die(tree, target, die_damage, Global.DICE_THROW_FLIGHT_TIME + Global.DICE_THROW_STAGGER * i, sound, "green", value)
+        _land_thrown_die(tree, target, die_damage, Global.DICE_THROW_FLIGHT_TIME + stagger * i, sound, "green", value)
     Events.dice_thrown.emit(throws, Global.last_played_card_position)
     Events.dice_roll_reset.emit()
     Events.reset_charged_card.emit()

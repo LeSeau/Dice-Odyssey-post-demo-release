@@ -16,19 +16,14 @@ signal fan_hand_requested
 signal draw_card(amount)
 signal scout_effect(amount)
 signal refuel_happened(amount)
-# Emitted by All In (spends every remaining die across every type as a damage bonus) with an
-# Array[Dictionary] of {type: String, value: int} plus the global position to play the flourish
-# around (the targeted enemy, so the "your dice got consumed" effect reads near the thing they
-# just hit) - purely for the visual flourish (dice.gd's _spawn_all_in_consumed), NOT the same as
-# refuel_happened (that means dice were REFILLED and is watched by relics like Fuel-o-meter/
-# Flywheel - All In destroys dice, the opposite, so it needs its own signal rather than
-# piggybacking on that one).
-signal all_in_dice_consumed(consumed: Array, target_position: Vector2)
-# Thrown-dice cards (Meteor, Fastball, Cursed Toss, Pixie Volley, Dice Avalanche): visual-only
-# request to fly dice from `origin` to their targets, rolling in the air and landing on each
-# throw's final face. Each entry: {"type": String, "value": int, "target": Node}. The DAMAGE is
-# scheduled separately by the card via Card._land_thrown_die() using the same
-# Global.DICE_THROW_FLIGHT_TIME/_STAGGER constants, so the hit lands as the die arrives.
+# Thrown-dice cards (Meteor, Fastball, Cursed Toss, Pixie Volley, Dice Avalanche, All In):
+# visual-only request to fly dice from `origin` to their targets, rolling in the air and
+# landing on each throw's final face. Each entry: {"type": String, "value": int,
+# "target": Node, optional "thud": bool} - "thud" marks a die whose impact carries no
+# damage sound of its own (All In's consumed dice: their total lands once at the end), so
+# the visual side plays a landing clack for it. The DAMAGE is scheduled separately by the
+# card via Card._land_thrown_die() using Global.DICE_THROW_FLIGHT_TIME and the shared
+# Global.dice_throw_volley_stagger() spacing, so each hit lands as its die slams.
 signal dice_thrown(throws: Array, origin: Vector2)
 # One thrown/conjured die finished resolving at its landing (emitted by
 # Global.report_thrown_die_landed, once per die). Deliberately separate from dice_rolled:

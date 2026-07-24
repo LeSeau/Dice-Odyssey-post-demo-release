@@ -406,6 +406,24 @@ func take_damage(damage: int, which_modifier: Modifier.Type) -> void:
     )
 
 
+# Damage-free hit flash + reaction, for thrown dice that carry no damage of their own
+# (All In's consumed dice - their total lands once on the final die). Makes each bash
+# physically register on the enemy like a real attack-card hit. Guards against a dead/
+# dying enemy so it never fights take_damage()'s death branch over the material.
+func flash_impact() -> void:
+    if stats.health <= 0:
+        return
+    sprite_2d.material = WHITE_SPRITE_MATERIAL
+    _play_hit_reaction()
+    var flash_tween := create_tween()
+    flash_tween.tween_interval(0.06)
+    flash_tween.tween_callback(
+        func():
+            if is_instance_valid(self) and stats.health > 0:
+                sprite_2d.material = _base_sprite_material
+    )
+
+
 # Directional knockback + sprite squash on hit. Knockback rides self.position (the same
 # property Shaker.shake uses safely), squash rides Sprite2D.scale directly - the idle is
 # a shader deformation now, so nothing else fights over these transforms.

@@ -3,6 +3,10 @@ extends Effect
 
 var amount := 0
 var receiver_modifier_type := Modifier.Type.DMG_TAKEN
+# Optional popup spawn override (ZERO = default, the target's root position). Thrown-dice
+# hits set this to the die's impact point (Card.thrown_impact_pos) so each number in a
+# sequenced volley pops off the exact spot its die smashed.
+var popup_origin := Vector2.ZERO
 const DAMAGE_POPUP_SCENE := preload("res://scenes/ui/damage_popup.tscn")  # or whereve
 
 # Hits at/above this get an extra camera punch zoom (below) on top of the always-on
@@ -66,7 +70,8 @@ func execute(targets: Array[Node]) -> void:
 
             var damage_popup = DAMAGE_POPUP_SCENE.instantiate()
             target.get_parent().add_child(damage_popup)
-            damage_popup.global_position = target.global_position
+            damage_popup.global_position = popup_origin if popup_origin != Vector2.ZERO \
+                    else target.global_position
             damage_popup.fade_duration = 1.0
             damage_popup.show_damage(Global.damage_to_display)
 

@@ -15,14 +15,38 @@ const CURSOR_HOTSPOT := Vector2(3, 1)
 # Thrown-dice cards (Meteor, Fastball, Cursed Toss...): one shared flight time so the card
 # scripts (which schedule the damage landing, Card._land_thrown_die) and dice.gd (which
 # animates the throw on Events.dice_thrown) stay in sync. FLIGHT_TIME is the TOTAL time
-# from emit to landing - dice.gd carves WINDUP_TIME out of it for the pop-out/hang
-# anticipation beat, the rest is the actual arc. Cards never need to know about the split;
-# they schedule at FLIGHT_TIME (+ STAGGER per extra die) and stay synced automatically.
-const DICE_THROW_WINDUP_TIME := 0.32
+# from emit to landing - dice.gd carves the windup AND the bash beats (rise above the
+# enemy, face-lock hang, downward slam) out of that budget, never adds on top. Cards never
+# need to know about the split; they schedule at FLIGHT_TIME (+ per-die stagger via
+# dice_throw_volley_stagger below) and stay synced automatically.
+const DICE_THROW_WINDUP_TIME := 0.26
 const DICE_THROW_FLIGHT_TIME := 0.95
-const DICE_THROW_STAGGER := 0.15
+# Per-die impact spacing for a volley. Bumped 0.22 -> 0.28 (Julien, 2026-07-24 v4: "need
+# a bit more time to see which dice roll what" on Dice Avalanche) - each hit gets a
+# clearer read before the next lands.
+const DICE_THROW_STAGGER := 0.28
+# Big volleys compress their per-die spacing so the whole barrage stays under this many
+# seconds between FIRST and LAST impact (<=8 dice keep the full stagger untouched); scaled
+# up with the base bump so a 9-die Avalanche also gets a touch more room per hit.
+const DICE_THROW_VOLLEY_SPAN := 1.95
+# ...but never below this floor - past ~15 dice the sequence becomes a fast drumroll
+# instead of stretching on forever.
+const DICE_THROW_STAGGER_MIN := 0.12
 # Double or Nothing: how long the coin spins before the outcome resolves (damage or nothing).
 const COIN_FLIP_TIME := 0.6
+
+
+# Per-die spacing for a volley of `count` thrown dice. THE single source of truth for
+# "when does die i land": card scripts schedule damage at
+# FLIGHT_TIME + dice_throw_volley_stagger(n) * i and dice.gd delays each die's visual by
+# the same stagger, so the hit and the bash can never drift apart. Sequenced deliberately
+# slower than the old 0.15 mush (Julien, 2026-07-24: "bam bam bam ... with clarity on
+# which dice is dealing what damage").
+func dice_throw_volley_stagger(count: int) -> float:
+    if count <= 1:
+        return DICE_THROW_STAGGER
+    return clampf(DICE_THROW_VOLLEY_SPAN / float(count - 1),
+            DICE_THROW_STAGGER_MIN, DICE_THROW_STAGGER)
 
 
 # Called once per thrown/conjured die at the moment it LANDS (card.gd::_on_thrown_die_landed

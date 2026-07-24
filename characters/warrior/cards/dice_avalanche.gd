@@ -16,7 +16,6 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     var target: Node = targets[0]
     var tree := target.get_tree()
     var throws: Array = []
-    var i := 0
     for dice_type in DICE_FACE_VALUES:
         if int(Global.get("%s_dice_max_amount" % dice_type)) <= 0 \
                 and int(Global.get("%s_dice_current_amount" % dice_type)) <= 0:
@@ -24,11 +23,17 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
         var faces: Array = thrown_faces_for(dice_type)
         var value: int = faces[randi() % faces.size()]
         throws.append({"type": dice_type, "value": value, "target": target})
+    # Damage timers use the SAME volley stagger as the flight visuals (the shared helper
+    # needs the final count, hence the second pass) - each hit lands exactly on its die's
+    # slam, sequenced "bam bam bam" instead of the old stacked mush.
+    var stagger := Global.dice_throw_volley_stagger(throws.size())
+    for i in throws.size():
+        var entry: Dictionary = throws[i]
+        var value: int = entry["value"]
         # Strength applies per die (Julien, 2026-07-21) - up to 9 dice, so this is the
         # single biggest Strength multiplier of any card in the pool. Watch in playtest.
         var die_damage := modifiers.get_modified_value(value, Modifier.Type.DMG_DEALT)
-        _land_thrown_die(tree, target, die_damage, Global.DICE_THROW_FLIGHT_TIME + Global.DICE_THROW_STAGGER * i, sound, dice_type, value)
-        i += 1
+        _land_thrown_die(tree, target, die_damage, Global.DICE_THROW_FLIGHT_TIME + stagger * i, sound, entry["type"], value)
     Events.dice_thrown.emit(throws, Global.last_played_card_position)
     Events.reset_charged_card.emit()
 

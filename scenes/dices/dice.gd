@@ -369,7 +369,6 @@ func _ready():
     Events.clear_socket.connect(_on_clear_socket)
     Events.update_roll_history_ui.connect(update_roll_history_ui)
     Events.refuel_happened.connect(_on_refuel_happened)
-    Events.all_in_dice_consumed.connect(_spawn_all_in_consumed)
     Events.dice_thrown.connect(_spawn_thrown_dice)
     Events.coin_flip.connect(_spawn_coin_flip)
     Events.card_played.connect(_on_card_played_track_frame)
@@ -2054,100 +2053,28 @@ func _spawn_refuel_return(rolled_values: Array) -> Tween:
     return last_flight
 
 
-# All In's "which dice got spent" flourish: pops icons for the consumed dice (each showing its
-# own type+face, from all_in.gd's `consumed` array) out of the played card, same rise-and-hover
-# beats as _spawn_refuel_return above - but the final leg differs. Refuel's dice fly back INTO
-# the die (they're returned to your pool); All In's dice are destroyed, and came from many
-# different pools at once, so there's no single die to fly into. Instead they hover noticeably
-# longer (Julien: "make them visible a bit longer so the player knows what happened" - the
-# previous behavior was no visual at all, just the damage number with no visible cause) and
-# then burn away in place: a bright flash, a small final rise, then collapse to nothing.
-const ALL_IN_CONSUMED_MAX_ICONS := 10
-const ALL_IN_CONSUMED_RISE := 0.14
-const ALL_IN_CONSUMED_HOVER := 0.9
-const ALL_IN_CONSUMED_HOVER_BOB := 7.0
-const ALL_IN_CONSUMED_BURN := 0.4
-const ALL_IN_CONSUMED_STAGGER := 0.05
-
-func _spawn_all_in_consumed(consumed: Array, target_position: Vector2 = Vector2.ZERO) -> void:
-    if consumed.is_empty():
-        return
-    var parent_layer := get_tree().get_first_node_in_group("ui_layer")
-    if not parent_layer:
-        return
-    var n := mini(consumed.size(), ALL_IN_CONSUMED_MAX_ICONS)
-    # Icons pop from the played card (matches the other dice-flourish origins), but hover/burn
-    # up near the enemy that got hit rather than over the card itself - see all_in.gd, which
-    # resolves target_position from the targeted Enemy's IntentUI position.
-    var spawn_origin := Global.last_played_card_position
-    if spawn_origin == Vector2.ZERO:
-        spawn_origin = dice_display.get_global_rect().get_center()
-    var hover_origin := target_position if target_position != Vector2.ZERO else spawn_origin
-
-    for i in n:
-        var entry: Dictionary = consumed[i]
-        var icon := TextureRect.new()
-        icon.texture = _get_dice_face_texture_for(entry.get("type", "blue"), entry.get("value", 1))
-        icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-        icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-        icon.custom_minimum_size = Vector2(58, 58)
-        icon.size = Vector2(58, 58)
-        icon.pivot_offset = icon.size / 2.0
-        icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-        icon.z_index = 150  # same layer/z convention as the refuel icons above
-        parent_layer.add_child(icon)
-
-        var spawn_pos := spawn_origin + Vector2(randf_range(-16.0, 16.0), randf_range(-10.0, 10.0))
-        var hover_pos := hover_origin + Vector2(lerpf(-100.0, 100.0, float(i) / maxf(1.0, n - 1)), -30.0)
-        icon.global_position = spawn_pos - icon.size / 2.0
-        icon.scale = Vector2.ZERO
-
-        var flight := create_tween()
-        flight.tween_interval(ALL_IN_CONSUMED_STAGGER * i)
-
-        # 1. Pop out of the card and rise to the hover spot.
-        flight.tween_property(icon, "scale", Vector2.ONE, ALL_IN_CONSUMED_RISE) \
-            .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-        flight.parallel().tween_property(icon, "global_position", hover_pos - icon.size / 2.0, ALL_IN_CONSUMED_RISE) \
-            .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-
-        # 2. Hover with a gentle bob, noticeably longer than the refuel version so the player
-        # has time to actually read "oh, that's my dice" before they vanish.
-        flight.tween_property(icon, "global_position:y", hover_pos.y - icon.size.y / 2.0 - ALL_IN_CONSUMED_HOVER_BOB, ALL_IN_CONSUMED_HOVER * 0.5) \
-            .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-        flight.tween_property(icon, "global_position:y", hover_pos.y - icon.size.y / 2.0, ALL_IN_CONSUMED_HOVER * 0.5) \
-            .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-
-        # 3. Burn away in place: overbright flash, a small final rise + scale pop, then
-        # collapse to nothing - reads as "spent," not "returned."
-        var burn_pos := hover_pos + Vector2(0.0, -26.0)
-        flight.tween_property(icon, "global_position", burn_pos - icon.size / 2.0, ALL_IN_CONSUMED_BURN) \
-            .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-        flight.parallel().tween_property(icon, "modulate", Color(2.2, 2.0, 1.4, 1.0), ALL_IN_CONSUMED_BURN * 0.35) \
-            .set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
-        flight.parallel().tween_property(icon, "scale", Vector2(1.25, 1.25), ALL_IN_CONSUMED_BURN * 0.35) \
-            .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-        flight.tween_property(icon, "scale", Vector2.ZERO, ALL_IN_CONSUMED_BURN * 0.5) \
-            .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
-        flight.parallel().tween_property(icon, "modulate:a", 0.0, ALL_IN_CONSUMED_BURN * 0.5) \
-            .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-        flight.chain().tween_callback(icon.queue_free)
-
-
-# Thrown-dice cards (Meteor, Fastball, Cursed Toss, Pixie Volley, Dice Avalanche + the
-# support throws Windfall/Rampart/Kickstart): each throw is a 3-beat mini-story synced to
-# the effect the card scheduled via Card._land_thrown_die / its own timer. Both sides use
-# Global.DICE_THROW_FLIGHT_TIME as the TOTAL time from emit to landing - the windup is
-# carved OUT of that budget here, never added on top, so lengthening the sequence only
-# ever means raising the Global constant (every card stays in sync automatically).
+# Thrown-dice cards (Meteor, Fastball, Cursed Toss, Pixie Volley, Dice Avalanche, All In +
+# the support throws Windfall/Rampart/Kickstart): each throw is a mini-story synced to the
+# effect the card scheduled via Card._land_thrown_die / its own timer. Both sides use
+# Global.DICE_THROW_FLIGHT_TIME as the TOTAL time from emit to landing and
+# Global.dice_throw_volley_stagger() as the per-die spacing - every beat below is carved
+# OUT of that budget, never added on top, so retiming only ever means touching the
+# Global constants (every card stays in sync automatically).
+# Enemy-targeted dice are a 4-beat BASH (Julien, 2026-07-24: sequenced "bam bam bam",
+# each roll readable before it hits):
 #   1. WINDUP - the die pops out of the played card and hangs above it, tumbling faces,
 #      coiling (vertical stretch) right before launch. Anticipation.
-#   2. FLIGHT - whip-whoosh + recoil motes, then an accelerating arc into the target:
-#      tumbling, swelling mid-arc (sells height), accent-colored mote trail on the path.
-#   3. IMPACT - snaps to the FINAL face as it lands: overbright flash, hard squash,
-#      radial mote burst + soft shock puff (gold-warm + bigger when the face is the die's
-#      MAX), lingers so the roll can be read, then drops off the body like a spent die
-#      (enemy lands) or shrink-dissolves into its effect (air lands - the support throws).
+#   2. ASCENT - whip-whoosh + recoil motes, then a decelerating lob UP to an apex right
+#      above the target (clamped below its intent icon): still tumbling, swelling as it
+#      rises, spin settling to upright exactly at the crest.
+#   3. HANG - the tumble stops and the die SNAPS to its final face with a glint + pop,
+#      hanging raised over the enemy for a beat: the "read the roll" moment. The face
+#      never changes again - the player tracks "a 6 is coming down" into the hit.
+#   4. SLAM - hard accelerating dive straight down into the body: overbright flash, hard
+#      squash, radial burst + shock puff (gold-warm + bigger on the die's MAX face),
+#      lingers so the number can breathe, then drops off the body like a spent die.
+# Air lands (the support throws, target == null) keep the old single arc: windup, lob to
+# a point above the card, settle mid-air and dissolve into their effect.
 # Purely visual: the roll was already decided at play time. Icons live on the ui_layer
 # with the same z convention as the other dice flourishes. Target positions are captured
 # at SPAWN time, so a die whose target dies mid-flight still lands where it was aimed
@@ -2158,6 +2085,29 @@ const THROWN_DIE_TUMBLE_INTERVAL := 0.06
 const THROWN_DIE_LINGER := 0.45
 const THROWN_DIE_WINDUP_RISE := 54.0
 const THROWN_DIE_TRAIL_GAP_MS := 28
+# Bash beats (enemy lands), carved out of FLIGHT_TIME: hang + slam are fixed, the ascent
+# gets whatever remains after the windup. The die hangs ABOVE-and-LEFT of the target,
+# clearly OFF the body (Julien, 2026-07-24 v3: "top left of the enemy, not touching him,
+# not 1 inch away... the moment it overlaps is because it just smacked him"). Clearance is
+# VERTICAL - the hang sits STRIKE_GAP px above the enemy's top edge AND above its intent
+# icon (so the telegraph stays readable), biased LATERAL px left of the torso. Deriving it
+# from the sprite's real bounding box (not a fixed offset - a wide Marauder kept the die
+# on its shoulder, and clearing a wide body sideways drifted the die to the screen edge).
+# The slam is then a diagonal haymaker down-right that only reaches the body at the very
+# end. REAR_BACK is the pull-away along the strike axis during the hang (punch
+# anticipation); DRIVE_IN pushes the visual stop point past the surface (driven INTO him).
+const THROWN_DIE_HANG_TIME := 0.18
+const THROWN_DIE_SLAM_TIME := 0.13
+const THROWN_DIE_STRIKE_GAP := 30.0
+const THROWN_DIE_LATERAL_MIN := 66.0
+const THROWN_DIE_LATERAL_FRAC := 0.52
+const THROWN_DIE_TOP_MARGIN := 26.0
+const THROWN_DIE_RAISE_MIN := 62.0
+const THROWN_DIE_REAR_BACK := 14.0
+const THROWN_DIE_DRIVE_IN := 10.0
+const THROWN_DIE_SLAM_TILT := 0.45
+const THROWN_DIE_ASCENT_BOW := 34.0
+const THROWN_DIE_SLAM_TRAIL_GAP_MS := 16
 # whipsound was freed up when the evil-0 crack moved to glass_sound - it reads as a clean
 # throw "whip" here. The air-land clack is the tightest of the three roll sounds pitched
 # up into a short clatter (placeholder until Julien finds a dedicated single-die clack).
@@ -2174,6 +2124,9 @@ func _spawn_thrown_dice(throws: Array, origin: Vector2) -> void:
     var spawn_origin := origin
     if spawn_origin == Vector2.ZERO:
         spawn_origin = dice_display.get_global_rect().get_center()
+    # Same helper the card scripts use to schedule the damage - the bash and the hit can
+    # never drift apart, including the big-volley compression.
+    var stagger := Global.dice_throw_volley_stagger(throws.size())
     for i in throws.size():
         var entry: Dictionary = throws[i]
         var throw_type: String = entry.get("type", "blue")
@@ -2181,29 +2134,76 @@ func _spawn_thrown_dice(throws: Array, origin: Vector2) -> void:
         var target = entry.get("target")
         var has_target := false
         var land_pos := spawn_origin + Vector2(0.0, -160.0)
+        var apex_pos := land_pos
         if target != null and is_instance_valid(target) and target is Node2D:
             has_target = true
             land_pos = _thrown_die_impact_pos(target)
             if throws.size() > 1:
-                # Volleys pelt the body, not one exact pixel - tiny per-die scatter.
-                land_pos += Vector2(randf_range(-16.0, 16.0), randf_range(-12.0, 12.0))
+                # Volleys pelt the body on ALTERNATING sides so consecutive impacts (and
+                # their damage numbers) never stack on the same pixel - half the old
+                # readability problem was every die of a volley smashing one spot.
+                var side := -1.0 if i % 2 == 0 else 1.0
+                land_pos += Vector2(side * randf_range(8.0, 26.0), randf_range(-14.0, 10.0))
+            apex_pos = _thrown_die_apex_pos(target, land_pos)
         _animate_thrown_die(parent_layer, throw_type, value, spawn_origin, land_pos,
-                Global.DICE_THROW_STAGGER * i, has_target)
+                apex_pos, stagger * i, has_target, bool(entry.get("thud", false)), target)
 
 
 # The enemy ROOT's global_position is not the visual center - enemy.tscn bakes the Sprite2D
 # at local x=124 (the same baseline the name-label centering fix documented), so landing on
 # the root put every thrown die ~124px LEFT of the body. Aim at the sprite node itself:
 # update_enemy() anchors the content bottom to the feet line, which leaves the sprite node
-# sitting at the torso center - exactly where a hit should land.
+# sitting at the torso center - exactly where a hit should land. Lives on Card so the
+# damage side can spawn each die's popup at the same spot (Card.thrown_impact_pos).
 func _thrown_die_impact_pos(target: Node2D) -> Vector2:
+    return Card.thrown_impact_pos(target)
+
+
+# Where the die hangs before the strike: ABOVE the target and biased LEFT, clear of the
+# whole silhouette AND above the intent icon, so it never sits on the body and never hides
+# the telegraph. The slam then comes down-right into the torso, overlapping only on the
+# hit. Because the hang is left of the intent, the down-right slam path also stays clear
+# of the intent until it's already below it.
+func _thrown_die_apex_pos(target: Node2D, land_pos: Vector2) -> Vector2:
+    var center := Card.thrown_impact_pos(target)  # unscattered torso center
+    var aabb := _enemy_sprite_aabb(target)
+    var die_half := THROWN_DIE_SIZE * 0.62  # ~half-size at the hang swell scale (~1.24)
+    # Top clearance: above the sprite top AND the intent icon (whichever is higher).
+    var top := aabb.position.y
+    var intent = target.get("intent_ui")
+    if intent is Control and is_instance_valid(intent):
+        top = minf(top, (intent as Control).get_global_rect().position.y)
+    var lateral := maxf(aabb.size.x * 0.5 * THROWN_DIE_LATERAL_FRAC, THROWN_DIE_LATERAL_MIN)
+    var apex := Vector2(
+            center.x - lateral + randf_range(-6.0, 6.0),
+            top - THROWN_DIE_STRIKE_GAP - die_half + randf_range(-6.0, 4.0))
+    # Never below a floor above the impact (tiny enemy safety), never off the screen top.
+    apex.y = minf(apex.y, land_pos.y - THROWN_DIE_RAISE_MIN)
+    apex.y = maxf(apex.y, THROWN_DIE_TOP_MARGIN)
+    return apex
+
+
+# The target's on-screen sprite bounds (global AABB of the sprite rect). Falls back to a
+# reasonable box around the impact point if the sprite can't be read.
+func _enemy_sprite_aabb(target: Node2D) -> Rect2:
     var sprite = target.get("sprite_2d")
     if sprite is Sprite2D and is_instance_valid(sprite):
-        return (sprite as Sprite2D).global_position
-    return target.global_position + Vector2(0.0, -30.0)
+        var s := sprite as Sprite2D
+        var r: Rect2 = s.get_rect()
+        var xf := s.get_global_transform()
+        var mn := Vector2(INF, INF)
+        var mx := Vector2(-INF, -INF)
+        for corner in [r.position, r.position + Vector2(r.size.x, 0.0),
+                r.position + Vector2(0.0, r.size.y), r.end]:
+            var g: Vector2 = xf * corner
+            mn = Vector2(minf(mn.x, g.x), minf(mn.y, g.y))
+            mx = Vector2(maxf(mx.x, g.x), maxf(mx.y, g.y))
+        return Rect2(mn, mx - mn)
+    var c: Vector2 = Card.thrown_impact_pos(target)
+    return Rect2(c - Vector2(70.0, 90.0), Vector2(140.0, 180.0))
 
 
-func _animate_thrown_die(parent_layer: Node, throw_type: String, value: int, from_pos: Vector2, to_pos: Vector2, delay: float, has_target: bool) -> void:
+func _animate_thrown_die(parent_layer: Node, throw_type: String, value: int, from_pos: Vector2, to_pos: Vector2, apex_pos: Vector2, delay: float, has_target: bool, thud: bool, target: Node = null) -> void:
     var icon := TextureRect.new()
     icon.texture = _get_dice_face_texture_for(throw_type, value)
     icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -2222,7 +2222,11 @@ func _animate_thrown_die(parent_layer: Node, throw_type: String, value: int, fro
     # removed 0 face mid-tumble, a Bulky Giant tumbles through 7-12.
     var faces: Array = Card.thrown_faces_for(throw_type)
     var windup := minf(Global.DICE_THROW_WINDUP_TIME, Global.DICE_THROW_FLIGHT_TIME * 0.45)
-    var flight := Global.DICE_THROW_FLIGHT_TIME - windup
+    # Enemy lands: hang + slam are fixed beats, the ascent gets the rest of the budget.
+    # Air lands: the whole remainder is the old single arc.
+    var ascent := maxf(0.12, Global.DICE_THROW_FLIGHT_TIME - windup - THROWN_DIE_HANG_TIME - THROWN_DIE_SLAM_TIME)
+    var air_flight := Global.DICE_THROW_FLIGHT_TIME - windup
+    var tumble_time := (windup + ascent) if has_target else (windup + air_flight)
     var hang_pos := from_pos + Vector2(randf_range(-10.0, 10.0), -THROWN_DIE_WINDUP_RISE)
     var spin_dir := 1.0 if randf() < 0.5 else -1.0
 
@@ -2230,7 +2234,7 @@ func _animate_thrown_die(parent_layer: Node, throw_type: String, value: int, fro
     if delay > 0.0:
         tween.tween_interval(delay)
     tween.tween_callback(icon.show)
-    tween.tween_callback(_start_die_tumble.bind(icon, throw_type, faces, windup + flight))
+    tween.tween_callback(_start_die_tumble.bind(icon, throw_type, faces, tumble_time))
     # WINDUP: pop out of the card and hang above it, then coil (vertical stretch) - the
     # anticipation beat that makes the launch read as a real throw.
     tween.tween_property(icon, "global_position", hang_pos - icon.size / 2.0, windup * 0.55) \
@@ -2239,14 +2243,37 @@ func _animate_thrown_die(parent_layer: Node, throw_type: String, value: int, fro
         .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
     tween.tween_property(icon, "scale", Vector2(0.88, 1.24), windup * 0.45) \
         .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-    # LAUNCH + FLIGHT: whoosh/recoil, then the accelerating arc (position, tumble spin,
-    # mid-arc swell and the trail all live in the flight step).
     tween.tween_callback(_launch_thrown_die_fx.bind(icon, hang_pos, throw_type))
-    tween.tween_method(_thrown_die_flight_step.bind(icon, hang_pos, to_pos, spin_dir, throw_type), 0.0, 1.0, flight) \
-        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-    # IMPACT: snap to the final face + flash/squash/burst (own tweens inside), then linger
-    # long enough for the roll to be read.
-    tween.tween_callback(_finish_thrown_die.bind(icon, throw_type, value, has_target))
+    var strike_dir := Vector2.DOWN
+    if has_target:
+        strike_dir = (to_pos - apex_pos).normalized()
+        # The little pull-away along the strike axis during the hang (punch anticipation)
+        # and the visual stop point driven slightly INTO the body.
+        var rear_pos := apex_pos - strike_dir * THROWN_DIE_REAR_BACK
+        var drive_pos := to_pos + strike_dir * THROWN_DIE_DRIVE_IN
+        # The die tilts into its travel direction during the slam (about half the true
+        # strike angle - full alignment hurt face readability more than it sold speed).
+        var tilt := THROWN_DIE_SLAM_TILT * (strike_dir.angle() - PI * 0.5)
+        # ASCENT: decelerating lob up to the hang point beside the target - spin settles
+        # into exactly one full turn so the die arrives upright with no visible snap.
+        tween.tween_method(_thrown_die_ascent_step.bind(icon, hang_pos, apex_pos, spin_dir, throw_type), 0.0, 1.0, ascent) \
+            .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+        # HANG: the tumble ends, the final face locks in with a glint (the icon's own
+        # tween inside the callback) while the die rears back - "wound up to strike".
+        tween.tween_callback(_lock_thrown_die_face.bind(icon, throw_type, value))
+        tween.tween_property(icon, "global_position", rear_pos - icon.size / 2.0, THROWN_DIE_HANG_TIME) \
+            .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+        # SLAM: hard accelerating diagonal punch into the body.
+        tween.tween_method(_thrown_die_slam_step.bind(icon, rear_pos, drive_pos, tilt, throw_type), 0.0, 1.0, THROWN_DIE_SLAM_TIME) \
+            .set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+    else:
+        # AIR FLIGHT: the old accelerating arc (position, tumble spin, mid-arc swell and
+        # the trail all live in the flight step).
+        tween.tween_method(_thrown_die_flight_step.bind(icon, hang_pos, to_pos, spin_dir, throw_type), 0.0, 1.0, air_flight) \
+            .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+    # IMPACT: flash/squash/burst (own tweens inside), then linger long enough for the
+    # roll to be read.
+    tween.tween_callback(_finish_thrown_die.bind(icon, throw_type, value, has_target, thud, strike_dir, target))
     tween.tween_interval(THROWN_DIE_LINGER)
     # EXIT: a spent die tumbles off the body; an air-land dissolves into its effect.
     if has_target:
@@ -2295,6 +2322,80 @@ func _thrown_die_flight_step(t: float, icon: TextureRect, from_pos: Vector2, to_
                 Vector2(randf_range(-14.0, 14.0), randf_range(4.0, 26.0)), 0.32)
 
 
+# ASCENT step (enemy lands): rising lob from the launch point to the apex. A small
+# perpendicular bow keeps it reading as a throw (not an elevator); the tween's EASE_OUT
+# does the deceleration. Spin is exactly one full turn riding the same eased t, so the
+# die decelerates into an upright face at the crest - the face lock needs no rotation
+# snap. Swells the whole way up: by the apex it's at its biggest, i.e. its most readable.
+func _thrown_die_ascent_step(t: float, icon: TextureRect, from_pos: Vector2, apex_pos: Vector2, spin_dir: float, throw_type: String) -> void:
+    if not is_instance_valid(icon):
+        return
+    var pos := from_pos.lerp(apex_pos, t)
+    pos.y -= THROWN_DIE_ASCENT_BOW * sin(t * PI)
+    icon.global_position = pos - icon.size / 2.0
+    icon.rotation = t * TAU * spin_dir
+    icon.scale = Vector2.ONE * (1.0 + 0.24 * t)
+    var now := Time.get_ticks_msec()
+    var last := int(icon.get_meta("trail_last_ms", 0))
+    if now - last >= THROWN_DIE_TRAIL_GAP_MS:
+        icon.set_meta("trail_last_ms", now)
+        _spawn_thrown_die_mote(icon.get_parent(), pos, DicePalette.accent(throw_type),
+                randf_range(10.0, 18.0),
+                Vector2(randf_range(-14.0, 14.0), randf_range(4.0, 26.0)), 0.32)
+
+
+# The "read the roll" beat: the tumble ends and the die snaps to its FINAL face with a
+# glint + pop while hanging raised over the target. From here through the slam the face
+# never changes - the player tracks "a 6 is coming down" all the way into the hit.
+func _lock_thrown_die_face(icon: TextureRect, throw_type: String, value: int) -> void:
+    if not is_instance_valid(icon):
+        return
+    if icon.has_meta("tumble"):
+        var tumble: Tween = icon.get_meta("tumble")
+        if tumble != null and tumble.is_valid():
+            tumble.kill()
+    icon.rotation = 0.0
+    icon.texture = _get_dice_face_texture_for(throw_type, value)
+    icon.modulate = Color(1.85, 1.8, 1.55, 1.0)
+    var pop := icon.create_tween()
+    pop.tween_property(icon, "scale", Vector2(1.4, 1.4), 0.07) \
+        .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+    pop.parallel().tween_property(icon, "modulate", Color.WHITE, THROWN_DIE_HANG_TIME) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    pop.tween_property(icon, "scale", Vector2(1.28, 1.28), THROWN_DIE_HANG_TIME - 0.07)
+    # Quiet settle tick - the pickup note before the "bam". Decorative, never steals a
+    # real beat from the SFX pool. With a volley, ticks and impacts interleave into the
+    # tick-BAM-tick-BAM rhythm that carries the whole sequence.
+    SFXPlayer.play(THROWN_DIE_AIR_LAND_SFX, false, randf_range(1.55, 1.7), -11.0, -1)
+    var accent := DicePalette.accent(throw_type)
+    var center := icon.global_position + icon.size / 2.0
+    for i in 3:
+        var dir := Vector2.from_angle(randf_range(-PI * 0.85, -PI * 0.15))
+        _spawn_thrown_die_mote(icon.get_parent(), center, accent,
+                randf_range(7.0, 12.0), dir * randf_range(16.0, 34.0), 0.24)
+
+
+# SLAM step (enemy lands): short, hard, accelerating diagonal punch from the hang point
+# into the body. The die tilts into its travel direction and stretches as it accelerates;
+# the trail motes kick back opposite the strike - speed lines rather than a drifting
+# comet tail.
+func _thrown_die_slam_step(t: float, icon: TextureRect, from_pos: Vector2, to_pos: Vector2, tilt: float, throw_type: String) -> void:
+    if not is_instance_valid(icon):
+        return
+    var pos := from_pos.lerp(to_pos, t)
+    icon.global_position = pos - icon.size / 2.0
+    icon.rotation = tilt * minf(1.0, t * 1.6)
+    icon.scale = Vector2(lerpf(1.28, 0.96, t), lerpf(1.28, 1.34, t))
+    var back := (from_pos - to_pos).normalized()
+    var now := Time.get_ticks_msec()
+    var last := int(icon.get_meta("trail_last_ms", 0))
+    if now - last >= THROWN_DIE_SLAM_TRAIL_GAP_MS:
+        icon.set_meta("trail_last_ms", now)
+        _spawn_thrown_die_mote(icon.get_parent(), pos, DicePalette.accent(throw_type),
+                randf_range(9.0, 15.0),
+                back * randf_range(12.0, 32.0) + Vector2(randf_range(-6.0, 6.0), randf_range(-6.0, 6.0)), 0.22)
+
+
 # One additive accent mote with its own tween (parented to the ui_layer, so it outlives the
 # die that spawned it) - shared by the flight trail, the launch recoil and the impact burst.
 func _spawn_thrown_die_mote(parent: Node, pos: Vector2, color: Color, mote_size: float, drift: Vector2, life: float) -> void:
@@ -2324,7 +2425,8 @@ func _spawn_thrown_die_mote(parent: Node, pos: Vector2, color: Color, mote_size:
 
 # Soft expanding shock puff at the landing point - kept at modest alpha so it never
 # overexposes when it stacks with the burst motes (additive-blend stacking lesson).
-func _spawn_thrown_die_shock(parent: Node, pos: Vector2, color: Color, big: bool) -> void:
+# `strong` (enemy bashes) grows it further - the "BAM" ring - without touching alpha.
+func _spawn_thrown_die_shock(parent: Node, pos: Vector2, color: Color, big: bool, strong: bool = false) -> void:
     if parent == null:
         return
     var puff := TextureRect.new()
@@ -2341,12 +2443,44 @@ func _spawn_thrown_die_shock(parent: Node, pos: Vector2, color: Color, big: bool
     parent.add_child(puff)
     puff.global_position = pos - puff.size / 2.0
     var target_scale := 3.2 if big else 2.4
+    if strong:
+        target_scale *= 1.22
     var tw := puff.create_tween()
     tw.tween_property(puff, "scale", Vector2.ONE * target_scale, 0.28) \
         .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
     tw.parallel().tween_property(puff, "modulate:a", 0.0, 0.28) \
         .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
     tw.tween_callback(puff.queue_free)
+
+
+# Bright additive impact flare - white-hot core snapping open and fading fast, the "BAM"
+# glow at the moment the die smacks the enemy. Distinct from the soft shock puff: this is
+# short, bright and punchy (higher alpha, quicker) so it reads as a flash of force, not a
+# lingering cloud. Single flare per impact, so a high peak alpha is fine.
+func _spawn_thrown_die_flare(parent: Node, pos: Vector2, color: Color, big: bool) -> void:
+    if parent == null:
+        return
+    var flare := TextureRect.new()
+    flare.texture = _get_power_orb_texture()
+    flare.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    flare.stretch_mode = TextureRect.STRETCH_SCALE
+    flare.size = Vector2(90.0, 90.0)
+    flare.pivot_offset = flare.size / 2.0
+    flare.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    flare.material = _get_power_orb_material()
+    # White-hot core tinted toward the die's accent, so it glows in the die's color.
+    flare.modulate = Color(1.0, 1.0, 1.0, 0.0).lerp(Color(color.r + 0.6, color.g + 0.6, color.b + 0.6, 0.95), 0.7)
+    flare.z_index = 151
+    flare.scale = Vector2(0.35, 0.35)
+    parent.add_child(flare)
+    flare.global_position = pos - flare.size / 2.0
+    var peak := 1.9 if big else 1.45
+    var flare_tween := flare.create_tween()
+    flare_tween.tween_property(flare, "scale", Vector2.ONE * peak, 0.09) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    flare_tween.parallel().tween_property(flare, "modulate:a", 0.0, 0.18) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+    flare_tween.tween_callback(flare.queue_free)
 
 
 func _start_die_tumble(icon: TextureRect, throw_type: String, faces: Array, duration: float) -> void:
@@ -2366,9 +2500,10 @@ func _set_random_die_face(icon: TextureRect, throw_type: String, faces: Array) -
     icon.texture = _get_dice_face_texture_for(throw_type, int(faces[randi() % faces.size()]))
 
 
-func _finish_thrown_die(icon: TextureRect, throw_type: String, value: int, has_target: bool) -> void:
+func _finish_thrown_die(icon: TextureRect, throw_type: String, value: int, has_target: bool, thud: bool = false, strike_dir: Vector2 = Vector2.DOWN, target: Node = null) -> void:
     if not is_instance_valid(icon):
         return
+    # Enemy lands already locked their face at the hang; air lands snap here.
     if icon.has_meta("tumble"):
         var tumble: Tween = icon.get_meta("tumble")
         if tumble != null and tumble.is_valid():
@@ -2382,27 +2517,50 @@ func _finish_thrown_die(icon: TextureRect, throw_type: String, value: int, has_t
     var burst_color := DicePalette.burst(throw_type) if is_max_face else accent
     # Overbright flash + hard squash, springing back to rest while the face lingers.
     # Max faces flash warmer/bigger - the "it rolled its best" jackpot micro-beat.
-    icon.modulate = Color(2.4, 2.3, 1.9, 1.0) if is_max_face else Color(1.9, 1.85, 1.7, 1.0)
-    icon.scale = Vector2(1.5, 0.62) if has_target else Vector2(1.3, 1.3)
+    icon.modulate = Color(2.6, 2.45, 2.0, 1.0) if is_max_face else Color(2.1, 2.0, 1.8, 1.0)
+    icon.scale = Vector2(1.68, 0.5) if has_target else Vector2(1.3, 1.3)
     var impact := icon.create_tween()
-    impact.tween_property(icon, "scale", Vector2(1.12, 1.12), 0.14) \
+    impact.tween_property(icon, "scale", Vector2(1.16, 1.16), 0.14) \
         .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
     impact.parallel().tween_property(icon, "modulate", Color.WHITE, 0.22) \
         .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
     impact.tween_property(icon, "scale", Vector2.ONE, 0.1)
-    # Radial burst + shock puff at the landing point.
+    # Burst + shock puff at the landing point. Enemy hits spray most of the debris in a
+    # cone CONTINUING the strike (driven-through force), the rest radial; air lands stay
+    # a modest radial pop.
     var parent := icon.get_parent()
     var center := icon.global_position + icon.size / 2.0
-    var mote_count := 14 if is_max_face else (10 if has_target else 6)
+    var mote_count := 20 if is_max_face else (15 if has_target else 6)
     for i in mote_count:
-        var dir := Vector2.from_angle(randf_range(0.0, TAU))
+        var drift: Vector2
+        if has_target and i % 3 != 0:
+            var cone_dir := strike_dir.rotated(randf_range(-0.55, 0.55))
+            drift = cone_dir * randf_range(55.0, 130.0)
+        else:
+            drift = Vector2.from_angle(randf_range(0.0, TAU)) * randf_range(30.0, 90.0)
         _spawn_thrown_die_mote(parent, center, burst_color,
-                randf_range(9.0, 16.0), dir * randf_range(30.0, 90.0), randf_range(0.25, 0.4))
-    _spawn_thrown_die_shock(parent, center, burst_color, is_max_face)
+                randf_range(9.0, 16.0), drift, randf_range(0.25, 0.4))
+    _spawn_thrown_die_shock(parent, center, burst_color, is_max_face, has_target)
+    # BAM glow: a bright additive flare at the impact - the "hit the enemy with an attack
+    # card" pop Julien asked for. Enemy lands get the big one; air lands a modest bloom.
+    if has_target:
+        _spawn_thrown_die_flare(parent, center, burst_color, is_max_face)
+    # A thud die (All In) carries no damage of its own, so it never triggers the enemy's
+    # own take_damage() white flash + knockback - do it here so every bash physically
+    # lands. (Damage-dealing throws already flash via the synced DamageEffect.)
+    if thud and target != null and is_instance_valid(target) and target.has_method("flash_impact"):
+        target.flash_impact()
+        var camera = get_tree().get_first_node_in_group("camera")
+        if camera and camera.has_method("shake"):
+            camera.shake(7.0, 0.12)
     # Air lands (support throws) had NO landing sound at all - give the die a settle clack.
-    # Enemy lands already get the card's own hit sound from the damage side, synced.
+    # Enemy lands normally get the card's own hit sound from the damage side, synced; a
+    # damage-less bash (All In's consumed dice - their total lands once on the final
+    # impact) gets a low clack instead so every hit still lands audibly.
     if not has_target:
         SFXPlayer.play(THROWN_DIE_AIR_LAND_SFX, false, randf_range(1.35, 1.5), -4.0, -1)
+    elif thud:
+        SFXPlayer.play(THROWN_DIE_AIR_LAND_SFX, false, randf_range(0.85, 0.95), -3.0, -1)
     if throw_type == "evil" and value == 0:
         play_crack_sound()
 

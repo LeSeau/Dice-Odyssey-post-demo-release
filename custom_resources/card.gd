@@ -247,6 +247,20 @@ static func thrown_faces_for(dice_type: String) -> Array:
     return DICE_FACE_VALUES.get(dice_type, [1, 2, 3, 4, 5, 6])
 
 
+# Where a thrown die visually smashes into this target - the torso center, NOT the enemy
+# root (enemy.tscn bakes the Sprite2D at local x=124, so the root sits ~124px left of the
+# body; same baseline as the name-label centering fix). Single source shared by dice.gd
+# (where the die icon lands) and the damage side (where the popup spawns), so the number
+# always pops off the exact spot the die just hit.
+static func thrown_impact_pos(target: Node) -> Vector2:
+    if target is Node2D:
+        var sprite = target.get("sprite_2d")
+        if sprite is Sprite2D and is_instance_valid(sprite):
+            return (sprite as Sprite2D).global_position
+        return (target as Node2D).global_position + Vector2(0.0, -30.0)
+    return Vector2.ZERO
+
+
 # Lands a thrown die's damage when its flight visual arrives (schedule with
 # Global.DICE_THROW_FLIGHT_TIME to match the Events.dice_thrown animation). Deliberately
 # raw damage - the die deals ITS roll, not a Strength-modified hit (the target's own
@@ -272,5 +286,9 @@ func _on_thrown_die_landed(tree: SceneTree, target: Node, damage: int, hit_sound
     var die_hit := DamageEffect.new()
     die_hit.amount = damage
     die_hit.sound = hit_sound
+    # Number pops where the die smashed (torso), not at the enemy root - with sequenced
+    # volleys, each impact owning its own popup spot is what makes "this die dealt this"
+    # readable at a glance.
+    die_hit.popup_origin = thrown_impact_pos(final_target)
     die_hit.execute([final_target])
 
