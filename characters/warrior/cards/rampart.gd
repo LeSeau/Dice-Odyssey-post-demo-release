@@ -1,7 +1,7 @@
 extends Card
 
-# Block X now, then the thrown Even Dice adds ITS roll as more Block when it lands
-# (2/4/6/8 - always pays something). Thrown-die ruling: raw roll, no modifiers. Block
+# Block X now, then the thrown Odd Dice adds ITS roll as more Block when it lands
+# (1/3/5/7 - always pays something). Thrown-die ruling: raw roll, no modifiers. Block
 # cards use Global.roll_value raw per the established convention (no DMG modifier).
 
 
@@ -10,9 +10,9 @@ func apply_effects(targets: Array[Node], _modifiers: ModifierHandler) -> void:
     block_effect.amount = Global.roll_value
     block_effect.sound = sound
     block_effect.execute(targets)
-    var faces: Array = thrown_faces_for("even")
+    var faces: Array = thrown_faces_for("odd")
     var value: int = faces[randi() % faces.size()]
-    Events.dice_thrown.emit([{"type": "even", "value": value, "target": null}], Global.last_played_card_position)
+    Events.dice_thrown.emit([{"type": "odd", "value": value, "target": null}], Global.last_played_card_position)
     if not targets.is_empty():
         var timer := targets[0].get_tree().create_timer(Global.DICE_THROW_FLIGHT_TIME, false)
         timer.timeout.connect(_on_rampart_landed.bind(targets[0], value))
@@ -22,7 +22,7 @@ func apply_effects(targets: Array[Node], _modifiers: ModifierHandler) -> void:
 
 func _on_rampart_landed(player: Node, value: int) -> void:
     # Counts as a rolled die even if the player node is gone (fight over) - the die landed.
-    Global.report_thrown_die_landed("even", value)
+    Global.report_thrown_die_landed("odd", value)
     if player == null or not is_instance_valid(player):
         return
     var block_effect := BlockEffect.new()
@@ -33,7 +33,7 @@ func _on_rampart_landed(player: Node, value: int) -> void:
 
 func get_dynamic_description(_modifiers: ModifierHandler, _target: Node = null) -> String:
     if is_inked():
-        return "Block ?. Throw an Even Dice that Blocks its roll"
+        return "Block ?. Throw an Odd Dice that Blocks its roll"
     if not has_active_roll():
-        return "Block X. Throw an Even Dice that Blocks its roll"
-    return "Block %d. Throw an Even Dice that Blocks its roll" % Global.roll_value
+        return "Block X. Throw an Odd Dice that Blocks its roll"
+    return "Block %d. Throw an Odd Dice that Blocks its roll" % Global.roll_value

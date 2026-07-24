@@ -42,6 +42,13 @@ res://scenes/dices/even_dice_shader.tres
 res://scenes/dices/odd_dice_shader.tres
 res://scenes/dices/green_dice_shader.tres
 res://scenes/dices/mech_dice_shader.tres
+res://scenes/card_ui/card_ui.gdshader
+res://scenes/dices/dice.gdshader
+res://red_dice_shader.gdshader
+res://scenes/dices/dice_interface.gdshader
+res://scenes/dices/ink.gdshader
+res://card_socket_shader.gdshader
+res://button_shine.gdshader
 res://scenes/card_ui/card_background.tres
 res://scenes/card_ui/card_banner.tres
 res://scenes/card_ui/card_panel.tres
@@ -162,7 +169,6 @@ res://characters/warrior/warrior.tres
 res://enemies/crab/crab_attack_action.gd
 res://enemies/crab/crab_enemy.tres
 res://scenes/button/base_button.tres
-res://card_socket_shader.gdshader
 res://scenes/dices/roll_button_style.tres
 res://scenes/card_ui/card_description_label.tres
 res://scenes/card_ui/card_ui_bonus_effect_label.tres
@@ -219,11 +225,6 @@ res://enemies/temple_defender/defender_enemy_tier2.tres
 res://battles/battle_stats_pool.tres
 res://relics/dice_chip.tres
 res://scenes/events/events_stats_pool.tres
-res://scenes/card_ui/card_ui.gdshader
-res://scenes/dices/dice.gdshader
-res://red_dice_shader.gdshader
-res://scenes/dices/dice_interface.gdshader
-res://scenes/dices/ink.gdshader
-res://button_shine.gdshader
-res://enemies/machopeur/machopeur_enemy_tier1.tres
-res://enemies/machopeur/machopeur_enemy_tier2.tres
+res://characters/warrior/cards/card_rampart.tres
+res://characters/warrior/cards/card_rampart_plus.tres
+res://characters/warrior/cards/warrior_axe_attack1.tres

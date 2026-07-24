@@ -13,5 +13,5 @@ duration = 0
 stacks = 0
 icon = ExtResource("1_ay4xu")
 tooltip = ""
-hide_when_zero = true
-hide_counter_when_zero = false
+hide_when_zero = false
+hide_counter_when_zero = true

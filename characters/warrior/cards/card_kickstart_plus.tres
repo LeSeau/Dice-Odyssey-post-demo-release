@@ -1,17 +1,16 @@
-[gd_resource type="Resource" load_steps=5 format=3 uid="uid://ck1ckst4rt0dd"]
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://ck1ckst4rtp33"]
 
 [ext_resource type="Texture2D" uid="uid://ccuknbkkrlkt5" path="res://tuning_fork.png" id="1_icon"]
-[ext_resource type="Script" path="res://characters/warrior/cards/kickstart.gd" id="2_script"]
+[ext_resource type="Script" path="res://characters/warrior/cards/kickstart_plus.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://d66mkrcpmfir" path="res://chargedicesound.mp3" id="3_sound"]
-[ext_resource type="Resource" path="res://characters/warrior/cards/card_kickstart_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_script")
-id = "card_kickstart"
-name = "Kickstart"
+id = "card_kickstart_plus"
+name = "Kickstart+"
 type = 1
 target = 0
-description = "Throw a Pixie Dice: gain Strength equal to its roll"
+description = "Throw 2 Pixie Dice: gain Strength equal to their total roll"
 rarity = 1
 rarity_tier = 0
 red_only = false
@@ -23,8 +22,7 @@ bonus_requirement = 0
 bonus_requirement_number = 0
 bonus_description_text = ""
 tags = "Throw, Strength"
-upgraded = false
-upgraded_version = ExtResource("4_plus")
+upgraded = true
 icon = ExtResource("1_icon")
 tooltip_text = ""
 sound = ExtResource("3_sound")

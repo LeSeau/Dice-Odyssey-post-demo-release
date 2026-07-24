@@ -1,17 +1,16 @@
-[gd_resource type="Resource" load_steps=5 format=3 uid="uid://cr4mp4rtbl0ck"]
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://dfd6myw0ek268"]
 
 [ext_resource type="Texture2D" uid="uid://deogjr37vr0fp" path="res://gptbarricade.png" id="1_icon"]
-[ext_resource type="Script" path="res://characters/warrior/cards/rampart.gd" id="2_script"]
+[ext_resource type="Script" path="res://characters/warrior/cards/rampart_plus.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://68q2f8fotq13" path="res://sounds/blocksound.mp3" id="3_sound"]
-[ext_resource type="Resource" uid="uid://dfd6myw0ek268" path="res://characters/warrior/cards/card_rampart_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_script")
-id = "card_rampart"
-name = "Rampart"
+id = "card_rampart_plus"
+name = "Rampart+"
 type = 1
 target = 0
-description = "Block X. Throw an Odd Dice that Blocks its roll"
+description = "Block X. Throw 2 Odd Dice that Block their roll"
 rarity = 0
 rarity_tier = 0
 red_only = false
@@ -23,8 +22,7 @@ bonus_requirement = 0
 bonus_requirement_number = 0
 bonus_description_text = ""
 tags = "Throw"
-upgraded = false
-upgraded_version = ExtResource("4_plus")
+upgraded = true
 icon = ExtResource("1_icon")
 tooltip_text = ""
 sound = ExtResource("3_sound")
