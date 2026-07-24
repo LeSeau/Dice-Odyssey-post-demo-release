@@ -1,11 +1,12 @@
 extends Control
 
-@export var relic_handler: RelicHandler
-
 var character_stats: CharacterStats
 var run_stats: RunStats
 
-const WAGER_RELIC_COST := 2
+# The eclipse's tribute is paid in permanent Max HP now (was 2 random relics). Relics
+# cost near-nothing early-run when you own few/none, which made accepting a no-brainer
+# every time; Max HP always bites, so the wager is a real decision at any point in the run.
+const WAGER_MAX_HP_COST := 16
 const DECLINE_HP_COST := 6
 
 func setup(character: CharacterStats, stats: RunStats) -> void:
@@ -13,18 +14,24 @@ func setup(character: CharacterStats, stats: RunStats) -> void:
     run_stats = stats
 
 
-# Costs 2 random relics instead of gold - loses however many you actually own if
-# you have fewer than 2 (including zero, a rare free roll early-run).
+# Pay WAGER_MAX_HP_COST permanent Max HP for a guaranteed Evil Dice. Dice gained from
+# events deliberately do NOT touch purchased_dice_counts, so this never escalates the
+# dice-shop price (only gold purchases at the two shops do - see
+# global.gd::current_dice_price). The Max HP write mirrors event_patient_monk.gd's
+# pattern in reverse: Global.player_max_hp is kept in lockstep (the top bar reads it,
+# not max_health directly).
 func _on_accept_pressed() -> void:
-    var relic_uis := relic_handler._get_all_relic_ui_nodes()
-    relic_uis.shuffle()
-    for i in mini(WAGER_RELIC_COST, relic_uis.size()):
-        relic_uis[i].queue_free()
+    character_stats.max_health -= WAGER_MAX_HP_COST
+    Global.player_max_hp -= WAGER_MAX_HP_COST
+    # Re-clamp current health through its setter (clamps to the new, lower max and syncs
+    # Global.player_hp). Max HP loss never kills on its own - current HP is separate.
+    character_stats.health = mini(character_stats.health, character_stats.max_health)
+    Events.hp_changed.emit()
+
     Global.evil_dice_max_amount += 1
     Global.evil_dice_current_amount += 1
     if Global.evil_dice_max_amount == 1:
         Global.dice_inventory.append("evil")
-    Global.purchased_dice_counts["evil"] += 1
     Events.dice_bought.emit("evil")
     Events.update_dice_top_bar.emit()
     Events.dice_price_changed.emit()

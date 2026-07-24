@@ -20,9 +20,11 @@ func setup(character: CharacterStats, stats: RunStats) -> void:
     feed_button.visible = Global.red_dice_max_amount >= 1
 
 
-# Same bookkeeping as event_dice_forge.gd/event_crimson_eclipse.gd's dice grants
-# (max+current+inventory+purchased_dice_counts) so a later shop rebuy of this
-# type still escalates in price correctly.
+# Dice GAINED FROM EVENTS deliberately do NOT touch purchased_dice_counts, so they
+# don't escalate the dice-shop price (only gold purchases at the two shops do - see
+# global.gd::current_dice_price). This is a swap (red -> random), net-zero pool size,
+# so taxing the whole dice market off it made no sense. Everything else matches the
+# shop's bookkeeping (max+current+inventory+dice_bought for the top bar).
 func _on_feed_pressed() -> void:
     if Global.red_dice_max_amount < 1:
         return
@@ -35,7 +37,6 @@ func _on_feed_pressed() -> void:
     Global.set(target + "_dice_current_amount", Global.get(target + "_dice_current_amount") + 1)
     if new_max == 1:
         Global.dice_inventory.append(target)
-    Global.purchased_dice_counts[target] += 1
     Events.dice_bought.emit(target)
     Events.update_dice_top_bar.emit()
     Events.dice_price_changed.emit()

@@ -124,7 +124,7 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("3_ecl003")
 bbcode_enabled = true
 text = "The moon drowns in red, and beneath it hangs a black rune-die the size of a cart, turning slow. A voice pours out of the dark between the marks.
-[p] [p][color=purple]\"Two of your trinkets, and this die is yours - it rolls nothing but sixes. Refuse, and pay me in blood instead. Either way, I am owed.\"[/color]"
+[p] [p][color=purple]\"A piece of your life carved away, and this die is yours - it rolls nothing but sixes. Refuse, and pay me in blood instead. Either way, I am owed.\"[/color]"
 fit_content = true
 
 [node name="VBoxContainer" type="VBoxContainer" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer"]
@@ -153,7 +153,7 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("4_ecl004")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[center]Accept the wager.[color=#e05a5a] Lose 2 random Relics.[/color][color=green] Gain an Evil Dice.[/color][/center]
+text = "[center]Accept the wager.[color=#e05a5a] Lose 16 Max HP.[/color][color=green] Gain an Evil Dice.[/color][/center]
 "
 scroll_active = false
 

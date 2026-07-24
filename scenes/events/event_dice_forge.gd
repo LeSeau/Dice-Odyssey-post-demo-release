@@ -13,9 +13,9 @@ func setup(character: CharacterStats, stats: RunStats) -> void:
 
 # Prefers a type not yet owned (a real "found something new" moment) - falls back
 # to an extra copy of a random exotic type already owned once every type is unlocked,
-# so the event never whiffs into nothing late-run. Mirrors shop.gd's exact purchase
-# bookkeeping (max+current+inventory+purchased_dice_counts) so a later shop rebuy
-# of this same type still escalates in price correctly.
+# so the event never whiffs into nothing late-run. Deliberately does NOT touch
+# purchased_dice_counts: dice gained from events don't escalate the dice-shop price
+# (only gold purchases at the two shops do - see global.gd::current_dice_price).
 func _on_forge_pressed() -> void:
     if Global.gold < FORGE_COST:
         return
@@ -30,7 +30,6 @@ func _on_forge_pressed() -> void:
     Global.set(target + "_dice_current_amount", Global.get(target + "_dice_current_amount") + 1)
     if new_max == 1:
         Global.dice_inventory.append(target)
-    Global.purchased_dice_counts[target] += 1
     Events.dice_bought.emit(target)
     Events.update_dice_top_bar.emit()
     Events.dice_price_changed.emit()
