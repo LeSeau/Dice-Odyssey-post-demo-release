@@ -11,7 +11,7 @@ func apply_effects(targets: Array[Node], _modifiers: ModifierHandler) -> void:
     var support_effect := SupportEffect.new()
     support_effect.sound = sound
     support_effect.execute(targets)
-    var faces: Array = DICE_FACE_VALUES["giant"]
+    var faces: Array = thrown_faces_for("giant")
     var value: int = faces[randi() % faces.size()]
     Events.dice_thrown.emit([{"type": "giant", "value": value, "target": null}], Global.last_played_card_position)
     if not targets.is_empty():
@@ -21,5 +21,8 @@ func apply_effects(targets: Array[Node], _modifiers: ModifierHandler) -> void:
 
 
 func _on_windfall_landed(value: int) -> void:
+    # Counts as a rolled die (counters + opt-in triggers) - still stays out of
+    # roll_history, see the header comment.
+    Global.report_thrown_die_landed("giant", value)
     Global.roll_value += value
     Events.change_current_power.emit()

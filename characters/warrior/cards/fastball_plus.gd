@@ -13,12 +13,13 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
         return
     Global.set(prop, int(Global.get(prop)) - 1)
     Events.dice_amount_changed.emit()
-    var faces: Array = DICE_FACE_VALUES.get(Global.dice_type, [1, 2, 3, 4, 5, 6])
+    var thrown_type: String = Global.dice_type
+    var faces: Array = thrown_faces_for(thrown_type)
     var value: int = faces[randi() % faces.size()]
     var target: Node = targets[0]
-    Events.dice_thrown.emit([{"type": Global.dice_type, "value": value, "target": target}], Global.last_played_card_position)
+    Events.dice_thrown.emit([{"type": thrown_type, "value": value, "target": target}], Global.last_played_card_position)
     var die_damage := modifiers.get_modified_value(value * 3, Modifier.Type.DMG_DEALT)
-    _land_thrown_die(target.get_tree(), target, die_damage, Global.DICE_THROW_FLIGHT_TIME, sound)
+    _land_thrown_die(target.get_tree(), target, die_damage, Global.DICE_THROW_FLIGHT_TIME, sound, thrown_type, value)
     Events.reset_charged_card.emit()
 
 

@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://debugpricealign1"]
+
+[ext_resource type="Script" path="res://debug_price_align.gd" id="1_pal"]
+
+[node name="DebugPriceAlign" type="Node"]
+script = ExtResource("1_pal")

@@ -6,32 +6,43 @@ extends Relic
 func initialize_relic(owner: RelicUI) -> void:
     # Connect to the dice rolled event when the relic is added
     Events.dice_rolled.connect(_on_dice_rolled.bind(owner))
+    # Thrown 6s fire the bow too (Julien, 2026-07-23) - Cursed Toss's Evil die (75% sixes)
+    # is the big feeder. The landed value rides the signal (thrown dice never set last_roll).
+    Events.dice_thrown_landed.connect(_on_dice_thrown_landed.bind(owner))
     print("BowRelic: Connected to dice_rolled signal")
     print("initialize_relic called for ", relic_name)
 func _on_dice_rolled(dice_type: String, roll_value: int, owner: RelicUI) -> void:
     print("BowRelic: Dice rolled! Type: ", dice_type, " Roll value: ", roll_value, " Last roll: ", Global.last_roll)
-    
+
     # Check the last individual roll, not the cumulative value
     if Global.last_roll != 6:
         print("BowRelic: Not a 6, skipping (rolled ", Global.last_roll, ")")
         return  # Only trigger on a roll of 6
-    
+
+    _fire_arrow(owner)
+
+func _on_dice_thrown_landed(_dice_type: String, value: int, owner: RelicUI) -> void:
+    if value != 6:
+        return
+    _fire_arrow(owner)
+
+func _fire_arrow(owner: RelicUI) -> void:
     print("BowRelic: Rolled a 6! Dealing damage...")
-    
+
     # Flash the relic UI for feedback
     owner.flash()
-    
+
     # Get all enemies in the scene using the owner's tree
     var enemies = owner.get_tree().get_nodes_in_group("enemies")
     print("BowRelic: Found ", enemies.size(), " enemies")
-    
+
     if enemies.size() == 0:
         return  # No enemies to hit
-    
+
     # Pick a random enemy
     var random_enemy = enemies[randi() % enemies.size()]
     print("BowRelic: Targeting enemy: ", random_enemy.name)
-    
+
     # Create and execute the damage effect
     var dmg = DamageEffect.new()
     dmg.amount = 5
@@ -42,4 +53,6 @@ func deactivate_relic(owner: RelicUI) -> void:
     # Disconnect the event when the relic is removed
     if Events.dice_rolled.is_connected(_on_dice_rolled):
         Events.dice_rolled.disconnect(_on_dice_rolled)
+    if Events.dice_thrown_landed.is_connected(_on_dice_thrown_landed):
+        Events.dice_thrown_landed.disconnect(_on_dice_thrown_landed)
     print("bow was deactivated")

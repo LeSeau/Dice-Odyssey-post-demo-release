@@ -9,7 +9,7 @@ func apply_effects(targets: Array[Node], _modifiers: ModifierHandler) -> void:
     var support_effect := SupportEffect.new()
     support_effect.sound = sound
     support_effect.execute(targets)
-    var faces: Array = DICE_FACE_VALUES["odd"]
+    var faces: Array = thrown_faces_for("odd")
     var value: int = faces[randi() % faces.size()]
     Events.dice_thrown.emit([{"type": "odd", "value": value, "target": null}], Global.last_played_card_position)
     if not targets.is_empty():
@@ -19,5 +19,7 @@ func apply_effects(targets: Array[Node], _modifiers: ModifierHandler) -> void:
 
 
 func _on_kickstart_landed(value: int) -> void:
+    # Counts as a rolled die (counters + opt-in triggers like Hardened Grip/Snake Eyes).
+    Global.report_thrown_die_landed("odd", value)
     Global.next_roll_modifier += value
     Events.display_next_roll_modifier.emit()

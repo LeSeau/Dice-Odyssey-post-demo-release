@@ -123,8 +123,8 @@ layout_mode = 2
 mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("3_whet3")
 bbcode_enabled = true
-text = "A small forge-spirit tends an anvil no bigger than your palm, humming an old tune as sparks drift upward. [color=purple]\"Bring me a card,\"[/color] it says, [color=purple]\"and I'll make it sing.\"[/color]
-[p] [p]The work isn't free, but it's honest."
+text = "A blade rests on the runestone, throwing sparks though no hand turns it. Two hooded keepers stand over the altar, and neither has moved in a very long time.
+[p] [p]Lay a card on the stone and it comes back sharper. The keepers only ask for coin."
 fit_content = true
 
 [node name="VBoxContainer" type="VBoxContainer" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer"]

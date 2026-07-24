@@ -30,6 +30,7 @@ const BONUS_MULTIPLE_STYLEBOX := preload("res://scenes/card_ui/card_bonus_requir
 const CELESTIAL_BANNER_STYLEBOX := preload("res://scenes/card_ui/card_banner_celestial.tres")
 const CELESTIAL_DESC_STYLEBOX := preload("res://scenes/card_ui/card_ui_description_panel_celestial.tres")
 const CELESTIAL_REQUIREMENT_NONE_STYLEBOX := preload("res://scenes/card_ui/card_requirement_none_celestial.tres")
+const BLESSING_REQUIREMENT_NONE_STYLEBOX := preload("res://scenes/card_ui/card_requirement_none_blessing.tres")
 const CELESTIAL_ART_STYLEBOX := preload("res://scenes/card_ui/card_ui_celestial_art.tres")
 const HOVER_CELESTIAL_STYLEBOX := preload("res://scenes/card_ui/card_ui_hover_celestial.tres")
 const HOVER_BLESSING_STYLEBOX := preload("res://scenes/card_ui/card_ui_hover_blessing.tres")
@@ -215,6 +216,12 @@ func set_card(value: Card) -> void:
         card_banner.add_theme_stylebox_override("panel", BLESSING_BANNER_STYLEBOX)
         description_panel.add_theme_stylebox_override("panel", BLESSING_DESC_STYLEBOX)
         card_frame.add_theme_stylebox_override("panel", BLESSING_STYLEBOX)
+        # Same as the Celestial branch: only re-style the "ANY" ribbon when there's truly no
+        # requirement, so a Blessing WITH a real requirement (e.g. Berserk's Min 6) keeps its
+        # requirement-specific ribbon. Without this, a requirement-less Blessing falls through
+        # with the plain red NONE_STYLEBOX ribbon instead of matching its plum card body.
+        if card.requirement == Card.Requirement.NONE:
+            requirement_panel.add_theme_stylebox_override("panel", BLESSING_REQUIREMENT_NONE_STYLEBOX)
         description.add_theme_color_override("font_outline_color", BLESSING_DESC_LABEL_SETTINGS.outline_color)
     else:
         description_panel.add_theme_stylebox_override("panel", NORMAL_DESC_STYLEBOX)

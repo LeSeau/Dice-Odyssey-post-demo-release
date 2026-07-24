@@ -291,7 +291,8 @@ layout_mode = 2
 mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("8_4fhak")
 bbcode_enabled = true
-text = "A health fountain ahead![color=yellow] [/color] The moment you dip your hand in, you can feel it : a warm, rejuvenating current humming up your arm, patient and ancient.
+text = "A fountain, out here of all places, its water sparkling like it's proud of itself. No sign, no keeper, no catch you can spot.
+[p] [p]Cup a handful and drink - you'll heal as much as the dice feel like giving.
 [p] [p] [color=green]HEAL YOUR ROLL x 5 HP. [/color]
 
 "

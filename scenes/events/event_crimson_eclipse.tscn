@@ -123,8 +123,8 @@ layout_mode = 2
 mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("3_ecl003")
 bbcode_enabled = true
-text = "The sky above the ruins bleeds red as the sun vanishes behind a black disc. Something unseen speaks from the dark, offering a wager: [color=purple]\"a piece of what you carry, for a die that only shows sixes... or a piece of yourself, if you'd rather keep your trinkets.\"[/color]
-[p] [p]The eclipse won't last long enough to think it over twice."
+text = "The moon drowns in red, and beneath it hangs a black rune-die the size of a cart, turning slow. A voice pours out of the dark between the marks.
+[p] [p][color=purple]\"Two of your trinkets, and this die is yours - it rolls nothing but sixes. Refuse, and pay me in blood instead. Either way, I am owed.\"[/color]"
 fit_content = true
 
 [node name="VBoxContainer" type="VBoxContainer" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer"]

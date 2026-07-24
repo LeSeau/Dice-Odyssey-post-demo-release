@@ -18,11 +18,11 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
         if int(Global.get("%s_dice_max_amount" % dice_type)) <= 0 \
                 and int(Global.get("%s_dice_current_amount" % dice_type)) <= 0:
             continue
-        var faces: Array = DICE_FACE_VALUES[dice_type]
+        var faces: Array = thrown_faces_for(dice_type)
         var value: int = faces[randi() % faces.size()]
         throws.append({"type": dice_type, "value": value, "target": target})
         var die_damage := modifiers.get_modified_value(value, Modifier.Type.DMG_DEALT)
-        _land_thrown_die(tree, target, die_damage, Global.DICE_THROW_FLIGHT_TIME + Global.DICE_THROW_STAGGER * i, sound)
+        _land_thrown_die(tree, target, die_damage, Global.DICE_THROW_FLIGHT_TIME + Global.DICE_THROW_STAGGER * i, sound, dice_type, value)
         i += 1
     Events.dice_thrown.emit(throws, Global.last_played_card_position)
     Events.reset_charged_card.emit()

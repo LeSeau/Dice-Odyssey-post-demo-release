@@ -235,18 +235,34 @@ const DICE_FACE_VALUES := {
 }
 
 
+# Faces a conjured/thrown die of this type can land on. An infused type uses its infusion's
+# face set - a thrown "Evil Dice" is YOUR Evil Dice, so Repented throws 6/6/6 and a Bulky
+# Giant throws 7-12 (Julien, 2026-07-23). Safe visually: overrides are always a subset of
+# faces the real die already displays, so every value has its face texture. Infusion ROLL
+# effects (Gnome/Octet/Bulwark/Arcane) deliberately do NOT fire on thrown dice for now.
+static func thrown_faces_for(dice_type: String) -> Array:
+    var override_values := DiceInfusions.roll_values_override(dice_type)
+    if not override_values.is_empty():
+        return override_values
+    return DICE_FACE_VALUES.get(dice_type, [1, 2, 3, 4, 5, 6])
+
+
 # Lands a thrown die's damage when its flight visual arrives (schedule with
 # Global.DICE_THROW_FLIGHT_TIME to match the Events.dice_thrown animation). Deliberately
 # raw damage - the die deals ITS roll, not a Strength-modified hit (the target's own
 # DMG_TAKEN modifiers like Exposed still apply inside take_damage). If the target died
 # mid-flight the die bounces to a random living enemy; if the fight is over, it lands on
 # nothing.
-func _land_thrown_die(tree: SceneTree, target: Node, damage: int, delay: float, hit_sound: AudioStream) -> void:
+func _land_thrown_die(tree: SceneTree, target: Node, damage: int, delay: float, hit_sound: AudioStream, dice_type: String, value: int) -> void:
     var timer := tree.create_timer(delay, false)
-    timer.timeout.connect(_on_thrown_die_landed.bind(tree, target, damage, hit_sound))
+    timer.timeout.connect(_on_thrown_die_landed.bind(tree, target, damage, hit_sound, dice_type, value))
 
 
-func _on_thrown_die_landed(tree: SceneTree, target: Node, damage: int, hit_sound: AudioStream) -> void:
+func _on_thrown_die_landed(tree: SceneTree, target: Node, damage: int, hit_sound: AudioStream, dice_type: String, value: int) -> void:
+    # The die resolved: it counts as a rolled die (fight/turn counters + opt-in triggers)
+    # even if its target died mid-flight or the fight just ended - report before the
+    # retarget/no-enemies checks below.
+    Global.report_thrown_die_landed(dice_type, value)
     var final_target := target
     if final_target == null or not is_instance_valid(final_target):
         var alive := tree.get_nodes_in_group("enemies")

@@ -30,6 +30,13 @@ signal all_in_dice_consumed(consumed: Array, target_position: Vector2)
 # scheduled separately by the card via Card._land_thrown_die() using the same
 # Global.DICE_THROW_FLIGHT_TIME/_STAGGER constants, so the hit lands as the die arrives.
 signal dice_thrown(throws: Array, origin: Vector2)
+# One thrown/conjured die finished resolving at its landing (emitted by
+# Global.report_thrown_die_landed, once per die). Deliberately separate from dice_rolled:
+# dice_interface decrements your active pool on dice_rolled and dozens of card scripts arm
+# "your next roll" effects on it - thrown dice must never touch those. A thrown die counts
+# as a die you ROLLED (volume counters, face-value triggers) but never joins the Power
+# chain; every listener here is an explicit opt-in (Julien, 2026-07-23).
+signal dice_thrown_landed(dice_type: String, value: int)
 # Double or Nothing: visual-only coin toss from `origin`. The card resolves the outcome after
 # Global.COIN_FLIP_TIME on its own timer; this just animates the flip + reveal.
 signal coin_flip(heads: bool, origin: Vector2)

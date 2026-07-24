@@ -125,8 +125,8 @@ layout_mode = 2
 mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("4_brkr4")
 bbcode_enabled = true
-text = "A hooded trader spreads a cloth of trinkets across the table. [color=purple]\"One of yours for one of mine,\"[/color] he grins, sliding a die across the counter.
-[p] [p]He's willing to name names, at least - two bargains, laid out plain, if you're interested."
+text = "A hooded dealer keeps three glowing trinkets spinning above his palms, never quite catching any of them. His grin is the only part of his face you can make out.
+[p] [p][color=purple]\"One of yours for one of mine,\"[/color] he says. [color=purple]\"No peeking, no take-backs. That's half the fun, isn't it?\"[/color]"
 fit_content = true
 
 [node name="VBoxContainer" type="VBoxContainer" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer"]

@@ -21,6 +21,7 @@ extends Control
 @onready var bonus_separator: ColorRect = $CardDropArea/CardBackground/CardFrame/BonusSeparator
 
 @onready var aura: ColorRect = $Panel/Aura
+@onready var emanation: ColorRect = $Emanation
 @onready var animation_player: AnimationPlayer = $Panel/DiceDisplay/AnimationPlayer
 @onready var animation_player_power: AnimationPlayer = $CurrentPower/AnimationPlayerPower
 @onready var ink_animation: AnimationPlayer = $Panel/DiceDisplay/DiceInk/InkAnimation
@@ -249,6 +250,17 @@ const AURA_BASE_WAVE_SPEED_DEFAULT := 2.022
 # dimmer than its old always-on baseline for most of a turn. Override its own rest point
 # closer to the ceiling instead, so growth is a smaller top-up rather than a big dip-then-rise.
 const AURA_INTENSITY_REST_OVERRIDE := {"magma": 1.75}
+
+# Emanation layer ("magic energy" tongues rising off the die, dice_emanation.gdshader on
+# $Emanation - Necrobinder-inspired pass, 2026-07-23). Colors come from DicePalette
+# (accent = bright tongues/rim, outline = tongue bodies), which is infusion-aware, so
+# infused dice recolor for free. The shader derives reach/density/speed internally from
+# its single "charge" uniform (same t curve as the ring glow) - only these stay in code:
+const EMANATION_BASE_SPEED := {"magma": 1.26}  # matches magma's faster ring (2.55/2.022)
+const EMANATION_BASE_SPEED_DEFAULT := 1.0
+const EMANATION_SURGE_DECAY_TIME := 0.55  # landing flare fade-out
+
+var _emanation_surge_tween: Tween
 
 var evil_faces = [
                 load("res://assets/images/evil0.png"),
@@ -590,6 +602,17 @@ func roll_dice():
         aura_pulse.tween_property(aura, "scale", Vector2(AURA_SCALE_REST, AURA_SCALE_REST), 0.16) \
             .set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
 
+        # Emanation flare on the same landing beat: spike "surge" instantly, decay it out.
+        # Tracked so rapid rolls restart the flare instead of stacking tweens on the param.
+        if emanation.material is ShaderMaterial:
+            if _emanation_surge_tween and _emanation_surge_tween.is_valid():
+                _emanation_surge_tween.kill()
+            emanation.material.set_shader_parameter("surge", 1.0)
+            _emanation_surge_tween = create_tween()
+            _emanation_surge_tween.tween_property(
+                emanation.material, "shader_parameter/surge", 0.0, EMANATION_SURGE_DECAY_TIME) \
+                .set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+
         # Landing impact: brief hit-stop so every roll lands with weight, bigger on a max-value
         # roll. Roughly doubled (was 0.02-0.07/0.09) now that hit_stop()'s time_scale default
         # is a harder freeze - the old duration was tuned for the old, softer time_scale and
@@ -929,6 +952,11 @@ func _update_dice_aura_charge() -> void:
     _tween_aura_shader_param(charge_tween, "glow_reach", target_reach, 0.25)
     _tween_aura_shader_param(charge_tween, "wave_speed", target_wave_speed, 0.3)
     _tween_aura_shader_param(charge_tween, "charge_heat", target_heat, 0.3)
+    # The emanation tongues ride the exact same charge curve (t) as the ring, so both
+    # layers grow/settle in lockstep - reach/density/speed derive from "charge" inside
+    # dice_emanation.gdshader.
+    _tween_emanation_shader_param(charge_tween, "charge", t, 0.3)
+    _tween_emanation_shader_param(charge_tween, "charge_heat", target_heat, 0.3)
 
 
 # Defensive wrapper: tween_property() returns null if the material's currently-loaded/
@@ -937,6 +965,13 @@ func _update_dice_aura_charge() -> void:
 # charge_heat mid-session). Guards against that null crashing the rest of the tween chain.
 func _tween_aura_shader_param(t: Tween, param_name: String, value, duration: float) -> void:
     var tweener := t.parallel().tween_property(aura.material, "shader_parameter/" + param_name, value, duration)
+    if tweener:
+        tweener.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+
+# Same null-guard rationale as _tween_aura_shader_param, for the emanation layer's material.
+func _tween_emanation_shader_param(t: Tween, param_name: String, value, duration: float) -> void:
+    var tweener := t.parallel().tween_property(emanation.material, "shader_parameter/" + param_name, value, duration)
     if tweener:
         tweener.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
@@ -1220,6 +1255,22 @@ func update_dice_display():
         current_power.label_settings.outline_color = DicePalette.outline(dice_type)
     _power_resting_modulate = current_power.modulate  # capture per-type color for the clang flash to return to
     set_shader_from_global_type(dice_type)
+    _update_emanation_colors()
+
+
+# Retint the emanation tongues to the active die's identity. Safe to set directly: the
+# material is resource_local_to_scene, so this instance owns its own copy (never the
+# shared preloaded per-type auras - that mutation bug lives in _resolve_aura_material's
+# comment). DicePalette.accent()/outline() are infusion-aware, so this covers act-2
+# infused recolors too.
+func _update_emanation_colors() -> void:
+    if not (emanation.material is ShaderMaterial):
+        return
+    var mat: ShaderMaterial = emanation.material
+    mat.set_shader_parameter("accent_color", DicePalette.accent(dice_type))
+    mat.set_shader_parameter("deep_color", DicePalette.outline(dice_type))
+    var speed: float = EMANATION_BASE_SPEED.get(dice_type, EMANATION_BASE_SPEED_DEFAULT)
+    mat.set_shader_parameter("base_speed", speed)
 
 func _on_dice_rolled(rolled_dice_type, roll_value):
     print("Dice rolled: ", roll_value)
@@ -1639,6 +1690,25 @@ func _on_charge_dice_animation():
             heat_rise.set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
         heat_tween.tween_interval(0.3)
         heat_tween.tween_callback(_update_dice_aura_charge)
+    # The emanation tongues share the same absorb beat: heat + a surge flare that decays
+    # after the hold. charge_heat is settled back by the _update_dice_aura_charge callback
+    # above; surge lives on the SAME tracked tween the roll-landing flare uses, so the two
+    # triggers restart each other instead of fighting over the parameter.
+    var emanation_material := emanation.material as ShaderMaterial
+    if emanation_material:
+        if _emanation_surge_tween and _emanation_surge_tween.is_valid():
+            _emanation_surge_tween.kill()
+        _emanation_surge_tween = create_tween()
+        var em_rise := _emanation_surge_tween.tween_property(
+            emanation_material, "shader_parameter/surge", 1.0, 0.12)
+        if em_rise:
+            em_rise.set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+        _emanation_surge_tween.parallel().tween_property(
+            emanation_material, "shader_parameter/charge_heat", 1.0, 0.12)
+        _emanation_surge_tween.tween_interval(0.3)
+        _emanation_surge_tween.tween_property(
+            emanation_material, "shader_parameter/surge", 0.0, EMANATION_SURGE_DECAY_TIME) \
+            .set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
     # Beats are timed so the die "absorbs" the energy exactly when the inward-converging
     # particles reach its center: anticipation squash + hold while the ring collapses,
@@ -2135,7 +2205,9 @@ func _animate_thrown_die(parent_layer: Node, throw_type: String, value: int, fro
     parent_layer.add_child(icon)
     icon.global_position = from_pos - icon.size / 2.0
 
-    var faces: Array = Card.DICE_FACE_VALUES.get(throw_type, [1, 2, 3, 4, 5, 6])
+    # Infusion-aware faces (Julien, 2026-07-23): a Repented Evil must never flash its
+    # removed 0 face mid-tumble, a Bulky Giant tumbles through 7-12.
+    var faces: Array = Card.thrown_faces_for(throw_type)
     var windup := minf(Global.DICE_THROW_WINDUP_TIME, Global.DICE_THROW_FLIGHT_TIME * 0.45)
     var flight := Global.DICE_THROW_FLIGHT_TIME - windup
     var hang_pos := from_pos + Vector2(randf_range(-10.0, 10.0), -THROWN_DIE_WINDUP_RISE)
@@ -2290,7 +2362,8 @@ func _finish_thrown_die(icon: TextureRect, throw_type: String, value: int, has_t
             tumble.kill()
     icon.rotation = 0.0
     icon.texture = _get_dice_face_texture_for(throw_type, value)
-    var faces: Array = Card.DICE_FACE_VALUES.get(throw_type, [1, 2, 3, 4, 5, 6])
+    # Infusion-aware set so the "best face" jackpot beat matches what the die can roll.
+    var faces: Array = Card.thrown_faces_for(throw_type)
     var is_max_face: bool = value == int(faces.max())
     var accent := DicePalette.accent(throw_type)
     var burst_color := DicePalette.burst(throw_type) if is_max_face else accent

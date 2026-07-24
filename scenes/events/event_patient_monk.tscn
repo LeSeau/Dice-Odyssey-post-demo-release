@@ -123,8 +123,8 @@ layout_mode = 2
 mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("3_monk3")
 bbcode_enabled = true
-text = "A monk sits cross-legged atop an enormous die, perfectly still, cards drifting slowly around him like leaves. You have no idea what a temple is doing here. [color=purple]\"Power taken now, or power kept for later,\"[/color] he murmurs without opening his eyes.
-[p] [p]\"Either way, it is yours.\""
+text = "A monk sits in the temple doorway, wrapped in gold light, one hand raised as though he heard you coming from a mile off. His eyes stay shut.
+[p] [p][color=purple]\"Mend what's torn now, or grow sturdier for the road ahead,\"[/color] he says. [color=purple]\"I can spare one blessing, traveler, not both.\"[/color]"
 fit_content = true
 
 [node name="VBoxContainer" type="VBoxContainer" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer"]
@@ -153,7 +153,7 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("4_monk4")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[center]Drink deeply now.[color=green] Heal 20 HP.[/color][/center]
+text = "[center]Take the mending.[color=green] Heal 20 HP.[/color][/center]
 "
 scroll_active = false
 
@@ -176,7 +176,7 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("4_monk4")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[center]Bottle it for later.[color=green] Gain 8 Max HP.[/color][/center]
+text = "[center]Take the strength.[color=green] Gain 8 Max HP.[/color][/center]
 "
 scroll_active = false
 

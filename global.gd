@@ -25,6 +25,23 @@ const DICE_THROW_STAGGER := 0.15
 const COIN_FLIP_TIME := 0.6
 
 
+# Called once per thrown/conjured die at the moment it LANDS (card.gd::_on_thrown_die_landed
+# plus the air-land callbacks in windfall/rampart/kickstart). Design line (Julien,
+# 2026-07-23): a thrown die counts as a die you ROLLED - fight/turn dice counters, the run
+# scoreboard, and the per-die opt-in triggers on Events.dice_thrown_landed (Crown, Snake
+# Eyes Charm, Hardened Grip, Greedy...) - but it never joins the Power chain: roll_value,
+# roll_history, last_roll and next-roll modifiers stay untouched (Recombobulate must not
+# refund it, a throw must not eat a Scouted roll).
+func report_thrown_die_landed(dice_type: String, value: int) -> void:
+    fight_dice_rolled += 1
+    dice_amount_rolled_this_turn += 1
+    # Same ordering as dice.gd's real-roll path: counter first, then the report/emit, so
+    # listeners read the already-incremented counters (Turbo Mode counts thrown dice too).
+    AchievementManager.report_dice_rolled_this_turn(dice_amount_rolled_this_turn)
+    run_stat_dice_rolled += 1
+    Events.dice_thrown_landed.emit(dice_type, value)
+
+
 # App-scoped player settings (volumes, fullscreen) - loaded once at startup and
 # applied to the audio buses/window here; the pause menu updates them live afterwards
 # through SettingsManager. Deliberately NOT part of reset_run_state()/the run save:

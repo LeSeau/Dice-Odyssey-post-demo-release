@@ -10,7 +10,7 @@ func apply_effects(targets: Array[Node], _modifiers: ModifierHandler) -> void:
     block_effect.amount = Global.roll_value
     block_effect.sound = sound
     block_effect.execute(targets)
-    var faces: Array = DICE_FACE_VALUES["even"]
+    var faces: Array = thrown_faces_for("even")
     var value: int = faces[randi() % faces.size()]
     Events.dice_thrown.emit([{"type": "even", "value": value, "target": null}], Global.last_played_card_position)
     if not targets.is_empty():
@@ -21,6 +21,8 @@ func apply_effects(targets: Array[Node], _modifiers: ModifierHandler) -> void:
 
 
 func _on_rampart_landed(player: Node, value: int) -> void:
+    # Counts as a rolled die even if the player node is gone (fight over) - the die landed.
+    Global.report_thrown_die_landed("even", value)
     if player == null or not is_instance_valid(player):
         return
     var block_effect := BlockEffect.new()

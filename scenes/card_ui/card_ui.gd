@@ -195,6 +195,7 @@ const CELESTIAL_BANNER_STYLEBOX := preload("res://scenes/card_ui/card_banner_cel
 const CELESTIAL_ART_STYLEBOX := preload("res://scenes/card_ui/card_ui_celestial_art.tres")
 const CELESTIAL_DESC_STYLEBOX := preload("res://scenes/card_ui/card_ui_description_panel_celestial.tres")
 const CELESTIAL_REQUIREMENT_NONE_STYLEBOX := preload("res://scenes/card_ui/card_requirement_none_celestial.tres")
+const BLESSING_REQUIREMENT_NONE_STYLEBOX := preload("res://scenes/card_ui/card_requirement_none_blessing.tres")
 # Description is now a RichTextLabel (converted so keyword colors from Card.get_colorized_
 # description() can render), which has no `label_settings` property. This LabelSettings
 # resource is kept preloaded anyway, purely as the source of truth for .outline_color below -
@@ -281,6 +282,9 @@ func _ready() -> void:
     Events.dice_rolled.connect(_on_dice_rolled_update_description)
     Events.dice_roll_reset.connect(_on_dice_rolled_update_description)
     Events.change_current_power.connect(_on_dice_rolled_update_description)
+    # Thrown-die landings bump fight/turn dice counters (Tsunami, Stampede...) - refresh
+    # dynamic descriptions as each one lands so the numbers in hand never lag the counter.
+    Events.dice_thrown_landed.connect(_on_dice_rolled_update_description)
     if card:
         card_instance_id = card.instance_id
     
@@ -611,6 +615,12 @@ func _set_card(value: Card) -> void:
         # ran, and set_playable_visual() would keep re-applying that stale look at rest.
         _base_frame_stylebox = BLESSING_STYLEBOX
         _hot_frame_stylebox = null
+        # Same as the Celestial branch: only re-style the "ANY" ribbon when there's truly no
+        # requirement, so a Blessing WITH a real requirement (e.g. Berserk's Min 6) keeps its
+        # requirement-specific ribbon. Without this, a requirement-less Blessing falls through
+        # with the plain red NONE_STYLEBOX ribbon instead of matching its plum card body.
+        if card.requirement == Card.Requirement.NONE:
+            requirement_panel.add_theme_stylebox_override("panel", BLESSING_REQUIREMENT_NONE_STYLEBOX)
         description.add_theme_color_override("font_outline_color", BLESSING_DESC_LABEL_SETTINGS.outline_color)
 
     if card.can_play_without_dice:

@@ -13,12 +13,12 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     damage_effect.execute(targets)
     # The meteor: a conjured Giant Dice (not from your pool) rolled at throw time - the
     # visual cycles faces mid-flight and lands on this value, the damage lands with it.
-    var faces: Array = DICE_FACE_VALUES["giant"]
+    var faces: Array = thrown_faces_for("giant")
     var value: int = faces[randi() % faces.size()]
     var target: Node = targets[0]
     Events.dice_thrown.emit([{"type": "giant", "value": value, "target": target}], Global.last_played_card_position)
     var die_damage := modifiers.get_modified_value(value, Modifier.Type.DMG_DEALT)
-    _land_thrown_die(target.get_tree(), target, die_damage, Global.DICE_THROW_FLIGHT_TIME, sound)
+    _land_thrown_die(target.get_tree(), target, die_damage, Global.DICE_THROW_FLIGHT_TIME, sound, "giant", value)
     Events.dice_roll_reset.emit()
     Events.reset_charged_card.emit()
 

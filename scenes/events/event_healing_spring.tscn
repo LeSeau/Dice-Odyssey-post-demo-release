@@ -123,8 +123,8 @@ layout_mode = 2
 mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("3_spr015")
 bbcode_enabled = true
-text = "A clear spring bubbles up between the stones, said to carry a little of the mountain's strength.
-[p] [p]You could drink deeply here, or fill a flask to carry the rest of the way."
+text = "Warm steam curls off a pool tucked deep in the rock, the water lit from below in pale blue. It smells faintly of iron and mountain snow.
+[p] [p]Drink your fill and it mends you. Pilgrims left coins at the bottom, back when they still came this way."
 fit_content = true
 
 [node name="VBoxContainer" type="VBoxContainer" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer"]
@@ -199,7 +199,7 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("4_spr016")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[center]Offer some blood to the spring.[color=#e05a5a] Lose 8 HP.[/color][color=gold] Gain 50 Gold.[/color][/center]
+text = "[center]Dig out the coins left below.[color=#e05a5a] Lose 8 HP.[/color][color=gold] Gain 50 Gold.[/color][/center]
 "
 scroll_active = false
 
