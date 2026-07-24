@@ -8,6 +8,6 @@
 script = ExtResource("3_d65q8")
 ai = ExtResource("1_ckscd")
 enemy_name = "Marauder"
-content_center_x = 0.499
+content_center_x = 0.5
 max_health = 27
 art = ExtResource("2_578pl")

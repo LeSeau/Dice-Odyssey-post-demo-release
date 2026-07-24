@@ -225,3 +225,5 @@ res://red_dice_shader.gdshader
 res://scenes/dices/dice_interface.gdshader
 res://scenes/dices/ink.gdshader
 res://button_shine.gdshader
+res://enemies/machopeur/machopeur_enemy_tier1.tres
+res://enemies/machopeur/machopeur_enemy_tier2.tres
