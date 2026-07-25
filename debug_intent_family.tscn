@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://dbgintentfam25"]
+
+[ext_resource type="Script" path="res://debug_intent_family.gd" id="1_dbg"]
+
+[node name="DebugIntentFamily" type="Node"]
+script = ExtResource("1_dbg")

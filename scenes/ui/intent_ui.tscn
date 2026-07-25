@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://b6p08ajglydq8"]
+[gd_scene load_steps=5 format=3 uid="uid://b6p08ajglydq8"]
 
 [ext_resource type="Script" path="res://scenes/ui/intent_ui.gd" id="1_aarbb"]
 [ext_resource type="Texture2D" uid="uid://cm56j6ual41dr" path="res://attack_icon_intent.png" id="2_o32yy"]
@@ -10,44 +10,6 @@ font_size = 32
 outline_size = 3
 shadow_size = 5
 shadow_color = Color(0, 0, 0, 1)
-
-[sub_resource type="Animation" id="Animation_4eqr2"]
-length = 0.001
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = false
-tracks/0/path = NodePath(".:position")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Vector2(0, 0)]
-}
-
-[sub_resource type="Animation" id="Animation_7mnno"]
-resource_name = "idle"
-length = 4.0
-loop_mode = 1
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = false
-tracks/0/path = NodePath(".:position")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0, 2, 4),
-"transitions": PackedFloat32Array(1, 1, 1),
-"update": 0,
-"values": [Vector2(0, 0), Vector2(0, 3), Vector2(0, 0)]
-}
-
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_12idr"]
-_data = {
-"RESET": SubResource("Animation_4eqr2"),
-"idle": SubResource("Animation_7mnno")
-}
 
 [node name="IntentUI" type="HBoxContainer"]
 anchors_preset = 5
@@ -62,28 +24,33 @@ theme_override_constants/separation = -6
 alignment = 1
 script = ExtResource("1_aarbb")
 
-[node name="Icon" type="TextureRect" parent="."]
+[node name="IconSlot" type="Control" parent="."]
 custom_minimum_size = Vector2(60, 60)
 layout_mode = 2
+mouse_filter = 2
+
+[node name="Icon" type="TextureRect" parent="IconSlot"]
+offset_right = 60.0
+offset_bottom = 60.0
 mouse_filter = 2
 texture = ExtResource("2_o32yy")
 expand_mode = 3
 stretch_mode = 6
 
-[node name="Label" type="Label" parent="."]
-custom_minimum_size = Vector2(26, 0)
+[node name="LabelSlot" type="Control" parent="."]
+custom_minimum_size = Vector2(26, 60)
 layout_mode = 2
-size_flags_vertical = 1
+mouse_filter = 2
+
+[node name="Label" type="Label" parent="LabelSlot"]
+custom_minimum_size = Vector2(26, 0)
+offset_right = 26.0
+offset_bottom = 60.0
+mouse_filter = 2
 text = "7"
 label_settings = SubResource("LabelSettings_ftoyl")
 horizontal_alignment = 1
 vertical_alignment = 1
-
-[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
-libraries = {
-"": SubResource("AnimationLibrary_12idr")
-}
-autoplay = "idle"
 
 [connection signal="mouse_entered" from="." to="." method="_on_mouse_entered"]
 [connection signal="mouse_exited" from="." to="." method="_on_mouse_exited"]

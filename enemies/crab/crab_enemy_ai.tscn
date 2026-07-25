@@ -8,7 +8,7 @@
 [ext_resource type="Script" path="res://enemies/crab/tutorial_attack.gd" id="5_0m17x"]
 [ext_resource type="AudioStream" uid="uid://de2ryat1pxq6" path="res://art/enemy_attack.ogg" id="5_cyehc"]
 [ext_resource type="Script" path="res://enemies/crab/crab_big_attack_action.gd" id="5_feuxr"]
-[ext_resource type="Texture2D" uid="uid://coa7pi62qv88k" path="res://assets/images/shield.png" id="8_txomh"]
+[ext_resource type="Texture2D" path="res://block_icon_intent.png" id="8_txomh"]
 [ext_resource type="AudioStream" uid="uid://k8m4o3hlwm7l" path="res://art/enemy_block.ogg" id="10_bcpek"]
 [ext_resource type="Script" path="res://enemies/crab/attack_action_2.gd" id="11_spike"]
 

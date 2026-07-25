@@ -8,7 +8,7 @@
 [ext_resource type="Script" path="res://custom_resources/intent.gd" id="4_c4he8"]
 [ext_resource type="AudioStream" uid="uid://de2ryat1pxq6" path="res://art/enemy_attack.ogg" id="5_qabut"]
 [ext_resource type="Script" path="res://enemies/vortex/vortex_buff.gd" id="6_hpext"]
-[ext_resource type="Texture2D" uid="uid://coa7pi62qv88k" path="res://assets/images/shield.png" id="9_4x4hy"]
+[ext_resource type="Texture2D" path="res://block_icon_intent.png" id="9_4x4hy"]
 [ext_resource type="AudioStream" uid="uid://df64e7qat73gs" path="res://art/block.ogg" id="10_baxgj"]
 
 [sub_resource type="Resource" id="Resource_a4lrc"]

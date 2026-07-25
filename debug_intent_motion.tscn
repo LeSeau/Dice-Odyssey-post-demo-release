@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://dbgintentmotion"]
+
+[ext_resource type="Script" path="res://debug_intent_motion.gd" id="1_dbg"]
+
+[node name="DebugIntentMotion" type="Node"]
+script = ExtResource("1_dbg")
