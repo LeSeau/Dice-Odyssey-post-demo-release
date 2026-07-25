@@ -6,17 +6,13 @@
 [node name="Tier0BiggerOctopus2" type="Node2D"]
 
 [node name="BiggerOctopus1" parent="." instance=ExtResource("1_kr0ue")]
-position = Vector2(755, 417)
-scale = Vector2(0.75, 0.75)
+position = Vector2(786, 429)
 stats = ExtResource("2_x5moe")
-width = 260
-height = 260
-intent_ui_y_offset = 20
+width = 178
+height = 178
 
 [node name="BiggerOctopus2" parent="." instance=ExtResource("1_kr0ue")]
-position = Vector2(902, 444)
-scale = Vector2(0.75, 0.75)
+position = Vector2(1013, 432)
 stats = ExtResource("2_x5moe")
-width = 260
-height = 260
-intent_ui_y_offset = 20
+width = 178
+height = 178

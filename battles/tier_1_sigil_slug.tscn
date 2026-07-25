@@ -8,6 +8,8 @@
 [node name="Tier1SigilSlug" type="Node2D"]
 
 [node name="SigilSlug" parent="." instance=ExtResource("1_4xs5g")]
-position = Vector2(892, 416)
+width = 297
+height = 297
+position = Vector2(892, 370)
 stats = ExtResource("2_qvf1j")
 initial_statuses = Array[ExtResource("3_bsyc1")]([ExtResource("4_sgquj")])

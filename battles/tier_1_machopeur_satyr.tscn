@@ -7,16 +7,14 @@
 [node name="Tier1MachopeurSatyr" type="Node2D"]
 
 [node name="Machopeur" parent="." instance=ExtResource("1_ppjke")]
-position = Vector2(760, 411)
+position = Vector2(790, 392)
 stats = ExtResource("3_fmr0d")
-width = 225
-height = 225
+width = 213
+height = 213
 sprite_y_offset = 20
 
 [node name="B Satyr" parent="." instance=ExtResource("1_ppjke")]
-position = Vector2(992, 425)
-scale = Vector2(0.75, 0.75)
+position = Vector2(1004, 432)
 stats = ExtResource("2_uspug")
-width = 310
-height = 310
-intent_ui_y_offset = 10
+width = 178
+height = 178

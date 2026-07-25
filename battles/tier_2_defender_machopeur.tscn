@@ -7,10 +7,13 @@
 [node name="Tier2DefenderMachopeur" type="Node2D"]
 
 [node name="Defender" parent="." instance=ExtResource("1_cff8f")]
-position = Vector2(758, 418)
+width = 248
+height = 248
+position = Vector2(754, 391)
 stats = ExtResource("2_nay6a")
 
 [node name="Machopeur" parent="." instance=ExtResource("1_cff8f")]
-position = Vector2(1034, 433)
-scale = Vector2(0.75, 0.75)
+width = 244
+height = 244
+position = Vector2(1046, 399)
 stats = ExtResource("3_8jts3")

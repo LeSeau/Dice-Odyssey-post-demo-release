@@ -6,5 +6,7 @@
 [node name="TierEliteDragonpriest" type="Node2D"]
 
 [node name="Dragonpriest" parent="." instance=ExtResource("1_6k8pb")]
-position = Vector2(858, 394)
+width = 290
+height = 290
+position = Vector2(858, 373)
 stats = ExtResource("2_ntj7k")

@@ -82,6 +82,11 @@ func _ready() -> void:
     sprite_2d.material = sprite_2d.material.duplicate()
     _base_sprite_material = sprite_2d.material as ShaderMaterial
 
+    # Re-run the status row placement every time it re-lays out: the End Turn clamp needs
+    # the row's width, which changes as statuses are gained and lost. Setting position
+    # doesn't re-trigger a sort, so this can't loop.
+    status_handler.sort_children.connect(_update_status_row_x)
+
     # Per-enemy phase/speed jitter so multiple enemies on screen never breathe in
     # lockstep. Replaces the old AnimationPlayer phase-randomization trick - the idle
     # is now a shader-side deformation (see enemy.gdshader / _update_sway_params()),
@@ -153,8 +158,44 @@ const MAX_ENEMY_HEIGHT := 256.0
 # handle into the BattleUI CanvasLayer.
 const END_TURN_LEFT := 1060.0
 const END_TURN_TOP := 592.0
-const STATUS_ICON_EXTENT := 42.0  # one counter-scaled status icon (30px min * ~1.33)
+const STATUS_ICON_EXTENT := 42.0  # 30px icon + the stack label hanging off its corner
 const STATUS_ROW_END_TURN_GAP := 8.0
+
+# --- Enemy HUD scale (2026-07-24) ----------------------------------------------
+# The HP bar + status row are drawn SMALLER than their authored size. This is not
+# cosmetic - it is what makes a valid ground line exist at all. The stack hanging below
+# the feet was: 32px bar container -> status at feet+24 -> 42px status extent = feet+66.
+# The card fan's top is y562 at the leftmost enemy slot (x~750), so feet had to be <=496,
+# while the painted floor in every background only starts at y~510 (act-2 library's
+# furniture band pushes it to ~y505-510 on the right). Those two constraints did not
+# overlap: NO feet value satisfied both, which is why status-vs-cards kept being
+# whack-a-mole. At 0.7 the stack becomes ~44px, opening a real window (feet 512-525).
+# stats_ui.tscn is SHARED with player.tscn, so this must stay a per-instance scale here
+# and never an edit to that scene - the player's HP readout is deliberately left full size.
+# Status icons stay FULL SIZE - they have to stay readable on the smallest enemy in the
+# game (Julien 2026-07-24: 0.7 was unreadable). Budget is bought back by scaling the HP bar
+# to the BODY instead of flat-shrinking it.
+# DO NOT trim the Duration/Stacks label overhang in status_ui.tscn to save stack height:
+# that label deliberately hangs off the icon's bottom-right corner ONTO THE BACKGROUND,
+# which is what makes it legible. Pulling it inside the icon killed the contrast - and
+# status_ui.tscn is shared with the PLAYER, so it broke the player's readout too.
+const STATUS_UI_SCALE := 1.0
+# HP bar scales with the enemy, STS-style: a big body gets a long bar, a small one a short
+# bar. Flat-shrinking every bar made big solo enemies look weak ("hp bar too, looks really
+# small"). Ratio is body content width vs the authored bar width, floored so a tiny Satyr's
+# bar stays legible.
+const BAR_SCALE_MIN := 0.55
+const BAR_SCALE_MAX := 1.0
+# Authored width of StatsUI (enemy.tscn offsets 17..223). Only a fallback for the pivot
+# if `size` hasn't been laid out yet; the live `size.x` is preferred.
+const STATS_UI_AUTHORED_WIDTH := 206.0
+# Intent hangs off the real head (content top) with this gap, and shrinks on small bodies
+# so it stops dwarfing them - folding the per-fight `scale` into the box had made intents
+# on multi-fight enemies ~33% bigger overnight.
+const INTENT_GAP := 20.0
+const INTENT_SCALE_REFERENCE := 240.0
+const INTENT_SCALE_MIN := 0.7
+const INTENT_SCALE_MAX := 1.0
 
 # Feet-planted idle sway (2026-07-23, replaces the whole-sprite AnimationPlayer bob).
 # Amplitudes are in SCREEN pixels - _update_sway_params() converts to texture pixels
@@ -200,6 +241,58 @@ static func _get_shadow_texture() -> GradientTexture2D:
     return _shadow_texture
 
 
+# Texture row where the enemy's BODY MASS starts, scanning down from the top - i.e. the
+# first row at least HEAD_MASS_FRACTION as wide as the widest row. Thin props (Marauder's
+# mace 50px, Temple Defender's crest 121px, Skeleton's scythe 76px) sit ABOVE this line and
+# are deliberately ignored: anchoring the intent to the alpha bbox top parked it far above
+# the actual head on those enemies ("intent is too high"). A Satyr's horns are only 14px, so
+# this barely moves and their clearance is preserved.
+const HEAD_MASS_FRACTION := 0.35
+static var _head_line_cache := {}
+
+
+# Returns how far DOWN from the content top the body mass starts, as a fraction (0..1) of
+# the content height. Resolution-independent, so it survives any box/scale change.
+# Scans a downscaled copy: get_pixel() from GDScript is slow, and a full-res sweep of every
+# enemy texture would hitch on load. 96px is far more than enough for a 35% width threshold.
+const HEAD_SCAN_MAX := 96
+
+
+static func _get_head_line_fraction(tex: Texture2D) -> float:
+    var key := tex.resource_path if tex.resource_path != "" else str(tex.get_instance_id())
+    if _head_line_cache.has(key):
+        return _head_line_cache[key]
+    var result := 0.0
+    var img := tex.get_image()
+    if img != null:
+        var used := img.get_used_rect()
+        if used.size.x > 0 and used.size.y > 0:
+            var small := img.get_region(used)
+            var w := small.get_width()
+            var h := small.get_height()
+            var f: float = float(HEAD_SCAN_MAX) / float(maxi(w, h))
+            if f < 1.0:
+                small.resize(maxi(1, int(w * f)), maxi(1, int(h * f)), Image.INTERPOLATE_NEAREST)
+                w = small.get_width()
+                h = small.get_height()
+            var widths := PackedInt32Array()
+            widths.resize(h)
+            var widest := 0
+            for y in range(h):
+                var count := 0
+                for x in range(w):
+                    if small.get_pixel(x, y).a > 0.0:
+                        count += 1
+                widths[y] = count
+                widest = maxi(widest, count)
+            for y in range(h):
+                if widths[y] >= HEAD_MASS_FRACTION * widest:
+                    result = float(y) / float(h)
+                    break
+    _head_line_cache[key] = result
+    return result
+
+
 static func _get_content_rect(tex: Texture2D) -> Rect2:
     var key := tex.resource_path if tex.resource_path != "" else str(tex.get_instance_id())
     if _content_rect_cache.has(key):
@@ -212,6 +305,32 @@ static func _get_content_rect(tex: Texture2D) -> Rect2:
             rect = Rect2(used)
     _content_rect_cache[key] = rect
     return rect
+
+
+# Local x of the HP bar's LEFT EDGE; the status row starts there. Set by update_enemy().
+var _status_row_left_x: float = 17.0
+
+
+# Status row starts at the HP bar's LEFT EDGE and grows rightward - the convention in every
+# comparable roguelike (Slay the Spire). Do NOT centre it: that was tried once and rejected.
+# Re-run whenever the row re-lays out, because the End Turn clamp below depends on the row's
+# width, which changes as statuses are gained and lost.
+func _update_status_row_x() -> void:
+    if status_handler == null:
+        return
+    var row_width: float = status_handler.size.x * status_handler.scale.x
+    status_handler.position.x = _status_row_left_x
+    if scale.x == 0 or scale.y == 0:
+        return
+    var row_left: float = global_position.x + status_handler.position.x * scale.x
+    var row_top: float = global_position.y + status_handler.position.y * scale.y
+    var status_extent: float = STATUS_ICON_EXTENT * STATUS_UI_SCALE
+    var hits_button := row_left + maxf(row_width, status_extent) > END_TURN_LEFT \
+        and row_top + status_extent > END_TURN_TOP
+    if hits_button:
+        var target_left: float = END_TURN_LEFT - maxf(row_width, status_extent) \
+            - STATUS_ROW_END_TURN_GAP
+        status_handler.position.x = (target_left - global_position.x) / scale.x
 
 
 func update_enemy() -> void:
@@ -257,13 +376,41 @@ func update_enemy() -> void:
         # Now the bar sits AT the feet line; the offsets survive only as DOWNWARD nudges
         # (maxf(.,0)) so the bar can never ride up into the sprite no matter what any
         # present-or-future per-fight tuning says. Enemies with a 0 offset are unchanged.
-        stats_ui.position.y = feet_line_y + maxf(stats_ui_y_offset, 0.0)
-        status_handler.position.y = stats_ui.position.y + stats_ui.size.y - 8.0 + maxf(status_handler_y_offset, 0.0)
-        _name_label_local_y = stats_ui.position.y + stats_ui.size.y + 4
+        # --- HP bar sized to the BODY (STS-style) --------------------------------------
+        # Scale the bar around its own horizontal CENTRE with the top edge pinned:
+        # pivot (w/2, 0) keeps the visual top at position.y and the centre x where it
+        # already was, so every feet/centring calculation stays valid. With the default
+        # (0,0) pivot the bar would shrink left-aligned and slide ~31px off the body.
+        var content_width: float = content.size.x * final_scale
+        var bar_scale: float = clampf(content_width / STATS_UI_AUTHORED_WIDTH,
+            BAR_SCALE_MIN, BAR_SCALE_MAX)
+        var stats_ui_width: float = stats_ui.size.x if stats_ui.size.x > 0.0 else STATS_UI_AUTHORED_WIDTH
+        stats_ui.pivot_offset = Vector2(stats_ui_width / 2.0, 0.0)
+        stats_ui.scale = Vector2(bar_scale, bar_scale)
 
-        # Intent floats above the head (box-based; unchanged - it clears the head fine and
-        # its per-fight intent_ui_y_offset tuning is still honored).
-        intent_ui.position.y = -sprite_display_height / 2 - 30 - intent_ui_y_offset + sprite_y_offset
+        stats_ui.position.y = feet_line_y + maxf(stats_ui_y_offset, 0.0)
+        # `size.y` is the AUTHORED height (32) - scaling doesn't change it, so the drawn
+        # height must be applied by hand or the status row hangs too low.
+        var stats_ui_drawn_height: float = stats_ui.size.y * bar_scale
+        status_handler.position.y = stats_ui.position.y + stats_ui_drawn_height - 8.0 + maxf(status_handler_y_offset, 0.0)
+        # Status row starts at the bar's LEFT EDGE (STS convention - never centred).
+        # The bar shrinks about its own centre, so its left edge moves with bar_scale.
+        _status_row_left_x = stats_ui.position.x + (stats_ui_width / 2.0) * (1.0 - bar_scale)
+        _update_status_row_x()
+        _name_label_local_y = stats_ui.position.y + stats_ui_drawn_height + 4
+
+        # --- Intent: anchored to the real HEAD, and scaled to the body ------------------
+        # Anchored to the body-mass line rather than the alpha bbox top, so a tall thin prop
+        # (mace, crest, scythe) no longer pushes the intent way above the head. Pivot is the
+        # box's bottom-centre, so the drawn bottom stays at position.y + size.y under scale.
+        var content_height: float = content.size.y * final_scale
+        var intent_scale: float = clampf(content_height / INTENT_SCALE_REFERENCE,
+            INTENT_SCALE_MIN, INTENT_SCALE_MAX)
+        intent_ui.scale = Vector2(intent_scale, intent_scale)
+        intent_ui.pivot_offset = Vector2(intent_ui.size.x / 2.0, intent_ui.size.y)
+        var head_frac: float = _get_head_line_fraction(sprite_2d.texture)
+        var head_line_y: float = feet_line_y - content_height * (1.0 - head_frac)
+        intent_ui.position.y = head_line_y - INTENT_GAP - intent_ui.size.y - intent_ui_y_offset
 
         # sprite_2d.position.x is a fixed baseline baked into enemy.tscn's template (124,
         # never reassigned by code, same value NAME_LABEL_SPRITE_CENTER_X was hand-copied
@@ -296,24 +443,12 @@ func update_enemy() -> void:
     else:
         sprite_2d.position.y = sprite_y_offset
 
-    # Clamp the status row's start ONLY when it would actually run into the End Turn
-    # button, and pull it in just enough to clear the button's left edge - keeping it
-    # under the enemy's own body rather than yanking it far to the left (which detached
-    # right-side enemies' status next to their neighbour).
-    if scale.x != 0:
-        var row_left: float = global_position.x + status_handler.position.x * scale.x
-        var row_top: float = global_position.y + status_handler.position.y * scale.y
-        var hits_button := row_left + STATUS_ICON_EXTENT > END_TURN_LEFT \
-            and row_top + STATUS_ICON_EXTENT > END_TURN_TOP
-        if hits_button:
-            var target_left: float = END_TURN_LEFT - STATUS_ICON_EXTENT - STATUS_ROW_END_TURN_GAP
-            status_handler.position.x = (target_left - global_position.x) / scale.x
-
     # Multi-enemy battle scenes set `scale` on the Enemy root to fit several bodies. The
     # StatusHandler inherits that shrink; counter-scale it so status icons stay a constant
-    # size no matter the enemy's own scale.
+    # size no matter the enemy's own scale - then apply STATUS_UI_SCALE on top so that
+    # constant size is the new, smaller one (see the HUD-scale note above).
     if scale.x != 0 and scale.y != 0:
-        status_handler.scale = Vector2(1.0 / scale.x, 1.0 / scale.y)
+        status_handler.scale = Vector2(STATUS_UI_SCALE / scale.x, STATUS_UI_SCALE / scale.y)
     arrow.position = Vector2.RIGHT * (sprite_2d.get_rect().size.x * sprite_2d.scale.x / 2 + ARROW_OFFSET)
     setup_ai()
     update_stats()

@@ -7,12 +7,14 @@
 [node name="Tier2PlantCrab" type="Node2D"]
 
 [node name="Crab" parent="." instance=ExtResource("1_pdfuf")]
-position = Vector2(754, 413)
+width = 231
+height = 231
+position = Vector2(746, 413)
 stats = ExtResource("2_77x4v")
 sprite_y_offset = 10
 
 [node name="Plant" parent="." instance=ExtResource("1_pdfuf")]
-position = Vector2(1038, 386)
-scale = Vector2(0.75, 0.75)
+width = 206
+height = 206
+position = Vector2(1039, 418)
 stats = ExtResource("3_acshb")
-intent_ui_y_offset = 10

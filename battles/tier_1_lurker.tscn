@@ -8,7 +8,9 @@
 [node name="Tier1Lurker" type="Node2D"]
 
 [node name="Lurker" parent="." instance=ExtResource("1_2n56x")]
-position = Vector2(892, 416)
+width = 283
+height = 283
+position = Vector2(892, 402)
 stats = ExtResource("2_6t68l")
 initial_statuses = Array[ExtResource("3_qerv6")]([ExtResource("4_ulpcf")])
 sprite_y_offset = -25

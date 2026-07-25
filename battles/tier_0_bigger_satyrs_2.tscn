@@ -6,11 +6,13 @@
 [node name="Tier0BiggerSatyrs2" type="Node2D"]
 
 [node name="Satyr1" parent="." instance=ExtResource("1_16r5g")]
-position = Vector2(1043, 467)
-scale = Vector2(0.75, 0.75)
+width = 178
+height = 178
+position = Vector2(991, 432)
 stats = ExtResource("2_8qpbs")
 
 [node name="Satyr2" parent="." instance=ExtResource("1_16r5g")]
-position = Vector2(876, 475)
-scale = Vector2(0.75, 0.75)
+width = 178
+height = 178
+position = Vector2(803, 429)
 stats = ExtResource("2_8qpbs")

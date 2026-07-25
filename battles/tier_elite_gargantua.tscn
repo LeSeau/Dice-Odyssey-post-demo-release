@@ -8,6 +8,8 @@
 [node name="TierEliteGargantua" type="Node2D"]
 
 [node name="Gargantua" parent="." instance=ExtResource("1_lfmdq")]
-position = Vector2(918, 401)
+width = 302
+height = 302
+position = Vector2(918, 367)
 stats = ExtResource("2_ddpo1")
 initial_statuses = Array[ExtResource("3_rnq2a")]([ExtResource("4_m54ej")])

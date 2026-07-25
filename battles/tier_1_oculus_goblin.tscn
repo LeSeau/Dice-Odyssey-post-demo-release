@@ -9,13 +9,14 @@
 [node name="Tier1OculusGoblin" type="Node2D"]
 
 [node name="Goblin" parent="." instance=ExtResource("1_2jp6t")]
-position = Vector2(749, 413)
+position = Vector2(777, 411)
 stats = ExtResource("2_2e7ne")
-width = 240
-height = 240
+width = 212
+height = 212
 
 [node name="Oculus" parent="." instance=ExtResource("1_2jp6t")]
-position = Vector2(992, 450)
-scale = Vector2(0.75, 0.75)
+width = 191
+height = 191
+position = Vector2(1018, 426)
 stats = ExtResource("3_3l5d1")
 initial_statuses = Array[ExtResource("4_wn5w0")]([ExtResource("5_qvccn")])

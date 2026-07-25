@@ -7,23 +7,19 @@
 [node name="Tier2MachopeurOctopus" type="Node2D"]
 
 [node name="Machopeur" parent="." instance=ExtResource("1_fao5v")]
-position = Vector2(750, 415)
+position = Vector2(697, 434)
 stats = ExtResource("2_rc2vf")
-width = 220
-height = 220
+width = 168
+height = 168
 
 [node name="Octopus1" parent="." instance=ExtResource("1_fao5v")]
-position = Vector2(986, 444)
-scale = Vector2(0.65, 0.65)
+position = Vector2(891, 450)
 stats = ExtResource("3_mwqir")
-width = 250
-height = 250
-intent_ui_y_offset = 20
+width = 142
+height = 142
 
 [node name="Octopus2" parent="." instance=ExtResource("1_fao5v")]
-position = Vector2(1115, 425)
-scale = Vector2(0.65, 0.65)
+position = Vector2(1078, 450)
 stats = ExtResource("3_mwqir")
-width = 250
-height = 250
-intent_ui_y_offset = 20
+width = 142
+height = 142

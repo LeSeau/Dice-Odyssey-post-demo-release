@@ -6,10 +6,10 @@
 [node name="Tier2Hound" type="Node2D"]
 
 [node name="Hound" parent="." instance=ExtResource("1_tm1t2")]
-position = Vector2(846, 382)
+position = Vector2(846, 366)
 stats = ExtResource("2_0ivxh")
-width = 280
-height = 280
+width = 320
+height = 320
 sprite_y_offset = 20
 stats_ui_y_offset = 1
 status_handler_y_offset = 1

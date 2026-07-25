@@ -6,8 +6,7 @@
 [node name="Tier0Plant" type="Node2D"]
 
 [node name="Plant" parent="." instance=ExtResource("1_3h2um")]
-position = Vector2(892, 416)
+position = Vector2(892, 392)
 stats = ExtResource("2_pvkay")
-width = 250
-height = 250
-intent_ui_y_offset = 20
+width = 251
+height = 251

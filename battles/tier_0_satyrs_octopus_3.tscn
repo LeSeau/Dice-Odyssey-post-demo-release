@@ -28,4 +28,3 @@ scale = Vector2(0.75, 0.75)
 stats = ExtResource("3_6hel2")
 width = 180
 height = 180
-intent_ui_y_offset = 30

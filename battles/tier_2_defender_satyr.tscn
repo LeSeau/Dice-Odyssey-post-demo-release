@@ -7,15 +7,19 @@
 [node name="Tier2DefenderSatyr" type="Node2D"]
 
 [node name="Defender" parent="." instance=ExtResource("1_xfoi0")]
-position = Vector2(750, 394)
+width = 173
+height = 173
+position = Vector2(720, 427)
 stats = ExtResource("2_tj2vy")
 
 [node name="Satyr1" parent="." instance=ExtResource("1_xfoi0")]
-position = Vector2(985, 448)
-scale = Vector2(0.68, 0.68)
+width = 142
+height = 142
+position = Vector2(915, 450)
 stats = ExtResource("3_sce5u")
 
 [node name="Satyr2" parent="." instance=ExtResource("1_xfoi0")]
-position = Vector2(1115, 428)
-scale = Vector2(0.68, 0.68)
+width = 142
+height = 142
+position = Vector2(1080, 450)
 stats = ExtResource("3_sce5u")

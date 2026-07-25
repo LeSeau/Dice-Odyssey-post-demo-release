@@ -7,15 +7,13 @@
 [node name="Tier1PlantGoblin" type="Node2D"]
 
 [node name="Plant" parent="." instance=ExtResource("1_jl2pd")]
-position = Vector2(749, 427)
+position = Vector2(753, 415)
 stats = ExtResource("3_882qe")
-width = 210
-height = 210
-intent_ui_y_offset = 20
+width = 201
+height = 201
 
 [node name="Goblin" parent="." instance=ExtResource("1_jl2pd")]
-position = Vector2(994, 450)
-scale = Vector2(0.75, 0.75)
+position = Vector2(1022, 415)
 stats = ExtResource("2_wis8d")
-width = 240
-height = 240
+width = 212
+height = 212
