@@ -34,7 +34,10 @@ signal dice_thrown(throws: Array, origin: Vector2)
 signal dice_thrown_landed(dice_type: String, value: int)
 # Double or Nothing: visual-only coin toss from `origin`. The card resolves the outcome after
 # Global.COIN_FLIP_TIME on its own timer; this just animates the flip + reveal.
-signal coin_flip(heads: bool, origin: Vector2)
+# target: the enemy the coin is tossed above (null = fall back to the card release
+# point). Must be emitted with all three args - a 2-arg emit silently no-ops the
+# listener at emit time in Godot 4.
+signal coin_flip(heads: bool, origin: Vector2, target: Node)
 # Emitted by player_handler.reshuffle_deck_from_discard() only when cards ACTUALLY moved
 # (never at battle start, where the draw pile is built full and the guard returns early).
 # Purely visual for now: battle_ui.gd flies mini card-backs from the discard pile button to

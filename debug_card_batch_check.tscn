@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://dbgcardbatch25"]
+
+[ext_resource type="Script" path="res://debug_card_batch_check.gd" id="1_dbg"]
+
+[node name="DebugCardBatchCheck" type="Node"]
+script = ExtResource("1_dbg")

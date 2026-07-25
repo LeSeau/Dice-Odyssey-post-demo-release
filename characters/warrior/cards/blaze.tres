@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://bfx0uv48gcfh0" path="res://blaze.png" id="1_4cj7d"]
 [ext_resource type="Script" path="res://characters/warrior/cards/blaze.gd" id="2_f6cuv"]
 [ext_resource type="AudioStream" uid="uid://bryyjsmk8fak6" path="res://detonationsound.mp3" id="3_hkta5"]
-[ext_resource type="Resource" path="res://characters/warrior/cards/blaze_plus.tres" id="4_plus"]
+[ext_resource type="Resource" uid="uid://dh65m2724mtb6" path="res://characters/warrior/cards/blaze_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_f6cuv")
@@ -11,7 +11,7 @@ id = "card_blaze"
 name = "Blaze"
 type = 1
 target = 0
-description = "Add 5 to your Power. Gain Weak 1"
+description = "Add 7 to your Power. Gain Weak 1"
 rarity = 1
 rarity_tier = 0
 red_only = false

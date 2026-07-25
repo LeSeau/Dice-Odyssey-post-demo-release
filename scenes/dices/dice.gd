@@ -2113,6 +2113,15 @@ const THROWN_DIE_SLAM_TRAIL_GAP_MS := 16
 # up into a short clatter (placeholder until Julien finds a dedicated single-die clack).
 const THROWN_DIE_WHOOSH := preload("res://whipsound.mp3")
 const THROWN_DIE_AIR_LAND_SFX := preload("res://sounds/dicerollsound3.mp3")
+# The throw origin is where the CARD WAS RELEASED, which the player controls - release one
+# high on the screen and the windup (which pops the die WINDUP_RISE px ABOVE the origin,
+# and an air-land another 160 on top) used to fling the die clean off the top edge, so you
+# never saw the roll (Julien, 2026-07-25). The origin is pulled back into a safe band
+# before anything is derived from it; the card itself is untouched, only the die's start
+# point moves. Same identity-canvas-transform assumption the apex clamp already makes.
+const THROWN_DIE_SPAWN_MIN_Y := 150.0
+const THROWN_DIE_SPAWN_MARGIN_X := 90.0
+const THROWN_DIE_AIR_LAND_MIN_Y := 70.0
 
 
 func _spawn_thrown_dice(throws: Array, origin: Vector2) -> void:
@@ -2124,6 +2133,7 @@ func _spawn_thrown_dice(throws: Array, origin: Vector2) -> void:
     var spawn_origin := origin
     if spawn_origin == Vector2.ZERO:
         spawn_origin = dice_display.get_global_rect().get_center()
+    spawn_origin = _clamp_throw_origin(spawn_origin)
     # Same helper the card scripts use to schedule the damage - the bash and the hit can
     # never drift apart, including the big-volley compression.
     var stagger := Global.dice_throw_volley_stagger(throws.size())
@@ -2134,6 +2144,8 @@ func _spawn_thrown_dice(throws: Array, origin: Vector2) -> void:
         var target = entry.get("target")
         var has_target := false
         var land_pos := spawn_origin + Vector2(0.0, -160.0)
+        # Air lands hover 160px above the origin - keep that hover on screen too.
+        land_pos.y = maxf(land_pos.y, THROWN_DIE_AIR_LAND_MIN_Y)
         var apex_pos := land_pos
         if target != null and is_instance_valid(target) and target is Node2D:
             has_target = true
@@ -2147,6 +2159,18 @@ func _spawn_thrown_dice(throws: Array, origin: Vector2) -> void:
             apex_pos = _thrown_die_apex_pos(target, land_pos)
         _animate_thrown_die(parent_layer, throw_type, value, spawn_origin, land_pos,
                 apex_pos, stagger * i, has_target, bool(entry.get("thud", false)), target)
+
+
+# Pulls a card-release point into a band where the whole throw stays visible. Only the top
+# edge really bites (the windup and the air-land hover both travel UP), but the sides are
+# clamped too so a throw released at the very edge of the screen still reads. With
+# stretch/mode = canvas_items the viewport rect IS the design canvas, so this tracks the
+# 1280x720 the rest of the throw code assumes without hardcoding it.
+func _clamp_throw_origin(origin: Vector2) -> Vector2:
+    var screen := get_viewport_rect().size
+    return Vector2(
+            clampf(origin.x, THROWN_DIE_SPAWN_MARGIN_X, screen.x - THROWN_DIE_SPAWN_MARGIN_X),
+            clampf(origin.y, THROWN_DIE_SPAWN_MIN_Y, screen.y - THROWN_DIE_SPAWN_MIN_Y * 0.5))
 
 
 # The enemy ROOT's global_position is not the visual center - enemy.tscn bakes the Sprite2D
@@ -2570,18 +2594,26 @@ func _finish_thrown_die(icon: TextureRect, throw_type: String, value: int, has_t
 # timer resolves the damage (heads) or nothing (tails), so the reveal and the outcome land
 # together. Heads flashes overbright gold; tails desaturates and drops away.
 const COIN_TEXTURE := preload("res://daiso_coin_icon.png")
-const COIN_SIZE := 64.0
+# Bigger and tossed UP BY THE ENEMY rather than out of the played card (Julien, 2026-07-25)
+# - the flip is the whole point of the card, it shouldn't happen down in the hand where the
+# cards cover it. The toss anchors just above the target's silhouette (and its intent icon,
+# same clearance rule the thrown-die hang uses), then rises from there; COIN_MIN_ANCHOR_Y
+# keeps the apex on screen for tall enemies, since visible beats perfectly placed.
+const COIN_SIZE := 108.0
 const COIN_TOSS_RISE := 110.0
 const COIN_SPIN_HALF := 0.1
+const COIN_GAP_ABOVE_TARGET := 44.0
+const COIN_MIN_ANCHOR_Y := 220.0
 
 
-func _spawn_coin_flip(heads: bool, origin: Vector2) -> void:
+func _spawn_coin_flip(heads: bool, origin: Vector2, target: Node = null) -> void:
     var parent_layer := get_tree().get_first_node_in_group("ui_layer")
     if not parent_layer:
         return
     var spawn_origin := origin
     if spawn_origin == Vector2.ZERO:
         spawn_origin = dice_display.get_global_rect().get_center()
+    spawn_origin = _coin_flip_anchor(target, _clamp_throw_origin(spawn_origin))
     var coin := TextureRect.new()
     coin.texture = COIN_TEXTURE
     coin.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -2609,6 +2641,25 @@ func _spawn_coin_flip(heads: bool, origin: Vector2) -> void:
     tween.tween_property(coin, "global_position:y", spawn_origin.y - COIN_TOSS_RISE * 0.45 - coin.size.y / 2.0, Global.COIN_FLIP_TIME * 0.45) \
         .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
     tween.tween_callback(_reveal_coin.bind(coin, heads))
+
+
+# Where the coin is tossed from: centred on the target's torso, just above its silhouette
+# and its intent icon. Falls back to the (already clamped) card-release point when the card
+# has no living Node2D target.
+func _coin_flip_anchor(target: Node, fallback: Vector2) -> Vector2:
+    if target == null or not is_instance_valid(target) or not (target is Node2D):
+        return fallback
+    var node := target as Node2D
+    var top := _enemy_sprite_aabb(node).position.y
+    var intent = node.get("intent_ui")
+    if intent is Control and is_instance_valid(intent):
+        top = minf(top, (intent as Control).get_global_rect().position.y)
+    # Enemies sit as far right as ~x1150, so the (now much bigger) coin needs a side clamp
+    # of its own or it clips off the right edge above a far-right target.
+    var half := COIN_SIZE * 0.5 + 16.0
+    return Vector2(
+            clampf(Card.thrown_impact_pos(node).x, half, get_viewport_rect().size.x - half),
+            maxf(top - COIN_GAP_ABOVE_TARGET, COIN_MIN_ANCHOR_Y))
 
 
 func _reveal_coin(coin: TextureRect, heads: bool) -> void:

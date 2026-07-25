@@ -2,15 +2,15 @@ extends Card
 
 # Inverted scaling: the LESS Power you banked, the harder it hits. Gated on having
 # actually rolled this turn (roll_history non-empty) - otherwise playing it cold off a
-# fresh reset would be a free 15. An Evil crack (rolled 0) is the dream hit: history is
-# non-empty, X is 0, full 15 lands.
+# fresh reset would be a free 12. An Evil crack (rolled 0) is the dream hit: history is
+# non-empty, X is 0, full 12 lands.
 
 
 func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     if targets.is_empty() or not has_active_roll():
         Events.reset_charged_card.emit()
         return
-    var base := maxi(0, 15 - int(Global.roll_value))
+    var base := maxi(0, 12 - int(Global.roll_value))
     var damage_effect := DamageEffect.new()
     damage_effect.amount = modifiers.get_modified_value(base, Modifier.Type.DMG_DEALT)
     damage_effect.sound = sound
@@ -23,7 +23,7 @@ func get_dynamic_description(modifiers: ModifierHandler, target: Node = null) ->
     if is_inked():
         return "Deal ? damage"
     if not has_active_roll():
-        return "Deal 15 - X damage"
-    var base := maxi(0, 15 - int(Global.roll_value))
+        return "Deal 12 - X damage"
+    var base := maxi(0, 12 - int(Global.roll_value))
     var total := apply_target_modifier(modifiers.get_modified_value(base, Modifier.Type.DMG_DEALT), target)
-    return "Deal 15 - X damage (%d)" % total
+    return "Deal 12 - X damage (%d)" % total

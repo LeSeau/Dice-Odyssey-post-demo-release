@@ -13,7 +13,9 @@ func apply_effects(targets: Array[Node], _modifiers: ModifierHandler) -> void:
         return
     var target: Node = targets[0]
     var damage_effect := DamageEffect.new()
-    damage_effect.amount = int(target.stats.health) + int(target.stats.block) + 99
+    # Shows a flat 999 on the popup - "you deleted it", not a literal HP readout
+    # (Julien, 2026-07-25). Still floored at lethal in case anything ever has 900+ HP.
+    damage_effect.amount = maxi(999, int(target.stats.health) + int(target.stats.block) + 99)
     damage_effect.sound = sound
     damage_effect.execute(targets)
     Events.dice_roll_reset.emit()

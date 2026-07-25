@@ -15,6 +15,9 @@ func apply_effects(targets: Array[Node], _modifiers: ModifierHandler) -> void:
     if not targets.is_empty():
         var timer := targets[0].get_tree().create_timer(Global.DICE_THROW_FLIGHT_TIME, false)
         timer.timeout.connect(_on_windfall_landed.bind(value))
+    # Consumes your Power like a normal card (Julien, 2026-07-25) - the draw is the
+    # payoff, it is not a free rider on a banked chain.
+    Events.dice_roll_reset.emit()
     Events.reset_charged_card.emit()
 
 

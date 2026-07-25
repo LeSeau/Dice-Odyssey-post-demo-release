@@ -12,7 +12,7 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     var damage := modifiers.get_modified_value(Global.roll_value * 3, Modifier.Type.DMG_DEALT)
     var target: Node = targets[0]
     var tree := target.get_tree()
-    Events.coin_flip.emit(heads, Global.last_played_card_position)
+    Events.coin_flip.emit(heads, Global.last_played_card_position, target)
     var timer := tree.create_timer(Global.COIN_FLIP_TIME, false)
     timer.timeout.connect(_on_coin_resolved.bind(tree, target, heads, damage))
     Events.reset_charged_card.emit()

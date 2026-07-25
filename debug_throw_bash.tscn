@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://c7throwbash24"]
+
+[ext_resource type="Script" path="res://debug_throw_bash.gd" id="1_tbash"]
+
+[node name="DebugThrowBash" type="Node"]
+script = ExtResource("1_tbash")

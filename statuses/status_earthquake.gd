@@ -7,7 +7,9 @@ extends Status
 # START_OF_TURN apply below fires once, then StatusHandler's decrement removes the icon.
 # Replaying the card the same turn INTENSITY-stacks the damage into one bigger quake.
 
-const HIT_SOUND := preload("res://impact1.ogg")
+# The quake itself detonates (Julien, 2026-07-25) - the card's own play sound stays a
+# normal impact, this is the payout landing next turn.
+const HIT_SOUND := preload("res://detonationsound.mp3")
 
 
 func apply_status(target: Node) -> void:

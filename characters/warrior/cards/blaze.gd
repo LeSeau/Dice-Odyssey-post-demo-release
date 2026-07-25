@@ -3,9 +3,8 @@ extends Card
 const WEAK_STATUS = preload("res://statuses/weak.tres")
 
 func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void: 
-    print("Reinforce applied")
     Events.reset_charged_card.emit()
-    Global.roll_value+=5
+    Global.roll_value+=7
     Events.change_current_power.emit()
     var support_effect := SupportEffect.new()
     var status_effect := StatusEffect.new()

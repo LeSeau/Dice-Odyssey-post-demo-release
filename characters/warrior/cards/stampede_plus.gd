@@ -39,8 +39,8 @@ func _on_extra_hit(tree: SceneTree, target: Node, damage: int) -> void:
 func get_dynamic_description(modifiers: ModifierHandler, target: Node = null) -> String:
     var suffix := " (%d rolled)" % Global.dice_amount_rolled_this_turn
     if is_inked():
-        return "Deal ? damage. If you rolled 5+ Dice this turn, deal it three times" + suffix
+        return "Deal ? damage. If you rolled at least 5 Dice this turn, deal it three times" + suffix
     if not has_active_roll():
-        return "Deal X damage. If you rolled 5+ Dice this turn, deal it three times" + suffix
+        return "Deal X damage. If you rolled at least 5 Dice this turn, deal it three times" + suffix
     var total := apply_target_modifier(modifiers.get_modified_value(Global.roll_value, Modifier.Type.DMG_DEALT), target)
-    return ("Deal %d damage. If you rolled 5+ Dice this turn, deal it three times" % total) + suffix
+    return ("Deal %d damage. If you rolled at least 5 Dice this turn, deal it three times" % total) + suffix
