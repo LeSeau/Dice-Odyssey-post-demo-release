@@ -3,6 +3,13 @@ extends Status
 
 const MUSCLE_STATUS := preload("res://statuses/muscle.tres")
 
+# Oculus is now a long-lived scaler (44 HP), so it needs BIGGER turns to kill - which means
+# a 15 threshold would fire almost every turn even for careful play and delete the choice.
+# 18 keeps "go slow and safe vs fast and punished" an actual decision. This threshold is the
+# tuning dial for how greedy the player is allowed to be.
+const PARASITE_THRESHOLD := 18
+const PARASITE_STRENGTH := 2
+
 var target: Node
 var triggered_this_turn := false
 
@@ -21,10 +28,10 @@ func _on_dice_rolled(_dice_type: String, _roll_value: int) -> void:
         return
     if triggered_this_turn:
         return
-    if Global.power_generated_this_turn > 15:
+    if Global.power_generated_this_turn > PARASITE_THRESHOLD:
         triggered_this_turn = true
         var muscle := MUSCLE_STATUS.duplicate()
-        muscle.stacks = 3
+        muscle.stacks = PARASITE_STRENGTH
         var status_effect := StatusEffect.new()
         status_effect.status = muscle
         status_effect.execute([target])

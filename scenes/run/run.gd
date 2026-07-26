@@ -291,6 +291,7 @@ func _show_map() -> void:
         _show_dice_infusion()
         return
     if Global.tutorial_dice_shop_explanation_needed:
+        _align_dice_shop_explanation()
         dice_shop_explanation_box.show()
         Global.tutorial_dice_shop_explanation_needed = false
     SFXPlayer.play(Global.sfx_click)
@@ -651,6 +652,29 @@ func _on_show_reward():
 func _on_debug_battle_button_pressed() -> void:
     Global.debug_battle_entry = true
     _change_view(BATTLE_SCENE)
+
+# Slides the whole "visit the Dice Shop" tip so its arrow lands on the actual Dice Shop button
+# in the top bar - it was authored pointing at the DECK button, one slot too far right.
+#
+# Measured from the live nodes rather than re-authored as a fixed offset: the tip and the button
+# both live under the TopBar CanvasLayer, but the button's x comes from an HBoxContainer sort,
+# so any future change to the bar's contents would silently break a hardcoded position. The
+# PANEL moves, not the arrow - the arrow deliberately overhangs the panel's right edge, and
+# moving it alone would drag it back over the panel body.
+#
+# Uses the arrow's transform (not position + size/2): it's rotated with a top-left pivot, so
+# its visual centre is not where its rect says it is.
+func _align_dice_shop_explanation() -> void:
+    var arrow: Control = dice_shop_explanation_box.get_node_or_null("Arrow")
+    var button_rect := dice_shop.get_global_rect()
+    if not arrow or button_rect.size == Vector2.ZERO:
+        return
+    var arrow_rect: Rect2 = arrow.get_global_transform() * Rect2(Vector2.ZERO, arrow.size)
+    if arrow_rect.size == Vector2.ZERO:
+        return
+    # Idempotent: once aligned the delta is 0, so re-showing the tip can't drift it.
+    dice_shop_explanation_box.position.x += button_rect.get_center().x - arrow_rect.get_center().x
+
 
 func _on_dice_shop_pressed() -> void:
     SFXPlayer.play(sfx_click)

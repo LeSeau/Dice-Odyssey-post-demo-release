@@ -1,8 +1,7 @@
 extends Card
 
 
-
-func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
+func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     var active_dice = Global.dice_type
     var dice_amount_variable = active_dice + "_dice_current_amount"
     Global.set(dice_amount_variable, Global.get(dice_amount_variable) + 1)
@@ -12,16 +11,11 @@ func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
     var base_damage = Global.roll_value
     Events.reset_charged_card.emit()
     damage_effect.amount = modifiers.get_modified_value(base_damage, Modifier.Type.DMG_DEALT)
-    Events.dice_rolled.connect(_on_dice_rolled)
     damage_effect.sound = sound
     damage_effect.execute(targets)
 
     Events.dice_roll_reset.emit()
     Events.reset_charged_card.emit()
-func _on_dice_rolled():
-
-
-    print("adding dice to damage")
 
 func get_dynamic_description(modifiers: ModifierHandler, target: Node = null) -> String:
     if is_inked():

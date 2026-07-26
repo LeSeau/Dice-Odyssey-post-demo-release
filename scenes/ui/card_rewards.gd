@@ -79,9 +79,10 @@ func set_rewards(new_cards: Array[Card]) -> void:
         #bonus_explanation_box.visible = true
         #Global.tutorial_bonus_requirement_explanation_needed = false
 
-    if has_transcendent_card and bonus_explanation_box_2 and Global.tutorial_transcendent_explanation_needed:
-        bonus_explanation_box_2.visible = true
-        Global.tutorial_transcendent_explanation_needed = false
+    # Celestial ("transcendent") explanation REMOVED from the reward screen: the tutorial fight
+    # now teaches it directly on the Scout card in turn 3 ("its blue frame means Celestial: no
+    # Power, no Dice, free to play"), so repeating it here is the player being told the same
+    # thing twice. The panel node and its close handler are left in place, just never shown.
 
     # Same pattern as the two explanation boxes above, applied to Blessing cards - shown once,
     # the first time a Blessing shows up in a reward pick.

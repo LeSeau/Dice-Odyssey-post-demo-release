@@ -1,7 +1,7 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5di00000029"]
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://db7s235yy40oa"]
 
 [ext_resource type="Texture2D" uid="uid://5l42vbu3nvva" path="res://disintegration.png" id="1_f7qh4"]
-[ext_resource type="Script" path="res://characters/warrior/cards/disintegration_plus.gd" id="1_rqilr"]
+[ext_resource type="Script" path="res://characters/warrior/cards/disintegration.gd" id="1_rqilr"]
 [ext_resource type="AudioStream" uid="uid://bnoudyk1my2eh" path="res://impact1ok.mp3" id="2_whbe5"]
 
 [resource]
@@ -10,12 +10,13 @@ id = "card_disintegration_plus"
 name = "Disintegrate+"
 type = 0
 target = 1
-description = "Deal X damage. Charge 1"
+description = "Deal X damage. Charge 2"
 rarity = 0
+rarity_tier = 0
 red_only = false
 can_play_without_dice = false
-requirement = 0
-requirement_number = 0
+requirement = 1
+requirement_number = 8
 exhausts = false
 bonus_requirement = 0
 bonus_requirement_number = 0

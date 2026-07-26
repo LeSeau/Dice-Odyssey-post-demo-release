@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="EnemyStats" load_steps=4 format=3 uid="uid://lurkerenemytier2"]
+[gd_resource type="Resource" script_class="EnemyStats" load_steps=4 format=3 uid="uid://3wnqvvxj00d2"]
 
 [ext_resource type="PackedScene" uid="uid://bpca6v2u1mdu3" path="res://enemies/lurker/lurker_enemy_ai.tscn" id="1_7kka6"]
 [ext_resource type="Texture2D" uid="uid://cfggv0ieqkfpy" path="res://lurker.png" id="2_588mg"]
@@ -8,5 +8,6 @@
 script = ExtResource("3_4smsh")
 ai = ExtResource("1_7kka6")
 enemy_name = "Lurker"
-max_health = 47
+content_center_x = -1.0
+max_health = 22
 art = ExtResource("2_588mg")

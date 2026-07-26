@@ -8,19 +8,19 @@
 [node name="Tier0Satyrs2Octopus1" type="Node2D"]
 
 [node name="S Octopus" parent="." instance=ExtResource("1_djehr")]
-position = Vector2(745, 451)
+position = Vector2(741, 451)
 stats = ExtResource("3_0hod2")
 width = 134
 height = 134
 
 [node name="B Satyr" parent="." instance=ExtResource("1_djehr")]
-position = Vector2(909, 441)
+position = Vector2(891, 441)
 stats = ExtResource("3_84u55")
 width = 160
 height = 160
 
 [node name="S Satyr" parent="." instance=ExtResource("1_djehr")]
-position = Vector2(1058, 454)
+position = Vector2(1034, 454)
 stats = ExtResource("2_kvyiw")
 width = 133
 height = 133

@@ -86,6 +86,9 @@ func _ready() -> void:
     # the row's width, which changes as statuses are gained and lost. Setting position
     # doesn't re-trigger a sort, so this can't loop.
     status_handler.sort_children.connect(_update_status_row_x)
+    # StatsUI is a Container too: its HealthBar only reaches its final x once the container
+    # has sorted, and the status row is aligned to that bar.
+    stats_ui.sort_children.connect(_update_status_row_x)
 
     # Per-enemy phase/speed jitter so multiple enemies on screen never breathe in
     # lockstep. Replaces the old AnimationPlayer phase-randomization trick - the idle
@@ -319,7 +322,16 @@ func _update_status_row_x() -> void:
     if status_handler == null:
         return
     var row_width: float = status_handler.size.x * status_handler.scale.x
-    status_handler.position.x = _status_row_left_x
+    # Align to the VISIBLE red bar, not to StatsUI. StatsUI is a 206px HBoxContainer that
+    # centres a 175px HealthBar (plus a Block icon at -25 separation) inside itself, so its
+    # left edge sits ~11px LEFT of the bar the player actually sees - which is exactly the
+    # "status starts too far left" everyone kept seeing. HealthBar's global position already
+    # accounts for the bar's scale, so to_local() gives the right enemy-space x directly.
+    var health_bar := stats_ui.get_node_or_null("Health/HealthBar") as Control
+    if health_bar != null and health_bar.size.x > 0.0:
+        status_handler.position.x = to_local(health_bar.global_position).x
+    else:
+        status_handler.position.x = _status_row_left_x
     if scale.x == 0 or scale.y == 0:
         return
     var row_left: float = global_position.x + status_handler.position.x * scale.x

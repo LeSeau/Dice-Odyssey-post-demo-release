@@ -146,9 +146,16 @@ func _render(scene_path: String, bg_key: String) -> void:
 	for child in fight.get_children():
 		if child is Enemy:
 			enemies.append(child)
+	var inject := OS.get_environment("BG_AUDIT_STATUSES")
 	for enemy in enemies:
 		enemy.update_action()
 		enemy._on_mouse_entered()  # force the hover name label visible/positioned for verification
+		if inject != "":
+			# BG_AUDIT_STATUSES=weak,exposed - verify the status row's placement/legibility
+			for id in inject.split(","):
+				var path := "res://statuses/%s.tres" % id.strip_edges()
+				if ResourceLoader.exists(path):
+					enemy.status_handler.add_status(load(path).duplicate())
 
 	for i in 6:
 		await get_tree().process_frame

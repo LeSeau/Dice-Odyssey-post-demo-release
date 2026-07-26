@@ -33,6 +33,7 @@ const TUTORIAL_HAND_BY_TURN := {
     ],
     2: [
         "res://characters/warrior/cards/card_scout3_no_exhaust.tres",
+        "res://characters/warrior/cards/low_blow.tres",
         "res://characters/warrior/cards/warrior_axe_attack2.tres",
     ],
 }

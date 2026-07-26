@@ -8,7 +8,7 @@
 [node name="Satyr1" parent="." instance=ExtResource("1_16r5g")]
 width = 178
 height = 178
-position = Vector2(991, 432)
+position = Vector2(969, 432)
 stats = ExtResource("2_8qpbs")
 
 [node name="Satyr2" parent="." instance=ExtResource("1_16r5g")]

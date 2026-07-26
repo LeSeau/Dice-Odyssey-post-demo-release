@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://xi788rq6u78s" path="res://flurry.png" id="1_4koo4"]
 [ext_resource type="Script" path="res://characters/warrior/cards/flurry.gd" id="2_shfxm"]
 [ext_resource type="AudioStream" uid="uid://b2l4kmoq5ivyx" path="res://whipsound.mp3" id="3_gsppk"]
-[ext_resource type="Resource" path="res://characters/warrior/cards/card_flurry_plus.tres" id="4_plus"]
+[ext_resource type="Resource" uid="uid://dx47ooejlbssh" path="res://characters/warrior/cards/card_flurry_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_shfxm")
@@ -11,7 +11,7 @@ id = "card_flurry"
 name = "Flurry"
 type = 0
 target = 1
-description = "Deal X2 damage"
+description = "Deal X damage twice"
 rarity = 0
 rarity_tier = 0
 red_only = true

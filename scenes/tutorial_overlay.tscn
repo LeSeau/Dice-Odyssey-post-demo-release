@@ -1,8 +1,10 @@
-[gd_scene load_steps=6 format=3 uid="uid://bxp688xbx3iji"]
+[gd_scene load_steps=22 format=3 uid="uid://bxp688xbx3iji"]
 
 [ext_resource type="Script" path="res://scenes/tutorial_overlay.gd" id="1_ov"]
 [ext_resource type="FontFile" uid="uid://dujsng7qdioan" path="res://assets/static/Roboto_Condensed-SemiBold.ttf" id="2_body"]
 [ext_resource type="FontFile" uid="uid://t1kjnid0fq8h" path="res://assets/static/Roboto-Black.ttf" id="3_bold"]
+[ext_resource type="FontFile" uid="uid://b1es4i7nr43mv" path="res://fonts/CinzelDecorative-Bold.otf" id="4_deco"]
+[ext_resource type="FontFile" uid="uid://b2y60c4274gkj" path="res://fonts/Cinzel-Bold.otf" id="5_cinzel"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pulse"]
 bg_color = Color(0, 0, 0, 0)
@@ -30,6 +32,143 @@ corner_radius_bottom_left = 10
 shadow_color = Color(0, 0, 0, 0.45)
 shadow_size = 8
 
+[sub_resource type="Gradient" id="Gradient_wglow"]
+offsets = PackedFloat32Array(0, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_wglow"]
+gradient = SubResource("Gradient_wglow")
+width = 160
+height = 160
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_add"]
+blend_mode = 1
+
+[sub_resource type="Gradient" id="Gradient_wrule"]
+offsets = PackedFloat32Array(0, 1)
+colors = PackedColorArray(1, 1, 1, 0, 1, 1, 1, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_wrule"]
+gradient = SubResource("Gradient_wrule")
+width = 64
+height = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_welcome"]
+bg_color = Color(0.176471, 0.101961, 0.0784314, 0.972549)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.898039, 0.717647, 0.290196, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+shadow_color = Color(0, 0, 0, 0.55)
+shadow_size = 18
+shadow_offset = Vector2(0, 6)
+
+[sub_resource type="LabelSettings" id="LabelSettings_wtitle"]
+font = ExtResource("4_deco")
+font_size = 34
+font_color = Color(0.976471, 0.827451, 0.415686, 1)
+outline_size = 6
+outline_color = Color(0.117647, 0.0588235, 0.0313725, 1)
+shadow_size = 4
+shadow_color = Color(0, 0, 0, 0.55)
+shadow_offset = Vector2(2, 3)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wbtn_normal"]
+bg_color = Color(0.372549, 0.231373, 0.0862745, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 5
+border_color = Color(0.898039, 0.717647, 0.290196, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0, 0, 0.45)
+shadow_size = 4
+shadow_offset = Vector2(0, 3)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wbtn_hover"]
+bg_color = Color(0.435294, 0.278431, 0.109804, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 5
+border_color = Color(1, 0.858824, 0.443137, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+expand_margin_left = 2.0
+expand_margin_top = 2.0
+expand_margin_right = 2.0
+expand_margin_bottom = 2.0
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 6
+shadow_offset = Vector2(0, 3)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wbtn_pressed"]
+bg_color = Color(0.223529, 0.137255, 0.054902, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.62, 0.470588, 0.176471, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_wbtn_focus"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cont_normal"]
+bg_color = Color(0.109804, 0.0941176, 0.164706, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 3
+border_color = Color(0.788235, 0.635294, 0.152941, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cont_hover"]
+bg_color = Color(0.192157, 0.164706, 0.262745, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 3
+border_color = Color(1, 0.858824, 0.443137, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+expand_margin_left = 2.0
+expand_margin_top = 2.0
+expand_margin_right = 2.0
+expand_margin_bottom = 2.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cont_pressed"]
+bg_color = Color(0.0470588, 0.0392157, 0.0745098, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.588235, 0.470588, 0.156863, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
 [node name="TutorialOverlay" type="CanvasLayer"]
 layer = 20
 script = ExtResource("1_ov")
@@ -47,6 +186,96 @@ color = Color(0, 0, 0, 0)
 
 [node name="RightMask" type="ColorRect" parent="."]
 color = Color(0, 0, 0, 0)
+
+[node name="WelcomeRoot" type="Control" parent="."]
+offset_right = 1280.0
+offset_bottom = 720.0
+mouse_filter = 2
+
+[node name="Glow" type="TextureRect" parent="WelcomeRoot"]
+material = SubResource("CanvasItemMaterial_add")
+layout_mode = 0
+offset_right = 100.0
+offset_bottom = 100.0
+mouse_filter = 2
+texture = SubResource("GradientTexture2D_wglow")
+expand_mode = 1
+
+[node name="Panel" type="Panel" parent="WelcomeRoot"]
+layout_mode = 0
+offset_right = 664.0
+offset_bottom = 300.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_welcome")
+
+[node name="Title" type="Label" parent="WelcomeRoot/Panel"]
+layout_mode = 0
+offset_right = 592.0
+offset_bottom = 46.0
+label_settings = SubResource("LabelSettings_wtitle")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Divider" type="Control" parent="WelcomeRoot/Panel"]
+layout_mode = 0
+offset_right = 592.0
+offset_bottom = 14.0
+mouse_filter = 2
+
+[node name="RuleLeft" type="TextureRect" parent="WelcomeRoot/Panel/Divider"]
+modulate = Color(0.898039, 0.717647, 0.290196, 0.75)
+layout_mode = 0
+offset_right = 200.0
+offset_bottom = 2.0
+mouse_filter = 2
+texture = SubResource("GradientTexture2D_wrule")
+expand_mode = 1
+
+[node name="RuleRight" type="TextureRect" parent="WelcomeRoot/Panel/Divider"]
+modulate = Color(0.898039, 0.717647, 0.290196, 0.75)
+layout_mode = 0
+offset_right = 200.0
+offset_bottom = 2.0
+mouse_filter = 2
+texture = SubResource("GradientTexture2D_wrule")
+expand_mode = 1
+flip_h = true
+
+[node name="Diamond" type="ColorRect" parent="WelcomeRoot/Panel/Divider"]
+layout_mode = 0
+offset_right = 11.0
+offset_bottom = 11.0
+mouse_filter = 2
+color = Color(0.898039, 0.717647, 0.290196, 1)
+
+[node name="Body" type="RichTextLabel" parent="WelcomeRoot/Panel"]
+layout_mode = 0
+offset_right = 592.0
+offset_bottom = 100.0
+mouse_filter = 2
+theme_override_colors/default_color = Color(0.964706, 0.913725, 0.827451, 1)
+theme_override_fonts/normal_font = ExtResource("2_body")
+theme_override_fonts/bold_font = ExtResource("3_bold")
+theme_override_font_sizes/normal_font_size = 18
+theme_override_font_sizes/bold_font_size = 19
+bbcode_enabled = true
+autowrap_mode = 3
+
+[node name="ContinueButton" type="Button" parent="WelcomeRoot/Panel"]
+layout_mode = 0
+offset_right = 196.0
+offset_bottom = 46.0
+theme_override_colors/font_color = Color(0.988235, 0.933333, 0.831373, 1)
+theme_override_colors/font_hover_color = Color(1, 0.976471, 0.905882, 1)
+theme_override_colors/font_pressed_color = Color(0.87451, 0.796078, 0.65098, 1)
+theme_override_constants/outline_size = 4
+theme_override_colors/font_outline_color = Color(0.117647, 0.0588235, 0.0313725, 0.85)
+theme_override_fonts/font = ExtResource("5_cinzel")
+theme_override_font_sizes/font_size = 19
+theme_override_styles/focus = SubResource("StyleBoxEmpty_wbtn_focus")
+theme_override_styles/hover = SubResource("StyleBoxFlat_wbtn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_wbtn_pressed")
+theme_override_styles/normal = SubResource("StyleBoxFlat_wbtn_normal")
+text = "Continue"
 
 [node name="PulseFrame" type="Panel" parent="."]
 offset_right = 40.0
@@ -86,13 +315,23 @@ offset_left = 470.0
 offset_top = 112.0
 offset_right = 582.0
 offset_bottom = 146.0
-theme_override_font_sizes/font_size = 15
+theme_override_colors/font_color = Color(0.964706, 0.913725, 0.827451, 1)
+theme_override_colors/font_hover_color = Color(1, 0.972549, 0.905882, 1)
+theme_override_colors/font_pressed_color = Color(0.815686, 0.760784, 0.65098, 1)
+theme_override_colors/font_outline_color = Color(0.0470588, 0.0392157, 0.0745098, 0.85)
+theme_override_constants/outline_size = 3
+theme_override_fonts/font = ExtResource("5_cinzel")
+theme_override_font_sizes/font_size = 16
+theme_override_styles/focus = SubResource("StyleBoxEmpty_wbtn_focus")
+theme_override_styles/hover = SubResource("StyleBoxFlat_cont_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_cont_pressed")
+theme_override_styles/normal = SubResource("StyleBoxFlat_cont_normal")
 text = "Continue"
 
 [node name="SkipButton" type="Button" parent="."]
 offset_left = 1040.0
-offset_top = 120.0
+offset_top = 132.0
 offset_right = 1262.0
-offset_bottom = 154.0
+offset_bottom = 166.0
 theme_override_font_sizes/font_size = 14
 text = "Skip tutorial"

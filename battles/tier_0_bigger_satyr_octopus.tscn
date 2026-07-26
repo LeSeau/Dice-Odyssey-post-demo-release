@@ -9,11 +9,11 @@
 [node name="BiggerSatyr" parent="." instance=ExtResource("1_np33x")]
 width = 178
 height = 178
-position = Vector2(1010, 432)
+position = Vector2(988, 432)
 stats = ExtResource("2_82fsh")
 
 [node name="BiggerOctopus" parent="." instance=ExtResource("1_np33x")]
-position = Vector2(806, 429)
+position = Vector2(801, 429)
 stats = ExtResource("3_x0pwp")
 width = 178
 height = 178

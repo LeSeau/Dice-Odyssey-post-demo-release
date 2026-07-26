@@ -7,21 +7,21 @@
 [node name="Tier1CrabSatyr" type="Node2D"]
 
 [node name="Satyr1" parent="." instance=ExtResource("1_csfcg")]
-position = Vector2(1080, 446)
+position = Vector2(1080, 442)
 stats = ExtResource("2_8jyrm")
-width = 109
-height = 109
+width = 117
+height = 117
 sprite_y_offset = 20
 
 [node name="Satyr2" parent="." instance=ExtResource("1_csfcg")]
-position = Vector2(925, 446)
+position = Vector2(936, 442)
 stats = ExtResource("2_8jyrm")
-width = 109
-height = 109
+width = 117
+height = 117
 sprite_y_offset = 20
 
 [node name="Crab" parent="." instance=ExtResource("1_csfcg")]
-width = 191
-height = 191
-position = Vector2(730, 434)
+width = 205
+height = 205
+position = Vector2(745, 434)
 stats = ExtResource("3_qdu4l")

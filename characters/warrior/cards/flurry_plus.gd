@@ -1,18 +1,45 @@
 extends Card
 
-func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
+# Upgraded Flurry: three staggered hits instead of two - same total as the old "X3", split into
+# three impacts. See flurry.gd for why the split exists and how the retarget-on-kill works.
+
+const HIT_COUNT := 3
+const HIT_INTERVAL := 0.2
+
+
+func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     Events.reset_charged_card.emit()
-    var damage_effect := DamageEffect.new()
-    damage_effect.sound = sound
-    var base_damage = Global.roll_value * 3
-    damage_effect.amount = modifiers.get_modified_value(base_damage, Modifier.Type.DMG_DEALT)
-    damage_effect.execute(targets)
+    if not targets.is_empty():
+        var damage := modifiers.get_modified_value(Global.roll_value, Modifier.Type.DMG_DEALT)
+        var first_hit := DamageEffect.new()
+        first_hit.amount = damage
+        first_hit.sound = sound
+        first_hit.execute(targets)
+        var target: Node = targets[0]
+        var tree := target.get_tree()
+        for i in range(1, HIT_COUNT):
+            var timer := tree.create_timer(HIT_INTERVAL * i, false)
+            timer.timeout.connect(_on_follow_up_hit.bind(tree, target, damage))
     Events.dice_roll_reset.emit()
+
+
+func _on_follow_up_hit(tree: SceneTree, target: Node, damage: int) -> void:
+    var final_target := target
+    if final_target == null or not is_instance_valid(final_target):
+        var alive := tree.get_nodes_in_group("enemies")
+        if alive.is_empty():
+            return
+        final_target = alive[randi() % alive.size()]
+    var hit := DamageEffect.new()
+    hit.amount = damage
+    hit.sound = sound
+    hit.execute([final_target])
+
 
 func get_dynamic_description(modifiers: ModifierHandler, target: Node = null) -> String:
     if is_inked():
-        return "Deal ? damage"
+        return "Deal ? damage three times"
     if not has_active_roll():
-        return "Deal X3 damage"
-    var total := apply_target_modifier(modifiers.get_modified_value(Global.roll_value * 3, Modifier.Type.DMG_DEALT), target)
-    return "Deal %d damage" % total
+        return "Deal X damage three times"
+    var total := apply_target_modifier(modifiers.get_modified_value(Global.roll_value, Modifier.Type.DMG_DEALT), target)
+    return "Deal %d damage three times" % total

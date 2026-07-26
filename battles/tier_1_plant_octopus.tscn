@@ -7,13 +7,13 @@
 [node name="Tier1PlantOctopus" type="Node2D"]
 
 [node name="Plant" parent="." instance=ExtResource("1_noo65")]
-position = Vector2(771, 415)
+position = Vector2(783, 415)
 stats = ExtResource("3_jikbk")
 width = 201
 height = 201
 
 [node name="Octopus" parent="." instance=ExtResource("1_noo65")]
-position = Vector2(1021, 432)
+position = Vector2(1006, 432)
 stats = ExtResource("2_rc4xv")
 width = 178
 height = 178

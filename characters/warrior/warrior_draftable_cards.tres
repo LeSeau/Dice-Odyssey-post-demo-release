@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="CardPile" load_steps=88 format=3 uid="uid://c3m88jaaggugt"]
+[gd_resource type="Resource" script_class="CardPile" load_steps=84 format=3 uid="uid://c3m88jaaggugt"]
 
 [ext_resource type="Script" path="res://custom_resources/card.gd" id="1_obmkl"]
 [ext_resource type="Script" path="res://custom_resources/card_pile.gd" id="2_4512j"]
@@ -10,7 +10,6 @@
 [ext_resource type="Resource" uid="uid://bbn0gc6vjjja1" path="res://characters/warrior/cards/card_rupture.tres" id="14_ofh5y"]
 [ext_resource type="Resource" uid="uid://ccfkop0vivwl4" path="res://characters/warrior/cards/card_calculations.tres" id="23_5a3bv"]
 [ext_resource type="Resource" uid="uid://bn6mpgd3y8vg6" path="res://characters/warrior/cards/card_eyepoke.tres" id="27_0twfs"]
-[ext_resource type="Resource" uid="uid://dkr0p76atqwcr" path="res://characters/warrior/cards/card_mindfulness.tres" id="29_ujsaw"]
 [ext_resource type="Resource" uid="uid://c5kbrmax6t4uh" path="res://characters/warrior/cards/card_aegis.tres" id="30_cvrjf"]
 [ext_resource type="Resource" uid="uid://bylvtnm8kynej" path="res://characters/warrior/cards/card_dynamite.tres" id="31_43ejh"]
 [ext_resource type="Resource" uid="uid://bp0h3rgys63eo" path="res://characters/warrior/cards/card_shattering.tres" id="32_gcu00"]
@@ -19,7 +18,6 @@
 [ext_resource type="Resource" uid="uid://c5cbkfhrtshlw" path="res://characters/warrior/cards/card_duo.tres" id="33_q2lhw"]
 [ext_resource type="Resource" uid="uid://ct2bffy1i1nxt" path="res://characters/warrior/cards/card_refinement.tres" id="34_2uvkg"]
 [ext_resource type="Resource" uid="uid://i3v5wr0xm50r" path="res://characters/warrior/cards/card_overdrive.tres" id="34_hiayx"]
-[ext_resource type="Resource" uid="uid://ovctquhr0q5t" path="res://characters/warrior/cards/card_sharpening.tres" id="35_ri4f8"]
 [ext_resource type="Resource" uid="uid://cs65qbknnd7jb" path="res://characters/warrior/cards/card_eruption.tres" id="36_0hk2i"]
 [ext_resource type="Resource" uid="uid://bx4ddyc6uumk5" path="res://characters/warrior/cards/card_emanation.tres" id="39_2l1ol"]
 [ext_resource type="Resource" uid="uid://bby5jcamoo1ge" path="res://characters/warrior/cards/card_catapult.tres" id="41_u6vif"]
@@ -36,7 +34,6 @@
 [ext_resource type="Resource" uid="uid://ddxtqhwi5q22e" path="res://characters/warrior/cards/card_finesse.tres" id="56_ies6w"]
 [ext_resource type="Resource" uid="uid://bwdygyqfukw0e" path="res://characters/warrior/cards/card_spark.tres" id="56_l76qm"]
 [ext_resource type="Resource" uid="uid://bd8tgv3vr1n00" path="res://characters/warrior/cards/card_tsunami.tres" id="57_8xp1d"]
-[ext_resource type="Resource" uid="uid://cvhv4307yh4j2" path="res://characters/warrior/cards/card_preparation.tres" id="58_04uoa"]
 [ext_resource type="Resource" uid="uid://cpqu8iv8mx7g" path="res://characters/warrior/cards/card_repel.tres" id="58_foatx"]
 [ext_resource type="Resource" uid="uid://c1s1i3ncicy1r" path="res://characters/warrior/cards/card_experiment.tres" id="59_e27jo"]
 [ext_resource type="Resource" uid="uid://dg4jdybidbhn7" path="res://characters/warrior/cards/card_occultism.tres" id="59_yt3os"]
@@ -56,8 +53,6 @@
 [ext_resource type="Resource" uid="uid://roxh8ucrv183" path="res://characters/warrior/cards/card_critical_edge.tres" id="77_critedge"]
 [ext_resource type="Resource" uid="uid://ck4j7qnc6knxi" path="res://characters/warrior/cards/card_crescendo.tres" id="81_crescendo"]
 [ext_resource type="Resource" uid="uid://b7cynlg33a63b" path="res://characters/warrior/cards/card_all_in.tres" id="82_allin"]
-[ext_resource type="Resource" uid="uid://bqhm5kjrbk31k" path="res://characters/warrior/cards/card_adrenaline.tres" id="83_adrenaline"]
-[ext_resource type="Resource" uid="uid://c72lfiuwv0vl8" path="res://characters/warrior/cards/card_from_nothing.tres" id="84_fromnothing"]
 [ext_resource type="Resource" uid="uid://1xsnchhnvvg5" path="res://characters/warrior/cards/card_foresight.tres" id="86_foresight"]
 [ext_resource type="Resource" uid="uid://bf0l1hcauqc3t" path="res://characters/warrior/cards/card_perpetual_motion.tres" id="87_perpmotion"]
 [ext_resource type="Resource" uid="uid://bptkxalg2o05n" path="res://characters/warrior/cards/card_bulwark.tres" id="90_bulwark"]
@@ -87,7 +82,8 @@
 [ext_resource type="Resource" uid="uid://bw1ndf4llg1nt" path="res://characters/warrior/cards/card_windfall.tres" id="127_windfall"]
 [ext_resource type="Resource" uid="uid://cr4mp4rtbl0ck" path="res://characters/warrior/cards/card_rampart.tres" id="128_rampart"]
 [ext_resource type="Resource" uid="uid://ck1ckst4rt0dd" path="res://characters/warrior/cards/card_kickstart.tres" id="129_kickstart"]
+[ext_resource type="Resource" path="res://characters/warrior/cards/card_corrode.tres" id="130_corrode"]
 
 [resource]
 script = ExtResource("2_4512j")
-cards = Array[ExtResource("1_obmkl")]([ExtResource("2_qwnkf"), ExtResource("13_y4oyt"), ExtResource("8_igqnj"), ExtResource("10_iysnt"), ExtResource("11_itaoj"), ExtResource("14_ofh5y"), ExtResource("31_43ejh"), ExtResource("32_twfvp"), ExtResource("23_5a3bv"), ExtResource("27_0twfs"), ExtResource("29_ujsaw"), ExtResource("30_cvrjf"), ExtResource("32_gcu00"), ExtResource("34_hiayx"), ExtResource("35_ri4f8"), ExtResource("33_q2lhw"), ExtResource("34_2uvkg"), ExtResource("33_hur65"), ExtResource("36_0hk2i"), ExtResource("39_2l1ol"), ExtResource("41_u6vif"), ExtResource("42_47e1f"), ExtResource("45_4w8c5"), ExtResource("47_g6813"), ExtResource("49_xipmq"), ExtResource("51_32oxr"), ExtResource("52_u51vt"), ExtResource("56_ies6w"), ExtResource("57_8xp1d"), ExtResource("58_04uoa"), ExtResource("59_e27jo"), ExtResource("47_yyn2e"), ExtResource("49_fl1rx"), ExtResource("52_af0s5"), ExtResource("53_41avl"), ExtResource("56_l76qm"), ExtResource("58_foatx"), ExtResource("59_yt3os"), ExtResource("60_r7ysd"), ExtResource("61_fpn1l"), ExtResource("62_y53d8"), ExtResource("63_86iu0"), ExtResource("64_0aixb"), ExtResource("65_uc3hv"), ExtResource("66_20sv5"), ExtResource("67_8hjf5"), ExtResource("68_pskju"), ExtResource("70_cogwork"), ExtResource("72_gambit"), ExtResource("75_steadyhand"), ExtResource("76_grip"), ExtResource("77_critedge"), ExtResource("81_crescendo"), ExtResource("82_allin"), ExtResource("83_adrenaline"), ExtResource("84_fromnothing"), ExtResource("86_foresight"), ExtResource("87_perpmotion"), ExtResource("90_bulwark"), ExtResource("93_rigged"), ExtResource("96_transmute"), ExtResource("97_momentum"), ExtResource("98_secondwind"), ExtResource("101_tidal"), ExtResource("102_jugg"), ExtResource("103_dom"), ExtResource("110_meteor"), ExtResource("112_cursedtoss"), ExtResource("113_pixievolley"), ExtResource("114_avalanche"), ExtResource("115_dblnothing"), ExtResource("116_mirrorblow"), ExtResource("117_lowroller"), ExtResource("118_blackjack"), ExtResource("119_earthquake"), ExtResource("120_stampede"), ExtResource("121_coiledspring"), ExtResource("122_warritual"), ExtResource("123_compound"), ExtResource("124_overclock"), ExtResource("125_grandscheme"), ExtResource("126_dicelordgift"), ExtResource("127_windfall"), ExtResource("128_rampart"), ExtResource("129_kickstart")])
+cards = Array[ExtResource("1_obmkl")]([ExtResource("2_qwnkf"), ExtResource("13_y4oyt"), ExtResource("8_igqnj"), ExtResource("10_iysnt"), ExtResource("11_itaoj"), ExtResource("14_ofh5y"), ExtResource("31_43ejh"), ExtResource("32_twfvp"), ExtResource("23_5a3bv"), ExtResource("27_0twfs"), ExtResource("30_cvrjf"), ExtResource("32_gcu00"), ExtResource("34_hiayx"), ExtResource("33_q2lhw"), ExtResource("34_2uvkg"), ExtResource("33_hur65"), ExtResource("36_0hk2i"), ExtResource("39_2l1ol"), ExtResource("41_u6vif"), ExtResource("42_47e1f"), ExtResource("45_4w8c5"), ExtResource("47_g6813"), ExtResource("49_xipmq"), ExtResource("51_32oxr"), ExtResource("52_u51vt"), ExtResource("56_ies6w"), ExtResource("57_8xp1d"), ExtResource("59_e27jo"), ExtResource("47_yyn2e"), ExtResource("49_fl1rx"), ExtResource("52_af0s5"), ExtResource("53_41avl"), ExtResource("56_l76qm"), ExtResource("58_foatx"), ExtResource("59_yt3os"), ExtResource("60_r7ysd"), ExtResource("61_fpn1l"), ExtResource("62_y53d8"), ExtResource("63_86iu0"), ExtResource("64_0aixb"), ExtResource("65_uc3hv"), ExtResource("66_20sv5"), ExtResource("67_8hjf5"), ExtResource("68_pskju"), ExtResource("70_cogwork"), ExtResource("72_gambit"), ExtResource("75_steadyhand"), ExtResource("76_grip"), ExtResource("77_critedge"), ExtResource("81_crescendo"), ExtResource("82_allin"), ExtResource("86_foresight"), ExtResource("87_perpmotion"), ExtResource("90_bulwark"), ExtResource("93_rigged"), ExtResource("96_transmute"), ExtResource("97_momentum"), ExtResource("98_secondwind"), ExtResource("101_tidal"), ExtResource("102_jugg"), ExtResource("103_dom"), ExtResource("110_meteor"), ExtResource("112_cursedtoss"), ExtResource("113_pixievolley"), ExtResource("114_avalanche"), ExtResource("115_dblnothing"), ExtResource("116_mirrorblow"), ExtResource("117_lowroller"), ExtResource("118_blackjack"), ExtResource("119_earthquake"), ExtResource("120_stampede"), ExtResource("121_coiledspring"), ExtResource("122_warritual"), ExtResource("123_compound"), ExtResource("124_overclock"), ExtResource("125_grandscheme"), ExtResource("126_dicelordgift"), ExtResource("127_windfall"), ExtResource("128_rampart"), ExtResource("129_kickstart"), ExtResource("130_corrode")])

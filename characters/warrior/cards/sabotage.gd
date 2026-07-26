@@ -7,9 +7,8 @@ var base_damage := 4
 var exposed_duration := 2
 var weak_duration := 2
 
-func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
+func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     if Global.roll_value <= 2:
-        Events.dice_rolled.connect(_on_dice_rolled)
 
         var status_effect := StatusEffect.new()
         var exposed := EXPOSED_STATUS.duplicate()
@@ -26,5 +25,3 @@ func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
             
         Events.dice_roll_reset.emit()
         Events.reset_charged_card.emit()
-func _on_dice_rolled():
-    print("adding dice to damage")

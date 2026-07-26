@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="EnemyStats" load_steps=4 format=3 uid="uid://oculustier1aa44"]
+
+[ext_resource type="PackedScene" uid="uid://cfq8k1iwvjxkf" path="res://enemies/oculus/oculus_enemy_ai.tscn" id="1_aw66x"]
+[ext_resource type="Texture2D" uid="uid://dvs1obil3estx" path="res://oculus.png" id="2_tu8sy"]
+[ext_resource type="Script" path="res://custom_resources/enemy_stats.gd" id="3_1kvni"]
+
+[resource]
+script = ExtResource("3_1kvni")
+ai = ExtResource("1_aw66x")
+enemy_name = "Oculus"
+content_center_x = -1.0
+max_health = 44
+art = ExtResource("2_tu8sy")

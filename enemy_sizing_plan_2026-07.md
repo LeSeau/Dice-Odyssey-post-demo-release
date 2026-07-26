@@ -675,3 +675,39 @@ Three of these five were things the geometry model already contained the numbers
 (bar width > body width; the shared scene; the 9px margin). **Validate every constraint the
 model knows about, not just the one currently being changed** — and when feedback is
 ambiguous (rev-3's "starts too much on the left"), ask rather than guess the opposite.
+
+---
+
+## 13. REVISION 5 (2026-07-24) — status row, for real this time
+
+**Root cause of "status still starts too far left", finally.** I had been aligning the row
+to `StatsUI`'s left edge. But `StatsUI` is a **206px HBoxContainer** that *centres* a
+**175px `HealthBar`** inside itself (plus a Block icon at −25 separation) — so the container's
+left edge sits **~11-28px LEFT of the red bar the player actually sees**. Every "dx = +0"
+I reported was true and irrelevant: it measured against the wrong node.
+
+Now aligned to `Health/HealthBar`'s own global position (which already accounts for the
+bar's scale), verified `dx_vs_bar = +0.0` while `containerL` is 16-28px further left:
+
+| enemy | container L | visible bar L | status L |
+|---|---|---|---|
+| Lurker | 909 | 937 | **937** |
+| Satyr ×3 | 797 / 958 / 1106 | 813 / 974 / 1122 | **813 / 974 / 1122** |
+| Medusa | 857 | 885 | **885** |
+
+`stats_ui.sort_children` is now also connected, since the HealthBar only reaches its final
+x once its container has sorted.
+
+**Status count legibility.** The label had **no `font` at all**, so it fell back to the
+project theme's CinzelDecorative — a decorative display face whose digits read oddly at
+15px ("the 1 reads a bit odd"). Now uses `fonts/luckiest_guy_numbers.tres`, the established
+"number sitting next to an icon" font (top bar, shop prices, scoreboard), at 16px with a
+4px black outline. The label also sat in a box centred a full icon-width right of the icon
+(the "big space"); pulled in to hug the icon's bottom-right corner while still overhanging
+onto the background — that overhang is what makes it readable and must not be removed.
+
+`debug_bg_audit.gd` gained `BG_AUDIT_STATUSES=weak,exposed` so the status row can actually
+be verified in a render instead of only numerically.
+
+**Noticed, not fixed (pre-existing):** the hover name label sits at bar-bottom + 4 and the
+status row at bar-bottom − 8, so they overlap while hovering an enemy that has statuses.

@@ -1,13 +1,18 @@
 extends EnemyAction
 
-@export var damage := 10
+@export var damage := 6
 @onready var modifier_handler: ModifierHandler = $"../ModifierHandler"
 
 
-var base_damage = 10
+var base_damage = 6
 
 func is_performable() -> bool:
-    return Global.fight_turn == 0
+    # The Lurker's threat is Flux (it shuts off Power accumulation), not its damage, so it
+    # simply attacks every turn for a flat amount and dies fast. This also fixes the old
+    # dead-end: the previous chain (opener needs fight_turn==0 -> block -> second attack)
+    # had NO performable action from turn 4 on, so the picker fell through to get_child(0)
+    # and silently replayed the opener forever.
+    return true
 
 func perform_action() -> void:
     if not enemy or not target:

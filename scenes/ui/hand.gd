@@ -11,11 +11,15 @@ const CARD_UI_SCENE := preload("res://scenes/card_ui/card_ui.tscn")
 @export var hover_lift: float = -20.0  # How much the card lifts when hovered
 @export var hover_time: float = 0.15   # Animation time for hovering
 
-# Deliberately a SLIGHT, held lift - just enough to pick the card out of the fan and read as
-# "play me", not a big pop. A previous pass lifted it -64 + scaled 1.22, which Julien found
-# "weird"; he asked to simply lift it slightly from the hand and keep it there. The other cards
-# being gated (dimmed) already does most of the "this is the one" work, so the lift stays gentle.
-const TUTORIAL_LIFT := -30.0
+# Sized so the WHOLE card clears the bottom of the screen, not by feel: cards sit at y~576 in
+# the fan and stand 210px tall (222 once scaled), so anything less than ~85 leaves the card's
+# lower edge cut off by the viewport - which is exactly what a step saying "look at this card"
+# must not do (Julien: "we should be able to see the whole card easily"). An earlier -64/1.22
+# pass was rejected as "weird", but that was a big POP; this is still a gentle held lift, just
+# far enough up to be fully readable. Note the scale stays modest for the same reason.
+# The above_hand text band in tutorial_overlay.gd is calibrated against this value - raising
+# the lift further would need that band's bottom raised to match, and there is little room.
+const TUTORIAL_LIFT := -92.0
 const TUTORIAL_SCALE := Vector2(1.06, 1.06)
 
 # The tutorial "locks" a card lifted. While locked, hover-in/out on that card re-asserts the

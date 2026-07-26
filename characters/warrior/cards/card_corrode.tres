@@ -1,0 +1,30 @@
+[gd_resource type="Resource" load_steps=5 format=3 uid="uid://c0rr0de4ll3nm"]
+
+[ext_resource type="Texture2D" uid="uid://deim3m7g43wht" path="res://corrode.png" id="1_corr"]
+[ext_resource type="Script" path="res://characters/warrior/cards/corrode.gd" id="2_script"]
+[ext_resource type="AudioStream" uid="uid://cvjv56ti6hkis" path="res://impact1.ogg" id="3_sound"]
+[ext_resource type="Resource" uid="uid://c0rr0dep1u5v2" path="res://characters/warrior/cards/card_corrode_plus.tres" id="4_plus"]
+
+[resource]
+script = ExtResource("2_script")
+id = "card_corrode"
+name = "Corrode"
+type = 0
+target = 2
+description = "Deal X damage and apply Exposed 2 to ALL enemies"
+rarity = 0
+rarity_tier = 1
+red_only = false
+can_play_without_dice = false
+requirement = 7
+requirement_number = 7
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Exposed"
+upgraded = false
+upgraded_version = ExtResource("4_plus")
+icon = ExtResource("1_corr")
+tooltip_text = ""
+sound = ExtResource("3_sound")
