@@ -379,6 +379,7 @@ const SCOUT_PICK_FLIGHT_TIME := 0.45
 const SCOUT_PICK_ARC_LIFT := 60.0       # sideways bow of the pick's flight path
 const SCOUT_TRAIL_SPACING := 0.16       # eased-t gap between trail motes (~6 per flight, evenly spaced along the path)
 const SCOUT_PLUCK_SFX := preload("res://sfx/578807__nomiqbomi__pluck-1.mp3")  # same pluck as the power-orb landings
+const SCOUT_FACE_LOCKED_MODULATE := Color(0.45, 0.45, 0.45, 1.0)  # tutorial-locked face (see _make_scout_face_clickable)
 
 var _scout_tweens: Array[Tween] = []
 var _scout_pick_in_progress := false
@@ -551,7 +552,22 @@ func _kill_scout_tweens() -> void:
     _scout_tweens.clear()
 
 
+# Tutorial only: index of the ONE scout face the player may pick (-1 = all of them, i.e. every
+# normal Scout in the game). Set by TutorialDirector._gate_scout_faces for the finale, where the
+# whole lesson is "take the 2" and picking the 5 or the 4 leaves the fight unwinnable that turn.
+# It has to be honoured HERE and not only by the director: the director locks the other faces
+# the instant scout_effect fires, but each face is made clickable by a tween callback that runs
+# ~0.1-0.8s LATER (the staggered reveal below), which used to hand every face back to the player
+# and quietly undo the lock.
+var tutorial_scout_allowed_index := -1
+
+
 func _make_scout_face_clickable(face: TextureRect) -> void:
+    if tutorial_scout_allowed_index >= 0 and scout_faces.find(face) != tutorial_scout_allowed_index:
+        # Left un-clickable, and dimmed so it reads as locked rather than as a dead click.
+        # Brightness multiply, not an alpha fade - same dimming convention as unplayable cards.
+        face.modulate = SCOUT_FACE_LOCKED_MODULATE
+        return
     face.mouse_filter = Control.MOUSE_FILTER_STOP
 
 

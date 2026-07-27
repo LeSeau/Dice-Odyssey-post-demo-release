@@ -1,10 +1,13 @@
-[gd_scene load_steps=11 format=3 uid="uid://g72e5q0qyuqo"]
+[gd_scene load_steps=15 format=3 uid="uid://g72e5q0qyuqo"]
 
 [ext_resource type="Script" path="res://scenes/events/event_fickle_broker.gd" id="1_brkr1"]
 [ext_resource type="Resource" uid="uid://2if2rhy1aktn" path="res://treasure_relic_pool.tres" id="2_brkr2"]
 [ext_resource type="Texture2D" uid="uid://do0yscy7gusij" path="res://fickle_broker.png" id="3_brkr3"]
 [ext_resource type="FontFile" uid="uid://bfgwr7o37ol1j" path="res://Noto_Sans/static/NotoSans-Regular.ttf" id="4_brkr4"]
 [ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="5_brkr5"]
+[ext_resource type="StyleBox" uid="uid://d33nvcmlyrn4o" path="res://scenes/shop/shop_button_normal.tres" id="btn_n"]
+[ext_resource type="StyleBox" uid="uid://btiy0p7cdp753" path="res://scenes/shop/shop_button_hover.tres" id="btn_h"]
+[ext_resource type="StyleBox" uid="uid://0f1dsnbsuyaw" path="res://scenes/shop/shop_button_pressed.tres" id="btn_p"]
 
 [sub_resource type="Gradient" id="Gradient_brkr1"]
 colors = PackedColorArray(0.25, 0.15, 0.22, 1, 0.55, 0.35, 0.4, 1)
@@ -14,18 +17,56 @@ gradient = SubResource("Gradient_brkr1")
 fill_to = Vector2(0, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_brkr1"]
-bg_color = Color(0, 0, 0, 1)
+bg_color = Color(0.08, 0.102, 0.16, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.788235, 0.635294, 0.152941, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+shadow_color = Color(0, 0, 0, 0.55)
+shadow_size = 14
+shadow_offset = Vector2(0, 5)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_brkr2"]
+bg_color = Color(0.22, 0.14, 0.34, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.788235, 0.635294, 0.152941, 0.6)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_brkr2"]
-bg_color = Color(0.63264, 0.534451, 0.857609, 1)
-
 [sub_resource type="LabelSettings" id="LabelSettings_brkr1"]
-font_size = 28
-font_color = Color(1, 1, 0.160784, 1)
+font_size = 30
+font_color = Color(0.933333, 0.709804, 0.164706, 1)
+outline_size = 6
+outline_color = Color(0.0901961, 0.0627451, 0.0196078, 1)
+shadow_size = 4
+shadow_color = Color(0, 0, 0, 0.6)
+shadow_offset = Vector2(2, 3)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_artframe"]
+content_margin_left = 5.0
+content_margin_top = 5.0
+content_margin_right = 5.0
+content_margin_bottom = 5.0
+bg_color = Color(0.0509804, 0.0627451, 0.0980392, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.788235, 0.635294, 0.152941, 0.55)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
 [node name="FickleBroker" type="Control"]
 custom_minimum_size = Vector2(1280, 720)
@@ -107,10 +148,15 @@ layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 80
 
-[node name="TextureRect" type="TextureRect" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer"]
-custom_minimum_size = Vector2(500, 500)
+[node name="ArtFrame" type="PanelContainer" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer"]
+mouse_filter = 2
 layout_mode = 2
 size_flags_horizontal = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_artframe")
+
+[node name="TextureRect" type="TextureRect" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/ArtFrame"]
+custom_minimum_size = Vector2(500, 500)
+layout_mode = 2
 texture = ExtResource("3_brkr3")
 expand_mode = 1
 stretch_mode = 6
@@ -125,8 +171,8 @@ layout_mode = 2
 mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("4_brkr4")
 bbcode_enabled = true
-text = "A hooded dealer keeps three glowing trinkets spinning above his palms, never quite catching any of them. His grin is the only part of his face you can make out.
-[p] [p][color=purple]\"One of yours for one of mine,\"[/color] he says. [color=purple]\"No peeking, no take-backs. That's half the fun, isn't it?\"[/color]"
+text = "[color=#c084fc]\"The grass is always greener, and my relics are always better!\"[/color]
+[p] [p][color=#c084fc]\"One of yours for one of mine,\"[/color] this hooded dealer says."
 fit_content = true
 
 [node name="VBoxContainer" type="VBoxContainer" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer"]
@@ -137,8 +183,11 @@ size_flags_vertical = 10
 theme_override_constants/separation = 12
 
 [node name="TradeA" type="Button" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer"]
-custom_minimum_size = Vector2(300, 40)
+custom_minimum_size = Vector2(300, 46)
 layout_mode = 2
+theme_override_styles/normal = ExtResource("btn_n")
+theme_override_styles/hover = ExtResource("btn_h")
+theme_override_styles/pressed = ExtResource("btn_p")
 
 [node name="RichTextLabel" type="RichTextLabel" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/TradeA"]
 custom_minimum_size = Vector2(0, 40)
@@ -160,8 +209,11 @@ text = "[center]Trade offer #1[/center]
 scroll_active = false
 
 [node name="TradeB" type="Button" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer"]
-custom_minimum_size = Vector2(300, 40)
+custom_minimum_size = Vector2(300, 46)
 layout_mode = 2
+theme_override_styles/normal = ExtResource("btn_n")
+theme_override_styles/hover = ExtResource("btn_h")
+theme_override_styles/pressed = ExtResource("btn_p")
 
 [node name="RichTextLabel" type="RichTextLabel" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/TradeB"]
 custom_minimum_size = Vector2(0, 40)
@@ -183,8 +235,11 @@ text = "[center]Trade offer #2[/center]
 scroll_active = false
 
 [node name="Leave" type="Button" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer"]
-custom_minimum_size = Vector2(300, 40)
+custom_minimum_size = Vector2(300, 46)
 layout_mode = 2
+theme_override_styles/normal = ExtResource("btn_n")
+theme_override_styles/hover = ExtResource("btn_h")
+theme_override_styles/pressed = ExtResource("btn_p")
 
 [node name="RichTextLabel" type="RichTextLabel" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/Leave"]
 custom_minimum_size = Vector2(0, 40)

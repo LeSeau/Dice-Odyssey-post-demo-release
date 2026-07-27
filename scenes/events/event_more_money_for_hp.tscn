@@ -1,10 +1,13 @@
-[gd_scene load_steps=11 format=3 uid="uid://covy30hpkxrnu"]
+[gd_scene load_steps=15 format=3 uid="uid://covy30hpkxrnu"]
 
 [ext_resource type="Script" path="res://scenes/events/event_dark_chest.gd" id="1_ypyg3"]
 [ext_resource type="Texture2D" uid="uid://cixhe0hba0c1" path="res://assets/images/scroll.jpg" id="2_debul"]
 [ext_resource type="Texture2D" uid="uid://bblvcj7djg1rp" path="res://dark_chest_ok.png" id="3_6t1lg"]
 [ext_resource type="FontFile" uid="uid://bfgwr7o37ol1j" path="res://Noto_Sans/static/NotoSans-Regular.ttf" id="4_yuyqi"]
 [ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="5_h12v7"]
+[ext_resource type="StyleBox" uid="uid://d33nvcmlyrn4o" path="res://scenes/shop/shop_button_normal.tres" id="btn_n"]
+[ext_resource type="StyleBox" uid="uid://btiy0p7cdp753" path="res://scenes/shop/shop_button_hover.tres" id="btn_h"]
+[ext_resource type="StyleBox" uid="uid://0f1dsnbsuyaw" path="res://scenes/shop/shop_button_pressed.tres" id="btn_p"]
 
 [sub_resource type="Gradient" id="Gradient_n2u7c"]
 colors = PackedColorArray(0.08, 0.06, 0.1, 1, 0.35, 0.15, 0.4, 1)
@@ -14,18 +17,56 @@ gradient = SubResource("Gradient_n2u7c")
 fill_to = Vector2(0, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_oau2j"]
-bg_color = Color(0, 0, 0, 1)
+bg_color = Color(0.08, 0.102, 0.16, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.788235, 0.635294, 0.152941, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+shadow_color = Color(0, 0, 0, 0.55)
+shadow_size = 14
+shadow_offset = Vector2(0, 5)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sbp1t"]
+bg_color = Color(0.2625, 0.1125, 0.3, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.788235, 0.635294, 0.152941, 0.6)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sbp1t"]
-bg_color = Color(0.35, 0.15, 0.4, 1)
-
 [sub_resource type="LabelSettings" id="LabelSettings_ajccg"]
-font_size = 28
-font_color = Color(1, 1, 0.160784, 1)
+font_size = 30
+font_color = Color(0.933333, 0.709804, 0.164706, 1)
+outline_size = 6
+outline_color = Color(0.0901961, 0.0627451, 0.0196078, 1)
+shadow_size = 4
+shadow_color = Color(0, 0, 0, 0.6)
+shadow_offset = Vector2(2, 3)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_artframe"]
+content_margin_left = 5.0
+content_margin_top = 5.0
+content_margin_right = 5.0
+content_margin_bottom = 5.0
+bg_color = Color(0.0509804, 0.0627451, 0.0980392, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.788235, 0.635294, 0.152941, 0.55)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
 [node name="MoreMoneyForHP" type="Control"]
 custom_minimum_size = Vector2(1280, 720)
@@ -117,10 +158,15 @@ layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 80
 
-[node name="TextureRect" type="TextureRect" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer"]
-custom_minimum_size = Vector2(500, 500)
+[node name="ArtFrame" type="PanelContainer" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer"]
+mouse_filter = 2
 layout_mode = 2
 size_flags_horizontal = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_artframe")
+
+[node name="TextureRect" type="TextureRect" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/ArtFrame"]
+custom_minimum_size = Vector2(500, 500)
+layout_mode = 2
 texture = ExtResource("3_6t1lg")
 expand_mode = 1
 stretch_mode = 6
@@ -138,7 +184,7 @@ text = "You find a chest with a dark, glowing aura.
 
 There is an impressive amount of [color=gold]Gold[/color] on the ground but... much more inside that chest.
 
-The aura makes it clear it will have [color=red]painful consequences[/color] to touch the chest.
+The aura makes it clear it will have [color=#e05a5a]painful consequences[/color] to touch the chest.
 
 "
 fit_content = true
@@ -151,8 +197,11 @@ size_flags_vertical = 10
 theme_override_constants/separation = 12
 
 [node name="AcceptButton" type="Button" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer"]
-custom_minimum_size = Vector2(300, 40)
+custom_minimum_size = Vector2(300, 46)
 layout_mode = 2
+theme_override_styles/normal = ExtResource("btn_n")
+theme_override_styles/hover = ExtResource("btn_h")
+theme_override_styles/pressed = ExtResource("btn_p")
 
 [node name="RichTextLabel" type="RichTextLabel" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/AcceptButton"]
 custom_minimum_size = Vector2(0, 40)
@@ -174,8 +223,11 @@ text = "[center] Only take the coins on the ground. [color=gold]Gain 40 Gold.[/c
 scroll_active = false
 
 [node name="MoreMoneyButton" type="Button" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer"]
-custom_minimum_size = Vector2(300, 40)
+custom_minimum_size = Vector2(300, 46)
 layout_mode = 2
+theme_override_styles/normal = ExtResource("btn_n")
+theme_override_styles/hover = ExtResource("btn_h")
+theme_override_styles/pressed = ExtResource("btn_p")
 
 [node name="RichTextLabel" type="RichTextLabel" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/MoreMoneyButton"]
 custom_minimum_size = Vector2(0, 40)
@@ -198,8 +250,11 @@ scroll_active = false
 
 [node name="LeaveButton" type="Button" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer"]
 visible = false
-custom_minimum_size = Vector2(300, 40)
+custom_minimum_size = Vector2(300, 46)
 layout_mode = 2
+theme_override_styles/normal = ExtResource("btn_n")
+theme_override_styles/hover = ExtResource("btn_h")
+theme_override_styles/pressed = ExtResource("btn_p")
 
 [node name="RichTextLabel" type="RichTextLabel" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/LeaveButton"]
 custom_minimum_size = Vector2(0, 40)

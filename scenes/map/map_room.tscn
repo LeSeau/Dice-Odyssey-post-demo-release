@@ -98,10 +98,8 @@ script = ExtResource("1_5dnox")
 modulate = Color(1, 1, 1, 0)
 z_index = 2
 position = Vector2(1.94286, -2.31298)
-scale = Vector2(0.907143, 0.946565)
-closed = true
-width = 8.0
-default_color = Color(0.941176, 0.752941, 0.25098, 1)
+width = 9.0
+default_color = Color(0.290196, 0.184314, 0.0784314, 1)
 
 [node name="Visuals" type="Node2D" parent="."]
 

@@ -348,7 +348,30 @@ func _update_charged_card_description() -> void:
         return
     var card = socketed_card_ui.card
     if card and card.has_method("get_dynamic_description"):
-        charged_card_description.text = card.get_dynamic_description(socketed_card_ui.player_modifiers)
+        charged_card_description.text = card.get_dynamic_description(
+            socketed_card_ui.player_modifiers, _socketed_aimed_target())
+
+
+# The socketed CardUI stays hidden the whole time it sits in the socket (see _on_card_charged's
+# card_ui.hide()), INCLUDING during the forced aim after the red roll - so this panel, not the
+# card's own label, is what the player reads while pointing at an enemy. It therefore needs the
+# aimed target too, or the preview silently drops the target's DMG_TAKEN modifier and undercounts
+# against an Exposed enemy (the damage actually dealt was always right; only this number lied).
+# card_target_selector.gd fills CardUI.targets as you sweep over enemies; an entry can be freed
+# mid-aim (an AoE killing the enemy you're hovering), hence the validity check - read-only here,
+# the card prunes its own array in _prune_stale_targets().
+func _socketed_aimed_target() -> Node:
+    for target in socketed_card_ui.targets:
+        if is_instance_valid(target):
+            return target
+    return null
+
+
+# Takes the card argument even though it goes unused: card_aim_target_changed emits one, and a
+# 0-arg callable on an N-arg signal connects fine but errors at emit time and never runs.
+# _update_charged_card_description already no-ops unless something is actually socketed.
+func _on_card_aim_target_changed(_card_ui) -> void:
+    _update_charged_card_description()
 
 
 
@@ -359,6 +382,7 @@ func _ready():
     Events.player_turn_started.connect(_on_player_turn_started)
     Events.dice_roll_reset.connect(_on_dice_roll_reset)
     Events.card_charged.connect(_on_card_charged)
+    Events.card_aim_target_changed.connect(_on_card_aim_target_changed)
     Events.reset_charged_card.connect(_on_reset_charged_card)
     Events.change_current_power.connect(_on_change_current_power)
     Events.next_roll_determined.connect(_on_next_roll_determined)

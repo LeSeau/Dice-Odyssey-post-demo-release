@@ -55,7 +55,11 @@ func get_tooltip_content(status: Status) -> void:
         "greedy":
             text = "Gains 2 Strength for every 6 dice rolled this fight."
         "parasite":
-            text = "Gains 3 Strength if you generate more than 15 Power in the same turn."
+            # Read off ParasiteStatus's own constants rather than retyped here: those two
+            # numbers are the tuning dial for how greedy the player may be, and the last time
+            # they moved (3/15 -> 2/18) this line silently kept promising the old ones.
+            text = "Gains %d Strength the first time you generate more than %d Power in a turn." % [
+                ParasiteStatus.PARASITE_STRENGTH, ParasiteStatus.PARASITE_THRESHOLD]
         "depleted":
             text = "You have 1 less Blue Dice next turn for each stack."
         "energized":

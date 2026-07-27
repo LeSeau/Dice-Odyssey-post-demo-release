@@ -23,6 +23,12 @@ const AIM_NUDGE_TIMEOUT := 4.0
 const ENEMY_ARROW_DROP := 34.0
 # Pause after the first Strike connects, before the "Power went back to 0" box appears.
 const POST_HIT_BEAT := 1.0
+# Same idea for the socketed Block: let the die land, the card resolve and the Block badge pop
+# on the health bar before the box that names the number shows up.
+const POST_BLOCK_BEAT := 0.9
+# Only used if the Skeleton's intent can't be read at all (see _enemy_intent_damage) - keep in
+# sync with big_hit_damage on crab_tutorial_ai.tscn's TutorialAttack.
+const BIG_HIT_FALLBACK := 35
 # Padding around a die icon's 32x32 rect for its pulse frame - a little roomier than the
 # default so the badge doesn't look shrink-wrapped onto the icon.
 const DICE_SLOT_PULSE_PAD := 5.0
@@ -142,11 +148,12 @@ func _build_steps() -> void:
         # The function is kept intact so it can be dropped back in wherever it fits later.
         _step_t1_1, _step_t1_2, _step_t1_3_power, _step_t1_3, _step_t1_3b,
         _step_t1_4, _step_t1_4b, _step_t1_5,
-        _step_t1_6, _step_t1_7, _step_t1_7b, _step_t1_8, _step_t1_9, _step_t1_10,
+        _step_t1_6, _step_t1_7, _step_t1_7b, _step_t1_8, _step_t1_9,
+        _step_t1_10_block, _step_t1_10,
         _step_t2_switch_blue,
         _step_t2_1, _step_t2_2, _step_t2_3, _step_t2_4, _step_t2_5,
         _step_t2_6, _step_t2_7, _step_t2_8, _step_t2_9,
-        _step_t3_1, _step_t3_2, _step_t3_3, _step_t3_4, _step_t3_5, _step_t3_6,
+        _step_t3_1, _step_t3_1b, _step_t3_2, _step_t3_3, _step_t3_4, _step_t3_5, _step_t3_6,
     ]
 
 
@@ -202,6 +209,11 @@ func _apply_gate(gate: Dictionary) -> void:
 func _gate_scout_faces(allowed_index: int) -> void:
     _scout_gated = true
     scout_exit_button.disabled = true
+    # Locking the faces here only covers the window between scout_effect firing and the panel
+    # finishing its staggered reveal: battle.gd makes each face clickable from a tween callback
+    # that lands AFTER this runs, which would hand the locked ones straight back. Hence also
+    # telling battle.gd which index survives (see its tutorial_scout_allowed_index).
+    battle.tutorial_scout_allowed_index = allowed_index
     for i in range(battle.scout_faces.size()):
         var face: Control = battle.scout_faces[i]
         if i != allowed_index:
@@ -213,6 +225,10 @@ func _ungate_scout_faces() -> void:
         return
     _scout_gated = false
     scout_exit_button.disabled = false
+    battle.tutorial_scout_allowed_index = -1
+    # Deliberately does NOT reset modulate: this runs while the panel may still be playing its
+    # close animation (the unpicked faces are mid fade-out), and stomping them back to white
+    # would flash them solid again. Every reveal re-sets modulate from scratch anyway.
     for face: Control in battle.scout_faces:
         face.mouse_filter = Control.MOUSE_FILTER_STOP
 
@@ -406,6 +422,52 @@ func _enemy_arrow_point() -> Vector2:
     return _world_to_screen(e.global_position) + Vector2(0, -60) if e else Vector2.ZERO
 
 
+# The Block badge (shield + number) on the player's health bar. StatsUI is a Control under
+# Player, a Node2D, so like the enemy intent its rect is in canvas space and has to go through
+# _world_to_screen. Returns an empty rect while block is 0, since the badge's contents are
+# hidden then (stats_ui.gd::update_stats) and there'd be nothing to point at.
+func _player_block_rect() -> Rect2:
+    var p := _player()
+    if not p or _player_block() <= 0:
+        return Rect2()
+    var badge := p.get_node_or_null("StatsUI/Block") as Control
+    if not badge:
+        return Rect2()
+    return Rect2(_world_to_screen(badge.global_position), badge.size)
+
+
+func _player() -> Player:
+    return Global.player as Player
+
+
+func _player_block() -> int:
+    var p := _player()
+    if not p or not p.stats:
+        return 0
+    return p.stats.block
+
+
+func _enemy_health() -> int:
+    var e := _enemy()
+    if not e or not e.stats:
+        return 0
+    var hp: int = e.stats.health
+    return hp
+
+
+# The number currently painted on the enemy's intent icon. The tutorial Skeleton's intent
+# base_text is just "%s", so current_text IS the damage it will deal - reading it beats
+# hardcoding, since it already accounts for whatever modifiers are in play and can't drift if
+# that swing is ever retuned.
+func _enemy_intent_damage() -> String:
+    var e := _enemy()
+    if e and e.current_action and e.current_action.intent:
+        var painted: String = str(e.current_action.intent.current_text)
+        if painted.is_valid_int():
+            return painted
+    return str(BIG_HIT_FALLBACK)
+
+
 func _highlight_enemy() -> void:
     var e := _enemy()
     if e:
@@ -438,6 +500,12 @@ func _on_skip_pressed() -> void:
     Global.tutorial_forced_rolls = []
     Global.tutorial_forced_scout_faces = []
     _reset_between_steps()  # also clears the pending completion-signal wait
+    # Skipping with the Scout panel still open leaves the finale's locked faces dimmed (see
+    # _ungate_scout_faces on why the un-gate itself can't restore them) - nothing is locked
+    # from here on, so hand them back at full brightness.
+    if scout_panel.visible:
+        for face: Control in battle.scout_faces:
+            face.modulate = Color.WHITE
     _apply_gate({"roll": true, "cards": _all_card_ids(), "dice_types": DiceInterface.DICE_TYPE_TO_NODE.keys(), "end_turn": true})
     overlay.shutdown()
     # Must be set false BEFORE any further hand draws: _on_player_hand_drawn and the
@@ -506,7 +574,7 @@ func _step_t1_3_power() -> void:
     overlay.show_glow(_power_number_rect())
     overlay.show_pointer(_point_right_of(_power_number_rect()), TutorialOverlay.PointerDir.LEFT)
     overlay.set_text(
-        "[center]See that [color=gold]%d[/color]? That's your [color=red]Power[/color] - built from your rolls, and what you spend to play [color=#c896ff]Cards[/color]." % Global.roll_value,
+        "[center]See that [color=gold]%d[/color]? That's your [color=red]Power[/color], built from your rolls, and what you spend to play [color=#c896ff]Cards[/color]." % Global.roll_value,
         "right_of_power", true)
     _apply_gate({})
     _wait(overlay.continue_pressed)
@@ -515,7 +583,7 @@ func _step_t1_3_power() -> void:
 func _step_t1_3() -> void:
     overlay.set_dim(TutorialOverlay.Dim.SOFT)
     overlay.set_text(
-        "[center]You could spend it now - or roll a [color=gold]same-color Dice[/color] and stack even more. Try it!",
+        "[center]You could spend it now, or roll a [color=gold]same-color Dice[/color] and stack even more [color=red]Power[/color]. Try it!",
         "near_dice", false)
     overlay.show_pointer(_point_left_of(_roll_button_rect()), TutorialOverlay.PointerDir.RIGHT)
     overlay.show_pulse(_roll_button_rect())
@@ -571,7 +639,7 @@ func _step_t1_4() -> void:
 func _step_t1_4b() -> void:
     overlay.set_dim(TutorialOverlay.Dim.SOFT)
     overlay.set_text(
-        "[center][color=#c896ff]Strike[/color] deals damage equal to your [color=red]Power[/color] - the card updates to show exactly how much.\nDrag it onto the Skeleton and release to smack him!",
+        "[center][color=#c896ff]Strike[/color] deals damage equal to your [color=red]Power[/color]. The card updates to show exactly how much.\nDrag it onto the Skeleton and release to smack him!",
         "near_dice", false)
     _lift_card(STRIKE_ID)
     _highlight_enemy()
@@ -621,7 +689,7 @@ func _step_t1_6() -> void:
         overlay.show_glow(intent_rect, TutorialOverlay.GLOW_COLOR_THREAT)
         overlay.show_pointer(_point_above(intent_rect), TutorialOverlay.PointerDir.DOWN)
     overlay.set_text(
-        "[center]That icon above the enemy is his [color=gold]next move[/color] - he swings the moment you end your turn. Let's do something about it!",
+        "[center]That icon above the enemy is his [color=gold]next move[/color]. He swings the moment you end your turn. Let's do something about it!",
         "near_enemy", true)
     _apply_gate({})
     _wait(overlay.continue_pressed)
@@ -664,7 +732,7 @@ func _step_t1_8() -> void:
 func _step_t1_9() -> void:
     overlay.set_dim(TutorialOverlay.Dim.SOFT)
     overlay.set_text(
-        "[center]Now roll. Your [color=#c896ff]Block[/color] Card plays itself the moment the die lands, for whatever it rolls.",
+        "[center]Now roll. Your [color=#c896ff]Block[/color] Card will get played right after.",
         "near_dice", false)
     overlay.show_pointer(_point_above(_roll_button_rect()), TutorialOverlay.PointerDir.DOWN)
     overlay.show_pulse(_roll_button_rect())
@@ -672,10 +740,30 @@ func _step_t1_9() -> void:
     _wait(Events.red_dice_rolled)
 
 
+# The Block payoff gets its own Continue-gated beat before the end-turn prompt. Block was the
+# one thing the tutorial made the player DO without ever showing them the result of it: the old
+# single step said "his hit is fully covered" while pointing at End Turn, so the badge that
+# actually proves it was never looked at. Delayed so the socketed card resolves, the number pops
+# on the health bar, and THEN a box arrives to name it.
+func _step_t1_10_block() -> void:
+    if not await _delay_step(POST_BLOCK_BEAT):
+        return
+    overlay.set_dim(TutorialOverlay.Dim.SOFT)
+    var block_rect := _player_block_rect()
+    if block_rect.size != Vector2.ZERO:
+        overlay.show_glow(block_rect)
+        overlay.show_info_pointer(_point_above(block_rect), true)
+    overlay.set_text(
+        "[center]Great! You gained [color=gold]%d Block[/color], as you can see here. That means you will fully block the Skeleton's attack." % _player_block(),
+        "near_dice", true)
+    _apply_gate({})
+    _wait(overlay.continue_pressed)
+
+
 func _step_t1_10() -> void:
     overlay.set_dim(TutorialOverlay.Dim.SOFT)
     overlay.set_text(
-        "[center]Great - his hit is fully covered. [color=gold]End your turn[/color]: he takes his, then all your Dice come back.",
+        "[center][color=gold]End your turn[/color]: he takes his, then all your Dice come back.",
         "near_dice", false)
     overlay.show_pointer(_point_above(end_turn_button.get_global_rect()), TutorialOverlay.PointerDir.DOWN)
     overlay.show_pulse(end_turn_button.get_global_rect())
@@ -722,7 +810,7 @@ func _step_t2_2() -> void:
 func _step_t2_3() -> void:
     overlay.set_dim(TutorialOverlay.Dim.SOFT)
     overlay.set_text(
-        "[center]Bad rolls happen - and some [color=#c896ff]Cards[/color] have your back. [color=#c896ff]Recombobulate[/color] [color=gold]Refuels[/color]: every Dice you rolled this turn comes back, and your [color=red]Power[/color] resets. Play it and try again!",
+        "[center]Those were some bad rolls! Fortunately, some [color=#c896ff]Cards[/color] are made for these situations. [color=gold]Hover[/color] on [color=#c896ff]Recombobulate[/color] to read its [color=gold]Refuel[/color] effect, then play it to gain your [color=#4a90d9]Blue Dice[/color] back!",
         "near_dice", false)
     _lift_card(RECOMBOBULATE_ID)
     _apply_gate({"cards": [RECOMBOBULATE_ID]})
@@ -742,7 +830,7 @@ func _step_t2_4() -> void:
 func _step_t2_5() -> void:
     overlay.set_dim(TutorialOverlay.Dim.SOFT)
     overlay.set_text(
-        "[center]You might think a 3 is bad - some [color=#c896ff]Cards[/color] love it. That [color=gold]MAX 3[/color] ribbon on [color=#c896ff]Low Blow[/color] is its [color=red]Power[/color] requirement: low rolls only, and it pays back triple. Look what the card is offering now, then hit him with it!",
+        "[center]You might think a 3 is bad. Some [color=#c896ff]Cards[/color] love it. That [color=gold]MAX 3[/color] ribbon on [color=#c896ff]Low Blow[/color] is its [color=red]Power[/color] requirement: low rolls only, and it pays back triple. Look what the card is offering now, then hit him with it!",
         "near_dice", false)
     _lift_card(LOW_BLOW_ID)
     _highlight_enemy()
@@ -755,7 +843,7 @@ func _step_t2_5() -> void:
 func _step_t2_6() -> void:
     overlay.set_dim(TutorialOverlay.Dim.SOFT)
     overlay.set_text(
-        "[center]He's winding up the same hit again. Let's block it - roll first.",
+        "[center]He's winding up the same hit again. Let's block it. Roll first.",
         "near_dice", false)
     overlay.show_pointer(_point_above(_roll_button_rect()), TutorialOverlay.PointerDir.DOWN)
     overlay.show_pulse(_roll_button_rect())
@@ -767,7 +855,7 @@ func _step_t2_7() -> void:
     overlay.set_dim(TutorialOverlay.Dim.SOFT)
     overlay.show_info_pointer(_point_above(_power_number_rect()), true)
     overlay.set_text(
-        "[center]%d [color=red]Power[/color], and he hits for [color=gold]6[/color]. No worries - [color=#c896ff]Reinforce[/color] tops your Power [color=gold]up[/color] instead of spending it. Play it!" % Global.roll_value,
+        "[center]%d [color=red]Power[/color], and he hits for [color=gold]6[/color]. No worries, [color=#c896ff]Reinforce[/color] tops your Power [color=gold]up[/color] instead of spending it. Play it!" % Global.roll_value,
         "near_dice", false)
     _lift_card(REINFORCE_ID)
     _apply_gate({"cards": [REINFORCE_ID]})
@@ -793,7 +881,7 @@ func _step_t2_9() -> void:
     # WITHOUT implying you hoard the Red Dice - dice don't carry over (Julien flagged that
     # framing), turn 3 hands you a fresh one regardless.
     overlay.set_text(
-        "[center]A [color=red]Red Dice[/color] left and nothing worth spending it on - that's fine. But look at this turn: two 1s, and you still landed exactly where you needed. Play it smart and bad luck stops deciding for you. Now [color=gold]end your turn[/color].",
+        "[center]A [color=red]Red Dice[/color] left and nothing worth spending it on. That's fine. But look at this turn: two 1s, and you still landed exactly where you needed. Play it smart and bad luck stops deciding for you. Now [color=gold]end your turn[/color].",
         "near_dice", false)
     overlay.show_pointer(_point_above(end_turn_button.get_global_rect()), TutorialOverlay.PointerDir.DOWN)
     overlay.show_pulse(end_turn_button.get_global_rect())
@@ -813,17 +901,36 @@ func _step_t2_9() -> void:
 # Blow, lands exactly 6. Turn 2 taught that a bad roll can be good; turn 3 makes the player
 # choose the bad roll on purpose, which is the whole thesis of the game.
 
+# Split in two: the threat lands on its own beat, then the problem it poses. One box carrying
+# "he is winding up", "here is the number", "here is your out" and "here is the catch" was
+# doing four jobs at the moment the finale's stakes are supposed to sink in.
 func _step_t3_1() -> void:
+    _threat_affordances()
+    overlay.set_text(
+        "[center]Oh no, a massive attack! Thankfully, this is perfect to teach you the last part of this tutorial.",
+        "near_dice", true)
+    _apply_gate({})
+    _wait(overlay.continue_pressed)
+
+
+# Both numbers are read live (enemy HP, and the intent's own painted damage) so this copy can
+# never drift from what the player is looking at if that swing or the Skeleton's HP is retuned.
+func _step_t3_1b() -> void:
+    _threat_affordances()
+    overlay.set_text(
+        "[center]He has [color=gold]%d HP[/color] left. Killing him sounds much easier than blocking his [color=gold]%s damage[/color] hit. But what happens if you roll low and don't get enough [color=red]Power[/color] to finish him?" % [_enemy_health(), _enemy_intent_damage()],
+        "near_dice", true)
+    _apply_gate({})
+    _wait(overlay.continue_pressed)
+
+
+# Shared by both threat beats: red glow + arrow on the intent icon.
+func _threat_affordances() -> void:
     var intent_rect := _enemy_intent_rect()
     overlay.set_dim(TutorialOverlay.Dim.SOFT)
     if intent_rect.size != Vector2.ZERO:
         overlay.show_glow(intent_rect, TutorialOverlay.GLOW_COLOR_THREAT)
         overlay.show_pointer(_point_above(intent_rect), TutorialOverlay.PointerDir.DOWN)
-    overlay.set_text(
-        "[center]Careful - he is done playing around. That hit would take half your health, and you cannot block all of it. But he is down to [color=gold]6 HP[/color]: kill him this turn and it never lands.",
-        "near_dice", true)
-    _apply_gate({})
-    _wait(overlay.continue_pressed)
 
 
 func _step_t3_2() -> void:
@@ -835,7 +942,7 @@ func _step_t3_2() -> void:
     Global.tutorial_forced_scout_faces = [5, 2, 4]
     overlay.set_dim(TutorialOverlay.Dim.SOFT)
     overlay.set_text(
-        "[center]See [color=#c896ff]Scout 3[/color] glowing while everything else is dark? Its blue frame means [color=#5cb3ff]Celestial[/color]: no [color=red]Power[/color], no Dice, free to play. It shows you what your next roll could be. Play it!",
+        "[center]See this [color=#c896ff]Scout 3[/color] card with this blue background? Its blue frame means [color=#5cb3ff]Celestial[/color]: no [color=red]Power[/color], no Dice, free to play. It shows you what your next roll could be. Once again, [color=gold]hover[/color] on it to know more, then play it!",
         "near_dice", false)
     _lift_card(SCOUT3_ID)
     _apply_gate({"cards": [SCOUT3_ID]})
@@ -848,7 +955,7 @@ func _step_t3_3() -> void:
     # above_hand, not near_dice: the Scout panel opens top-centre and the hero-speech slot sits
     # right under it. A bottom box leaves all three faces readable.
     overlay.set_text(
-        "[center]Three possible rolls - you get to pick one. None of them kills with a [color=#c896ff]Strike[/color], not even the 5. But [color=#c896ff]Low Blow[/color] triples a roll of 3 or less. [color=gold]Take the 2.[/color]",
+        "[center]Three possible rolls. You get to pick one. None of them kills with a [color=#c896ff]Strike[/color], not even the 5. But [color=#c896ff]Low Blow[/color] triples a roll of 3 or less. [color=gold]Take the 2.[/color]",
         "above_hand", false)
     _gate_scout_faces(1)
     _wait(Events.next_roll_determined)
@@ -867,7 +974,7 @@ func _step_t3_4() -> void:
 func _step_t3_5() -> void:
     overlay.set_dim(TutorialOverlay.Dim.SOFT)
     overlay.set_text(
-        "[center]2 [color=red]Power[/color] - the worst roll of the whole fight, and exactly what you needed. [color=#c896ff]Low Blow[/color] turns it into [color=gold]6 damage[/color]. Point it at the Skeleton and finish him!",
+        "[center]2 [color=red]Power[/color], the worst roll of the whole fight, and exactly what you needed. [color=#c896ff]Low Blow[/color] turns it into [color=gold]6 damage[/color]. Point it at the Skeleton and finish him!",
         "near_dice", false)
     _lift_card(LOW_BLOW_ID)
     _highlight_enemy()
@@ -887,7 +994,7 @@ func _step_t3_6() -> void:
     # ever emitting it), so the skip affordance goes away for this final beat.
     overlay.skip_button.hide()
     overlay.set_text(
-        "[center]That was the [color=gold]worst roll[/color] available to you - and you picked it on purpose. That is Dice Odyssey: you don't [color=gold]hope[/color] for luck, you stack it, refuel it, and choose the face you need. Out there you'll find stranger Dice, wilder Cards, and enemies who cheat harder than you do. [color=gold]Hover anything[/color] to learn more.",
+        "[center]That was the [color=gold]worst roll[/color] available to you, and you picked it on purpose. That is Dice Odyssey: you don't [color=gold]hope[/color] for luck, you stack it, refuel it, and choose the face you need. Out there you'll find stranger Dice, wilder Cards, and enemies who cheat harder than you do. [color=gold]Hover anything[/color] to learn more.",
         "center", true)
     _apply_gate({})
     overlay.continue_pressed.connect(_on_victory_continue_pressed, CONNECT_ONE_SHOT)

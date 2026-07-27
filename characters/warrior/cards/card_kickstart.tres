@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://ccuknbkkrlkt5" path="res://tuning_fork.png" id="1_icon"]
 [ext_resource type="Script" path="res://characters/warrior/cards/kickstart.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://d66mkrcpmfir" path="res://chargedicesound.mp3" id="3_sound"]
-[ext_resource type="Resource" path="res://characters/warrior/cards/card_kickstart_plus.tres" id="4_plus"]
+[ext_resource type="Resource" uid="uid://cbgresnt3lbwe" path="res://characters/warrior/cards/card_kickstart_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_script")

@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://spr2muqoh0jk"]
+[gd_scene load_steps=16 format=3 uid="uid://spr2muqoh0jk"]
 
 [ext_resource type="Script" path="res://scenes/events/event_relic_or_heal.gd" id="1_bhdq1"]
 [ext_resource type="Resource" uid="uid://2if2rhy1aktn" path="res://treasure_relic_pool.tres" id="2_6xrpw"]
@@ -6,6 +6,9 @@
 [ext_resource type="Texture2D" uid="uid://no0in668prxd" path="res://relic_or_heal.png" id="4_k3e02"]
 [ext_resource type="FontFile" uid="uid://bfgwr7o37ol1j" path="res://Noto_Sans/static/NotoSans-Regular.ttf" id="5_f1ve2"]
 [ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="6_wr10k"]
+[ext_resource type="StyleBox" uid="uid://d33nvcmlyrn4o" path="res://scenes/shop/shop_button_normal.tres" id="btn_n"]
+[ext_resource type="StyleBox" uid="uid://btiy0p7cdp753" path="res://scenes/shop/shop_button_hover.tres" id="btn_h"]
+[ext_resource type="StyleBox" uid="uid://0f1dsnbsuyaw" path="res://scenes/shop/shop_button_pressed.tres" id="btn_p"]
 
 [sub_resource type="Gradient" id="Gradient_n2u7c"]
 colors = PackedColorArray(0.15, 0.08, 0.2, 1, 0.5, 0.25, 0.55, 1)
@@ -15,18 +18,56 @@ gradient = SubResource("Gradient_n2u7c")
 fill_to = Vector2(0, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_oau2j"]
-bg_color = Color(0, 0, 0, 1)
+bg_color = Color(0.08, 0.102, 0.16, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.788235, 0.635294, 0.152941, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+shadow_color = Color(0, 0, 0, 0.55)
+shadow_size = 14
+shadow_offset = Vector2(0, 5)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sbp1t"]
+bg_color = Color(0.266667, 0.12, 0.3, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.788235, 0.635294, 0.152941, 0.6)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sbp1t"]
-bg_color = Color(0.4, 0.18, 0.45, 1)
-
 [sub_resource type="LabelSettings" id="LabelSettings_ajccg"]
-font_size = 28
-font_color = Color(1, 1, 0.160784, 1)
+font_size = 30
+font_color = Color(0.933333, 0.709804, 0.164706, 1)
+outline_size = 6
+outline_color = Color(0.0901961, 0.0627451, 0.0196078, 1)
+shadow_size = 4
+shadow_color = Color(0, 0, 0, 0.6)
+shadow_offset = Vector2(2, 3)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_artframe"]
+content_margin_left = 5.0
+content_margin_top = 5.0
+content_margin_right = 5.0
+content_margin_bottom = 5.0
+bg_color = Color(0.0509804, 0.0627451, 0.0980392, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.788235, 0.635294, 0.152941, 0.55)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
 [node name="RelicOrHeal" type="Control"]
 custom_minimum_size = Vector2(1280, 720)
@@ -119,10 +160,15 @@ layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 80
 
-[node name="TextureRect" type="TextureRect" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer"]
-custom_minimum_size = Vector2(500, 500)
+[node name="ArtFrame" type="PanelContainer" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer"]
+mouse_filter = 2
 layout_mode = 2
 size_flags_horizontal = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_artframe")
+
+[node name="TextureRect" type="TextureRect" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/ArtFrame"]
+custom_minimum_size = Vector2(500, 500)
+layout_mode = 2
 texture = ExtResource("4_k3e02")
 expand_mode = 1
 stretch_mode = 6
@@ -137,8 +183,8 @@ layout_mode = 2
 mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("5_f1ve2")
 bbcode_enabled = true
-text = "As you sit down to rest, you feel a [color=purple]sudden wave of energy.[/color]
-[p] [p]You can [color=green]use this energy to heal[/color], or dive much deeper into your mind and [color=yellow]discover something[/color], which might cost your sanity. [color=yellow]
+text = "As you sit down to rest, you feel a [color=#c084fc]sudden wave of energy.[/color]
+[p] [p]You can [color=#5ad16b]use this energy to heal[/color], or dive much deeper into your mind and [color=yellow]discover something[/color], which might cost your sanity.
 [p] 
 [color=pink]The energy you feel starts to reach uncomfortable levels.[/color]"
 fit_content = true
@@ -151,8 +197,11 @@ size_flags_vertical = 10
 theme_override_constants/separation = 12
 
 [node name="GetRelic" type="Button" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer"]
-custom_minimum_size = Vector2(300, 40)
+custom_minimum_size = Vector2(300, 46)
 layout_mode = 2
+theme_override_styles/normal = ExtResource("btn_n")
+theme_override_styles/hover = ExtResource("btn_h")
+theme_override_styles/pressed = ExtResource("btn_p")
 
 [node name="RichTextLabel" type="RichTextLabel" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/GetRelic"]
 custom_minimum_size = Vector2(0, 40)
@@ -169,13 +218,16 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("6_wr10k")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[center]Dive deeper.[color=green] Gain a Relic.[/color] [color=#e05a5a] Lose 8 HP[/color] [/center]
+text = "[center]Dive deeper.[color=#5ad16b] Gain a Relic.[/color] [color=#e05a5a] Lose 8 HP[/color] [/center]
 "
 scroll_active = false
 
 [node name="GetHeal" type="Button" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer"]
-custom_minimum_size = Vector2(300, 40)
+custom_minimum_size = Vector2(300, 46)
 layout_mode = 2
+theme_override_styles/normal = ExtResource("btn_n")
+theme_override_styles/hover = ExtResource("btn_h")
+theme_override_styles/pressed = ExtResource("btn_p")
 
 [node name="RichTextLabel" type="RichTextLabel" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/GetHeal"]
 custom_minimum_size = Vector2(0, 40)
@@ -192,14 +244,17 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("6_wr10k")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[center]Absorb the Energy. [color=green]Heal 16 HP.[/color]  [/center]
+text = "[center]Absorb the Energy. [color=#5ad16b]Heal 16 HP.[/color]  [/center]
 "
 scroll_active = false
 
 [node name="Quit" type="Button" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer"]
 visible = false
-custom_minimum_size = Vector2(300, 40)
+custom_minimum_size = Vector2(300, 46)
 layout_mode = 2
+theme_override_styles/normal = ExtResource("btn_n")
+theme_override_styles/hover = ExtResource("btn_h")
+theme_override_styles/pressed = ExtResource("btn_p")
 
 [node name="RichTextLabel" type="RichTextLabel" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/Quit"]
 custom_minimum_size = Vector2(0, 40)

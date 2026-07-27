@@ -4,7 +4,10 @@ extends Node
 
 const X_DIST := 150
 const Y_DIST := 125
-const PLACEMENT_RANDOMNESS := 5
+# 22 (was 5): ±5px on a 150x125 grid read as a spreadsheet, not a hand-drawn map.
+# Worst-case neighbor drift is ±22px, leaving ~103px between click circles (2x44.83
+# radius = ~90px), so no overlap is possible. Saved runs keep their stored positions.
+const PLACEMENT_RANDOMNESS := 22
 const FLOORS := 15
 const MAP_WIDTH := 7
 const PATHS := 6
@@ -20,7 +23,7 @@ const EVENT_FIGHT_CHANCE := 0.1
 @export var battle_stats_pool: BattleStatsPool
 @export var event_stats_pool: EventStatsPool
 
-var map_data: Array [Array]
+var map_data: Array[Array]
 
 func generate_map() -> Array[Array]:
     map_data = _generate_initial_grid()

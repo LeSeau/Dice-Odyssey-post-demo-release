@@ -245,6 +245,9 @@ func _start_run() -> void:
     map.generate_new_map()
     map.unlock_floor(0)
     _update_floor_label()
+    # Act 1 gets the same announcement beat act 2 always had (_enter_act_2) - the map is
+    # the first thing a player ever sees, and it opened with zero framing before this.
+    act_banner.announce("ACT 1: THE RUINS")
     # First checkpoint right away - starting a new run is also what "abandons" any previous
     # save (single slot, roguelike convention).
     _save_checkpoint()

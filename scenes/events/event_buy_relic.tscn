@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://tdkt2vcvvw7"]
+[gd_scene load_steps=16 format=3 uid="uid://tdkt2vcvvw7"]
 
 [ext_resource type="Script" path="res://scenes/events/event_buy_relic.gd" id="1_ys0mf"]
 [ext_resource type="Texture2D" uid="uid://cixhe0hba0c1" path="res://assets/images/scroll.jpg" id="2_1ji1g"]
@@ -6,6 +6,9 @@
 [ext_resource type="Texture2D" uid="uid://citurtbh7spvs" path="res://buy_relic_event.png" id="3_6t67s"]
 [ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="5_twug6"]
 [ext_resource type="FontFile" uid="uid://bfgwr7o37ol1j" path="res://Noto_Sans/static/NotoSans-Regular.ttf" id="5_vft68"]
+[ext_resource type="StyleBox" uid="uid://d33nvcmlyrn4o" path="res://scenes/shop/shop_button_normal.tres" id="btn_n"]
+[ext_resource type="StyleBox" uid="uid://btiy0p7cdp753" path="res://scenes/shop/shop_button_hover.tres" id="btn_h"]
+[ext_resource type="StyleBox" uid="uid://0f1dsnbsuyaw" path="res://scenes/shop/shop_button_pressed.tres" id="btn_p"]
 
 [sub_resource type="Gradient" id="Gradient_n2u7c"]
 colors = PackedColorArray(0.1, 0.05, 0.08, 1, 0.4, 0.12, 0.22, 1)
@@ -15,18 +18,56 @@ gradient = SubResource("Gradient_n2u7c")
 fill_to = Vector2(0, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_oau2j"]
-bg_color = Color(0, 0, 0, 1)
+bg_color = Color(0.08, 0.102, 0.16, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.788235, 0.635294, 0.152941, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+shadow_color = Color(0, 0, 0, 0.55)
+shadow_size = 14
+shadow_offset = Vector2(0, 5)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sbp1t"]
+bg_color = Color(0.3, 0.0857143, 0.154286, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.788235, 0.635294, 0.152941, 0.6)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sbp1t"]
-bg_color = Color(0.35, 0.1, 0.18, 1)
-
 [sub_resource type="LabelSettings" id="LabelSettings_ajccg"]
-font_size = 28
-font_color = Color(1, 1, 0.160784, 1)
+font_size = 30
+font_color = Color(0.933333, 0.709804, 0.164706, 1)
+outline_size = 6
+outline_color = Color(0.0901961, 0.0627451, 0.0196078, 1)
+shadow_size = 4
+shadow_color = Color(0, 0, 0, 0.6)
+shadow_offset = Vector2(2, 3)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_artframe"]
+content_margin_left = 5.0
+content_margin_top = 5.0
+content_margin_right = 5.0
+content_margin_bottom = 5.0
+bg_color = Color(0.0509804, 0.0627451, 0.0980392, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.788235, 0.635294, 0.152941, 0.55)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
 [node name="GainNewRelic" type="Control"]
 custom_minimum_size = Vector2(1280, 720)
@@ -120,10 +161,15 @@ layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 80
 
-[node name="TextureRect" type="TextureRect" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer"]
-custom_minimum_size = Vector2(500, 500)
+[node name="ArtFrame" type="PanelContainer" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer"]
+mouse_filter = 2
 layout_mode = 2
 size_flags_horizontal = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_artframe")
+
+[node name="TextureRect" type="TextureRect" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/ArtFrame"]
+custom_minimum_size = Vector2(500, 500)
+layout_mode = 2
 texture = ExtResource("3_6t67s")
 expand_mode = 1
 stretch_mode = 5
@@ -139,7 +185,7 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("5_vft68")
 bbcode_enabled = true
 text = "You encounter Germondo the relic collector.
-[p] [p]\"Welcome to my shop! How would you like to pay? [color=yellow]Gold[/color] or [color=red]Blood[/color]?\"
+[p] [p]\"Welcome to my shop! How would you like to pay? [color=yellow]Gold[/color] or [color=#e05a5a]Blood[/color]?\"
 [p] 
 [color=pink]Creepy guy.[/color]"
 fit_content = true
@@ -152,8 +198,11 @@ size_flags_vertical = 10
 theme_override_constants/separation = 12
 
 [node name="BuyRelicGold" type="Button" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer"]
-custom_minimum_size = Vector2(300, 40)
+custom_minimum_size = Vector2(300, 46)
 layout_mode = 2
+theme_override_styles/normal = ExtResource("btn_n")
+theme_override_styles/hover = ExtResource("btn_h")
+theme_override_styles/pressed = ExtResource("btn_p")
 
 [node name="RichTextLabel" type="RichTextLabel" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/BuyRelicGold"]
 custom_minimum_size = Vector2(0, 40)
@@ -170,13 +219,16 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("5_twug6")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[center][color=green]Buy a Relic![/color][color=gold] Pay 50 Gold.[/color]  [/center]
+text = "[center][color=#5ad16b]Buy a Relic![/color][color=gold] Pay 50 Gold.[/color]  [/center]
 "
 scroll_active = false
 
 [node name="BuyRelicBlood" type="Button" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer"]
-custom_minimum_size = Vector2(300, 40)
+custom_minimum_size = Vector2(300, 46)
 layout_mode = 2
+theme_override_styles/normal = ExtResource("btn_n")
+theme_override_styles/hover = ExtResource("btn_h")
+theme_override_styles/pressed = ExtResource("btn_p")
 
 [node name="RichTextLabel" type="RichTextLabel" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/BuyRelicBlood"]
 custom_minimum_size = Vector2(0, 40)
@@ -198,8 +250,11 @@ text = "[center]Pay with blood instead. [color=#e05a5a]Lose 8HP.[/color]  [/cent
 scroll_active = false
 
 [node name="Quit" type="Button" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer"]
-custom_minimum_size = Vector2(300, 40)
+custom_minimum_size = Vector2(300, 46)
 layout_mode = 2
+theme_override_styles/normal = ExtResource("btn_n")
+theme_override_styles/hover = ExtResource("btn_h")
+theme_override_styles/pressed = ExtResource("btn_p")
 
 [node name="RichTextLabel" type="RichTextLabel" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/Quit"]
 custom_minimum_size = Vector2(0, 40)

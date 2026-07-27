@@ -227,7 +227,13 @@ func _build_achievement_row(def: Dictionary) -> PanelContainer:
     hbox.add_child(text_box)
     text_box.add_child(_make_row_label(
         def.name, 18, GOLD_COLOR if unlocked else CREAM_COLOR))
-    text_box.add_child(_make_row_label(def.desc, 13, DIM_COLOR))
+    # Wrapped, not because anything wraps today (the longest current row needs 517px of the
+    # 572px AchScroll gives it) but because AchScroll has horizontal scrolling disabled: a
+    # future description a few words longer would silently clip off the right edge instead of
+    # scrolling. Wrapping makes the row grow taller instead - the PanelContainer self-sizes.
+    var desc_label := _make_row_label(def.desc, 13, DIM_COLOR)
+    desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    text_box.add_child(desc_label)
 
     var progress: Dictionary = AchievementManager.get_progress(def.id)
     var status_text := "Unlocked" if unlocked else "Locked"

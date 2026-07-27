@@ -99,6 +99,9 @@ func _on_area_2d_area_entered(area: Area2D) -> void:
     # next dice-roll-driven refresh.
     if current_card.has_method("_on_dice_rolled_update_description"):
         current_card._on_dice_rolled_update_description()
+    # A card aimed straight out of the red socket is hidden, so its own label above is not
+    # what the player is reading - dice.gd's socket display refreshes off this signal.
+    Events.card_aim_target_changed.emit(current_card)
 
     _set_locked_on(true)
 
@@ -114,6 +117,7 @@ func _on_area_2d_area_exited(area: Area2D) -> void:
 
     if current_card.has_method("_on_dice_rolled_update_description"):
         current_card._on_dice_rolled_update_description()
+    Events.card_aim_target_changed.emit(current_card)
 
     _set_locked_on(not current_card.targets.is_empty())
 
