@@ -17,7 +17,6 @@ extends Control
 @onready var mech_section: Control = $MechSection
 @onready var mech_increase: TextureButton = $MechSection/MechIncrease
 @onready var mech_decrease: TextureButton = $MechSection/MechDecrease
-@onready var bonus_effect_texture: TextureRect = $CardDropArea/CardBackground/CardFrame/BonusEffect/BonusEffectTexture
 @onready var bonus_separator: ColorRect = $CardDropArea/CardBackground/CardFrame/BonusSeparator
 
 @onready var aura: ColorRect = $Panel/Aura
@@ -91,6 +90,13 @@ var _power_clang_flash_tween: Tween
 # number "stays red". Tracked here so the dice switch can kill it. See _on_active_dice_changed.
 var _power_color_flash_tween: Tween
 var _power_clang_rattle_tween: Tween
+# Bumped by anything that establishes a NEW power baseline (a roll, a dice-type switch, a
+# turn start, a later reset). _on_dice_roll_reset's red branch waits 1s before zeroing (so
+# the red roll stays readable for a beat), and that pending wipe must NOT land on power the
+# player has earned since: play a red card, hop to blue and roll inside that window and the
+# stale timer used to blank the fresh blue roll (Julien, 2026-07-27). The coroutine captures
+# this counter before awaiting and bails if it moved.
+var _power_reset_generation := 0
 var _power_resting_modulate := Color.WHITE
 # Last power value shown on screen (kept current by _set_power_text). The clang only fires
 # when a change_current_power emit is accompanied by the value actually differing from this -
@@ -1018,6 +1024,8 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
     else:
         dice_display.texture = load("res://assets/images/" + dice_type + str(Global.last_roll) + ".png")
 
+    # New power on the board - supersedes any pending delayed red reset (see _power_reset_generation).
+    _power_reset_generation += 1
     Global.roll_value += Global.last_roll
     Global.power_generated_this_turn += Global.last_roll
     # Lifetime power counter ("Unlimited Power" achievement) - mirrors the increment above.
@@ -1256,6 +1264,9 @@ func _on_active_dice_changed(new_dice_type):
         mech_section.hide()
         Global.playing_red_card = false
         
+    # The switch zeroes power itself, so a pending delayed red reset has nothing left to do
+    # here - and letting it fire later would blank whatever the player rolls on the new die.
+    _power_reset_generation += 1
     Global.roll_value = 0
     Global.roll_history = []
     _set_power_text("0")
@@ -1354,6 +1365,9 @@ func play_strong_dice_sound():
     dice_roll_player.play() 
 
 func _on_player_turn_started() -> void:
+    # Ending the turn right after a red card would otherwise let the pending 1s reset land on
+    # the new turn and eat the Stockpile carryover restored just below.
+    _power_reset_generation += 1
     Global.roll_history = []
     Global.power_generated_this_turn = 0
     _magma_burned_this_turn = false
@@ -1380,8 +1394,15 @@ func _on_dice_roll_reset() -> void:
     if Global.no_reset:
         Global.no_reset = false
         return
+    _power_reset_generation += 1
     if Global.dice_type == "red":
+        var generation := _power_reset_generation
         await get_tree().create_timer(1.0).timeout  # Wait 0.5 seconds
+        # Anything that banked new power during the delay (blue roll after hopping off red,
+        # a dice switch, a new turn's Stockpile carryover, another card's reset) bumped the
+        # counter - this wipe is stale, drop it or it eats power the player just earned.
+        if generation != _power_reset_generation:
+            return
         _set_power_text("0")
         current_power.modulate.a = 0.4
         current_power.scale = Vector2.ONE

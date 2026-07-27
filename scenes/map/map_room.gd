@@ -16,18 +16,23 @@ signal pick_started (room: Room)
 # Tuning any single icon's presence is now a one-number change here.
 const ICONS := {
     Room.Type.NOT_ASSIGNED: [null, Vector2.ONE],
-    Room.Type.MONSTER: [preload("res://normal_fight_icon_v2.png"), Vector2(1.03, 1.03)],
-    Room.Type.ELITE: [preload("res://elite_fight_icon_v2.png"), Vector2(0.91, 0.91)],
+    Room.Type.MONSTER: [preload("res://fight_icon_v3.png"), Vector2(0.415, 0.415)],
+    # Elite runs deliberately over the ~60px norm (it renders 57x70). Its art is three
+    # separate thin pieces - sword, head, medallion - rather than one solid object like
+    # every other icon, so at matched long-axis size it had the LEAST painted area in the
+    # set (1566px vs 1789-2444) despite being the highest-stakes non-boss room. 1.05 puts
+    # it at ~2133, mid-pack, without touching the art itself.
+    Room.Type.ELITE: [preload("res://elite_fight_icon_v2.png"), Vector2(1.05, 1.05)],
     Room.Type.CAMPFIRE: [preload("res://campfire_icon_v2.png"), Vector2(0.457, 0.457)],
     Room.Type.TREASURE: [preload("res://treasurenobg.png"), Vector2(0.91, 0.91)],
-    Room.Type.SHOP: [preload("res://shop_icon_v2.png"), Vector2(0.426, 0.426)],
+    Room.Type.SHOP: [preload("res://shop_icon_v3.png"), Vector2(0.458, 0.458)],
     Room.Type.BOSS: [preload("res://boss_icon_v3.png"), Vector2.ONE],
     # v10 = carved wooden "?" (2026-07-27). The "?" IS the silhouette here, which is what
     # makes it read at map size; v9 was a flat UI glyph and the round-1 signpost/scroll
     # candidates buried their "?" inside a bigger object and became unreadable. Slightly
     # above the 60px norm because a "?" is narrow and full of holes, so it needs the extra
     # height to carry the same visual weight as the wide icons next to it.
-    Room.Type.EVENT: [preload("res://event_icon_v10.png"), Vector2(0.43, 0.43)],
+    Room.Type.EVENT: [preload("res://event_icon_v11.png"), Vector2(0.441, 0.441)],
 }
 
 const BASE_ICON_SCALE := 0.15

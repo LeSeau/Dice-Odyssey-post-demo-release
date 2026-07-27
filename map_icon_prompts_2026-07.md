@@ -102,7 +102,104 @@ small icon. Flat solid magenta background. No shadow, no text, no border, no sce
 
 ---
 
-## 4. FIGHT
+## 4. FIGHT — ✅ SOLVED (round 7): `fight_icon_v3.png`, mult 0.415
+
+**The answer was to repaint the original composition, not replace it** — big bright blue die framed
+by crossed swords, with the round-5 wash-out fixed by making the blades *dark blued steel* instead of
+pale silver. Measured against the icon it replaced: separation **126.4 vs 115.8**, camouflaged pixels
+**4% vs 5%**, internal contrast 55.8 vs 60.2. Better on the two that were failing, marginally lower on
+the one that was already fine.
+
+**The bright-skull attempt failed spectacularly and is the cleanest proof of the parchment rule in the
+whole exercise: 27–37% of its pixels landed within 25 luminance of the background** — worse than the
+round-1 scrolls (22–25%) that started this whole line of investigation. Pale bone on cream paper
+dissolves, and no amount of internal detail rescues it; the dark browband and blue eye survived while
+the skull itself vanished. Helmets measured fine (114–117 / 5–6%) but the die became a small accent
+again and got lost.
+
+The history below is kept because the four-point spec it produced is what made round 7 work first try.
+
+<details>
+<summary>How fight got here — three rejected rounds</summary>
+
+Nothing has replaced the original fight icon yet. Three concepts have been tried and rejected, and
+the reasons stack into a clear spec.
+
+**Rejected so far:**
+
+- **Crossed swords, pale steel blades** (round 5) — measured *worse* than the incumbent: dL 83–95
+  and 14–21% camouflaged pixels, versus 115.8 / 5%. Large pale blades on cream parchment is the
+  scroll failure again. Never installed.
+- **Green goblin head** (round 6) — Julien: *"I really don't like the green goblin icons."*
+- **Dark helmeted skull with a die in the eye socket** (round 6) — great art, and it does read, but
+  in the in-map render **the whole map goes dark**. Internal contrast 29.5–34.0, right at the
+  warning threshold. Julien: *"clearly the skull is too dark."*
+
+**The spec these failures imply — check a candidate against all four:**
+
+1. **It must be LIGHT.** Fight is by far the most common room type, so its value sets the tone of the
+   entire screen. A dark fight icon makes the map heavy no matter how good the art is.
+2. **It must not be a head.** The elite is a head; two head-shaped icons at the same size compete,
+   and only the elite's red is separating them.
+3. **No large pale-steel areas.** Same camouflage trap as the parchment scrolls.
+4. **Any bright accent must be BIG.** A die in an eye socket or a dent is a small detail on a bigger
+   object — the exact failure mode that killed the round-1 signposts, one level down.
+
+**⚠️ And the thing that reframes all of it: the incumbent icon measures BEST of anything tested.**
+`normal_fight_icon_v2.png` scores internal contrast **60.2** — the highest in the set — with 115.8
+separation and 5% camouflage. Julien's objection was always stylistic ("could be better"), never
+legibility. The blue die also coexists fine with the dark event die (proven in the round-5 render:
+different value, different hue, no confusion), which retires the earlier "two cubes on the map"
+worry that made me demote the die in the first place. **So the recommended move is to repaint the
+existing composition rather than replace it** — Option A below.
+
+</details>
+
+### ✅ Option A — repaint the current concept — THIS ONE SHIPPED
+
+```
+A bright blue six-sided die with crisp white pips, large and central, framed behind by two crossed
+swords angled in an X. The blades are dark blued steel with deep shadow so they stay distinct against
+a light background, with gold crossguards and gold pommels and worn leather grips. The die is the
+dominant element, roughly half the icon's height, glossy and vivid. No motion lines, no impact marks,
+no sparks. Game map icon: single centered object, 3/4 view with a slight top-down angle, hand-painted
+cel-shaded fantasy style with 2-3 flat tone steps and no soft airbrush gradients, thick dark brown
+outline around the whole silhouette, crisp rim highlight along the upper edges. Chunky readable shape,
+bold and simple enough to stay legible when shrunk to a small icon. Flat solid magenta background. No
+shadow, no text, no border, no scenery. Square image.
+```
+
+### Option B — brighter skull *(keeps the creature-with-humour idea, inverts the mass)*
+
+```
+A weathered skull with a small blue six-sided die wedged into one eye socket in place of the eye,
+giving it a comically lopsided expression, wearing only a narrow dark iron browband rather than a full
+helmet. The skull is warm pale bone, bright and light-toned, filling most of the icon; the metal band
+is a thin dark accent across the brow. The die glows bright blue. Slightly goofy rather than
+terrifying. Game map icon: single centered object, 3/4 view with a slight top-down angle, hand-painted
+cel-shaded fantasy style with 2-3 flat tone steps and no soft airbrush gradients, thick dark brown
+outline around the whole silhouette, crisp rim highlight along the upper edges. Chunky readable shape,
+bold and simple enough to stay legible when shrunk to a small icon. Flat solid magenta background. No
+shadow, no text, no border, no scenery. Square image.
+```
+
+### Option C — dented helmet with a die lodged in it *(armour, so it's combat without being a face)*
+
+```
+A battered horned warrior's helmet lying at a slight tilt, empty, with a bright blue six-sided die
+lodged firmly in a fresh dent on its side. Polished warm bronze and steel helmet with visible dents
+and scratches, short curved horns, dark eye slits. The blue die is vivid and clearly wedged into the
+metal. Slightly comical, like someone threw the die hard enough to stick it. Game map icon: single
+centered object, 3/4 view with a slight top-down angle, hand-painted cel-shaded fantasy style with 2-3
+flat tone steps and no soft airbrush gradients, thick dark brown outline around the whole silhouette,
+warm saturated palette with gold accents, crisp rim highlight along the upper edges. Chunky readable
+shape, bold and simple enough to stay legible when shrunk to a small icon. Flat solid magenta
+background. No shadow, no text, no border, no scenery. Square image.
+```
+
+---
+
+### ~~Earlier fight prompt (round 5)~~ — superseded, see above
 
 Two problems: it's busy (two swords + a big die + comic speed lines), and **now that the event icon
 is a cube, a die-dominant fight icon makes two of six icons read as dice.** The swords take over the
@@ -138,7 +235,60 @@ a near-clone. Two things make the clash worse than a general resemblance:
 So the subject changes entirely: **cards and relics, no stall, no awning, no dice, no coin piles.**
 Purple stays — that's the shop's established hue.
 
-### Option A — fanned cards + relic *(recommended: a fan shape is unique on this map)*
+### ⚠️ ROUND 6 — the satchel shipped, then failed in play. Read this first.
+
+The leather satchel (`shop_icon_v2.png`) was installed and **Julien rejected it: "shop isn't great,
+it doesn't read very well at this size."** The measurement had already flagged why, and it's worth
+keeping as a rule: **internal contrast 30.7, the lowest of any icon in the set** (vs 41.2 for the old
+shop icon, 53.6 for the event die). It separates from the parchment perfectly — 0% camouflaged
+pixels, the best score anything achieved — but it is a single uniform brown mass, so at 60px there is
+nothing *inside* it to read. Paper-separation and internal legibility are independent problems, and
+an icon can ace one while failing the other.
+
+**Also rejected: any card-led concept.** Julien: *"I don't like the idea of showing cards for a shop,
+especially since he's also selling relics & dice."* The shop sells cards, relics and a deal die, so
+a card-only icon misrepresents it. The two fanned-card prompts below are kept as a record; do not
+re-propose them.
+
+**The direction Julien wants is a classic bag** — the concept was never the problem. Two structural
+fixes over the satchel:
+
+- **Two high-contrast masses, not one.** A dark pouch with bright gold spilling out gives exactly two
+  things to read at map size.
+- **Not brown.** Brown leather put the shop in the treasure chest's colour family — two brown
+  containers on one map. Purple is the shop's established hue and separates cleanly.
+
+#### Option A — purple coin pouch *(recommended: only two elements)*
+
+```
+A plump drawstring coin pouch made of deep royal purple velvet, tied at the neck with a gold cord,
+tipped slightly open with bright gold coins spilling out of the top and a few resting at its base.
+Strong contrast between the dark purple fabric and the bright gold coins. Simple bold two-part
+composition, minimal surface detail. Not brown leather, no market stall, no awning, no dice, no
+playing cards. Game map icon: single centered object, 3/4 view with a slight top-down angle,
+hand-painted cel-shaded fantasy style with 2-3 flat tone steps and no soft airbrush gradients, thick
+dark brown outline around the whole silhouette, crisp rim highlight along the upper edges. Chunky
+readable shape, bold and simple enough to stay legible when shrunk to a small icon. Flat solid green
+background. No shadow, no text, no border, no scenery. Square image.
+```
+
+#### Option B — pouch with a relic *(one extra element, to say "sells more than gold")*
+
+```
+A plump drawstring coin pouch made of deep royal purple velvet, tied at the neck with a gold cord,
+with bright gold coins spilling from the top and a single ornate gold amulet with a glowing gem lying
+beside it. Strong contrast between the dark purple fabric and the bright gold coins and amulet.
+Simple bold composition with only two or three elements, minimal surface detail. Not brown leather,
+no market stall, no awning, no dice, no playing cards. Game map icon: single centered object, 3/4
+view with a slight top-down angle, hand-painted cel-shaded fantasy style with 2-3 flat tone steps and
+no soft airbrush gradients, thick dark brown outline around the whole silhouette, crisp rim highlight
+along the upper edges. Chunky readable shape, bold and simple enough to stay legible when shrunk to a
+small icon. Flat solid green background. No shadow, no text, no border, no scenery. Square image.
+```
+
+---
+
+### ~~Option A — fanned cards + relic~~ *(REJECTED — card-led concept, see above)*
 
 ```
 A fanned hand of three thick playing cards standing upright and slightly spread, with an ornate golden
@@ -152,7 +302,7 @@ shrunk to a small icon. Flat solid green background. No shadow, no text, no bord
 Square image.
 ```
 
-### Option B — merchant's satchel *(if the fan reads too abstract)*
+### ~~Option B — merchant's satchel~~ *(SHIPPED then REJECTED — uniform brown mass, see round 6 above)*
 
 ```
 An open merchant's leather satchel with a brass buckle, packed full, with the tops of several purple

@@ -26,18 +26,20 @@ func announce(text: String) -> void:
     label.scale = Vector2(0.6, 0.6)
     label.position.y = _base_label_y
 
+    # Total beat is ~2.2s (0.18 punch + 0.12 settle + 1.25 hold + 0.65 fade). This has
+    # been shortened twice on Julien's feedback: ~3.4s was "really too long", then 3.0
+    # was still too long. Keep the pieces summing to the target if any are retuned.
     var tween := create_tween()
-    tween.tween_property(label, "scale", Vector2(1.12, 1.12), 0.22) \
+    tween.tween_property(label, "scale", Vector2(1.12, 1.12), 0.18) \
         .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-    tween.tween_property(label, "scale", Vector2(1.0, 1.0), 0.16) \
+    tween.tween_property(label, "scale", Vector2(1.0, 1.0), 0.12) \
         .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-    # Much longer hold than the turn banner - an act announcement is a bigger beat and
-    # nothing is waiting on it (the map is already interactive underneath). Lengthened
-    # on Julien's request: this is the first thing a new player ever reads, so it gets
-    # time to land instead of blinking past. A slow drift up across the whole beat keeps
-    # it alive rather than frozen (runs in parallel with the scale/hold/fade chain).
-    tween.parallel().tween_property(label, "position:y", _base_label_y - 16.0, 3.4) \
+    # Still a longer hold than the turn banner - an act announcement is a bigger beat
+    # and nothing is waiting on it (the map is already interactive underneath). A slow
+    # drift up across the whole beat keeps it alive rather than frozen (runs in
+    # parallel with the scale/hold/fade chain, so its duration is the total, not extra).
+    tween.parallel().tween_property(label, "position:y", _base_label_y - 11.0, 2.2) \
         .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-    tween.tween_interval(2.3)
-    tween.tween_property(control, "modulate:a", 0.0, 0.75) \
+    tween.tween_interval(1.25)
+    tween.tween_property(control, "modulate:a", 0.0, 0.65) \
         .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
