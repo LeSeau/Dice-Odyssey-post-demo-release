@@ -12,5 +12,5 @@ has_counter = false
 counter = 0
 starter_relic = false
 icon = ExtResource("1_ypfod")
-tooltip = "When your power exceeds 10, gain 2 Strength"
+tooltip = "Once per turn, when your power exceeds 10, gain 2 Strength"
 tags = "Strength"

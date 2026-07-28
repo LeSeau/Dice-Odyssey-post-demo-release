@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://mytwqp3uoy55" path="res://smash_v2.png" id="1_pnvaa"]
 [ext_resource type="Script" path="res://characters/warrior/cards/smash.gd" id="1_qpkr0"]
 [ext_resource type="AudioStream" uid="uid://csxs8784ydfwg" path="res://kamikazesound.mp3" id="3_7ksx0"]
-[ext_resource type="Resource" path="res://characters/warrior/cards/card_smash_plus.tres" id="4_plus"]
+[ext_resource type="Resource" uid="uid://dbi3myfvf6q0v" path="res://characters/warrior/cards/card_smash_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("1_qpkr0")
@@ -11,7 +11,7 @@ id = "card_smash"
 name = "Smash"
 type = 0
 target = 1
-description = "Deal X2 damage"
+description = "Deal X2 damage. Apply Exposed 2"
 rarity = 0
 rarity_tier = 0
 red_only = false
@@ -22,7 +22,7 @@ exhausts = false
 bonus_requirement = 0
 bonus_requirement_number = 0
 bonus_description_text = ""
-tags = ""
+tags = "Exposed"
 upgraded = false
 upgraded_version = ExtResource("4_plus")
 icon = ExtResource("1_pnvaa")

@@ -21,7 +21,7 @@ func consume_stack() -> void:
             threshold_triggered = true
             var status_effect := StatusEffect.new()
             var muscle := MUSCLE_STATUS.duplicate()
-            muscle.stacks = 3
+            muscle.stacks = 2
             status_effect.status = muscle
             status_effect.execute([target])
             print("consuming stack of canalize!")

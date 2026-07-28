@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://4an2yp5ysxg3"]
+[gd_scene load_steps=16 format=3 uid="uid://4an2yp5ysxg3"]
 
 [ext_resource type="Script" path="res://scenes/enemy/enemy_action_picker.gd" id="1_l11im"]
 [ext_resource type="Script" path="res://enemies/leviathan/1.gd" id="2_m1cal"]
@@ -10,6 +10,7 @@
 [ext_resource type="Texture2D" path="res://block_icon_intent.png" id="6_l5rrt"]
 [ext_resource type="Texture2D" uid="uid://ckf4qt26na5g7" path="res://debuff_intent.png" id="6_y6hbq"]
 [ext_resource type="AudioStream" uid="uid://k8m4o3hlwm7l" path="res://art/enemy_block.ogg" id="10_ymuyf"]
+[ext_resource type="Script" path="res://enemies/leviathan/dicelord_dice_theft.gd" id="11_theft"]
 
 [sub_resource type="Resource" id="Resource_233wy"]
 script = ExtResource("4_fnptv")
@@ -25,6 +26,11 @@ icon = ExtResource("6_y6hbq")
 script = ExtResource("4_fnptv")
 base_text = "8"
 icon = ExtResource("6_l5rrt")
+
+[sub_resource type="Resource" id="Resource_theft"]
+script = ExtResource("4_fnptv")
+base_text = "%s"
+icon = ExtResource("6_y6hbq")
 
 [node name="LeviathanEnemyAi" type="Node"]
 script = ExtResource("1_l11im")
@@ -52,3 +58,9 @@ sound = ExtResource("10_ymuyf")
 type = 1
 chance_weight = 4.0
 action_id = "leviathan_block"
+
+[node name="dice_theft" type="Node" parent="."]
+script = ExtResource("11_theft")
+intent = SubResource("Resource_theft")
+sound = ExtResource("5_cidr0")
+action_id = "dicelord_dice_theft"

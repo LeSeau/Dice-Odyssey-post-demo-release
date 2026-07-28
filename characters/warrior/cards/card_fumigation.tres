@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://b6o1oh0tcvr7r" path="res://fumigation.png" id="1_do1wv"]
 [ext_resource type="Script" path="res://characters/warrior/cards/fumigation.gd" id="2_h0pl7"]
 [ext_resource type="AudioStream" uid="uid://bryyjsmk8fak6" path="res://detonationsound.mp3" id="3_qbo0w"]
-[ext_resource type="Resource" path="res://characters/warrior/cards/card_fumigation_plus.tres" id="4_plus"]
+[ext_resource type="Resource" uid="uid://mfehcxat26o0" path="res://characters/warrior/cards/card_fumigation_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_h0pl7")
@@ -17,7 +17,7 @@ rarity_tier = 0
 red_only = false
 can_play_without_dice = false
 requirement = 2
-requirement_number = 5
+requirement_number = 7
 exhausts = false
 bonus_requirement = 0
 bonus_requirement_number = 0

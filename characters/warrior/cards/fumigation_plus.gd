@@ -1,6 +1,6 @@
 extends Card
 func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
-    if Global.roll_value <= 7:
+    if meets_requirement():
 
         var hit_count = targets.size()
 

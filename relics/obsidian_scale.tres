@@ -12,5 +12,5 @@ has_counter = false
 counter = 0
 starter_relic = false
 icon = ExtResource("2_obsidian")
-tooltip = "At the start of your second turn, Charge 1 Evil Dice"
+tooltip = "At the start of your second turn, Charge 2 Evil Dice"
 tags = "Charge, Evil Dice"

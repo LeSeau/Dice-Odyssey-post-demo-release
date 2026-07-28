@@ -132,7 +132,7 @@ var mech_dice_bonus_amount_fight = 0
 var ink_active := false
 
 var charged_dice_this_turn := false
-var dice_amount_rolled_this_turn
+var dice_amount_rolled_this_turn = 0
 var dice_type = "blue"
 var current_card = null
 var charged_card_instance_id: int = 0
@@ -323,6 +323,11 @@ func is_dice_infused(dice_type: String) -> bool:
 
 var no_reset: bool = false
 
+# Trebuchet (Blessing): flat bonus added to every thrown die's landing damage for the
+# rest of the FIGHT. Reset by battle.gd::start_battle() alongside ink_active, and in
+# reset_run_state() for run hygiene.
+var thrown_dice_bonus_fight := 0
+
 var pending_card_rewards = 1
 var hound_debuff_attack_done = false
 var gargantua_debuff_attack_done = false
@@ -369,6 +374,7 @@ func reset_run_state() -> void:
     starting_power_next_turn = 0
     power_generated_this_turn = 0
     no_reset = false
+    thrown_dice_bonus_fight = 0
 
     ink_active = false
     charged_dice_this_turn = false

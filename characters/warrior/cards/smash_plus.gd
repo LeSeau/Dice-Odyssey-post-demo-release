@@ -4,7 +4,7 @@ const EXPOSED_STATUS = preload("res://statuses/exposed.tres")
 
 
 func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
-    if Global.roll_value > 9:
+    if meets_requirement():
         Events.reset_charged_card.emit()
         var damage_effect := DamageEffect.new()
         var base_damage = Global.roll_value * 2

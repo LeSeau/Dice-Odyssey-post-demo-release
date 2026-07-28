@@ -30,7 +30,7 @@ func apply_effects(targets: Array[Node], _modifiers: ModifierHandler) -> void:
 
 func get_dynamic_description(_modifiers: ModifierHandler, _target: Node = null) -> String:
     if is_inked():
-        return "Gain ? Strength"
+        return "Gain ? Strength. Exhaust"
     if not has_active_roll() or not meets_requirement():
-        return "Gain X Strength"
-    return "Gain %d Strength" % int(Global.roll_value)
+        return "Gain X Strength. Exhaust"
+    return "Gain %d Strength. Exhaust" % int(Global.roll_value)

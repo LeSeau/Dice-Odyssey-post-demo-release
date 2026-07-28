@@ -12,5 +12,5 @@ has_counter = false
 counter = 0
 starter_relic = false
 icon = ExtResource("2_trick")
-tooltip = "At the start of your third turn, Charge 1 Mech Dice"
+tooltip = "At the start of your third turn, Charge 2 Mech Dice"
 tags = "Charge, Mech Dice"

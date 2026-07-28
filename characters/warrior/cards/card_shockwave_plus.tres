@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5sw00000035"]
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://duayqgnodqnma"]
 
 [ext_resource type="Texture2D" uid="uid://cdiviwgxejgeu" path="res://electrify_v2.png" id="1_7m5d4"]
 [ext_resource type="Script" path="res://characters/warrior/cards/shockwave_plus.gd" id="2_jnug3"]
@@ -12,6 +12,7 @@ type = 0
 target = 1
 description = "Deal X damage. Does not reset your Power"
 rarity = 0
+rarity_tier = 1
 red_only = false
 can_play_without_dice = false
 requirement = 2

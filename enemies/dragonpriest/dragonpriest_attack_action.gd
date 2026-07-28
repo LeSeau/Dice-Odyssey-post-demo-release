@@ -1,10 +1,13 @@
 extends EnemyAction
 
-@export var damage := 13
+@export var damage := 11
 var base_damage = damage
 
+# Steady attack: explicitly always performable so the pick is rule-driven instead of
+# relying on the picker's anti-freeze get_child(0) fallback (2026-07-28 audit fix).
+# Turn 0 still goes to Canalize - the CONDITIONAL BuffAction wins before chance actions.
 func is_performable() -> bool:
-    return Global.fight_turn==0
+    return true
 
 
 func perform_action() -> void:

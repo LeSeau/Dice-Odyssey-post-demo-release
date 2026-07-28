@@ -5,7 +5,7 @@ extends Relic
 func activate_relic(owner: RelicUI) -> void:
     if Global.fight_turn == 1:
         owner.flash()
-        Global.evil_dice_current_amount += 1
+        Global.evil_dice_current_amount += 2
         Events.dice_roll_reset.emit()
         Events.dice_amount_changed.emit()
         Events.charge_dice_animation.emit()

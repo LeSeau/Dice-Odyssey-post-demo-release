@@ -139,6 +139,7 @@ func start_battle() -> void:
     Global.hound_debuff_attack_done = false
     Global.gargantua_debuff_attack_done = false
     Global.ink_active = false
+    Global.thrown_dice_bonus_fight = 0
     # battle_started MUST fire before the START_OF_COMBAT relic cascade below: that cascade
     # synchronously calls player_handler.start_battle() -> start_turn() -> emits
     # player_turn_started, which recomputes each dice type's current_amount from its
@@ -379,15 +380,28 @@ const SCOUT_PICK_FLIGHT_TIME := 0.45
 const SCOUT_PICK_ARC_LIFT := 60.0       # sideways bow of the pick's flight path
 const SCOUT_TRAIL_SPACING := 0.16       # eased-t gap between trail motes (~6 per flight, evenly spaced along the path)
 const SCOUT_PLUCK_SFX := preload("res://sfx/578807__nomiqbomi__pluck-1.mp3")  # same pluck as the power-orb landings
-const SCOUT_FACE_LOCKED_MODULATE := Color(0.45, 0.45, 0.45, 1.0)  # tutorial-locked face (see _make_scout_face_clickable)
+# Tutorial-only halo behind the ONE pickable face (see _highlight_scout_face). Gold, like every
+# other TutorialOverlay "look here" callout - but noticeably hotter than the overlay's own glow,
+# because this one is additive over the panel's dark teal instead of over a dimmed screen.
+const SCOUT_HIGHLIGHT_COLOR := Color(1.0, 0.82, 0.3, 1.0)
+const SCOUT_HIGHLIGHT_DIAMETER := 100.0  # ~2x a 50px face, so it reads as a ring AROUND the die rather than a wash over it
+const SCOUT_HIGHLIGHT_ALPHA_LOW := 0.4
+const SCOUT_HIGHLIGHT_ALPHA_HIGH := 0.95
+const SCOUT_HIGHLIGHT_PULSE_TIME := 0.7
 
 var _scout_tweens: Array[Tween] = []
 var _scout_pick_in_progress := false
+var _scout_highlight: TextureRect = null
+var _scout_highlight_tween: Tween = null
 # Same soft-radial + additive-blend recipe as dice.gd's power orbs (those caches are instance
 # state on the Dice control, so they're rebuilt here) - the scout motes must read as the same
 # magic that charges the die, just pointed at the future instead of the Power number.
 var _scout_glow_texture: GradientTexture2D
 var _scout_glow_material: CanvasItemMaterial
+# Separate from the mote texture above: the motes want a plain center-out falloff, the halo
+# wants to stay near-solid out to the die's edge and only THEN taper, so the visible part
+# (the ring peeking out around a 50px die inside a 100px rect) isn't already half faded.
+var _scout_halo_texture: GradientTexture2D
 
 # Widens the panel/dice row for Scout variants with more than 3 options (e.g. Scout 5) so the
 # extra faces don't overflow the originally 3-option-sized layout. Centered on the panel's
@@ -413,6 +427,7 @@ func _on_scout_effect(amount: int) -> void:
     var sfx_scout = preload("res://sfx/153724__carlos_vaquero__violoncello-snap-pizzicato-11.wav")
     SFXPlayer.play(sfx_scout)
     _kill_scout_tweens()
+    clear_scout_highlight()
     _scout_pick_in_progress = false
     # Cartographer's Quill adds Global.scout_bonus_amount extra faces - clamped
     # to the panel's 6 hardcoded slots either way (bumped from 5 specifically so a
@@ -564,11 +579,54 @@ var tutorial_scout_allowed_index := -1
 
 func _make_scout_face_clickable(face: TextureRect) -> void:
     if tutorial_scout_allowed_index >= 0 and scout_faces.find(face) != tutorial_scout_allowed_index:
-        # Left un-clickable, and dimmed so it reads as locked rather than as a dead click.
-        # Brightness multiply, not an alpha fade - same dimming convention as unplayable cards.
-        face.modulate = SCOUT_FACE_LOCKED_MODULATE
+        # Left un-clickable but deliberately NOT dimmed (Julien, 2026-07-28): greying the losing
+        # faces made them read as broken/disabled by the game rather than as "the tutorial wants
+        # the other one". They stay exactly as bright as any normal Scout option; the whole
+        # affordance is carried by the halo on the pickable one instead.
         return
     face.mouse_filter = Control.MOUSE_FILTER_STOP
+    if tutorial_scout_allowed_index >= 0:
+        _highlight_scout_face(face)
+
+
+# Pulsing halo marking the tutorial's one pickable face. Parented to the FACE with
+# show_behind_parent so it needs no layout math (the HBox's positions only settle at end of
+# frame) and inherits the face's own reveal/close tweens for free - critically, it never
+# touches face.modulate or face.scale, which the reveal and close animations own.
+func _highlight_scout_face(face: TextureRect) -> void:
+    clear_scout_highlight()
+    var glow := TextureRect.new()
+    glow.texture = _get_scout_halo_texture()
+    glow.material = _get_scout_glow_material()
+    glow.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    glow.stretch_mode = TextureRect.STRETCH_SCALE
+    glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    glow.show_behind_parent = true
+    glow.size = Vector2(SCOUT_HIGHLIGHT_DIAMETER, SCOUT_HIGHLIGHT_DIAMETER)
+    glow.pivot_offset = glow.size / 2.0
+    var face_size: Vector2 = face.size if face.size != Vector2.ZERO else Vector2(SCOUT_DICE_SIZE, SCOUT_DICE_SIZE)
+    glow.position = face_size / 2.0 - glow.size / 2.0
+    glow.modulate = Color(SCOUT_HIGHLIGHT_COLOR.r, SCOUT_HIGHLIGHT_COLOR.g, SCOUT_HIGHLIGHT_COLOR.b, SCOUT_HIGHLIGHT_ALPHA_LOW)
+    face.add_child(glow)
+    _scout_highlight = glow
+
+    _scout_highlight_tween = create_tween().set_loops()
+    _scout_highlight_tween.tween_property(glow, "modulate:a", SCOUT_HIGHLIGHT_ALPHA_HIGH, SCOUT_HIGHLIGHT_PULSE_TIME) \
+        .set_trans(Tween.TRANS_SINE)
+    _scout_highlight_tween.tween_property(glow, "modulate:a", SCOUT_HIGHLIGHT_ALPHA_LOW, SCOUT_HIGHLIGHT_PULSE_TIME) \
+        .set_trans(Tween.TRANS_SINE)
+
+
+# Deliberately NOT part of _scout_tweens: the halo is freed outright rather than left mid-pulse,
+# and it must also be killable from the TutorialDirector (step advance / Skip) without touching
+# the panel's own open/close tweens.
+func clear_scout_highlight() -> void:
+    if _scout_highlight_tween and _scout_highlight_tween.is_valid():
+        _scout_highlight_tween.kill()
+    _scout_highlight_tween = null
+    if is_instance_valid(_scout_highlight):
+        _scout_highlight.queue_free()
+    _scout_highlight = null
 
 
 # Rising arpeggio, one pluck per revealed face - same sample as the power-orb landings so
@@ -633,6 +691,7 @@ func _spawn_scout_open_motes(visible_count: int) -> void:
 # close, just immediate and with nothing excluded.
 func _close_scout_panel(picked_face: TextureRect = null) -> void:
     _kill_scout_tweens()
+    clear_scout_highlight()
     if picked_face:
         # Alpha instead of hide() - hiding would re-flow the HBoxContainer and shift the
         # remaining faces sideways mid-close.
@@ -775,6 +834,26 @@ func _get_scout_glow_texture() -> GradientTexture2D:
     tex.fill_to = Vector2(1.0, 0.5)
     _scout_glow_texture = tex
     return _scout_glow_texture
+
+
+func _get_scout_halo_texture() -> GradientTexture2D:
+    if _scout_halo_texture:
+        return _scout_halo_texture
+    var gradient := Gradient.new()
+    gradient.set_color(0, Color(1, 1, 1, 1))
+    gradient.set_color(1, Color(1, 1, 1, 0))
+    # A 50px die inside a 100px rect covers everything out to t=0.5, so the plateau ends right
+    # where the die does - the whole taper happens in the band the player can actually see.
+    gradient.add_point(0.52, Color(1, 1, 1, 0.95))
+    var tex := GradientTexture2D.new()
+    tex.gradient = gradient
+    tex.width = 64
+    tex.height = 64
+    tex.fill = GradientTexture2D.FILL_RADIAL
+    tex.fill_from = Vector2(0.5, 0.5)
+    tex.fill_to = Vector2(1.0, 0.5)
+    _scout_halo_texture = tex
+    return _scout_halo_texture
 
 
 func _get_scout_glow_material() -> CanvasItemMaterial:

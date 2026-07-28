@@ -284,7 +284,8 @@ func _on_thrown_die_landed(tree: SceneTree, target: Node, damage: int, hit_sound
             return
         final_target = alive[randi() % alive.size()]
     var die_hit := DamageEffect.new()
-    die_hit.amount = damage
+    # Trebuchet: per-fight flat bonus on every thrown die's landing hit.
+    die_hit.amount = damage + Global.thrown_dice_bonus_fight
     die_hit.sound = hit_sound
     # Number pops where the die smashed (torso), not at the enemy root - with sequenced
     # volleys, each impact owning its own popup spot is what makes "this die dealt this"

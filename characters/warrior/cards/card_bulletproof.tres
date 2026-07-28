@@ -1,0 +1,30 @@
+[gd_resource type="Resource" load_steps=5 format=3 uid="uid://b316acidnpxbg"]
+
+[ext_resource type="Texture2D" uid="uid://kcjvtkdjfj6x" path="res://bolster_v2.png" id="1_icon"]
+[ext_resource type="Script" path="res://characters/warrior/cards/bulletproof.gd" id="2_script"]
+[ext_resource type="AudioStream" uid="uid://df64e7qat73gs" path="res://art/block.ogg" id="3_sound"]
+[ext_resource type="Resource" uid="uid://c4bltpplus81x" path="res://characters/warrior/cards/card_bulletproof_plus.tres" id="4_plus"]
+
+[resource]
+script = ExtResource("2_script")
+id = "card_bulletproof"
+name = "Bulletproof"
+type = 1
+target = 0
+description = "Block X2"
+rarity = 0
+rarity_tier = 1
+red_only = true
+can_play_without_dice = false
+requirement = 5
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = ""
+upgraded = false
+upgraded_version = ExtResource("4_plus")
+icon = ExtResource("1_icon")
+tooltip_text = ""
+sound = ExtResource("3_sound")
