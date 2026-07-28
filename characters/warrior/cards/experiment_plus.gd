@@ -1,69 +1,36 @@
 extends Card
 
-# Pool dédié aux cartes support générées
-var support_pool: CardPile = preload("res://characters/warrior/warrior_draftable_support_cards.tres") as CardPile
+# Upgraded Experiment: same X damage as the base card (the old "+3" is gone -
+# the upgrade is now the second Charge), then Charge 2 random Dice. The two
+# picks are independent, so the same type can come up twice (same as
+# WarRitualStatus). See experiment.gd for the shared conventions.
+
+const CHARGE_TYPES := ["blue", "red", "green", "giant", "magma", "even", "odd", "mech", "evil"]
+const CHARGE_COUNT := 2
 
 
 func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
-
-    # ------------------------
-    # Deal damage
-    # ------------------------
     var damage_effect := DamageEffect.new()
-    var base_damage: int = Global.roll_value + 3
-
-    damage_effect.amount = modifiers.get_modified_value(
-        base_damage,
-        Modifier.Type.DMG_DEALT
-    )
-
+    damage_effect.amount = modifiers.get_modified_value(Global.roll_value, Modifier.Type.DMG_DEALT)
     damage_effect.sound = sound
     damage_effect.execute(targets)
 
+    for i in CHARGE_COUNT:
+        var chosen: String = CHARGE_TYPES[randi() % CHARGE_TYPES.size()]
+        var prop := chosen + "_dice_current_amount"
+        Global.set(prop, int(Global.get(prop)) + 1)
+        Events.temporary_dice_added.emit(chosen)
+    Events.charge_dice_animation.emit()
+    Events.dice_amount_changed.emit()
 
-    # ------------------------
-    # Generate random support card
-    # ------------------------
-    var support_card: Card = get_random_support_card()
-
-    if support_card != null:
-        Events.add_card_to_hand_requested.emit(support_card)
-
-
-    # ------------------------
-    # Reset dice state
-    # ------------------------
     Events.dice_roll_reset.emit()
     Events.reset_charged_card.emit()
 
 
-
-func get_random_support_card() -> Card:
-
-    # Safety check
-    if support_pool == null:
-        push_error("Support pool is null")
-        return null
-
-    if support_pool.cards.is_empty():
-        push_error("Support pool is empty")
-        return null
-
-
-    # Pick random support card
-    var new_card: Card = support_pool.cards.pick_random().duplicate() as Card
-
-
-    # Make it temporary
-    new_card.exhausts = true
-
-
-    return new_card
-
 func get_dynamic_description(modifiers: ModifierHandler, target: Node = null) -> String:
     if is_inked():
-        return "Deal ? damage. Gain a random Support card"
+        return "Deal ? damage. Charge 2 random Dice"
     if not has_active_roll():
-        return "Deal X+3 damage. Gain a random Support card"
-    var total := apply_target_modifier(modifiers.get_modified_value(Global.roll_value + 3, Modifier.Type.DMG_DEALT), target)
-    return "Deal %d damage. Gain a random Support card" % total
+        return "Deal X damage. Charge 2 random Dice"
+    var total := apply_target_modifier(modifiers.get_modified_value(Global.roll_value, Modifier.Type.DMG_DEALT), target)
+    return "Deal %d damage. Charge 2 random Dice" % total

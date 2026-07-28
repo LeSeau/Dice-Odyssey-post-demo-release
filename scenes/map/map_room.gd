@@ -24,7 +24,11 @@ const ICONS := {
     # it at ~2133, mid-pack, without touching the art itself.
     Room.Type.ELITE: [preload("res://elite_fight_icon_v2.png"), Vector2(1.05, 1.05)],
     Room.Type.CAMPFIRE: [preload("res://campfire_icon_v2.png"), Vector2(0.457, 0.457)],
-    Room.Type.TREASURE: [preload("res://treasurenobg.png"), Vector2(0.91, 0.91)],
+    # Deliberately NOT the same file as the treasure room's chest (treasurenobg.png).
+    # The room needs a matched closed/open pair for its opening animation, and only a
+    # closed version of this brighter chest exists - so the map gets the new art and the
+    # room keeps its matching pair until an open version is made.
+    Room.Type.TREASURE: [preload("res://treasure_icon_v2.png"), Vector2(0.432, 0.432)],
     Room.Type.SHOP: [preload("res://shop_icon_v3.png"), Vector2(0.458, 0.458)],
     Room.Type.BOSS: [preload("res://boss_icon_v3.png"), Vector2.ONE],
     # v10 = carved wooden "?" (2026-07-27). The "?" IS the silhouette here, which is what

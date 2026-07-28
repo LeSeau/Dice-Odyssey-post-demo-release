@@ -2,12 +2,12 @@
 
 [ext_resource type="Texture2D" uid="uid://d0edy7thj8ce6" path="res://art/heart.png" id="1_0vhk3"]
 [ext_resource type="Script" path="res://scenes/status_handler/status_ui.gd" id="1_5tjqe"]
-[ext_resource type="FontVariation" path="res://fonts/luckiest_guy_numbers.tres" id="3_statnum"]
+[ext_resource type="FontVariation" path="res://fonts/roboto_status_numbers.tres" id="3_statnum"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_gwb6o"]
 font = ExtResource("3_statnum")
-font_size = 16
-outline_size = 4
+font_size = 13
+outline_size = 3
 outline_color = Color(0, 0, 0, 1)
 
 [node name="StatusUI" type="Control"]
@@ -27,24 +27,24 @@ stretch_mode = 5
 
 [node name="Duration" type="Label" parent="."]
 layout_mode = 0
-offset_left = 9.0
-offset_top = 9.0
-offset_right = 37.0
-offset_bottom = 37.0
+offset_left = 2.0
+offset_top = 15.0
+offset_right = 30.0
+offset_bottom = 30.0
 text = "99"
 label_settings = SubResource("LabelSettings_gwb6o")
-horizontal_alignment = 1
+horizontal_alignment = 2
 vertical_alignment = 1
 
 [node name="Stacks" type="Label" parent="."]
 layout_mode = 0
-offset_left = 9.0
-offset_top = 9.0
-offset_right = 37.0
-offset_bottom = 37.0
+offset_left = 2.0
+offset_top = 15.0
+offset_right = 30.0
+offset_bottom = 30.0
 text = "99"
 label_settings = SubResource("LabelSettings_gwb6o")
-horizontal_alignment = 1
+horizontal_alignment = 2
 vertical_alignment = 1
 
 [connection signal="mouse_entered" from="Icon" to="." method="_on_icon_mouse_entered"]

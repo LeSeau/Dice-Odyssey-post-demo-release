@@ -1,6 +1,34 @@
-# Map icon regeneration prompts (2026-07-26)
+# Map icon regeneration prompts (2026-07-26 → 27)
 
 Every prompt below is **complete and self-contained** — copy one, paste it, generate. No assembly.
+
+## Status of the set
+
+| icon | state | live file | mult |
+|---|---|---|---|
+| fight | ✅ replaced (round 7) | `fight_icon_v3.png` | 0.415 |
+| campfire | ✅ replaced (round 5) | `campfire_icon_v2.png` | 0.457 |
+| shop | ✅ replaced (round 6) | `shop_icon_v3.png` | 0.458 |
+| event | ✅ replaced (rounds 4 + 8) | `event_icon_v11.png` | 0.441 |
+| elite | ✅ kept, resized only | `elite_fight_icon_v2.png` | 1.05 |
+| boss | ✅ kept, Julien's call — do not re-propose | `boss_icon_v3.png` | 1.0 |
+| treasure | ⏳ **only one still open** — see §7b | `treasurenobg.png` | 0.91 |
+
+**The four rules every failure in this file reduces to**, worth re-reading before any new generation:
+
+1. **The meaning must BE the silhouette**, not a detail painted on a bigger object. Killed the
+   signposts, the scrolls, the die-in-eye-socket and the die-in-helmet-dent.
+2. **No large pale or cream areas.** The map is cream parchment. Killed the scrolls (22–25% of
+   pixels camouflaged) and the bright skull (27–37%, the worst result recorded).
+3. **Two contrasting materials, not one.** Paper-separation and internal legibility are independent:
+   the leather satchel had the *best* separation ever measured (0% camouflaged) and still failed,
+   because one uniform brown mass has nothing to read inside it at 60px.
+4. **Judge against the set, not in isolation.** The charcoal event die was fine alone but was the
+   only desaturated icon (0.39 vs 0.74–0.91) on a screen showing all six at once.
+
+And the meta-lesson: **measure the incumbent before hunting for a replacement.** The original fight
+icon already had the best internal contrast in the set; three rounds were spent looking for a
+replacement when the answer was to repaint it.
 
 > ## ⚠️ Round 1 result — read this before generating the event icon again
 >
@@ -350,7 +378,54 @@ Square image.
 
 ---
 
-## 7. ELITE and TREASURE — deliberately not rewritten
+## 7b. TREASURE — the last outlier (round 8)
+
+Once the other five were rebuilt, treasure became the measurably weakest icon in the set:
+**internal contrast 42.3**, against 50.3–58.9 for everything else, and the darkest at mean luminance
+51. The cause is visible at 3× — it is brown-on-brown: chest body, bands and emblem all sit in one
+material family, where every other icon pairs two contrasting materials (blue+gold, teal+gold,
+purple+gold, orange+wood, crimson+gold).
+
+**The fix is the same structural one that rescued the shop: two contrasting masses.** Open the chest
+so dark wood sits against bright gold, instead of one closed brown block.
+
+**⚠️ And keep it from rhyming with the shop pouch**, which is also "container + gold". Separation
+comes from two places: silhouette (angular chest with a raised lid vs soft rounded pouch) and
+contents — the treasure room awards a **relic**, so a glowing gem reads more accurately than loose
+coins *and* keeps the two icons distinct.
+
+### Option A — open chest with a glowing relic *(recommended: semantically right, and the glow lifts it out of being the darkest icon)*
+
+```
+An open wooden treasure chest seen at a slight angle, its lid raised, with an ornate golden amulet
+holding a large glowing gem resting inside on a small pile of gold coins. The chest is dark walnut
+wood with black iron bands and corner fittings; the contents are bright warm gold with a soft glow
+spilling up out of the open lid. Strong contrast between the dark chest and the bright glowing
+interior. Angular boxy silhouette with a clearly raised lid. Game map icon: single centered object,
+3/4 view with a slight top-down angle, hand-painted cel-shaded fantasy style with 2-3 flat tone steps
+and no soft airbrush gradients, thick dark brown outline around the whole silhouette, crisp rim
+highlight along the upper edges. Chunky readable shape, bold and simple enough to stay legible when
+shrunk to a small icon. Flat solid magenta background. No shadow, no text, no border, no scenery.
+Square image.
+```
+
+### Option B — overflowing chest *(if it should read "loot" more than "one relic")*
+
+```
+An open wooden treasure chest seen at a slight angle, lid thrown back, overflowing with bright gold
+coins that spill over the front edge, with two or three coloured gemstones glinting among them. The
+chest is dark walnut wood with black iron bands and corner fittings; the treasure is vivid warm gold.
+Strong contrast between the dark chest and the bright gold pouring out. Angular boxy silhouette with a
+clearly raised lid. Game map icon: single centered object, 3/4 view with a slight top-down angle,
+hand-painted cel-shaded fantasy style with 2-3 flat tone steps and no soft airbrush gradients, thick
+dark brown outline around the whole silhouette, crisp rim highlight along the upper edges. Chunky
+readable shape, bold and simple enough to stay legible when shrunk to a small icon. Flat solid magenta
+background. No shadow, no text, no border, no scenery. Square image.
+```
+
+---
+
+## 7. ELITE — kept, but resized
 
 Elite is the one you liked and treasure is the one you called okay; together they set the bar every
 prompt here aims at. Leave them until the rest are done, then look at the set as a whole — if the new

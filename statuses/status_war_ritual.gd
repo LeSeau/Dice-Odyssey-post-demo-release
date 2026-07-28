@@ -7,7 +7,7 @@ extends Status
 # player_turn_started; statuses apply on the deferred relic->status tween chain), so the
 # charged dice are never wiped by the refill.
 
-const CHARGE_TYPES := ["blue", "red", "green", "giant", "magma", "even", "odd", "mech"]
+const CHARGE_TYPES := ["blue", "red", "green", "giant", "magma", "even", "odd", "mech", "evil"]
 const CHARGE_SOUND := preload("res://chargedicesound.mp3")
 
 

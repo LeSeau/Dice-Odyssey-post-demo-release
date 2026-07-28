@@ -1,8 +1,8 @@
 extends Card
 
-const ALL_DICE_TYPES := ["blue", "red", "green", "giant", "magma", "even", "odd", "mech"]
+const ALL_DICE_TYPES := ["blue", "red", "green", "giant", "magma", "even", "odd", "mech", "evil"]
 
-func apply_effects(targets: Array [Node], _modifiers: ModifierHandler) -> void:
+func apply_effects(targets: Array[Node], _modifiers: ModifierHandler) -> void:
     var block_effect := BlockEffect.new()
     block_effect.amount = Global.roll_value
     block_effect.sound = sound

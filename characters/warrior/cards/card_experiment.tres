@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://cpf74hkdrce83" path="res://preparation.png" id="1_1tp7t"]
 [ext_resource type="Script" path="res://characters/warrior/cards/experiment.gd" id="2_44p8l"]
 [ext_resource type="AudioStream" uid="uid://bmk6ieyjgirsp" path="res://laughsound.mp3" id="3_mu71l"]
-[ext_resource type="Resource" path="res://characters/warrior/cards/card_experiment_plus.tres" id="4_plus"]
+[ext_resource type="Resource" uid="uid://dk3sk0tsj31e8" path="res://characters/warrior/cards/card_experiment_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_44p8l")
@@ -11,7 +11,7 @@ id = "card_experiment"
 name = "Experiment"
 type = 0
 target = 1
-description = "Deal X damage. Gain a random Support card"
+description = "Deal X damage. Charge a random Dice"
 rarity = 0
 rarity_tier = 0
 red_only = false
@@ -22,7 +22,7 @@ exhausts = false
 bonus_requirement = 0
 bonus_requirement_number = 0
 bonus_description_text = ""
-tags = "Support"
+tags = "Charge"
 upgraded = false
 upgraded_version = ExtResource("4_plus")
 icon = ExtResource("1_1tp7t")

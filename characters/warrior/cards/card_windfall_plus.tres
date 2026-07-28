@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://bw1ndf4llpls1"]
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://nm2s03nfn7o1"]
 
 [ext_resource type="Texture2D" uid="uid://bhqtxybmbfujk" path="res://high_roller.png" id="1_icon"]
 [ext_resource type="Script" path="res://characters/warrior/cards/windfall_plus.gd" id="2_script"]
@@ -11,7 +11,7 @@ name = "Windfall+"
 type = 1
 target = 0
 description = "Throw a Blue Dice: draw cards equal to its roll"
-rarity = 1
+rarity = 0
 rarity_tier = 1
 red_only = false
 can_play_without_dice = false

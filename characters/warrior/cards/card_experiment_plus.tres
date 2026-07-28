@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5ex00000045"]
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://dk3sk0tsj31e8"]
 
 [ext_resource type="Texture2D" uid="uid://cpf74hkdrce83" path="res://preparation.png" id="1_1tp7t"]
 [ext_resource type="Script" path="res://characters/warrior/cards/experiment_plus.gd" id="2_44p8l"]
@@ -10,8 +10,9 @@ id = "card_experiment_plus"
 name = "Experiment+"
 type = 0
 target = 1
-description = "Deal X+3 damage. Gain a random Support card"
+description = "Deal X damage. Charge 2 random Dice"
 rarity = 0
+rarity_tier = 0
 red_only = false
 can_play_without_dice = false
 requirement = 0
@@ -20,7 +21,7 @@ exhausts = false
 bonus_requirement = 0
 bonus_requirement_number = 0
 bonus_description_text = ""
-tags = "Support"
+tags = "Charge"
 upgraded = true
 icon = ExtResource("1_1tp7t")
 tooltip_text = ""

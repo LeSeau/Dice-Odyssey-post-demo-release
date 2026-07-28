@@ -1,6 +1,6 @@
 extends Relic
 
-const ALL_DICE_TYPES := ["blue", "red", "green", "giant", "magma", "even", "odd", "mech"]
+const ALL_DICE_TYPES := ["blue", "red", "green", "giant", "magma", "even", "odd", "mech", "evil"]
 
 func initialize_relic(owner: RelicUI) -> void:
     Events.card_played.connect(_on_card_played.bind(owner))

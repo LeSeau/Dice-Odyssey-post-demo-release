@@ -430,7 +430,10 @@ func _player_block_rect() -> Rect2:
     var p := _player()
     if not p or _player_block() <= 0:
         return Rect2()
-    var badge := p.get_node_or_null("StatsUI/Block") as Control
+    # The badge now hangs off the left edge of the health bar itself (it used to be a
+    # sibling of Health pulled over the bar by a negative HBox separation), so it lives
+    # one level deeper than it did.
+    var badge := p.get_node_or_null("StatsUI/Health/HealthBar/Block") as Control
     if not badge:
         return Rect2()
     return Rect2(_world_to_screen(badge.global_position), badge.size)

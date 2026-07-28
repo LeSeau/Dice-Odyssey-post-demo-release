@@ -6,7 +6,7 @@ extends Status
 # visual convention as the other Blessing statuses. First payout arrives at the start of
 # the NEXT turn after playing the card, same cadence as Steady Hand/Cogwork.
 
-const CHARGE_TYPES := ["blue", "red", "green", "giant", "magma", "even", "odd", "mech"]
+const CHARGE_TYPES := ["blue", "red", "green", "giant", "magma", "even", "odd", "mech", "evil"]
 const CHARGE_SOUND := preload("res://chargedicesound.mp3")
 
 

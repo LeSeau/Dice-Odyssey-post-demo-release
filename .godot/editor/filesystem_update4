@@ -230,3 +230,8 @@ res://scenes/events/events_stats_pool.tres
 res://scenes/events/event_fountain_heal.tres
 res://scenes/events/event_fountain_heal.gd
 res://scenes/events/event_golden_die_shrine.tscn
+res://scenes/treasure/treasure.tscn
+res://characters/warrior/cards/reinforce_plus.tres
+res://characters/warrior/cards/card_coiled_spring_plus.tres
+res://characters/warrior/cards/card_windfall_plus.tres
+res://characters/warrior/cards/card_experiment_plus.tres
