@@ -12,13 +12,20 @@ Owner tags: **[J]** = Julien, **[C]** = Claude, **[J→C]** = Julien decides/pro
 - Tested by Julien: 9 dice infusions, achievements, exhaust pile placement, card animations, fountain heal event
 - Audio placeholders replaced: Evil crack (glass sound), orb-landing SFX, achievement jingle
 - Dice Shop icon replaced
+- **No-reset card disclosure — audited 2026-07-28, NOT a problem (this P0 was based on a bad count).**
+  The original "47 cards, only 2 disclose" figure counted the `Card.Rarity.SUPPORT` flag, which does
+  NOT mean "doesn't reset Power" (it only drives the red-socket glow, `hand.gd:325`). Re-audited by
+  actual `dice_roll_reset.emit()` behaviour across all 180 card resources (81 draftable + their `+`
+  versions + starters, comments stripped): **38 no-reset entries, and every one of them tells the
+  player** via at least one of — Celestial styling, naming Power in its text ("Add 4 to your Power",
+  "Triple your Power"), saying Refuel, or saying "Does not reset your Power" outright. The single
+  hole was **Coiled Spring / Coiled Spring+**, which lost its only tell when it stopped being
+  Celestial on 07-25 — Julien's call was to make it reset instead (done, see CLAUDE.md TL;DR).
+  Requirement-gated cards whose reset sits inside an `if` (Bullseye, Aegis, Duo…) are not a gap:
+  whiffing the requirement does nothing at all, and the requirement badge already says so.
 
 ## P0 — do before posting
 
-- [ ] **No-reset card visibility** — 47 support-type cards, only 2 say they don't reset Power.
-      Biggest confusion/rage-quit risk for new players. **[J→C]** Julien picks the visual language
-      (auto-tooltip on hover via `Card.Rarity.SUPPORT` flag + an always-visible marker: banner
-      accent / pip icon / other), Claude implements in BOTH card UIs (`card_ui.gd` + `card_menu_ui.gd`).
 - [ ] **Web build weight** — 372 images over 1MB (card art ~3MB each, `evil0.png` 7.5MB).
       Itch load time = bounce rate. **[C]** Scripted downscale to ~2× display size + recompress,
       verified with `debug_bg_audit` before/after renders. `--headless --import` after overwriting.
