@@ -20,5 +20,5 @@ func get_dynamic_description(_modifiers: ModifierHandler, _target: Node = null) 
     if is_inked():
         return "Block ?. If you rolled more than 1 Dice, deal 5 damage to all enemies"
     if not has_active_roll():
-        return "Block X. If you rolled more than 1 Dice, deal 5 damage to all enemies"
-    return "Block %d. If you rolled more than 1 Dice, deal 5 damage to all enemies" % Global.roll_value
+        return "Gain X Block. If you rolled more than 1 Dice, deal 5 damage to all enemies"
+    return "Gain X Block (%d). If you rolled more than 1 Dice, deal 5 damage to all enemies" % Global.roll_value

@@ -32,10 +32,10 @@ func _has_pair() -> bool:
 
 func get_dynamic_description(modifiers: ModifierHandler, target: Node = null) -> String:
     if is_inked():
-        return "Deal ? damage. If you have two identical rolls in your current power, deal ? damage again and Charge 1"
+        return "Deal ? damage. If you have two identical rolls in your current Power, deal ? damage again and Charge 1"
     if not has_active_roll():
-        return "Deal X damage. If you have two identical rolls in your current power, deal X damage again and Charge 1"
+        return "Deal X damage. If you have two identical rolls in your current Power, deal X damage again and Charge 1"
     var total := apply_target_modifier(modifiers.get_modified_value(Global.roll_value, Modifier.Type.DMG_DEALT), target)
     if _has_pair():
         return "Deal %d damage, then %d damage again (pair found). Charge 1" % [total, total]
-    return "Deal %d damage (no pair yet in your current power)" % total
+    return "Deal %d damage (no pair yet in your current Power)" % total

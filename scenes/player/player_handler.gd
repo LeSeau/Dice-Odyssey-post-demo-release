@@ -7,15 +7,24 @@ const HAND_DISCARD_INTERVAL := 0.25
 # Forced opening hands for the 3 scripted tutorial turns (tutorial_redesign_2026-07.md
 # §3/§6.B.3), keyed by Global.fight_turn at the moment _force_tutorial_hand() runs (0 = turn
 # 1, 1 = turn 2, 2 = turn 3 - fight_turn increments in end_turn(), so start_turn() always
-# sees the turn that's ABOUT to begin). cards_per_turn is 5, and each turn's script uses
-# only 4 of them, so ONE card is always left in hand at End Turn - that spare must never be
-# a Strike. The Skeleton is deliberately left at exactly 6 HP entering turn 3 (the scripted
-# Scout->guaranteed-6->Strike finale), so a spare Strike + the fresh Red Dice would be an
-# obvious "socket it, roll a 6, kill him now" that both tempts the player and would preempt
-# the finale. Turn 2's spare is therefore a second Block (self-target, can't touch the
-# enemy). Turn 3 only forces Scout 3 + one Strike; by then some Strike/Block copies have
-# cycled into the discard, so _force_tutorial_hand() searches BOTH piles (the rest of turn
-# 3's hand is a genuine reshuffle draw, gated anyway so it never matters which cards land).
+# sees the turn that's ABOUT to begin). cards_per_turn is 5, so every turn deals a normal
+# 5-card hand - all three turns list all 5, and the spares are chosen as carefully as the
+# cards the script actually uses.
+#
+# Turns 1-2 each use only 4 of their 5, so ONE card is always left in hand at End Turn, and
+# that spare must never be a Strike: the Skeleton is deliberately left at exactly 9 HP
+# entering turn 3 (the scripted Scout->guaranteed-3->Low Blow finale), so a spare Strike +
+# the fresh Red Dice would be an obvious "socket it, roll high, kill him now" that both
+# tempts the player and would preempt the finale. Turn 2's spare is therefore a second Block
+# (self-target, can't touch the enemy).
+#
+# Turn 3 pins all 5: Scout 3 + Low Blow (the finale) + exactly ONE Strike, which is there on
+# purpose as the tempting-but-losing option (it tops out at 5 damage against 9 HP), padded
+# with two Blocks. The padding is what matters - left to a genuine reshuffle draw, Reinforce
+# and Recombobulate turn up at the exact moment the lesson is "you cannot power through
+# this", and either one hands the player a way to argue otherwise. Blocks are inert here:
+# self-target, and the incoming hit is unblockable anyway. By turn 3 every starter copy has
+# cycled through the discard at least once, so _force_tutorial_hand() searches BOTH piles.
 const TUTORIAL_HAND_BY_TURN := {
     0: [
         "res://characters/warrior/cards/warrior_axe_attack2.tres",
@@ -35,6 +44,8 @@ const TUTORIAL_HAND_BY_TURN := {
         "res://characters/warrior/cards/card_scout3_no_exhaust.tres",
         "res://characters/warrior/cards/low_blow.tres",
         "res://characters/warrior/cards/warrior_axe_attack2.tres",
+        "res://characters/warrior/cards/warrior_block1.tres",
+        "res://characters/warrior/cards/warrior_block3.tres",
     ],
 }
 
@@ -112,6 +123,7 @@ func _force_tutorial_hand() -> void:
         character.discard.remove_card(forced_card)
     for i in range(forced_cards.size() - 1, -1, -1):
         character.draw_pile.cards.push_front(forced_cards[i])
+
 
 func end_turn() -> void:
     Events.clear_socket.emit()

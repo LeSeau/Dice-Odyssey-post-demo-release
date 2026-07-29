@@ -17,6 +17,24 @@ extends RefCounted
 # "important" accents (tooltip title, Card.RARITY_COLORS' Support entry).
 const KEYWORD_HIGHLIGHT_COLOR := "FFD700"
 
+# --- Power glyph (2026-07-29) ---
+# The Power resource gets an inline icon in card/relic text: the standalone "X" placeholder
+# ("Deal X damage", "Block X2") always renders as the glyph, and the word "Power" renders
+# according to power_glyph_mode below. The glyph asset is near-monochrome warm gold so it can
+# be [img color=...]-tinted later without regenerating art.
+# NOTE: this happens at colorize() time, NEVER in the .tres descriptions themselves -
+# card_ui/card_menu_ui measure the RAW description length for their font step-down BEFORE
+# colorizing, so BBCode injected here doesn't skew that measurement (verified in-engine).
+const POWER_GLYPH_PATH := "res://power_glyph.png"
+
+enum PowerGlyphMode {
+    OFF,               # plain text, pre-glyph behavior
+    WORD_WITH_GLYPH,   # "your Power" -> "your [glyph] Power" (gold word) - teaching mode
+    GLYPH_ONLY,        # "your Power" -> "your [glyph]" - full symbol mode (MTG-style)
+}
+# static var (not const) so harnesses can flip modes at runtime for side-by-side renders.
+static var power_glyph_mode := PowerGlyphMode.WORD_WITH_GLYPH
+
 # Recognized keywords eligible for highlighting - mirrors the same tag strings the hover-tooltip
 # system already reads in tooltip.gd::get_tooltip_content(), so tagging a card/relic for
 # tooltip purposes also makes it eligible for colorized keywords, with no separate bookkeeping.
@@ -71,7 +89,7 @@ const DICE_TOOLTIP_TEXT := {
     "Evil Dice": "Faces: 6, 6, 6, 0",
     "Giant Dice": "Faces: 1-12",
     "Magma Dice": "Faces: 1-6. Deals X damage to ALL enemies every roll.",
-    "Mech Dice": "Faces: 1-6. After each roll, you can add or substract 1 Power.",
+    "Mech Dice": "Faces: 1-6. After each roll, you can add or subtract 1 Power.",
 }
 
 # Type-string -> display-name overrides, for the rare case where the internal Global.dice_type
@@ -112,7 +130,7 @@ static func dice_display_name(dice_type: String) -> String:
 # longer one's already-wrapped span - harmless now that every keyword shares one color (just a
 # redundant nested [color] tag, not a visible glitch), but sorting longest-first still avoids
 # even that redundancy in the common case.
-static func colorize(text: String, tags: String) -> String:
+static func colorize(text: String, tags: String, glyph_px: int = 16) -> String:
     var other_keywords: Array[String] = []
     if not tags.is_empty():
         for raw_tag in tags.split(","):
@@ -157,6 +175,51 @@ static func colorize(text: String, tags: String) -> String:
         else:
             regex.compile("(?i)(?<!\\[color=#[0-9A-Fa-f]{6}\\])\\b" + keyword + "\\b(\\s*\\d+)?")
         result = regex.sub(result, "[color=#%s]$0[/color]" % KEYWORD_HIGHLIGHT_COLOR, true)
+
+    # 4. Power glyph, LAST so it can't disturb the [color] spans built above ("X" and "Power"
+    # are not KEYWORDS, so steps 1-3 never touch them; and the glyph path is lowercase, so
+    # neither regex here can re-match inside the [img] tags it inserts).
+    if power_glyph_mode != PowerGlyphMode.OFF:
+        result = _apply_power_glyph(result, glyph_px)
+
+    # 5. Resolved-value parens from dynamic descriptions ("Deal X3 damage (9)") pop in gold.
+    # Matches ONLY a pure number (or the Ink "?") between parens - formula parentheticals
+    # like "(3, plus 3 per card...)" contain words/punctuation and are deliberately left
+    # alone (audited: no static description contains a bare numeric paren).
+    var value_regex := RegEx.new()
+    value_regex.compile("\\((\\d+|\\?)\\)")
+    result = value_regex.sub(result, "[color=#%s]($1)[/color]" % KEYWORD_HIGHLIGHT_COLOR, true)
+    return result
+
+
+# Standalone uppercase "X" (with optional multiplier digits: "X2".."X12") -> inline glyph;
+# "X3" becomes "[glyph]x3" so the multiplier finally reads unambiguously as "times 3".
+# Case-sensitive on purpose: lowercase x (Exhaust, exact...) must never match.
+# The word "Power" then renders per power_glyph_mode. Dynamic descriptions that already
+# resolved X to a number simply have no X left to match - the glyph shows only while the
+# amount is unknown, which is exactly the placeholder's job.
+static func _apply_power_glyph(text: String, glyph_px: int) -> String:
+    var img := "[img=%d]%s[/img]" % [glyph_px, POWER_GLYPH_PATH]
+    var re_x := RegEx.new()
+    re_x.compile("\\bX(\\d*)\\b")
+    var result := ""
+    var last := 0
+    for m in re_x.search_all(text):
+        result += text.substr(last, m.get_start() - last)
+        result += img
+        if m.get_string(1) != "":
+            # Proper multiplication sign, not the letter x - "[glyph]×3" reads as arithmetic
+            # where "[glyph]x3" read like a stray variable (Julien's call, 2026-07-29).
+            result += "×%s" % m.get_string(1)
+        last = m.get_end()
+    result += text.substr(last)
+
+    var re_p := RegEx.new()
+    re_p.compile("\\bPower\\b")
+    if power_glyph_mode == PowerGlyphMode.GLYPH_ONLY:
+        result = re_p.sub(result, img, true)
+    else:
+        result = re_p.sub(result, "%s [color=#%s]Power[/color]" % [img, KEYWORD_HIGHLIGHT_COLOR], true)
     return result
 
 
@@ -166,6 +229,18 @@ static func colorize(text: String, tags: String) -> String:
 # colorize() above doesn't gate dice-type coloring on tags: dice-type tags were historically
 # only added for the 4 types tooltip.gd used to explain (Green/Magma/Giant/Evil), so Blue/Red/
 # Odd/Even/Mech mentions never got tagged and their tooltips never showed.
+# Whether `text` will render the Power glyph - the word "Power" or the standalone X
+# placeholder (same case-sensitive patterns _apply_power_glyph() swaps). Used by the card
+# hover handlers to show the "Power" tooltip without any tag bookkeeping, mirroring how
+# dice-type tooltips are detected from text below.
+static func text_mentions_power(text: String) -> bool:
+    if power_glyph_mode == PowerGlyphMode.OFF:
+        return false
+    var regex := RegEx.new()
+    regex.compile("\\bPower\\b|\\bX\\d*\\b")
+    return regex.search(text) != null
+
+
 static func find_dice_keywords_in_text(text: String) -> Array[String]:
     var found: Array[String] = []
     for dice_keyword in DICE_KEYWORD_COLORS:

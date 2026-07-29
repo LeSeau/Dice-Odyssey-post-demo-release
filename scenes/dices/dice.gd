@@ -4,6 +4,14 @@ extends Control
 @onready var dice_display: TextureRect = $Panel/DiceDisplay
 
 @onready var current_power: Label = $CurrentPower
+@onready var power_hover_zone: Control = $CurrentPower/PowerHoverZone
+
+# Hover tooltip for the Power glyph/number in the HUD - the "definition site" that teaches
+# what the inline card glyph means. Same leak-safe pattern as card_ui.gd's tooltips
+# (kill-before-spawn, safety timer, _exit_tree cleanup).
+const PowerTooltipScene := preload("res://scenes/ui/tooltip.tscn")
+const POWER_TOOLTIP_POS := Vector2(788, 300)
+var _power_tooltip: Node = null
 @export var dice_type: String = "blue"
 @onready var card_drop_area: Control = $CardDropArea
 @onready var charged_card_texture: TextureRect = $CardDropArea/CardBackground/CardFrame/Panel/ChargedCardTexture
@@ -381,7 +389,36 @@ func _on_card_aim_target_changed(_card_ui) -> void:
 
 
 
+func _on_power_hover_entered() -> void:
+    _cleanup_power_tooltip()
+    var tooltip := PowerTooltipScene.instantiate()
+    get_tree().root.add_child(tooltip)
+    var tooltip_panel: Panel = tooltip.get_node("Tooltip")
+    tooltip_panel.get_tooltip_content("Power")
+    tooltip_panel.show_tooltip(POWER_TOOLTIP_POS)
+    _power_tooltip = tooltip
+    # Safety net: mouse_exited never fires if the tree pauses mid-hover (map consult, pause
+    # menu) - same failure mode as every other tooltip in the project.
+    get_tree().create_timer(8.0).timeout.connect(_cleanup_power_tooltip)
+
+
+func _on_power_hover_exited() -> void:
+    _cleanup_power_tooltip()
+
+
+func _cleanup_power_tooltip() -> void:
+    if _power_tooltip and is_instance_valid(_power_tooltip):
+        _power_tooltip.queue_free()
+    _power_tooltip = null
+
+
+func _exit_tree() -> void:
+    _cleanup_power_tooltip()
+
+
 func _ready():
+    power_hover_zone.mouse_entered.connect(_on_power_hover_entered)
+    power_hover_zone.mouse_exited.connect(_on_power_hover_exited)
     Events.active_dice_changed.connect(_on_active_dice_changed)
     Events.battle_started.connect(_on_battle_started)
     Events.dice_rolled.connect(_on_dice_rolled)

@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://du1t5hx08romk" path="res://catapult.png" id="1_tgr7y"]
 [ext_resource type="Script" path="res://characters/warrior/cards/catapult.gd" id="2_hfbul"]
 [ext_resource type="AudioStream" uid="uid://bmk6ieyjgirsp" path="res://laughsound.mp3" id="3_r4uk6"]
-[ext_resource type="Resource" path="res://characters/warrior/cards/card_catapult_plus.tres" id="4_plus"]
+[ext_resource type="Resource" uid="uid://d0k7wxmwt1838" path="res://characters/warrior/cards/card_catapult_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_hfbul")

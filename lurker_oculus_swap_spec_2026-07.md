@@ -66,15 +66,15 @@ of focus removes it (see §5 for why not one).
 | HP (tier 2, if used) | — | **56** |
 | base damage | 7 | **7** (unchanged — already in the doc's 6–9 tier-1 band) |
 | own buff | Muscle **+3** | **Muscle +2** (so its two ramps don't compound absurdly) |
-| Parasite | +3 Strength if >15 Power in a turn | **+2 Strength if >18 Power in a turn** |
+| Parasite | +3 Strength if >15 Power in a turn | **+2 Strength if >15 Power in a turn** (threshold shipped at 18, reverted to 15 on 2026-07-28 — 18 sat above a normal turn so the punish almost never fired) |
 | AI | unchanged | unchanged |
 
 **Damage curve at 44 HP (~5 turn fight):**
 
 | | T1 | T2 | T3 | T4 | T5 |
 |---|---|---|---|---|---|
-| disciplined (never >18 Power) | 7 | buff | 9 | 9 | buff → 11 |
-| greedy (>18 every turn) | 7 | buff | 11 | 13 | buff → 17 |
+| disciplined (never >15 Power) | 7 | buff | 9 | 9 | buff → 11 |
+| greedy (>15 every turn) | 7 | buff | 11 | 13 | buff → 17 |
 
 That's the tension you wanted: going fast makes it hit much harder, and it's entirely the
 player's call.

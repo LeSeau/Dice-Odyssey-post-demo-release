@@ -34,4 +34,4 @@ func get_dynamic_description(_modifiers: ModifierHandler, _target: Node = null) 
         return "Throw ? Pixie Dice at random enemies. Each deals damage equal to its roll"
     if not has_active_roll() or not meets_requirement():
         return "Throw X Pixie Dice at random enemies. Each deals damage equal to its roll"
-    return "Throw %d Pixie Dice at random enemies. Each deals damage equal to its roll" % int(Global.roll_value)
+    return "Throw X Pixie Dice at random enemies (%d). Each deals damage equal to its roll" % int(Global.roll_value)

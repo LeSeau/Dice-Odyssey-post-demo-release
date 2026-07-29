@@ -1,6 +1,6 @@
 extends Card
 
-# Block X now, then the thrown Odd Dice adds ITS roll as more Block when it lands
+# Gain X Block now, then the thrown Odd Dice adds ITS roll as more Block when it lands
 # (1/3/5/7 - always pays something). Thrown-die ruling: raw roll, no modifiers. Block
 # cards use Global.roll_value raw per the established convention (no DMG modifier).
 
@@ -35,5 +35,5 @@ func get_dynamic_description(_modifiers: ModifierHandler, _target: Node = null) 
     if is_inked():
         return "Block ?. Throw an Odd Dice that Blocks its roll"
     if not has_active_roll():
-        return "Block X. Throw an Odd Dice that Blocks its roll"
-    return "Block %d. Throw an Odd Dice that Blocks its roll" % Global.roll_value
+        return "Gain X Block. Throw an Odd Dice that Blocks its roll"
+    return "Gain X Block (%d). Throw an Odd Dice that Blocks its roll" % Global.roll_value

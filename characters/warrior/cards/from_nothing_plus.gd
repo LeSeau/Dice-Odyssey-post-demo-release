@@ -17,4 +17,4 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
 func get_dynamic_description(_modifiers: ModifierHandler, _target: Node = null) -> String:
     if has_active_roll() and Global.roll_value == 0:
         return "You have 0 Power: gain 18 Power"
-    return "If you have rolled Dice but still have 0 power, gain 18 power"
+    return "If you have rolled Dice but still have 0 Power, gain 18 Power"

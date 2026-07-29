@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://characters/warrior/cards/unity.gd" id="1_ald0o"]
 [ext_resource type="Texture2D" uid="uid://biuady2n2vpug" path="res://unity.png" id="1_lo1uy"]
 [ext_resource type="AudioStream" uid="uid://68q2f8fotq13" path="res://sounds/blocksound.mp3" id="3_rjyud"]
-[ext_resource type="Resource" path="res://characters/warrior/cards/card_unity_plus.tres" id="4_plus"]
+[ext_resource type="Resource" uid="uid://m64a10xmy1oh" path="res://characters/warrior/cards/card_unity_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("1_ald0o")
@@ -11,7 +11,7 @@ id = "card_unity"
 name = "Unity"
 type = 1
 target = 0
-description = "Block X12"
+description = "Gain X12 Block"
 rarity = 0
 rarity_tier = 0
 red_only = null

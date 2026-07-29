@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5bk00000062"]
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://b756qsihyb4ux"]
 
 [ext_resource type="Texture2D" uid="uid://biqtye5fdgkhi" path="res://block_card_v2.png" id="1_iux80"]
 [ext_resource type="Script" path="res://characters/warrior/cards/warrior_block_plus.gd" id="2_qh5em"]
@@ -10,8 +10,9 @@ id = "warrior_block_plus"
 name = "Block+"
 type = 1
 target = 0
-description = "Block X+3"
+description = "Gain X+3 Block"
 rarity = 0
+rarity_tier = 0
 red_only = false
 can_play_without_dice = false
 requirement = 0

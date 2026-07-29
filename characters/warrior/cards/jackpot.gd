@@ -20,12 +20,12 @@ func _has_triple() -> bool:
 
 func get_dynamic_description(modifiers: ModifierHandler, target: Node = null) -> String:
     if is_inked():
-        return "Deal ? damage. If you have three identical rolls in your current power, deal ?x5 damage instead"
+        return "Deal ? damage. If you have three identical rolls in your current Power, deal ?x5 damage instead"
     if not has_active_roll():
-        return "Deal X damage. If you have three identical rolls in your current power, deal X5 damage instead"
+        return "Deal X damage. If you have three identical rolls in your current Power, deal X5 damage instead"
     var base := Global.roll_value
     if _has_triple():
         var total := apply_target_modifier(modifiers.get_modified_value(base * 5, Modifier.Type.DMG_DEALT), target)
-        return "JACKPOT! Deal %d damage" % total
+        return "Deal X damage (%d). If you have three identical rolls in your current Power, deal X5 damage instead" % total
     var total := apply_target_modifier(modifiers.get_modified_value(base, Modifier.Type.DMG_DEALT), target)
-    return "Deal %d damage (no triple yet in your current power)" % total
+    return "Deal X damage (%d). If you have three identical rolls in your current Power, deal X5 damage instead" % total

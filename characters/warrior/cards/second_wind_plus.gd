@@ -19,7 +19,7 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
 
 func get_dynamic_description(_modifiers: ModifierHandler, _target: Node = null) -> String:
     if is_inked():
-        return "Heal ? HP (your Power). Exhaust"
+        return "Heal HP equal to your Power (?). Exhaust"
     if not has_active_roll() or Global.roll_value <= 0 or not meets_requirement():
         return "Heal HP equal to your Power. Exhaust"
-    return "Heal %d HP (your Power). Exhaust" % int(Global.roll_value)
+    return "Heal HP equal to your Power (%d). Exhaust" % int(Global.roll_value)

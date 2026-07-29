@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://dfnlg8lb1f5la" path="res://fortify.png" id="1_kmhvb"]
 [ext_resource type="Script" path="res://characters/warrior/cards/fortify.gd" id="1_oq7mj"]
 [ext_resource type="AudioStream" uid="uid://68q2f8fotq13" path="res://sounds/blocksound.mp3" id="3_k6lv8"]
-[ext_resource type="Resource" path="res://characters/warrior/cards/card_fortify_plus.tres" id="4_plus"]
+[ext_resource type="Resource" uid="uid://cmqi8ur74744p" path="res://characters/warrior/cards/card_fortify_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("1_oq7mj")
@@ -11,7 +11,7 @@ id = "card_fortify"
 name = "Fortify"
 type = 1
 target = 0
-description = "Block X. Gain 2 Strength"
+description = "Gain X Block. Gain 2 Strength"
 rarity = 0
 rarity_tier = 0
 red_only = false

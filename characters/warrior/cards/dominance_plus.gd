@@ -19,4 +19,4 @@ func get_dynamic_description(_modifiers: ModifierHandler, _target: Node = null) 
         return "Apply Exposed 4 to ALL enemies and gain ? Block"
     if not has_active_roll() or not meets_requirement():
         return "Apply Exposed 4 to ALL enemies and gain X Block"
-    return "Apply Exposed 4 to ALL enemies and gain %d Block" % Global.roll_value
+    return "Apply Exposed 4 to ALL enemies and gain X Block (%d)" % Global.roll_value

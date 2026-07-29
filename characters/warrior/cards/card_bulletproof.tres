@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://kcjvtkdjfj6x" path="res://bolster_v2.png" id="1_icon"]
 [ext_resource type="Script" path="res://characters/warrior/cards/bulletproof.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://df64e7qat73gs" path="res://art/block.ogg" id="3_sound"]
-[ext_resource type="Resource" uid="uid://c4bltpplus81x" path="res://characters/warrior/cards/card_bulletproof_plus.tres" id="4_plus"]
+[ext_resource type="Resource" uid="uid://cuoyrsgqubnti" path="res://characters/warrior/cards/card_bulletproof_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_script")
@@ -11,7 +11,7 @@ id = "card_bulletproof"
 name = "Bulletproof"
 type = 1
 target = 0
-description = "Block X2"
+description = "Gain X2 Block"
 rarity = 0
 rarity_tier = 1
 red_only = true

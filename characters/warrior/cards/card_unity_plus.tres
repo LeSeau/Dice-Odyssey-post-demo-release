@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c3un9plusaa17"]
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://m64a10xmy1oh"]
 
 [ext_resource type="Script" path="res://characters/warrior/cards/unity_plus.gd" id="1_ald0o"]
 [ext_resource type="Texture2D" uid="uid://biuady2n2vpug" path="res://unity.png" id="1_lo1uy"]
@@ -10,8 +10,9 @@ id = "card_unity_plus"
 name = "Unity+"
 type = 1
 target = 0
-description = "Block X18"
+description = "Gain X18 Block"
 rarity = 0
+rarity_tier = 0
 red_only = false
 can_play_without_dice = false
 requirement = 7

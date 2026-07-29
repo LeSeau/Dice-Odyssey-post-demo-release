@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://biqtye5fdgkhi" path="res://block_card_v2.png" id="1_2swn7"]
 [ext_resource type="Script" path="res://characters/warrior/cards/warrior_block.gd" id="2_4wfhy"]
 [ext_resource type="AudioStream" uid="uid://df64e7qat73gs" path="res://art/block.ogg" id="3_ycl65"]
-[ext_resource type="Resource" path="res://characters/warrior/cards/warrior_block_plus.tres" id="4_plus"]
+[ext_resource type="Resource" uid="uid://b756qsihyb4ux" path="res://characters/warrior/cards/warrior_block_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_4wfhy")
@@ -11,7 +11,7 @@ id = "warrior_block"
 name = "Block"
 type = 1
 target = 0
-description = "Block X"
+description = "Gain X Block"
 rarity = 0
 rarity_tier = 0
 red_only = false

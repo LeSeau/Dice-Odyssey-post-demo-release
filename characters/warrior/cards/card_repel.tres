@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://dxncnc34b3bpu" path="res://repel.png" id="1_gjpk0"]
 [ext_resource type="Script" path="res://characters/warrior/cards/repel.gd" id="2_p7jew"]
 [ext_resource type="AudioStream" uid="uid://68q2f8fotq13" path="res://sounds/blocksound.mp3" id="3_icuhh"]
-[ext_resource type="Resource" path="res://characters/warrior/cards/card_repel_plus.tres" id="4_plus"]
+[ext_resource type="Resource" uid="uid://dfsy4nbtga16n" path="res://characters/warrior/cards/card_repel_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_p7jew")
@@ -11,7 +11,7 @@ id = "card_repel"
 name = "Repel"
 type = 1
 target = 0
-description = "Block X. Draw 2 cards"
+description = "Gain X Block. Draw 2 cards"
 rarity = 0
 rarity_tier = 0
 red_only = false

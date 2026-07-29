@@ -647,7 +647,7 @@ func _set_card(value: Card) -> void:
     else:
         bonus_effect.show()
         bonus_separator.show()
-        bonus_effect_label.text = card.get_colorized_description(str(card.bonus_description_text))
+        bonus_effect_label.text = card.get_colorized_description(str(card.bonus_description_text), 12)
         bonus_effect_texture.texture = card.bonus_description_icon
 
         if card.bonus_requirement == Card.Requirement.MAX:
@@ -883,6 +883,11 @@ func _on_card_frame_mouse_entered() -> void:
         if not tooltips_to_show.has(dice_keyword):
             tooltips_to_show.append(dice_keyword)
 
+    # Power needs no tag either - any card rendering the Power glyph (word or X placeholder)
+    # explains it on hover. This is the teaching loop for the inline icon.
+    if KeywordColorizer.text_mentions_power(card.description) and not tooltips_to_show.has("Power"):
+        tooltips_to_show.append("Power")
+
     if tooltips_to_show.is_empty():
         return
     
@@ -1018,5 +1023,7 @@ func _on_dice_rolled_update_description(_a = null, _b = null) -> void:
 # on every call, not just the initial set_card - dynamic descriptions can resolve "X" into a
 # longer string than the static one (see get_dynamic_description call sites).
 func _apply_description(text: String) -> void:
-    description.add_theme_font_size_override("normal_font_size", description_font_size_for(text))
-    description.text = "[center]%s[/center]" % card.get_colorized_description(text)
+    var desc_font_size := description_font_size_for(text)
+    description.add_theme_font_size_override("normal_font_size", desc_font_size)
+    # Power glyph rides 2px above the font size so it reads at cap height on every step-down.
+    description.text = "[center]%s[/center]" % card.get_colorized_description(text, desc_font_size + 2)

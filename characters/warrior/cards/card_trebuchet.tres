@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://bhqtxybmbfujk" path="res://high_roller.png" id="1_icon"]
 [ext_resource type="Script" path="res://characters/warrior/cards/trebuchet.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://b2l4kmoq5ivyx" path="res://whipsound.mp3" id="3_sound"]
-[ext_resource type="Resource" uid="uid://c4trbcplus77z" path="res://characters/warrior/cards/card_trebuchet_plus.tres" id="4_plus"]
+[ext_resource type="Resource" path="res://characters/warrior/cards/card_trebuchet_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_script")

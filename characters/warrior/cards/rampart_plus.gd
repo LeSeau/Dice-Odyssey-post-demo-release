@@ -2,7 +2,7 @@ extends Card
 
 # Rampart+ throws TWO Odd Dice (1/3/5/7) instead of one Even Dice - each adds ITS roll as
 # more Block when it lands, sequenced by the shared volley stagger so each landing punch
-# stays legible. Block X still applies immediately. Own script because count + die type
+# stays legible. Gain X Block still applies immediately. Own script because count + die type
 # live in the throw. Thrown-die ruling: raw roll, no modifiers.
 
 const THROW_COUNT := 2
@@ -43,5 +43,5 @@ func get_dynamic_description(_modifiers: ModifierHandler, _target: Node = null) 
     if is_inked():
         return "Block ?. Throw 2 Odd Dice that Block their roll"
     if not has_active_roll():
-        return "Block X. Throw 2 Odd Dice that Block their roll"
-    return "Block %d. Throw 2 Odd Dice that Block their roll" % Global.roll_value
+        return "Gain X Block. Throw 2 Odd Dice that Block their roll"
+    return "Gain X Block (%d). Throw 2 Odd Dice that Block their roll" % Global.roll_value

@@ -17,4 +17,4 @@ func get_dynamic_description(modifiers: ModifierHandler, target: Node = null) ->
     if not has_active_roll() or not meets_requirement():
         return "Deal X damage and gain X Block"
     var total := apply_target_modifier(modifiers.get_modified_value(Global.roll_value, Modifier.Type.DMG_DEALT), target)
-    return "Deal %d damage and gain %d Block" % [total, Global.roll_value]
+    return "Deal X damage (%d) and gain X Block (%d)" % [total, Global.roll_value]

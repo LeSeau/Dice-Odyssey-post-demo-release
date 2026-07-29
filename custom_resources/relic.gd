@@ -35,8 +35,8 @@ func get_tooltip() -> String:
 # Wraps every keyword from this relic's `tags` (e.g. "Refuel, Strength") that appears in `text`
 # with a BBCode [color] tag - see KeywordColorizer for the keyword list/colors/regex logic
 # (shared with Card.get_colorized_description()).
-func get_colorized_description(text: String) -> String:
-    return KeywordColorizer.colorize(text, tags)
+func get_colorized_description(text: String, glyph_px: int = 16) -> String:
+    return KeywordColorizer.colorize(text, tags, glyph_px)
 
 
 func can_appear_as_reward(character: CharacterStats) -> bool:

@@ -20,4 +20,4 @@ func get_dynamic_description(modifiers: ModifierHandler, target: Node = null) ->
     if not has_active_roll():
         return "Deal X damage. If this kills the target, your Power is not reset"
     var total := apply_target_modifier(modifiers.get_modified_value(Global.roll_value, Modifier.Type.DMG_DEALT), target)
-    return "Deal %d damage. If this kills the target, your Power is not reset" % total
+    return "Deal X damage (%d). If this kills the target, your Power is not reset" % total

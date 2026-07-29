@@ -8,6 +8,6 @@
 script = ExtResource("1_7mfl6")
 ai = ExtResource("1_ai")
 enemy_name = "Skeleton"
-max_health = 28
+max_health = 31
 art = ExtResource("2_u8pdq")
 content_center_x = 0.5

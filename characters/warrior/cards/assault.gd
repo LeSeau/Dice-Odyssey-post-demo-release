@@ -19,6 +19,6 @@ func get_dynamic_description(modifiers: ModifierHandler, target: Node = null) ->
         return "Deal X damage. If you rolled only 1 Dice this turn, deal X2 instead"
     if Global.dice_amount_rolled_this_turn == 1:
         var doubled := apply_target_modifier(modifiers.get_modified_value(Global.roll_value * 2, Modifier.Type.DMG_DEALT), target)
-        return "Deal %d damage (doubled - only 1 Dice rolled this turn)" % doubled
+        return "Deal ? damage. If you rolled only 1 Dice this turn, deal X2 instead (%d)" % doubled
     var total := apply_target_modifier(modifiers.get_modified_value(Global.roll_value, Modifier.Type.DMG_DEALT), target)
-    return "Deal %d damage. If you rolled only 1 Dice this turn, deal X2 instead" % total
+    return "Deal ? damage. If you rolled only 1 Dice this turn, deal X2 instead (%d)" % total

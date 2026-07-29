@@ -33,4 +33,4 @@ func get_dynamic_description(_modifiers: ModifierHandler, _target: Node = null) 
         return "Gain ? Strength. Exhaust"
     if not has_active_roll() or not meets_requirement():
         return "Gain X Strength. Exhaust"
-    return "Gain %d Strength. Exhaust" % int(Global.roll_value)
+    return "Gain X Strength (%d). Exhaust" % int(Global.roll_value)

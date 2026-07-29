@@ -143,8 +143,8 @@ func apply_target_modifier(amount: int, target: Node) -> int:
 # Wraps every keyword from this card's `tags` (e.g. "Charge, Infused") that appears in `text`
 # with a BBCode [color] tag - see KeywordColorizer for the keyword list/colors/regex logic
 # (shared with Relic.get_colorized_description(), the other real consumer of this).
-func get_colorized_description(text: String) -> String:
-    return KeywordColorizer.colorize(text, tags)
+func get_colorized_description(text: String, glyph_px: int = 16) -> String:
+    return KeywordColorizer.colorize(text, tags, glyph_px)
 
 
 func _get_targets(targets: Array[Node]) -> Array[Node]:

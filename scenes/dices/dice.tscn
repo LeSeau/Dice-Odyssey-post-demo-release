@@ -504,6 +504,14 @@ grow_vertical = 2
 texture = ExtResource("3_xja36")
 expand_mode = 1
 
+[node name="PowerHoverZone" type="Control" parent="CurrentPower"]
+layout_mode = 0
+offset_left = -2.0
+offset_top = 10.0
+offset_right = 72.0
+offset_bottom = 84.0
+mouse_filter = 1
+
 [node name="MechSection" type="Control" parent="."]
 visible = false
 anchors_preset = 0

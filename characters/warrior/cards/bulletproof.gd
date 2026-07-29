@@ -14,5 +14,5 @@ func get_dynamic_description(_modifiers: ModifierHandler, _target: Node = null) 
     if is_inked():
         return "Block ?"
     if not has_active_roll() or not meets_requirement():
-        return "Block X2"
-    return "Block %d" % (int(Global.roll_value) * 2)
+        return "Gain X2 Block"
+    return "Gain X2 Block (%d)" % (int(Global.roll_value) * 2)

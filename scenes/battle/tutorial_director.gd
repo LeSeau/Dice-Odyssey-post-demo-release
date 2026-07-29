@@ -226,9 +226,11 @@ func _ungate_scout_faces() -> void:
     _scout_gated = false
     scout_exit_button.disabled = false
     battle.tutorial_scout_allowed_index = -1
-    # Deliberately does NOT reset modulate: this runs while the panel may still be playing its
-    # close animation (the unpicked faces are mid fade-out), and stomping them back to white
-    # would flash them solid again. Every reveal re-sets modulate from scratch anyway.
+    # Never touches modulate: this runs while the panel may still be playing its close
+    # animation (the unpicked faces are mid fade-out), and stomping them back to white would
+    # flash them solid again. The halo is a separate child node, so dropping it here is safe -
+    # by this point the picked face has already gone transparent behind its flying clone.
+    battle.clear_scout_highlight()
     for face: Control in battle.scout_faces:
         face.mouse_filter = Control.MOUSE_FILTER_STOP
 
@@ -502,13 +504,8 @@ func _on_aim_nudge_timeout() -> void:
 func _on_skip_pressed() -> void:
     Global.tutorial_forced_rolls = []
     Global.tutorial_forced_scout_faces = []
-    _reset_between_steps()  # also clears the pending completion-signal wait
-    # Skipping with the Scout panel still open leaves the finale's locked faces dimmed (see
-    # _ungate_scout_faces on why the un-gate itself can't restore them) - nothing is locked
-    # from here on, so hand them back at full brightness.
-    if scout_panel.visible:
-        for face: Control in battle.scout_faces:
-            face.modulate = Color.WHITE
+    _reset_between_steps()  # also clears the pending completion-signal wait, un-gates the
+                            # scout faces and drops the finale's halo
     _apply_gate({"roll": true, "cards": _all_card_ids(), "dice_types": DiceInterface.DICE_TYPE_TO_NODE.keys(), "end_turn": true})
     overlay.shutdown()
     # Must be set false BEFORE any further hand draws: _on_player_hand_drawn and the
@@ -900,9 +897,17 @@ func _step_t2_9() -> void:
 # turn 1 had already covered.
 #
 # Now: no dice switching (turn 2 ended on Blue, stay there), a threat that cannot be absorbed,
-# and a Scout hand where NO face wins by Striking - not even the 5. Only the 2, tripled by Low
-# Blow, lands exactly 6. Turn 2 taught that a bad roll can be good; turn 3 makes the player
-# choose the bad roll on purpose, which is the whole thesis of the game.
+# and a Scout hand where NO face wins by Striking - not even the 5. Only the 3, tripled by Low
+# Blow, lands exactly 9 on a 9 HP Skeleton. Turn 2 taught that a bad roll can be good; turn 3
+# makes the player choose the bad roll on purpose, which is the whole thesis of the game.
+#
+# The three offered faces are 4 / 3 / 5 (the winner deliberately NOT in the first slot, so the
+# player has to read all three) and the hand is Scout 3 + Low Blow + exactly one Strike, padded
+# with two inert Blocks - see player_handler.TUTORIAL_HAND_BY_TURN for why Reinforce and
+# Recombobulate are kept out of it.
+# The losing faces stay at full brightness and are simply unclickable; the affordance is a
+# pulsing halo on the winner instead (Julien: dimming them read as "these are broken", not as
+# "the tutorial wants that one").
 
 # Split in two: the threat lands on its own beat, then the problem it poses. One box carrying
 # "he is winding up", "here is the number", "here is your out" and "here is the catch" was
@@ -921,7 +926,7 @@ func _step_t3_1() -> void:
 func _step_t3_1b() -> void:
     _threat_affordances()
     overlay.set_text(
-        "[center]He has [color=gold]%d HP[/color] left. Killing him sounds much easier than blocking his [color=gold]%s damage[/color] hit. But what happens if you roll low and don't get enough [color=red]Power[/color] to finish him?" % [_enemy_health(), _enemy_intent_damage()],
+        "[center]He has [color=gold]%d HP[/color] left. Killing him sounds much easier than blocking his [color=gold]%s damage[/color] hit. But a [color=#c896ff]Strike[/color] only hits for as much [color=red]Power[/color] as you roll, so betting on a high roll is far from a guaranteed kill." % [_enemy_health(), _enemy_intent_damage()],
         "near_dice", true)
     _apply_gate({})
     _wait(overlay.continue_pressed)
@@ -942,7 +947,7 @@ func _step_t3_2() -> void:
     # own _ready() so it always runs ahead of the director's step advance. The old code set the
     # faces in the FOLLOWING step - one beat too late - so the finale was showing three RANDOM
     # faces while the copy told the player exactly which one to take.
-    Global.tutorial_forced_scout_faces = [5, 2, 4]
+    Global.tutorial_forced_scout_faces = [4, 3, 5]
     overlay.set_dim(TutorialOverlay.Dim.SOFT)
     overlay.set_text(
         "[center]See this [color=#c896ff]Scout 3[/color] card with this blue background? Its blue frame means [color=#5cb3ff]Celestial[/color]: no [color=red]Power[/color], no Dice, free to play. It shows you what your next roll could be. Once again, [color=gold]hover[/color] on it to know more, then play it!",
@@ -958,7 +963,7 @@ func _step_t3_3() -> void:
     # above_hand, not near_dice: the Scout panel opens top-centre and the hero-speech slot sits
     # right under it. A bottom box leaves all three faces readable.
     overlay.set_text(
-        "[center]Three possible rolls. You get to pick one. None of them kills with a [color=#c896ff]Strike[/color], not even the 5. But [color=#c896ff]Low Blow[/color] triples a roll of 3 or less. [color=gold]Take the 2.[/color]",
+        "[center]Three possible rolls. You get to pick one. He has [color=gold]%d HP[/color], so none of them kills with a [color=#c896ff]Strike[/color], not even the 5. But [color=#c896ff]Low Blow[/color] triples a roll of 3 or less. [color=gold]Take the 3.[/color]" % _enemy_health(),
         "above_hand", false)
     _gate_scout_faces(1)
     _wait(Events.next_roll_determined)
@@ -967,7 +972,7 @@ func _step_t3_3() -> void:
 func _step_t3_4() -> void:
     overlay.set_dim(TutorialOverlay.Dim.SOFT)
     overlay.set_text(
-        "[center]Your next roll is now a guaranteed [color=gold]2[/color]. Roll it.", "near_dice", false)
+        "[center]Your next roll is now a guaranteed [color=gold]3[/color]. Roll it.", "near_dice", false)
     overlay.show_pointer(_point_left_of(_roll_button_rect()), TutorialOverlay.PointerDir.RIGHT)
     overlay.show_pulse(_roll_button_rect())
     _apply_gate({"roll": true})
@@ -976,8 +981,10 @@ func _step_t3_4() -> void:
 
 func _step_t3_5() -> void:
     overlay.set_dim(TutorialOverlay.Dim.SOFT)
+    # Both numbers read live off the roll that just landed, so this can't drift if the finale's
+    # faces or Low Blow's multiplier are ever retuned.
     overlay.set_text(
-        "[center]2 [color=red]Power[/color], the worst roll of the whole fight, and exactly what you needed. [color=#c896ff]Low Blow[/color] turns it into [color=gold]6 damage[/color]. Point it at the Skeleton and finish him!",
+        "[center]%d [color=red]Power[/color], the lowest roll on offer, and exactly what you needed. [color=#c896ff]Low Blow[/color] turns it into [color=gold]%d damage[/color]. Point it at the Skeleton and finish him!" % [Global.roll_value, Global.roll_value * 3],
         "near_dice", false)
     _lift_card(LOW_BLOW_ID)
     _highlight_enemy()
@@ -997,7 +1004,7 @@ func _step_t3_6() -> void:
     # ever emitting it), so the skip affordance goes away for this final beat.
     overlay.skip_button.hide()
     overlay.set_text(
-        "[center]That was the [color=gold]worst roll[/color] available to you, and you picked it on purpose. That is Dice Odyssey: you don't [color=gold]hope[/color] for luck, you stack it, refuel it, and choose the face you need. Out there you'll find stranger Dice, wilder Cards, and enemies who cheat harder than you do. [color=gold]Hover anything[/color] to learn more.",
+        "[center]That was the [color=gold]worst-looking roll[/color] on offer, and you picked it on purpose. That is Dice Odyssey: you don't [color=gold]hope[/color] for luck, you stack it, refuel it, and choose the face you need. Out there you'll find stranger Dice, wilder Cards, and enemies who cheat harder than you do. [color=gold]Hover anything[/color] to learn more.",
         "center", true)
     _apply_gate({})
     overlay.continue_pressed.connect(_on_victory_continue_pressed, CONNECT_ONE_SHOT)

@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c4bltpplus81x"]
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://cuoyrsgqubnti"]
 
 [ext_resource type="Texture2D" uid="uid://kcjvtkdjfj6x" path="res://bolster_v2.png" id="1_icon"]
 [ext_resource type="Script" path="res://characters/warrior/cards/bulletproof_plus.gd" id="2_script"]
@@ -10,7 +10,7 @@ id = "card_bulletproof_plus"
 name = "Bulletproof+"
 type = 1
 target = 0
-description = "Block X3"
+description = "Gain X3 Block"
 rarity = 0
 rarity_tier = 1
 red_only = true

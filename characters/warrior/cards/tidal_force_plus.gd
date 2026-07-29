@@ -18,4 +18,4 @@ func get_dynamic_description(modifiers: ModifierHandler, target: Node = null) ->
     if not has_active_roll():
         return "Deal X damage; Power above 8 counts DOUBLE"
     var total := apply_target_modifier(modifiers.get_modified_value(_effective_damage(), Modifier.Type.DMG_DEALT), target)
-    return "Deal %d damage (Power above 8 counts DOUBLE)" % total
+    return "Deal X damage; Power above 8 counts DOUBLE (%d)" % total

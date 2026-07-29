@@ -26,4 +26,4 @@ func get_dynamic_description(modifiers: ModifierHandler, target: Node = null) ->
     if not has_active_roll() or not meets_requirement():
         return "Deal X2 damage. Apply Exposed 2"
     var total := apply_target_modifier(modifiers.get_modified_value(Global.roll_value * 2, Modifier.Type.DMG_DEALT), target)
-    return "Deal %d damage. Apply Exposed 2" % total
+    return "Deal X2 damage (%d). Apply Exposed 2" % total

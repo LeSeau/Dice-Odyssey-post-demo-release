@@ -66,6 +66,8 @@ func get_tooltip_content(requirement):
         text += "Rolls a bonus Dice without using any of your own"
     elif requirement == "Support":
         text += "Cards that don't attack or block but instead manipulate Power"
+    elif requirement == "Power":
+        text += "The sum of your consecutive rolls on the same Dice type. Cards with [img=13]res://power_glyph.png[/img] use this number."
     elif requirement == "REST":
         text += "Heal 33% of your Max HP"
     elif requirement == "UPGRADE":
@@ -96,6 +98,10 @@ func get_tooltip_content(requirement):
         #text += "Your power must be an odd number"
     
     title_text = "[color=gold][b]%s[/b][/color]" % requirement
+    if requirement == "Power":
+        # The resource's own tooltip leads with its glyph - this pairing is what teaches
+        # players that the inline icon IS Power.
+        title_text = "[img=18]res://power_glyph.png[/img] " + title_text
     tooltip_label.text = text
     tooltip_title.text = title_text
     

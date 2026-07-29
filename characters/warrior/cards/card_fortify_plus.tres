@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5ft00000050"]
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://cmqi8ur74744p"]
 
 [ext_resource type="Texture2D" uid="uid://dfnlg8lb1f5la" path="res://fortify.png" id="1_kmhvb"]
 [ext_resource type="Script" path="res://characters/warrior/cards/fortify_plus.gd" id="1_oq7mj"]
@@ -10,8 +10,9 @@ id = "card_fortify_plus"
 name = "Fortify+"
 type = 1
 target = 0
-description = "Block X. Gain 2 Strength"
+description = "Gain X Block. Gain 2 Strength"
 rarity = 0
+rarity_tier = 0
 red_only = false
 can_play_without_dice = false
 requirement = 0

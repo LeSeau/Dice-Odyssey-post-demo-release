@@ -20,5 +20,5 @@ func get_dynamic_description(_modifiers: ModifierHandler, _target: Node = null) 
     if is_inked():
         return "Block ?. Charge a Giant Dice"
     if not has_active_roll() or not meets_requirement():
-        return "Block X. Charge a Giant Dice"
-    return "Block %d. Charge a Giant Dice" % Global.roll_value
+        return "Gain X Block. Charge a Giant Dice"
+    return "Gain X Block (%d). Charge a Giant Dice" % Global.roll_value

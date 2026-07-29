@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=3 format=3 uid="uid://c4trbstat77x1"]
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://b5qsrwx7rmh7w"]
 
 [ext_resource type="Script" path="res://statuses/status_trebuchet.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://bhqtxybmbfujk" path="res://high_roller.png" id="2_icon"]

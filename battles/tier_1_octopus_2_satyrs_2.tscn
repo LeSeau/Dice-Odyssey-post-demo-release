@@ -21,13 +21,13 @@ width = 134
 height = 134
 
 [node name="B Satyr" parent="." instance=ExtResource("1_je4jl")]
-position = Vector2(952, 454)
+position = Vector2(952, 448.5)
 stats = ExtResource("4_ihe7o")
-width = 134
-height = 134
+width = 145
+height = 145
 
 [node name="S Satyr" parent="." instance=ExtResource("1_je4jl")]
-position = Vector2(1079, 474)
+position = Vector2(1079, 465.5)
 stats = ExtResource("5_fqky4")
-width = 95
-height = 95
+width = 112
+height = 112

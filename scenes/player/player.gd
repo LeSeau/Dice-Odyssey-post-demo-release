@@ -53,6 +53,23 @@ func _ready() -> void:
     _sway_material.set_shader_parameter("sway_speed", randf_range(0.9, 1.15))
     sprite_2d.material = _sway_material
 
+    # Align the status row's left edge to the VISIBLE red HP bar, exactly like enemies do
+    # (enemy.gd::_update_status_row_x). StatsUI is a centring HBoxContainer whose own left
+    # edge sits ~20px LEFT of the bar the player actually sees, so the row's hand-tuned
+    # .tscn offset could never line up - it read as starting too far right of the bar.
+    status_handler.sort_children.connect(_update_status_row_x)
+    stats_ui.sort_children.connect(_update_status_row_x)
+    _update_status_row_x()
+
+
+func _update_status_row_x() -> void:
+    if status_handler == null or stats_ui == null:
+        return
+    var health_bar := stats_ui.get_node_or_null("Health/HealthBar") as Control
+    if health_bar == null or health_bar.size.x <= 0.0:
+        return
+    status_handler.position.x = to_local(health_bar.global_position).x
+
 
 
 func set_character_stats(value: CharacterStats) -> void:

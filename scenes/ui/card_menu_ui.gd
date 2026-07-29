@@ -236,7 +236,7 @@ func set_card(value: Card) -> void:
         # Important: Show the container if there is a bonus requirement
         bonus_effect.show()
         bonus_separator.show()
-        bonus_effect_label.text = card.get_colorized_description(str(card.bonus_description_text))
+        bonus_effect_label.text = card.get_colorized_description(str(card.bonus_description_text), 12)
         bonus_effect_texture.texture = card.bonus_description_icon
         if card.bonus_requirement == Card.Requirement.MAX:
             bonus_requirement_panel.add_theme_stylebox_override("panel", BONUS_MAX_STYLEBOX)
@@ -278,8 +278,10 @@ func _apply_title_color() -> void:
 # (RichTextLabel has no horizontal_alignment property the way Label did), and steps the font
 # size down for long text so it doesn't overflow the fixed-height DescriptionPanel.
 func _apply_description(text: String) -> void:
-    description.add_theme_font_size_override("normal_font_size", description_font_size_for(text))
-    description.text = "[center]%s[/center]" % card.get_colorized_description(text)
+    var desc_font_size := description_font_size_for(text)
+    description.add_theme_font_size_override("normal_font_size", desc_font_size)
+    # Power glyph rides 2px above the font size so it reads at cap height on every step-down.
+    description.text = "[center]%s[/center]" % card.get_colorized_description(text, desc_font_size + 2)
 
 
 func _on_card_frame_gui_input(event: InputEvent) -> void:
@@ -400,6 +402,11 @@ func _on_card_frame_mouse_entered() -> void:
     for dice_keyword in KeywordColorizer.find_dice_keywords_in_text(card.description):
         if not tooltips_to_show.has(dice_keyword):
             tooltips_to_show.append(dice_keyword)
+
+    # Power needs no tag either - any card rendering the Power glyph (word or X placeholder)
+    # explains it on hover. This is the teaching loop for the inline icon.
+    if KeywordColorizer.text_mentions_power(card.description) and not tooltips_to_show.has("Power"):
+        tooltips_to_show.append("Power")
 
     if tooltips_to_show.is_empty():
         return

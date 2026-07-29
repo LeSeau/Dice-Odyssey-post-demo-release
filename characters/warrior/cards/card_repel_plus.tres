@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c5rp00000044"]
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://dfsy4nbtga16n"]
 
 [ext_resource type="Texture2D" uid="uid://dxncnc34b3bpu" path="res://repel.png" id="1_gjpk0"]
 [ext_resource type="Script" path="res://characters/warrior/cards/repel_plus.gd" id="2_p7jew"]
@@ -10,8 +10,9 @@ id = "card_repel_plus"
 name = "Repel+"
 type = 1
 target = 0
-description = "Block X. Draw 3 cards"
+description = "Gain X Block. Draw 3 cards"
 rarity = 0
+rarity_tier = 0
 red_only = false
 can_play_without_dice = false
 requirement = 0

@@ -16,4 +16,4 @@ func get_dynamic_description(_modifiers: ModifierHandler, _target: Node = null) 
         return "Block ?"
     if Global.roll_value == 1:
         return "Block 12"
-    return "Block X12"
+    return "Gain X12 Block"

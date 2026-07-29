@@ -44,4 +44,4 @@ func get_dynamic_description(modifiers: ModifierHandler, target: Node = null) ->
     if not has_active_roll():
         return "Flip a coin: deal X2 damage, or keep your Power"
     var total := apply_target_modifier(modifiers.get_modified_value(Global.roll_value * 2, Modifier.Type.DMG_DEALT), target)
-    return "Flip a coin: deal %d damage, or keep your Power" % total
+    return "Flip a coin: deal X2 damage, or keep your Power (%d)" % total

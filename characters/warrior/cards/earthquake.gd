@@ -30,4 +30,4 @@ func get_dynamic_description(modifiers: ModifierHandler, _target: Node = null) -
     if not has_active_roll():
         return "At the start of your next turn, deal X2 damage to all enemies"
     var total := modifiers.get_modified_value(int(Global.roll_value) * 2, Modifier.Type.DMG_DEALT)
-    return "At the start of your next turn, deal %d damage to all enemies" % total
+    return "At the start of your next turn, deal X2 damage to all enemies (%d)" % total

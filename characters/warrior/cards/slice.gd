@@ -21,4 +21,4 @@ func get_dynamic_description(modifiers: ModifierHandler, target: Node = null) ->
     if Global.dice_type == "red":
         base += 6
     var total := apply_target_modifier(modifiers.get_modified_value(base, Modifier.Type.DMG_DEALT), target)
-    return "Deal %d damage" % total
+    return "Deal X damage (%d)" % total

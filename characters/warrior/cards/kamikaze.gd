@@ -47,4 +47,4 @@ func get_dynamic_description(modifiers: ModifierHandler, target: Node = null) ->
     if Global.roll_value == 1:
         return "Lose 6HP instead (rolled a 1)"
     var total := apply_target_modifier(modifiers.get_modified_value(Global.roll_value * 3, Modifier.Type.DMG_DEALT), target)
-    return "Deal %d damage. If you roll a 1, lose 6HP instead" % total
+    return "Deal X3 damage (%d). If you roll a 1, lose 6HP instead" % total

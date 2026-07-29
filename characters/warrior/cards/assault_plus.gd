@@ -19,6 +19,6 @@ func get_dynamic_description(modifiers: ModifierHandler, target: Node = null) ->
         return "Deal X damage. If you rolled only 1 Dice this turn, deal X3 instead"
     if Global.dice_amount_rolled_this_turn == 1:
         var tripled := apply_target_modifier(modifiers.get_modified_value(Global.roll_value * 3, Modifier.Type.DMG_DEALT), target)
-        return "Deal %d damage (tripled - only 1 Dice rolled this turn)" % tripled
+        return "Deal ? damage. If you rolled only 1 Dice this turn, deal X3 instead (%d)" % tripled
     var total := apply_target_modifier(modifiers.get_modified_value(Global.roll_value, Modifier.Type.DMG_DEALT), target)
-    return "Deal %d damage. If you rolled only 1 Dice this turn, deal X3 instead" % total
+    return "Deal ? damage. If you rolled only 1 Dice this turn, deal X3 instead (%d)" % total

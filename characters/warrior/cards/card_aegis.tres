@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://c16x17dds06k2" path="res://aegis.png" id="1_i4o73"]
 [ext_resource type="Script" path="res://characters/warrior/cards/aegis.gd" id="2_6vnve"]
 [ext_resource type="AudioStream" uid="uid://68q2f8fotq13" path="res://sounds/blocksound.mp3" id="3_vn3b4"]
-[ext_resource type="Resource" path="res://characters/warrior/cards/card_aegis_plus.tres" id="4_plus"]
+[ext_resource type="Resource" uid="uid://cqfqqd4fa4djr" path="res://characters/warrior/cards/card_aegis_plus.tres" id="4_plus"]
 
 [resource]
 script = ExtResource("2_6vnve")
@@ -11,7 +11,7 @@ id = "card_aegis"
 name = "Aegis"
 type = 1
 target = 0
-description = "Block X3"
+description = "Gain X3 Block"
 rarity = 0
 rarity_tier = 0
 red_only = false
