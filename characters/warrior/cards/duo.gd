@@ -16,9 +16,9 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
 
 func get_dynamic_description(modifiers: ModifierHandler, target: Node = null) -> String:
     if is_inked():
-        return "Deal ? damage and gain ? block"
+        return "Deal ? damage and gain ? Block"
     if Global.roll_value == 2:
         var total := apply_target_modifier(modifiers.get_modified_value(Global.roll_value * 4, Modifier.Type.DMG_DEALT), target)
         var block := Global.roll_value * 4
-        return "Deal X4 damage (%d) and gain X4 block (%d)" % [total, block]
-    return "Deal X4 damage and gain X4 block"
+        return "Deal X4 damage (%d) and gain X4 Block (%d)" % [total, block]
+    return "Deal X4 damage and gain X4 Block"

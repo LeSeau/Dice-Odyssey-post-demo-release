@@ -12,5 +12,5 @@ has_counter = false
 counter = 0
 starter_relic = false
 icon = ExtResource("1_0bggf")
-tooltip = "Gain 3 block per unused Dice at the end of your turn"
+tooltip = "Gain 3 Block per unused Dice at the end of your turn"
 tags = ""

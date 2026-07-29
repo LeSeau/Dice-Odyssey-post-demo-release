@@ -12,4 +12,4 @@ has_counter = false
 counter = 0
 starter_relic = false
 icon = ExtResource("1_4mdmn")
-tooltip = "Everytime your power exceeds 9, deal 5 damage to all enemies"
+tooltip = "Every time your Power exceeds 9, deal 5 damage to all enemies"

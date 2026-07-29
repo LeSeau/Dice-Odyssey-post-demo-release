@@ -389,24 +389,14 @@ func _on_card_frame_mouse_entered() -> void:
     if card.can_play_without_dice:
         tooltips_to_show.append("Celestial")
 
-    if card.tags != "":
-        var tags_array = card.tags.split(",")
-        for tag in tags_array:
-            var trimmed_tag = tag.strip_edges()
-            if trimmed_tag != "":
-                tooltips_to_show.append(trimmed_tag)
-
-    # Dice-type mentions don't need an explicit tag (see KeywordColorizer.colorize()) - detect
-    # them straight from the description text so their tooltip still shows even on cards that
-    # were never tagged with the dice type they mention.
-    for dice_keyword in KeywordColorizer.find_dice_keywords_in_text(card.description):
-        if not tooltips_to_show.has(dice_keyword):
-            tooltips_to_show.append(dice_keyword)
-
-    # Power needs no tag either - any card rendering the Power glyph (word or X placeholder)
-    # explains it on hover. This is the teaching loop for the inline icon.
-    if KeywordColorizer.text_mentions_power(card.description) and not tooltips_to_show.has("Power"):
-        tooltips_to_show.append("Power")
+    # Tags, dice types mentioned in the text, and Power - all ordered by where they read in the
+    # description, so the stack follows the sentence under the requirement ribbon. Shared with
+    # card_ui.gd so the two views can't drift (see KeywordColorizer for why each source is
+    # included; neither dice types nor Power need an explicit tag).
+    for keyword in KeywordColorizer.ordered_description_keywords(
+            card.description, card.tags, str(card.bonus_description_text)):
+        if not tooltips_to_show.has(keyword):
+            tooltips_to_show.append(keyword)
 
     if tooltips_to_show.is_empty():
         return

@@ -105,19 +105,12 @@ func _on_mouse_entered() -> void:
         this_main_tooltip.queue_free()
     )
 
-    var tags_to_show := []
-    if relic.tags != "":
-        for tag in relic.tags.split(","):
-            var trimmed: String = tag.strip_edges()
-            if trimmed != "":
-                tags_to_show.append(trimmed)
-
-    # Dice-type mentions don't need an explicit tag (see KeywordColorizer.colorize()) - detect
-    # them straight from the tooltip text so their tooltip still shows even on relics that were
-    # never tagged with the dice type they mention (e.g. Dice Bag's `tags` field is empty).
-    for dice_keyword in KeywordColorizer.find_dice_keywords_in_text(relic.tooltip):
-        if not tags_to_show.has(dice_keyword):
-            tags_to_show.append(dice_keyword)
+    # Same shared ordering the card hover uses, so a relic's sub-tooltips read in the order its
+    # own text mentions them (tags used to come out in authored order, dice types in dict
+    # order). Dice types and Power need no explicit tag - Dice Bag's `tags` is empty outright,
+    # and Blood Sword / Metronome / Overflow Valve render the Power glyph while tagging nothing,
+    # so before this they showed the icon with nothing to explain it.
+    var tags_to_show := KeywordColorizer.ordered_description_keywords(relic.tooltip, relic.tags)
 
     if tags_to_show.is_empty():
         return

@@ -11,6 +11,4 @@ type = 4
 has_counter = true
 starter_relic = false
 icon = ExtResource("1_j7018")
-tooltip = "When you play your third card of the turn, Charge 1
-
-"
+tooltip = "When you play your third card of the turn, Charge 1"

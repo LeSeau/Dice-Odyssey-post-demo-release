@@ -25,7 +25,7 @@
 [ext_resource type="LabelSettings" uid="uid://begfebqtrbbkl" path="res://scenes/card_ui/card_ui_requirement_ribbon.tres" id="14_jwllg"]
 [ext_resource type="Texture2D" uid="uid://sxiw6df36trq" path="res://assets/images/blue6.png" id="14_rmmpa"]
 [ext_resource type="StyleBox" uid="uid://duq08xoimq50p" path="res://scenes/card_ui/card_ui_description_panel.tres" id="15_kji4e"]
-[ext_resource type="LabelSettings" uid="uid://bl0evkb1ud5ic" path="res://scenes/card_ui/card_description_label.tres" id="16_iw11u"]
+[ext_resource type="FontFile" uid="uid://c4mfyi0ta8qeq" path="res://fonts/MinionPro-Semibold.otf" id="16_descfont"]
 [ext_resource type="StyleBox" uid="uid://48tau48u3kqx" path="res://scenes/card_ui/card_bonus_requirement_exact.tres" id="17_48oql"]
 [ext_resource type="FontFile" uid="uid://dltntsanjiykq" path="res://fonts/LuckiestGuy-Regular.ttf" id="17_vnl2x"]
 [ext_resource type="LabelSettings" uid="uid://bhrpkq50bp811" path="res://scenes/card_ui/card_ui_bonus_requirement_label.tres" id="18_ngl5c"]
@@ -669,19 +669,33 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = ExtResource("15_kji4e")
 
-[node name="ChargedCardDescription" type="Label" parent="CardDropArea/CardBackground/CardFrame/DescriptionPanel"]
+[node name="ChargedCardDescriptionCenter" type="CenterContainer" parent="CardDropArea/CardBackground/CardFrame/DescriptionPanel"]
 z_index = 8
-custom_minimum_size = Vector2(0, 45)
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
+
+[node name="ChargedCardDescription" type="RichTextLabel" parent="CardDropArea/CardBackground/CardFrame/DescriptionPanel/ChargedCardDescriptionCenter"]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/default_color = Color(0.909804, 0.878431, 0.815686, 1)
+theme_override_colors/font_outline_color = Color(0.22554, 1.57929e-07, 0.0404674, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/line_separation = -1
+theme_override_fonts/normal_font = ExtResource("16_descfont")
+theme_override_font_sizes/normal_font_size = 12
+bbcode_enabled = true
 text = "Place a card here"
-label_settings = ExtResource("16_iw11u")
-horizontal_alignment = 1
-vertical_alignment = 1
+fit_content = true
+scroll_active = false
 autowrap_mode = 2
 
 [node name="BonusEffect" type="HBoxContainer" parent="CardDropArea/CardBackground/CardFrame"]

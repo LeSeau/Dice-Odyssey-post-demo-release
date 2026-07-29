@@ -15,7 +15,7 @@ var _power_tooltip: Node = null
 @export var dice_type: String = "blue"
 @onready var card_drop_area: Control = $CardDropArea
 @onready var charged_card_texture: TextureRect = $CardDropArea/CardBackground/CardFrame/Panel/ChargedCardTexture
-@onready var charged_card_description: Label = $CardDropArea/CardBackground/CardFrame/DescriptionPanel/ChargedCardDescription
+@onready var charged_card_description: RichTextLabel = $CardDropArea/CardBackground/CardFrame/DescriptionPanel/ChargedCardDescriptionCenter/ChargedCardDescription
 @onready var requirement_panel: Panel = $CardDropArea/CardBackground/CardFrame/RequirementPanel
 @onready var requirement_label: Label = $CardDropArea/CardBackground/CardFrame/RequirementPanel/RequirementLabel
 @onready var bonus_effect: HBoxContainer = $CardDropArea/CardBackground/CardFrame/BonusEffect
@@ -362,8 +362,22 @@ func _update_charged_card_description() -> void:
         return
     var card = socketed_card_ui.card
     if card and card.has_method("get_dynamic_description"):
-        charged_card_description.text = card.get_dynamic_description(
-            socketed_card_ui.player_modifiers, _socketed_aimed_target())
+        _set_charged_description(card, card.get_dynamic_description(
+            socketed_card_ui.player_modifiers, _socketed_aimed_target()))
+
+
+# Mirrors card_ui.gd::_apply_description(): this panel is a hand-built copy of the card's
+# description slot, so its text goes through the same colorizer - keywords, the Power glyph,
+# resolved-value parens - or a card would drop its glyph the moment it entered the socket,
+# which is exactly where a red-die card is read the longest. [center] is explicit because
+# RichTextLabel has no horizontal_alignment (the CenterContainer around it does the vertical
+# half, as in card_ui.tscn). Glyph size follows the card convention of font_size + 2; this
+# label is a fixed 12 (no step-down: socket text is never long enough to need one).
+const CHARGED_DESC_GLYPH_PX := 14
+
+func _set_charged_description(card: Card, text: String) -> void:
+    charged_card_description.text = "[center]%s[/center]" % card.get_colorized_description(
+        text, CHARGED_DESC_GLYPH_PX)
 
 
 # The socketed CardUI stays hidden the whole time it sits in the socket (see _on_card_charged's
@@ -1490,7 +1504,7 @@ func _on_card_charged(card_ui):
     _set_socket_filled()
     socketed_card_ui = card_ui
     charged_card_texture.texture = card_ui.card.icon
-    charged_card_description.text = card_ui.card.description
+    _set_charged_description(card_ui.card, card_ui.card.description)
     # Deferred on purpose: card_released_state.gd emits card_charged BEFORE it assigns
     # Global.charged_card_instance_id, and the Berserker preview boost
     # (Card.apply_target_modifier) keys off that id - an immediate refresh here would
@@ -2887,7 +2901,7 @@ func _set_socket_empty() -> void:
     requirement_panel.add_theme_stylebox_override("panel", CardUI.NONE_STYLEBOX)
     requirement_label.text = "Drop a card"
     requirement_panel.modulate.a = 0.5
-    charged_card_description.text = "Place a card here"
+    charged_card_description.text = "[center]Place a card here[/center]"
     description_panel.modulate.a = 0.6
     bonus_effect.hide()
     bonus_separator.hide()

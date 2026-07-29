@@ -98,6 +98,8 @@ const MUSIC_ELITE_BOSS := preload("res://final_boss_battle.mp3")
 
 @onready var dice_animation_check: TextureButton = $BattleUI/DiceAnimationControl/DiceAnimationOption/DiceAnimationCheck
 @onready var warning_power_reset: Panel = $CanvasLayer/Tutorial/WarningPowerReset
+@onready var warning_power_title: RichTextLabel = $CanvasLayer/Tutorial/WarningPowerReset/RichTextLabel
+@onready var warning_power_body: RichTextLabel = $CanvasLayer/Tutorial/WarningPowerReset/RichTextLabel2
 @onready var warning_button: Button = $CanvasLayer/Tutorial/WarningPowerReset/WarningButton
 
 
@@ -917,7 +919,14 @@ func _on_stop_battle_music() -> void:
 
 
 
+# The dice-switch warning is the one popup whose whole subject is Power, so it carries the
+# glyph too - stamped here rather than baked into the .tscn strings so it follows
+# KeywordColorizer.power_glyph_mode like every other surface. Both labels are already BBCode
+# RichTextLabels; the helper early-outs once a glyph is present, so re-showing is a no-op.
 func _on_show_warning_message() -> void:
+    for label: RichTextLabel in [warning_power_title, warning_power_body]:
+        label.text = KeywordColorizer.add_power_glyph_to_authored_text(
+            label.text, label.get_theme_font_size("normal_font_size") + 2)
     warning_power_reset.show()
 
 func _on_warning_button_pressed() -> void:

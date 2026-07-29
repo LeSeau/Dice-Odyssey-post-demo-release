@@ -12,6 +12,5 @@ has_counter = false
 counter = 0
 starter_relic = false
 icon = ExtResource("1_6kfa3")
-tooltip = "Start each fight with Boost 5
-"
+tooltip = "Start each fight with Boost 5"
 tags = "Boost"

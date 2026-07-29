@@ -199,7 +199,27 @@ static func colorize(text: String, tags: String, glyph_px: int = 16) -> String:
 # resolved X to a number simply have no X left to match - the glyph shows only while the
 # amount is unknown, which is exactly the placeholder's job.
 static func _apply_power_glyph(text: String, glyph_px: int) -> String:
-    var img := "[img=%d]%s[/img]" % [glyph_px, POWER_GLYPH_PATH]
+    var img := power_glyph_img(glyph_px)
+    var result := _swap_x_placeholder(text, glyph_px)
+
+    var re_p := RegEx.new()
+    re_p.compile("\\bPower\\b")
+    if power_glyph_mode == PowerGlyphMode.GLYPH_ONLY:
+        result = re_p.sub(result, img, true)
+    else:
+        result = re_p.sub(result, "%s [color=#%s]Power[/color]" % [img, KEYWORD_HIGHLIGHT_COLOR], true)
+    return result
+
+
+# The inline BBCode for one glyph. Shared so nothing else has to hardcode the [img] form or
+# the asset path.
+static func power_glyph_img(glyph_px: int) -> String:
+    return "[img=%d]%s[/img]" % [glyph_px, POWER_GLYPH_PATH]
+
+
+# The X half of the glyph pass, split out because authored text (below) wants it too.
+static func _swap_x_placeholder(text: String, glyph_px: int) -> String:
+    var img := power_glyph_img(glyph_px)
     var re_x := RegEx.new()
     re_x.compile("\\bX(\\d*)\\b")
     var result := ""
@@ -213,14 +233,45 @@ static func _apply_power_glyph(text: String, glyph_px: int) -> String:
             result += "×%s" % m.get_string(1)
         last = m.get_end()
     result += text.substr(last)
-
-    var re_p := RegEx.new()
-    re_p.compile("\\bPower\\b")
-    if power_glyph_mode == PowerGlyphMode.GLYPH_ONLY:
-        result = re_p.sub(result, img, true)
-    else:
-        result = re_p.sub(result, "%s [color=#%s]Power[/color]" % [img, KEYWORD_HIGHLIGHT_COLOR], true)
     return result
+
+
+# Glyph pass for text that was ALREADY hand-authored with BBCode - i.e. the tutorial's boxes,
+# which carry their own colour language ([color=red]Power[/color], gold numbers, purple Cards).
+# Unlike colorize()'s pass 4 this only INSERTS the glyph and recolours nothing, so the author's
+# markup survives untouched; and when the word already sits inside a [color] span the glyph is
+# placed BEFORE the opening tag, so it keeps its own warm gold instead of reading as part of
+# that span. The word itself is always kept (GLYPH_ONLY included, unlike card text): the
+# tutorial is the one surface whose entire job is binding the glyph TO the word, so it has to
+# show both no matter which wording mode ships.
+# Not idempotent by regex, hence the early-out: hand it the raw authored string, not a string
+# this already returned (overlay call sites keep the raw copy for re-layout for that reason).
+static func add_power_glyph_to_authored_text(text: String, glyph_px: int) -> String:
+    if power_glyph_mode == PowerGlyphMode.OFF or text.contains(POWER_GLYPH_PATH):
+        return text
+    var result := _swap_x_placeholder(text, glyph_px)
+    var re_p := RegEx.new()
+    re_p.compile("(\\[color=[^\\]]+\\])?\\bPower\\b")
+    return re_p.sub(result, "%s $0" % power_glyph_img(glyph_px), true)
+
+
+# Whether `text` will render the Power glyph - the word "Power" or the standalone X
+# placeholder (same case-sensitive patterns _apply_power_glyph() swaps). Used by the card
+# hover handlers to show the "Power" tooltip without any tag bookkeeping, mirroring how
+# dice-type tooltips are detected from text below.
+static func text_mentions_power(text: String) -> bool:
+    if power_glyph_mode == PowerGlyphMode.OFF:
+        return false
+    return _power_mention_position(text) >= 0
+
+
+# First character index of a Power mention, or -1. Split out so the tooltip ordering below can
+# place "Power" by where it actually reads rather than always last.
+static func _power_mention_position(text: String) -> int:
+    var regex := RegEx.new()
+    regex.compile("\\bPower\\b|\\bX\\d*\\b")
+    var m := regex.search(text)
+    return m.get_start() if m else -1
 
 
 # Which dice-type keywords are literally present in `text`, regardless of tags - used to make
@@ -229,18 +280,6 @@ static func _apply_power_glyph(text: String, glyph_px: int) -> String:
 # colorize() above doesn't gate dice-type coloring on tags: dice-type tags were historically
 # only added for the 4 types tooltip.gd used to explain (Green/Magma/Giant/Evil), so Blue/Red/
 # Odd/Even/Mech mentions never got tagged and their tooltips never showed.
-# Whether `text` will render the Power glyph - the word "Power" or the standalone X
-# placeholder (same case-sensitive patterns _apply_power_glyph() swaps). Used by the card
-# hover handlers to show the "Power" tooltip without any tag bookkeeping, mirroring how
-# dice-type tooltips are detected from text below.
-static func text_mentions_power(text: String) -> bool:
-    if power_glyph_mode == PowerGlyphMode.OFF:
-        return false
-    var regex := RegEx.new()
-    regex.compile("\\bPower\\b|\\bX\\d*\\b")
-    return regex.search(text) != null
-
-
 static func find_dice_keywords_in_text(text: String) -> Array[String]:
     var found: Array[String] = []
     for dice_keyword in DICE_KEYWORD_COLORS:
@@ -249,6 +288,80 @@ static func find_dice_keywords_in_text(text: String) -> Array[String]:
         if regex.search(text):
             found.append(dice_keyword)
     return found
+
+
+# Every hover-tooltip keyword a card's text earns, ORDERED BY WHERE IT READS. A player scans a
+# card top-down, so the tooltip stack should follow the sentence - not the order the author
+# happened to type `tags`, not DICE_KEYWORD_COLORS' dict order, and not "Power always last"
+# (all three of which the two hover handlers used to do independently).
+# Sources are the same three as before, so which tooltips appear is unchanged: every tag, plus
+# dice types found in the description, plus Power. Only the ORDER changes.
+# Position falls back from description -> bonus-effect line -> nothing. A tag matching neither
+# is granted by script without the card ever printing the word (Gang Up tags Infused but its
+# text never says it), so there is nothing on the card to read it next to: those trail the
+# readable ones, keeping their authored order.
+static func ordered_description_keywords(
+        description: String, tags: String, bonus_text: String = "") -> Array[String]:
+    var candidates: Array[String] = []
+    if not tags.is_empty():
+        for raw_tag in tags.split(","):
+            var tag := raw_tag.strip_edges()
+            if tag != "" and not candidates.has(tag):
+                candidates.append(tag)
+    for dice_keyword in find_dice_keywords_in_text(description):
+        if not candidates.has(dice_keyword):
+            candidates.append(dice_keyword)
+    if text_mentions_power(description) and not candidates.has("Power"):
+        candidates.append("Power")
+
+    # Sorted on (position, original index): Array.sort_custom is not documented as stable, so
+    # the tiebreak is explicit - it keeps authored order among the unpositioned trailers.
+    var ranked: Array = []
+    for i in candidates.size():
+        ranked.append({"name": candidates[i], "pos": _keyword_position(
+            candidates[i], description, bonus_text), "idx": i})
+    ranked.sort_custom(func(a, b):
+        if a["pos"] != b["pos"]:
+            return a["pos"] < b["pos"]
+        return a["idx"] < b["idx"])
+
+    var ordered: Array[String] = []
+    for entry in ranked:
+        ordered.append(entry["name"])
+    return ordered
+
+
+# Reading position of one keyword: its index in the description, else in the bonus line (pushed
+# past the description so bonus keywords sort after body ones), else a large sentinel so it
+# trails everything readable.
+const KEYWORD_POSITION_UNREAD := 1 << 30
+
+static func _keyword_position(keyword: String, description: String, bonus_text: String) -> int:
+    if keyword == "Power":
+        var power_pos := _power_mention_position(description)
+        if power_pos >= 0:
+            return power_pos
+        power_pos = _power_mention_position(bonus_text)
+        return description.length() + 1 + power_pos if power_pos >= 0 else KEYWORD_POSITION_UNREAD
+    var regex := RegEx.new()
+    regex.compile("(?i)\\b" + _escape_for_regex(keyword) + "\\b")
+    var m := regex.search(description)
+    if m:
+        return m.get_start()
+    m = regex.search(bonus_text)
+    if m:
+        return description.length() + 1 + m.get_start()
+    return KEYWORD_POSITION_UNREAD
+
+
+# Tags are authored strings, so a stray regex metacharacter must not become a pattern.
+static func _escape_for_regex(text: String) -> String:
+    var escaped := ""
+    for c in text:
+        if c in "\\^$.|?*+()[]{}":
+            escaped += "\\"
+        escaped += c
+    return escaped
 
 
 # STS2-style: "Exhaust" reads as a standalone reminder line rather than trailing prose - push it

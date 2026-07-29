@@ -91,6 +91,15 @@ const PANEL_PAD_Y := 14.0
 const CONTINUE_SIZE := Vector2(112, 34)
 const CONTINUE_GAP := 10.0
 
+# The Power glyph is stamped into tutorial copy HERE rather than in each authored string, so
+# every box - present and future - shows it without the director hand-writing [img] tags, and
+# so flipping KeywordColorizer.power_glyph_mode to OFF silences the tutorial too. Sizes follow
+# the card convention of font_size + 2 (see card_ui.gd::_apply_description) against each
+# label's own size: body 17, note 14, welcome body 18.
+const GLYPH_PX_BODY := 19
+const GLYPH_PX_NOTE := 16
+const GLYPH_PX_WELCOME := 20
+
 # Zones flagged "fit" pick their own width instead of always using the zone's full width.
 # Reason: a one-line instruction stretched across a fixed 800px zone is a letterbox strip,
 # which Julien kept flagging as "ugly rectangle" - the box needs to be shaped by its text, not
@@ -483,7 +492,7 @@ func show_info_note(text: String, anchor_rect: Rect2) -> void:
     var inner_w := INFO_NOTE_W - INFO_NOTE_PAD * 2.0
     info_label.position = Vector2(INFO_NOTE_PAD, INFO_NOTE_PAD)
     info_label.size = Vector2(inner_w, 10.0)
-    info_label.text = text
+    info_label.text = KeywordColorizer.add_power_glyph_to_authored_text(text, GLYPH_PX_NOTE)
     var content_h: float = maxf(info_label.get_content_height(), 20.0)
     info_label.size = Vector2(inner_w, content_h)
     var panel_h := content_h + INFO_NOTE_PAD * 2.0
@@ -602,8 +611,12 @@ func set_text(bbcode: String, zone: String = "center", show_continue: bool = fal
     _last_zone = zone
     _last_continue = show_continue
 
+    # _last_text above keeps the RAW copy on purpose (the re-layout path at the top of this
+    # file feeds it back through here, and the glyph pass is not idempotent).
+    var display := KeywordColorizer.add_power_glyph_to_authored_text(bbcode, GLYPH_PX_BODY)
+
     var z: Dictionary = TEXT_ZONES.get(zone, TEXT_ZONES["center"])
-    var panel_w: float = _fit_panel_width(z, bbcode, show_continue)
+    var panel_w: float = _fit_panel_width(z, display, show_continue)
     var inner_w: float = panel_w - PANEL_PAD_X * 2.0
 
     # Fully manual layout: anchors zeroed on all three nodes so NOTHING (theme defaults,
@@ -620,7 +633,7 @@ func set_text(bbcode: String, zone: String = "center", show_continue: bool = fal
     # valid immediately once the wrap width is final.
     label.position = Vector2(PANEL_PAD_X, PANEL_PAD_Y)
     label.size = Vector2(inner_w, 10.0)
-    label.text = bbcode
+    label.text = display
     var content_h: float = maxf(label.get_content_height(), 24.0)
     label.size = Vector2(inner_w, content_h)
 
@@ -796,7 +809,8 @@ func _layout_welcome() -> void:
     var body_y := divider_y + WELCOME_DIVIDER_H + WELCOME_BODY_TOP_GAP
     welcome_body.position = Vector2(WELCOME_PAD_X, body_y)
     welcome_body.size = Vector2(inner_w, 10.0)
-    welcome_body.text = _welcome_body_text
+    welcome_body.text = KeywordColorizer.add_power_glyph_to_authored_text(
+        _welcome_body_text, GLYPH_PX_WELCOME)
     var body_h: float = maxf(welcome_body.get_content_height(), 24.0)
     welcome_body.size = Vector2(inner_w, body_h)
 

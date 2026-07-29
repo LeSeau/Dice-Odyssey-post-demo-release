@@ -241,17 +241,11 @@ func _on_relic_reward_mouse_entered(relic: Relic, button: Control) -> void:
     var pos = button.get_global_position() + Vector2(button.get_size().x + 8, 0)
     tooltip_panel.show_tooltip(pos)
 
-    # Secondary keyword tooltips (e.g. "Scout") - same tags + tag-free dice-type detection as
-    # relic_ui.gd, just never wired up on this screen before.
-    var tags_to_show: Array = []
-    if relic.tags != "":
-        for tag in relic.tags.split(","):
-            var trimmed: String = tag.strip_edges()
-            if trimmed != "":
-                tags_to_show.append(trimmed)
-    for dice_keyword in KeywordColorizer.find_dice_keywords_in_text(relic.tooltip):
-        if not tags_to_show.has(dice_keyword):
-            tags_to_show.append(dice_keyword)
+    # Secondary keyword tooltips (e.g. "Scout"), through the same shared ordering as relic_ui.gd
+    # and the card hovers - tags, dice types and Power, in the order the relic's text mentions
+    # them.
+    var tags_to_show: Array = KeywordColorizer.ordered_description_keywords(
+        relic.tooltip, relic.tags)
 
     if tags_to_show.is_empty():
         return

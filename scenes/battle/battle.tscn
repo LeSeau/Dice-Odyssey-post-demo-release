@@ -747,7 +747,7 @@ offset_bottom = 37.0
 grow_horizontal = 2
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[center][color=yellow]This will reset your power"
+text = "[center][color=yellow]This will reset your Power"
 fit_content = true
 
 [node name="RichTextLabel2" type="RichTextLabel" parent="CanvasLayer/Tutorial/WarningPowerReset"]

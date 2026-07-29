@@ -1,7 +1,5 @@
 extends Panel
 
-@onready var vbox := $VBoxContainer
-
 @onready var tooltip_label: RichTextLabel = %TooltipText
 @onready var tooltip_title: RichTextLabel = %TooltipTitle
 
