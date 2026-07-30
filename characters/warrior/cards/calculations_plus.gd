@@ -1,6 +1,6 @@
 extends Card
 func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
-    if Global.roll_value == 6:
+    if meets_requirement():
         var support_effect := SupportEffect.new()
         support_effect.sound = sound
         support_effect.execute(targets)

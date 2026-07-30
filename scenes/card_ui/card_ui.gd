@@ -38,6 +38,19 @@ const UNPLAYABLE_MODULATE_HAS_POWER := Color(0.6, 0.6, 0.6, 1.0)
 # is played, plus a sparse trail of dice-colored motes shed along the whole discard flight -
 # same additive-radial recipe as the power orbs / impact particles, so the flight reads as the
 # same magic moving through the world instead of a plain rectangle drifting away.
+# Warm overbright flash on the requirement ribbon when a pick-up is refused for failing it.
+const RIBBON_FLASH_COLOR := Color(1.9, 1.25, 1.25, 1.0)
+# Pick-up refusal message. Same recipe as the act/turn banners (MinionPro-Bold, brown
+# outline, drop shadow) so it reads as part of the game's transient-message language, but
+# in a warm red instead of their gold - this is a refusal, not an announcement.
+const ERROR_SFX := preload("res://sounds/error.wav")
+const REFUSAL_FONT := preload("res://fonts/MinionPro-Bold.otf")
+const REFUSAL_MSG_NO_POWER := "You need %s%sPower to play this card"
+const REFUSAL_MSG_REQUIREMENT := "Card requirements are not met"
+const REFUSAL_MSG_COLOR := Color(0.98, 0.44, 0.38, 1.0)
+const REFUSAL_MSG_WIDTH := 560.0
+const REFUSAL_MSG_HOLD := 1.0
+const REFUSAL_MSG_FONT_SIZE := 24
 const RESOLVE_FLASH_COLOR := Color(1.65, 1.55, 1.15, 1.0)
 const RESOLVE_FLASH_DECAY := 0.3
 const TRAIL_MOTE_INTERVAL := 0.045
@@ -266,6 +279,129 @@ var _hot_frame_stylebox: StyleBoxFlat
 @onready var targets: Array[Node] = []
 
 @onready var rarity_gem: TextureRect = $CardBackground/CardFrame/CardBanner/RarityGem
+
+# Pick-up refusal feedback. Deliberately NOT stored in `tween`: card_base_state.enter() kills
+# that one, and the refusal plays exactly while we transition back to BASE.
+var _refusal_tween: Tween
+var _ribbon_tween: Tween
+# One refusal message on screen at a time across the whole hand, hence static: refusing a
+# second card replaces the first rather than stacking two labels on top of each other.
+static var _refusal_message_node: RichTextLabel
+
+
+# Whether reaching for this card should be refused instead of starting a drag.
+func is_drag_blocked() -> bool:
+    return card != null and card.would_no_op_now()
+
+
+# "You can't pick that up (yet)" - a short shake plus, when there's a specific reason to
+# point at, a pulse on the requirement ribbon. No new text is invented: the ribbon already
+# reads "MIN 6" on the card face, so drawing the eye to it beats printing the same fact
+# somewhere else on screen.
+func play_pickup_refusal() -> void:
+    SFXPlayer.play(ERROR_SFX, false, 1.0, -3.0)
+    _show_refusal_message(_refusal_text())
+
+    # Shake CardBackground, never the CardUI root: the fan owns the root's position and
+    # rotation and re-stomps both on every fan_hand_requested - which transitioning back to
+    # BASE emits - so a shake there would be wiped mid-animation. CardBackground's parent is
+    # a plain Control (not a container), so nothing re-lays it out behind our back.
+    if _refusal_tween and _refusal_tween.is_valid():
+        _refusal_tween.kill()
+    card_background.position = Vector2.ZERO
+    _refusal_tween = create_tween()
+    for offset: float in [9.0, -7.0, 5.0, -3.0, 0.0]:
+        _refusal_tween.tween_property(card_background, "position:x", offset, 0.045) \
+            .set_trans(Tween.TRANS_SINE)
+
+    # Only flash the ribbon when the requirement is the actual reason. Blocks that happen
+    # before the first roll have no ribbon to blame, and a card with no requirement has no
+    # ribbon at all - flashing either would point at the wrong thing.
+    if requirement_panel == null or not requirement_panel.visible or card.meets_requirement():
+        return
+    if _ribbon_tween and _ribbon_tween.is_valid():
+        _ribbon_tween.kill()
+    requirement_panel.pivot_offset = requirement_panel.size / 2.0
+    _ribbon_tween = create_tween()
+    _ribbon_tween.tween_property(requirement_panel, "scale", Vector2(1.18, 1.18), 0.08) \
+        .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+    _ribbon_tween.parallel().tween_property(requirement_panel, "modulate", RIBBON_FLASH_COLOR, 0.08)
+    _ribbon_tween.tween_property(requirement_panel, "scale", Vector2.ONE, 0.22) \
+        .set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+    # Restore to the authored WHITE explicitly rather than to a captured live value - a second
+    # refusal landing mid-flash would otherwise bake the brightened tint in permanently.
+    _ribbon_tween.parallel().tween_property(requirement_panel, "modulate", Color.WHITE, 0.22)
+
+
+# Which line to show, and the Power glyph welded into it. The glyph comes from
+# KeywordColorizer so the message uses the same asset, the same [img] form and the same
+# font_size + 2 sizing convention as every card that prints it - and picks up any future
+# change to the glyph for free. NBSP between icon and word for the same reason card text
+# uses one: the two must never be split across a line break.
+func _refusal_text() -> String:
+    if Global.roll_value > 0:
+        return REFUSAL_MSG_REQUIREMENT
+    return REFUSAL_MSG_NO_POWER % [
+        KeywordColorizer.power_glyph_img(REFUSAL_MSG_FONT_SIZE + 2),
+        KeywordColorizer.NBSP,
+    ]
+
+
+# Short "here's why" line that floats above the refused card and fades out.
+func _show_refusal_message(text: String) -> void:
+    var ui_layer := get_tree().get_first_node_in_group("ui_layer")
+    if ui_layer == null:
+        return
+    # Kill-before-spawn: without this, refusing several cards in a row leaves a stack of
+    # labels fading independently (the same leak shape the tooltips had).
+    if is_instance_valid(_refusal_message_node):
+        _refusal_message_node.queue_free()
+
+    # RichTextLabel rather than Label: only BBCode can render the inline [img] glyph.
+    # That costs the Label conveniences - no label_settings (styling goes through theme
+    # overrides) and no horizontal_alignment (centring is a [center] tag) - and it defaults
+    # to mouse_filter STOP where Label is IGNORE, which would silently eat clicks aimed at
+    # the cards underneath.
+    var label := RichTextLabel.new()
+    label.bbcode_enabled = true
+    label.fit_content = true
+    label.scroll_active = false
+    label.autowrap_mode = TextServer.AUTOWRAP_OFF
+    label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    label.custom_minimum_size = Vector2(REFUSAL_MSG_WIDTH, 0.0)
+    label.size = Vector2(REFUSAL_MSG_WIDTH, 40.0)
+    label.z_index = 200
+    label.add_theme_font_override("normal_font", REFUSAL_FONT)
+    label.add_theme_font_size_override("normal_font_size", REFUSAL_MSG_FONT_SIZE)
+    label.add_theme_color_override("default_color", REFUSAL_MSG_COLOR)
+    label.add_theme_color_override("font_outline_color", Color(0.196078, 0.0823529, 0.0, 1.0))
+    label.add_theme_constant_override("outline_size", 6)
+    label.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.7))
+    label.add_theme_constant_override("shadow_offset_x", 3)
+    label.add_theme_constant_override("shadow_offset_y", 3)
+    label.text = "[center]%s[/center]" % text
+
+    ui_layer.add_child(label)
+    _refusal_message_node = label
+
+    # Centred over the refused card and lifted clear of the fan, then clamped so a card at
+    # either end of the hand can't push the text off screen.
+    var viewport_width := get_viewport_rect().size.x
+    var centred_x: float = global_position.x + size.x * 0.5 - REFUSAL_MSG_WIDTH * 0.5
+    label.position = Vector2(
+        clampf(centred_x, 8.0, maxf(viewport_width - REFUSAL_MSG_WIDTH - 8.0, 8.0)),
+        global_position.y - 54.0)
+
+    # Tween owned by the label, so it dies with it rather than writing to a freed node.
+    label.modulate.a = 0.0
+    var drift_to := label.position.y - 12.0
+    var msg_tween := label.create_tween()
+    msg_tween.tween_property(label, "modulate:a", 1.0, 0.08)
+    msg_tween.parallel().tween_property(label, "position:y", drift_to, 0.2) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    msg_tween.tween_interval(REFUSAL_MSG_HOLD)
+    msg_tween.tween_property(label, "modulate:a", 0.0, 0.25)
+    msg_tween.tween_callback(label.queue_free)
 
 
 var original_index := 0

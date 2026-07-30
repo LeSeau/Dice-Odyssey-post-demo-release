@@ -1,7 +1,7 @@
 extends Card
 
 func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
-    if Global.roll_value == 6:
+    if meets_requirement():
         Global.blue_dice_current_amount+=4
         Events.change_current_power.emit()
         var support_effect := SupportEffect.new()

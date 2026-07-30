@@ -1,7 +1,7 @@
 extends Card
 
 func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
-    if Global.roll_value % 6 == 0:
+    if meets_requirement():
         Events.reset_charged_card.emit()
         var damage_effect := DamageEffect.new()
         var base_damage = floor(Global.roll_value*3)

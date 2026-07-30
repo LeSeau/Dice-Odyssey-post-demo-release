@@ -2,7 +2,7 @@ extends Card
 
 
 func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
-    if Global.roll_value % 6 == 0:
+    if meets_requirement():
         var block_effect := BlockEffect.new()
         block_effect.amount = Global.roll_value*4
         block_effect.sound = sound

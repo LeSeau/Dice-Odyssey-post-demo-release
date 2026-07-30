@@ -4,7 +4,7 @@ const EMANATION_STATUS = preload("res://statuses/status_emanation.tres")
 
 
 func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
-    if Global.roll_value >= 4 or Global.blessing_cast_any_roll:
+    if meets_requirement():
         Global.blue_dice_bonus_amount_fight+=1
         Events.change_current_power.emit()
         var support_effect := SupportEffect.new()

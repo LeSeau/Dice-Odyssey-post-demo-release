@@ -1,7 +1,7 @@
 extends Card
 
 func apply_effects(targets: Array [Node], _modifiers: ModifierHandler) -> void:
-    if Global.roll_value == 1:
+    if meets_requirement():
         var block_effect := BlockEffect.new()
         block_effect.amount = 12
         block_effect.sound = sound
@@ -14,6 +14,6 @@ func apply_effects(targets: Array [Node], _modifiers: ModifierHandler) -> void:
 func get_dynamic_description(_modifiers: ModifierHandler, _target: Node = null) -> String:
     if is_inked():
         return "Block ?"
-    if Global.roll_value == 1:
+    if meets_requirement():
         return "Block 12"
     return "Gain X12 Block"

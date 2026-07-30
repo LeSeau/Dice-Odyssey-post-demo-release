@@ -3,7 +3,7 @@ extends Card
 const FORESIGHT_STATUS = preload("res://statuses/status_foresight.tres")
 
 func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
-    if Global.roll_value >= 4 or Global.blessing_cast_any_roll:
+    if meets_requirement():
         var status_effect := StatusEffect.new()
         var foresight := FORESIGHT_STATUS.duplicate()
         status_effect.status = foresight

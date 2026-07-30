@@ -5,7 +5,7 @@ const TREBUCHET_STATUS = preload("res://statuses/status_trebuchet_plus.tres")
 
 func apply_effects(targets: Array[Node], _modifiers: ModifierHandler) -> void:
     # Blessing gate (Min 6) - Prayer Beads bypasses it like every other Blessing.
-    if Global.roll_value >= 6 or Global.blessing_cast_any_roll:
+    if meets_requirement():
         # The real effect lives in this fight-scoped Global (reset by battle.gd::start_battle);
         # the status is the visible badge, same split as Emanation.
         Global.thrown_dice_bonus_fight += 3

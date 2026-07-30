@@ -3,7 +3,7 @@ extends Card
 const DEPLETED_STATUS = preload("res://statuses/depleted.tres")
 
 func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
-    if Global.roll_value < 19 :
+    if meets_requirement():
         var status_effect := StatusEffect.new()
         var depleted := DEPLETED_STATUS.duplicate()
         depleted.duration = 1

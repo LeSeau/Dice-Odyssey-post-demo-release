@@ -3,7 +3,7 @@ extends Card
 const EXPOSED_STATUS = preload("res://statuses/exposed.tres")
 
 func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
-    if Global.roll_value < 10:
+    if not meets_requirement():
         return
     Events.reset_charged_card.emit()
     var status_effect := StatusEffect.new()

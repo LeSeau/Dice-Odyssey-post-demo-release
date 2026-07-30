@@ -4,7 +4,7 @@ const LUCKY_STATUS = preload("res://statuses/lucky.tres")
 
 func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     Events.reset_charged_card.emit()
-    if Global.roll_value <= 3:
+    if meets_requirement():
         Events.reset_charged_card.emit()
         var damage_effect := DamageEffect.new()
         var base_damage = 8

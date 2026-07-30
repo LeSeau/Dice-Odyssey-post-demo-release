@@ -1111,7 +1111,11 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
     power_tween.tween_property(current_power, "scale", Vector2(power_punch, power_punch), 0.07).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
     power_tween.tween_property(current_power, "scale", Vector2(power_rest_scale, power_rest_scale), 0.14).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
 
-    var base_power_color = current_power.modulate
+    # Restore to the authoritative per-type colour, NEVER to a live read of modulate:
+    # an orb arrival landing mid-flash would capture the already-lightened value as its
+    # "resting" colour and settle there, and every subsequent roll would lighten from that
+    # washed-out base again - the number ratcheted to white after 2-3 rolls.
+    var base_power_color := _power_resting_color()
     if _power_color_flash_tween and _power_color_flash_tween.is_valid():
         _power_color_flash_tween.kill()
     _power_color_flash_tween = create_tween()
@@ -1283,7 +1287,9 @@ func _play_power_orb_arrival_reaction(type: String) -> void:
     pop_tween.tween_property(current_power, "scale", Vector2(rest_scale, rest_scale), 0.12) \
         .set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
 
-    var base_color := current_power.modulate
+    # Same rule as the roll flash: settle on the true per-type colour, not on whatever
+    # mid-flash value modulate happens to hold when this orb lands.
+    var base_color := _power_resting_color()
     if _power_color_flash_tween and _power_color_flash_tween.is_valid():
         _power_color_flash_tween.kill()
     _power_color_flash_tween = create_tween()
@@ -1340,6 +1346,18 @@ func _on_active_dice_changed(new_dice_type):
     current_power.scale = Vector2.ONE
     _update_power_float()
     Events.change_current_power.emit()
+
+# The Power number's true resting colour: per-type RGB captured in update_dice_display(),
+# but carrying whatever alpha is live right now (the dimmed 0.4 at zero power vs 1.0 with
+# power banked is owned by the roll/reset paths, not by the palette).
+func _power_resting_color() -> Color:
+    # Derived from the palette rather than from _power_resting_modulate: that snapshot
+    # defaults to Color.WHITE until update_dice_display() first runs, and a flash beating
+    # it would then bake white in permanently - the exact failure this is fixing.
+    var c := DicePalette.accent(dice_type)
+    c.a = current_power.modulate.a
+    return c
+
 
 func update_dice_display():
     # Resting face shown when this type becomes active - "1" for every type that has a 1,

@@ -8,7 +8,7 @@ var exposed_duration := 2
 var weak_duration := 2
 
 func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
-    if Global.roll_value >= 6:
+    if meets_requirement():
         var damage_effect := DamageEffect.new()
         var base_damage = Global.roll_value
         damage_effect.amount = modifiers.get_modified_value(base_damage, Modifier.Type.DMG_DEALT)

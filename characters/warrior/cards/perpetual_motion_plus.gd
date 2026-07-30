@@ -3,7 +3,7 @@ extends Card
 const PERPETUAL_MOTION_STATUS = preload("res://statuses/status_perpetual_motion.tres")
 
 func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
-    if Global.roll_value >= 4 or Global.blessing_cast_any_roll:
+    if meets_requirement():
         var status_effect := StatusEffect.new()
         var perpetual_motion := PERPETUAL_MOTION_STATUS.duplicate()
         status_effect.status = perpetual_motion

@@ -85,14 +85,39 @@ func is_inked() -> bool:
     return Global.ink_active
 
 
+# Sources that waive a card's requirement outright, letting it fire on a roll its badge
+# would normally refuse. Add new bypassers (a status, an infused dice, a relic) HERE and
+# every card honours them at once - that's the whole point of routing gates through
+# meets_requirement() rather than hardcoding thresholds per script.
+#
+# Note this only waives the GATE, never the magnitude: a waived Max 3 card played at 12
+# still computes off the real 12 (so Low Blow's roll*3 pays out 36). That's deliberate -
+# breaking the caps is what a bypasser is for.
+func _requirement_bypassed() -> bool:
+    # Prayer Beads: "Blessings can be cast on any roll." Scoped to BLESSING because that's
+    # exactly what the relic's tooltip promises, and it matches the behaviour of the 30
+    # hand-written `or Global.blessing_cast_any_roll` checks this replaced (all Type.BLESSING).
+    if type == Type.BLESSING and Global.blessing_cast_any_roll:
+        return true
+    return false
+
+
 # Whether the card's own primary requirement (the MIN/MAX/EXACT/etc. ribbon badge on the
-# card face) is currently satisfied by the active roll. `card.requirement` is otherwise
-# purely cosmetic (badge text + tooltip) - nothing actually blocks playing a card that fails
-# it, its apply_effects() just silently no-ops - so this is the one place that gives the enum
-# real meaning. Dynamic descriptions use this to avoid resolving to a live number computed
-# from a roll that wouldn't actually trigger the effect (e.g. showing "Deal 40 damage" on a
-# Max 12 card at 20 Power, when the card would do nothing if played right now).
+# card face) is currently satisfied. This is the single funnel every gate runs through:
+# apply_effects() gates on it, should_exhaust() gates on it, and dynamic descriptions use it
+# to avoid resolving to a live number computed from a roll that wouldn't actually trigger the
+# effect (e.g. showing "Deal 40 damage" on a Max 12 card at 20 Power).
+#
+# Cards used to hardcode their own threshold (`if Global.roll_value >= 6`) instead. That's how
+# Prayer Beads ended up pasted into 30 scripts while should_exhaust() never learned about it:
+# a bypassed Blessing fired its effect, then failed meets_requirement(), so it landed in the
+# discard pile instead of exhausting and could be redrawn and recast for the rest of the fight.
+# One funnel means the gate, the exhaust decision and the preview text can no longer disagree.
 func meets_requirement() -> bool:
+    if requirement == Requirement.NONE:
+        return true
+    if _requirement_bypassed():
+        return true
     match requirement:
         Requirement.NONE:
             return true
@@ -112,6 +137,38 @@ func meets_requirement() -> bool:
             return Global.roll_value == requirement_number
         _:
             return true
+
+
+# Would playing this card RIGHT NOW do literally nothing? Drives the pick-up refusal in
+# card_clicked_state.gd. Note this mostly makes EXISTING refusals audible rather than adding
+# new ones: card_released_state.gd already declines to play a red_only card on the wrong dice,
+# and any non-Celestial card before the first roll, silently bouncing both back to hand.
+#
+# Deliberately NOT the same question as hand.gd::_get_glow_state(). On the Red die most cards
+# render dimmed because we cannot promise the upcoming roll will satisfy them - yet they are
+# perfectly legal to socket, and committing before the roll is the entire point of Red. That
+# dim means "no guarantee"; this means "no effect". Conflating the two would delete the gamble.
+func would_no_op_now() -> bool:
+    # Celestials never consult a roll at all.
+    if can_play_without_dice:
+        return false
+    # Inked: the power number is hidden behind the splash, so refusing (or allowing) would
+    # leak whether the concealed roll meets the requirement. Inked turns are gambles by design.
+    if is_inked():
+        return false
+    # Already enforced in card_released_state.gd - the play is skipped, card returns to hand.
+    if red_only and Global.dice_type != "red":
+        return true
+    if Global.dice_type == "red":
+        # Socketing judges the requirement against a roll that has not happened yet, so it can
+        # never be pre-judged. The one genuinely dead case is having no Red die left to roll.
+        return Global.red_dice_current_amount <= 0
+    # Nothing rolled yet. has_active_roll() rather than roll_value alone so Evil's crack face
+    # (a real roll that resolved to 0) still counts - the same gate the play path and the hand
+    # dimming both already use.
+    if Global.roll_value <= 0 and not has_active_roll():
+        return true
+    return not meets_requirement()
 
 
 # Applies the target enemy's own DMG_TAKEN modifier (Exposed being the main one today) on top

@@ -3,7 +3,7 @@ extends Card
 
 func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
     Events.reset_charged_card.emit()
-    if Global.roll_value <= 3:
+    if meets_requirement():
         Global.next_roll_modifier+=8
         Events.display_next_roll_modifier.emit()
         var support_effect := SupportEffect.new()

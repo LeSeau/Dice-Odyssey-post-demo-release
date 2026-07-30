@@ -1,7 +1,7 @@
 extends Card
 
 func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
-    if Global.roll_value < 12:
+    if not meets_requirement():
         return
     Events.reset_charged_card.emit()
     var damage_effect := DamageEffect.new()
