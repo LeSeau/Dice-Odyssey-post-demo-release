@@ -88,7 +88,9 @@ func get_tooltip_content(status: Status) -> void:
     # Upgraded blessings reuse their base status with a "_plus" id - the player-facing
     # name stays the base name ("Marionette", never "Marionette Plus").
     title_bbcode = "[center][color=gold][b]" + status.id.trim_suffix("_plus").capitalize() + "[/b][/color][/center]"
-    var text_bbcode = "[b][center]" + text + "[/center][/b]"
+    # Same treatment as card text: dice names in their color, keywords gold, Power glyphed.
+    # 14px glyph = body font 12 + 2 (the cards' font+2 convention).
+    var text_bbcode = "[b][center]" + KeywordColorizer.colorize_tooltip(text, 14) + "[/center][/b]"
 
     tooltip_title.bbcode_enabled = true
     tooltip_title.bbcode_text = title_bbcode

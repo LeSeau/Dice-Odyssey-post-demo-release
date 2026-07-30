@@ -83,12 +83,16 @@ func get_tooltip_content(requirement):
         # The panel is fixed-height and silently clips past 3 lines; the old 95-char version
         # sat right on that limit.
         text += "Needs no Dice or Power to play, and doesn't reset your Power."
+    # Rarity: say how often you'll see it AND what to expect from it. "A Common card." was
+    # circular, and "the most frequent card rarity" told the player nothing they could act on.
+    # The Rare line spends its third sentence on the one genuinely actionable fact - every
+    # boss reward is Rare - since that's what turns rarity from flavour into run planning.
     elif requirement == "Common":
-        text += "The most frequent card rarity."
+        text += "The most frequently offered cards, with the simplest effects."
     elif requirement == "Uncommon":
-        text += "Less common, with stronger effects."
+        text += "Offered less often, with stronger or more specialized effects."
     elif requirement == "Rare":
-        text += "The rarest and most powerful cards."
+        text += "Rarely offered, and the most powerful. Every boss reward is Rare."
     #if bonus_requirement == "MAX":
         #text += "Your power cannot exceed this value\n"
     #elif bonus_requirement == "MIN":
@@ -105,10 +109,17 @@ func get_tooltip_content(requirement):
         #text += "Your power must be an odd number"
     
     title_text = "[color=gold][b]%s[/b][/color]" % requirement
+    if KeywordColorizer.DICE_KEYWORD_COLORS.has(requirement):
+        # Dice-type tooltips wear their die's own color in the title, same as the dice-shop
+        # hover tooltip already does - gold is for keywords, dice keep their identity color.
+        title_text = "[color=#%s][b]%s[/b][/color]" % [
+            KeywordColorizer.DICE_KEYWORD_COLORS[requirement], requirement]
     if requirement == "Power":
         # The resource's own tooltip leads with its glyph - this pairing is what teaches
         # players that the inline icon IS Power.
         title_text = "[img=18]res://power_glyph.png[/img] " + title_text
-    tooltip_label.text = text
+    # Same treatment as card text: dice names in their color, keywords gold, Power glyphed.
+    # 13px glyph = body font 11 + 2, the same size the Power entry hand-authors above.
+    tooltip_label.text = KeywordColorizer.colorize_tooltip(text, 13)
     tooltip_title.text = title_text
     

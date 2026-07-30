@@ -343,9 +343,25 @@ var _gem_tooltip: Node = null
 var _gem_hover_id := 0
 
 
+# The gem lives INSIDE the card frame, so the cursor being on it still satisfies
+# is_mouse_over_card() - and because the gem is mouse_filter PASS, the frame's own hover
+# fires too. Left alone, hovering the gem stacked the rarity tooltip on top of the card's
+# entire requirement/keyword/Power tower. The rule is: while the cursor is on the gem, the
+# gem owns the hover and is the ONLY tooltip shown.
+func _is_mouse_over_gem() -> bool:
+    return rarity_gem != null and rarity_gem.visible \
+        and rarity_gem.get_global_rect().has_point(get_global_mouse_position())
+
+
 func _on_rarity_gem_mouse_entered() -> void:
     if disable_hover_tooltip or not card:
         return
+    # Take the hover from the card: kill any visible stack, and invalidate the pending
+    # card-hover coroutine so a tower queued before the cursor reached the gem can't land
+    # after it (the frame's 1s delay is longer than the flick from card body to gem).
+    _card_hover_id += 1
+    _cleanup_tooltips()
+
     _gem_hover_id += 1
     var captured_id := _gem_hover_id
     _cleanup_gem_tooltip()
@@ -372,6 +388,11 @@ func _on_rarity_gem_mouse_entered() -> void:
 func _on_rarity_gem_mouse_exited() -> void:
     _gem_hover_id += 1
     _cleanup_gem_tooltip()
+    # Sliding off the gem back onto the card body: the frame's mouse_entered will NOT fire
+    # again (the cursor never left the frame), so hand the hover back explicitly - otherwise
+    # the card would sit there tooltip-less until the player left and re-entered it.
+    if not disable_hover_tooltip and card and is_mouse_over_card():
+        _on_card_frame_mouse_entered()
 
 
 func _cleanup_gem_tooltip() -> void:
@@ -395,6 +416,9 @@ func _on_card_frame_mouse_entered() -> void:
     if my_id != _card_hover_id:
         return
     if not is_mouse_over_card():
+        return
+    # Cursor settled on the gem during the delay - the gem's tooltip owns this hover.
+    if _is_mouse_over_gem():
         return
     
     var tooltips_to_show = []

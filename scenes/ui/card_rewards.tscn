@@ -314,11 +314,11 @@ layout_mode = 2
 theme_override_fonts/normal_font = ExtResource("5_kq4aa")
 theme_override_font_sizes/normal_font_size = 14
 bbcode_enabled = true
-text = "[center]Some [color=purple]Cards[/color] are [color=#B983C9]Blessings.[/color] You can recognize them from their plum background.
+text = "[center]Some [color=purple]Cards[/color] are [color=#B983C9]Blessings[/color]. You can spot them by their plum background.
 
-Unlike other [color=purple]Cards[/color], [color=#B983C9]Blessings[/color] have a lasting effect for the rest of the fight.
+While other [color=purple]Cards[/color] act once, a [color=#B983C9]Blessing[/color] keeps working for the rest of the fight.
 
-They exhaust when played, so you won't draw them again this fight."
+[color=#B983C9]Blessings[/color] exhaust when played. The card is gone, but its effect stays."
 fit_content = true
 
 [node name="CardCenter" type="CenterContainer" parent="VBoxContainer/CanvasLayer/BlessingExplanationBox/ContentBox"]

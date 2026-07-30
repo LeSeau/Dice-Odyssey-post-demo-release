@@ -150,7 +150,39 @@ static func colorize(text: String, tags: String, glyph_px: int = 16) -> String:
                 other_keywords.append(keyword)
     other_keywords.sort_custom(func(a, b): return a.length() > b.length())
 
-    var result := _put_exhaust_on_own_line(text)
+    return _colorize_passes(_put_exhaust_on_own_line(text), other_keywords, glyph_px)
+
+
+# Tooltip bodies get the same treatment as card text (dice colors, keyword gold, Power glyph)
+# with two deliberate differences: no tags gate - a tooltip has no tags field, and unlike card
+# text its prose is authored in one place, so every keyword is simply eligible - and no
+# _put_exhaust_on_own_line reshaping (that rule exists for card faces; in a prose sentence like
+# "Exhausts when played" a forced line break would just look broken).
+# Default glyph_px follows the panels' font+2 convention (body font 11 -> 13); the Power entry
+# in tooltip.gd already hand-authors an [img=13] at exactly that size.
+static func colorize_tooltip(text: String, glyph_px: int = 13) -> String:
+    return _colorize_passes(text, _tooltip_keywords(), glyph_px)
+
+
+# Every non-dice keyword except REST: the keyword pass is case-insensitive, and tooltip prose
+# says "the rest of the fight" all over the place - REST only ever matters on the campfire
+# tooltip, where it's the (already gold) title anyway.
+static var _tooltip_keyword_cache: Array[String] = []
+
+static func _tooltip_keywords() -> Array[String]:
+    if _tooltip_keyword_cache.is_empty():
+        for keyword in KEYWORDS:
+            if keyword != "REST" and not DICE_KEYWORD_COLORS.has(keyword):
+                _tooltip_keyword_cache.append(keyword)
+        _tooltip_keyword_cache.sort_custom(func(a, b): return a.length() > b.length())
+    return _tooltip_keyword_cache
+
+
+# Passes 1-5, shared verbatim between card text (colorize) and tooltip bodies
+# (colorize_tooltip) - only the keyword eligibility and the exhaust reshaping differ upstream.
+static func _colorize_passes(
+        text: String, other_keywords: Array[String], glyph_px: int) -> String:
+    var result := text
 
     # 1. Dice-type keywords go FIRST, and always grab a leading number ("1 Giant Dice" as one
     # unit) - this groups the number with the die being referenced ("charge ONE Giant die")
@@ -191,8 +223,10 @@ static func colorize(text: String, tags: String, glyph_px: int = 16) -> String:
 
     # 4. Power glyph, LAST so it can't disturb the [color] spans built above ("X" and "Power"
     # are not KEYWORDS, so steps 1-3 never touch them; and the glyph path is lowercase, so
-    # neither regex here can re-match inside the [img] tags it inserts).
-    if power_glyph_mode != PowerGlyphMode.OFF:
+    # neither regex here can re-match inside the [img] tags it inserts). Skipped entirely for
+    # text that already carries a hand-authored glyph (the Power tooltip body) - same
+    # idempotence guard as add_power_glyph_to_authored_text().
+    if power_glyph_mode != PowerGlyphMode.OFF and not text.contains(POWER_GLYPH_PATH):
         result = _apply_power_glyph(result, glyph_px)
 
     # 5. Resolved-value parens from dynamic descriptions ("Deal X3 damage (9)") pop in gold.
