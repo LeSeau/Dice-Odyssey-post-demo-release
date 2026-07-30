@@ -213,7 +213,7 @@ grow_vertical = 2
 mouse_filter = 2
 
 [node name="Description" type="RichTextLabel" parent="CardBackground/CardFrame/DescriptionPanel/DescriptionCenter"]
-custom_minimum_size = Vector2(140, 0)
+custom_minimum_size = Vector2(128, 0)
 layout_mode = 2
 mouse_filter = 2
 theme_override_colors/default_color = Color(0.909804, 0.878431, 0.815686, 1)

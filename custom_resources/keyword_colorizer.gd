@@ -55,6 +55,15 @@ const KEYWORDS: Array[String] = [
 # incorrectly grabbing Charge's own "3" into a trailing match on "Blue Dice" instead).
 const LEADING_NUMBER_KEYWORDS: Array[String] = ["Strength", "Muscle"]
 
+# U+00A0. The description label wraps on AUTOWRAP_WORD, which breaks at any ordinary space - so
+# "Charge 2" could land as "Charge" / "2" on two lines, and the Power glyph could be stranded on
+# the line above its own word ("does not reset your [glyph]" / "Power."). Both looked broken in
+# game (Julien, 2026-07-29). A non-breaking space is the only lever here: Godot has no BBCode
+# "nobr", and TextServer honours UAX #14, which forbids a break at U+00A0. Used ONLY for tight
+# 2-token pairs - binding longer phrases would create unbreakable runs wider than the 128px
+# column, which AUTOWRAP_WORD cannot split and would overflow instead.
+const NBSP := " "
+
 # Exception to the single-color rule above: dice-type mentions get tinted with that die's own
 # established color instead of the shared gold. Unlike the other keywords, these colors aren't
 # arbitrary - they're the same ones the dice already wear everywhere else in the game (aura glow
@@ -157,7 +166,9 @@ static func colorize(text: String, tags: String, glyph_px: int = 16) -> String:
     for keyword in other_keywords:
         var absorb_regex := RegEx.new()
         absorb_regex.compile("(?i)\\b(" + keyword + ")(\\s+)(\\[color=#[0-9A-Fa-f]{6}\\])")
-        result = absorb_regex.sub(result, "$3$1$2", true)
+        # NBSP instead of the captured $2: keeps "Charge" welded to the count that follows it
+        # ("Charge 2 Magma Dice" can still break before "Magma", never before "2").
+        result = absorb_regex.sub(result, "$3$1" + NBSP, true)
 
     # 3. Whatever's left of each keyword (i.e. NOT already absorbed into a dice color in step 2)
     # gets the shared gold. The negative lookbehind skips a keyword that's already inside a
@@ -169,12 +180,12 @@ static func colorize(text: String, tags: String, glyph_px: int = 16) -> String:
     # above for which side), so "Scout 3"/"Boost 4"/"Gain 2 Strength" highlight as a single unit
     # instead of leaving the number in plain text.
     for keyword in other_keywords:
-        var regex := RegEx.new()
+        var pattern := ""
         if LEADING_NUMBER_KEYWORDS.has(keyword):
-            regex.compile("(?i)(?<!\\[color=#[0-9A-Fa-f]{6}\\])(\\d+\\s+)?\\b" + keyword + "\\b")
+            pattern = "(?i)(?<!\\[color=#[0-9A-Fa-f]{6}\\])(\\d+\\s+)?\\b" + keyword + "\\b"
         else:
-            regex.compile("(?i)(?<!\\[color=#[0-9A-Fa-f]{6}\\])\\b" + keyword + "\\b(\\s*\\d+)?")
-        result = regex.sub(result, "[color=#%s]$0[/color]" % KEYWORD_HIGHLIGHT_COLOR, true)
+            pattern = "(?i)(?<!\\[color=#[0-9A-Fa-f]{6}\\])\\b" + keyword + "\\b(\\s*\\d+)?"
+        result = _wrap_keyword_span(result, pattern, KEYWORD_HIGHLIGHT_COLOR)
 
     # 4. Power glyph, LAST so it can't disturb the [color] spans built above ("X" and "Power"
     # are not KEYWORDS, so steps 1-3 never touch them; and the glyph path is lowercase, so
@@ -189,6 +200,25 @@ static func colorize(text: String, tags: String, glyph_px: int = 16) -> String:
     var value_regex := RegEx.new()
     value_regex.compile("\\((\\d+|\\?)\\)")
     result = value_regex.sub(result, "[color=#%s]($1)[/color]" % KEYWORD_HIGHLIGHT_COLOR, true)
+    return result
+
+
+# Wraps every match of `pattern` in a [color] span, with any space INSIDE the match turned into a
+# NBSP so a keyword can never be split from the number it owns ("Charge 2", "2 Strength"). Built by
+# hand rather than with RegEx.sub("[color=..]$0[/color]") because Godot's replacement strings can
+# substitute a capture but can't transform one. Safe to blanket-replace every space in the match:
+# the only spaces a keyword span can contain are the keyword/number gap (all non-dice KEYWORDS are
+# single words - the multi-word ones, "Blue Dice" etc., are handled by the dice pass instead).
+static func _wrap_keyword_span(text: String, pattern: String, color: String) -> String:
+    var regex := RegEx.new()
+    regex.compile(pattern)
+    var result := ""
+    var last := 0
+    for m in regex.search_all(text):
+        result += text.substr(last, m.get_start() - last)
+        result += "[color=#%s]%s[/color]" % [color, m.get_string(0).replace(" ", NBSP)]
+        last = m.get_end()
+    result += text.substr(last)
     return result
 
 
@@ -207,7 +237,10 @@ static func _apply_power_glyph(text: String, glyph_px: int) -> String:
     if power_glyph_mode == PowerGlyphMode.GLYPH_ONLY:
         result = re_p.sub(result, img, true)
     else:
-        result = re_p.sub(result, "%s [color=#%s]Power[/color]" % [img, KEYWORD_HIGHLIGHT_COLOR], true)
+        # NBSP, never a plain space: the glyph must never be stranded at the end of a line with
+        # its own word wrapped to the next one (Julien's rule - the icon always sits beside Power).
+        result = re_p.sub(result, "%s%s[color=#%s]Power[/color]" % [
+            img, NBSP, KEYWORD_HIGHLIGHT_COLOR], true)
     return result
 
 

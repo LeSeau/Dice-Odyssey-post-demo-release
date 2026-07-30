@@ -86,13 +86,26 @@ const TITLE_MAX_WIDTH := 104.0
 # 11 chars but wider than several 13-char names).
 const TITLE_FONT_SIZE_CANDIDATES: Array[int] = [15, 12, 10, 9]
 
-# Long descriptions overflow the fixed-height DescriptionPanel at the default 12pt. Simple
-# length-based step-down.
-const DESC_FONT_SIZE_DEFAULT := 12
-const DESC_FONT_SIZE_MEDIUM := 11
-const DESC_FONT_SIZE_SMALL := 10
-const DESC_LENGTH_MEDIUM_THRESHOLD := 60
-const DESC_LENGTH_SMALL_THRESHOLD := 90
+# Long descriptions overflow the fixed-height DescriptionPanel at the default 12pt. Descending
+# candidates - the first size whose MEASURED wrapped height fits the panel wins. Character counts
+# (the previous approach) failed here for the same reason they failed for titles: they ignore
+# per-glyph width, and they ignore the inline Power glyph the colorizer injects, which costs ~a
+# word of width but ZERO characters. Crescendo (59 chars, one under the old 60-char threshold)
+# stayed at 12pt and spilled a 4th line out of the panel. 9 and 8 are unreached safety nets since
+# the panel grew (see DESC_PANEL_HEIGHT); the worst card in the pool, All In+, now lands at 10.
+const DESC_FONT_SIZE_CANDIDATES: Array[int] = [12, 11, 10, 9, 8]
+
+# DescriptionPanel is an INVISIBLE layout box: its stylebox bg_color is byte-identical to the card
+# body's on the Celestial and Blessing variants, and differs by ~0.001 on the normal one (compare
+# card_ui_description_panel_*.tres against card_ui_*.tres). So its height can grow into the 22px of
+# dead space below it - y188..210, which only the BonusEffect row ever occupies - with zero visual
+# change, buying long descriptions 1-2 font steps instead of making them pay for the side margins.
+# 56 rather than the full 66: the text is vertically centred in the panel, so an over-tall panel
+# lets a big block drift down until it crowds the card's bottom border. Cards WITH a bonus effect
+# keep 44 (BonusSeparator sits at y188). Kept in sync with CardUI's copy of these constants.
+const DESC_PANEL_TOP := 144.0
+const DESC_PANEL_HEIGHT := 56.0
+const DESC_PANEL_HEIGHT_WITH_BONUS := 44.0
 
 
 static func title_font_size_for(text: String) -> int:
@@ -102,14 +115,6 @@ static func title_font_size_for(text: String) -> int:
             return size
     return TITLE_FONT_SIZE_CANDIDATES[-1]
 
-
-static func description_font_size_for(text: String) -> int:
-    var length := text.length()
-    if length > DESC_LENGTH_SMALL_THRESHOLD:
-        return DESC_FONT_SIZE_SMALL
-    elif length > DESC_LENGTH_MEDIUM_THRESHOLD:
-        return DESC_FONT_SIZE_MEDIUM
-    return DESC_FONT_SIZE_DEFAULT
 
 const TooltipScene = preload("res://scenes/ui/tooltip.tscn")
 
@@ -167,6 +172,7 @@ func set_card(value: Card) -> void:
     icon.texture = card.icon
     title.text = card.name
     _apply_title_color()
+    _resize_description_panel()
     _apply_description(card.description)
     requirement_label.label_settings = REQUIREMENT_LABEL_SETTINGS
     rarity_gem.texture = RARITY_GEM_TEXTURES[card.rarity_tier]
@@ -277,11 +283,29 @@ func _apply_title_color() -> void:
 # (Card.get_colorized_description(), driven off card.tags), re-centers the text via BBCode
 # (RichTextLabel has no horizontal_alignment property the way Label did), and steps the font
 # size down for long text so it doesn't overflow the fixed-height DescriptionPanel.
+# Cards without a BonusEffect row reclaim the dead space below the panel (see DESC_PANEL_HEIGHT).
+# Call before _apply_description: that measures against description_panel.size.y. Unconditional on
+# both branches - these nodes are reused (the upgrade dialog's Before/AfterCard), so a bonus-effect
+# card must be able to shrink the panel back, not just grow it.
+func _resize_description_panel() -> void:
+    var h := DESC_PANEL_HEIGHT_WITH_BONUS if card.bonus_requirement != Card.Requirement.NONE \
+        else DESC_PANEL_HEIGHT
+    description_panel.offset_top = DESC_PANEL_TOP
+    description_panel.offset_bottom = DESC_PANEL_TOP + h
+
+
 func _apply_description(text: String) -> void:
-    var desc_font_size := description_font_size_for(text)
-    description.add_theme_font_size_override("normal_font_size", desc_font_size)
-    # Power glyph rides 2px above the font size so it reads at cap height on every step-down.
-    description.text = "[center]%s[/center]" % card.get_colorized_description(text, desc_font_size + 2)
+    # Measured against the panel's real height rather than a char-count guess: the colorizer's
+    # inline Power glyph and per-glyph width both move the wrap without moving the length.
+    var available := description_panel.size.y
+    for desc_font_size: int in DESC_FONT_SIZE_CANDIDATES:
+        description.add_theme_font_size_override("normal_font_size", desc_font_size)
+        # Power glyph rides 2px above the font size so it reads at cap height on every step-down.
+        description.text = "[center]%s[/center]" % card.get_colorized_description(text, desc_font_size + 2)
+        # RichTextLabel validates its wrap inside get_content_height(), so this reads true in the
+        # same frame - no await needed (and none wanted: this is a hot path on the deck screen).
+        if description.get_content_height() <= available:
+            return
 
 
 func _on_card_frame_gui_input(event: InputEvent) -> void:

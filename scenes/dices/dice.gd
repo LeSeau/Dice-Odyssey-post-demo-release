@@ -371,13 +371,28 @@ func _update_charged_card_description() -> void:
 # resolved-value parens - or a card would drop its glyph the moment it entered the socket,
 # which is exactly where a red-die card is read the longest. [center] is explicit because
 # RichTextLabel has no horizontal_alignment (the CenterContainer around it does the vertical
-# half, as in card_ui.tscn). Glyph size follows the card convention of font_size + 2; this
-# label is a fixed 12 (no step-down: socket text is never long enough to need one).
-const CHARGED_DESC_GLYPH_PX := 14
+# half, as in card_ui.tscn). Glyph size follows the card convention of font_size + 2, and the
+# step-down mirrors card_ui.gd's: this panel is the same 140x44 slot, so anything that overflows
+# on the card (Crescendo, Resonance, Transmutation...) overflows here too - the old "socket text
+# is never long enough" assumption was wrong, any card can be dropped on the red die.
+const CHARGED_DESC_FONT_SIZE_CANDIDATES: Array[int] = [12, 11, 10, 9, 8]
+
 
 func _set_charged_description(card: Card, text: String) -> void:
-    charged_card_description.text = "[center]%s[/center]" % card.get_colorized_description(
-        text, CHARGED_DESC_GLYPH_PX)
+    # Same reclaim as the card's own panel (see CardUI.DESC_PANEL_HEIGHT): the panel is invisible
+    # (its bg matches the card body), so it can eat the dead space below whenever the BonusEffect
+    # row is hidden. Must run before the measuring loop below.
+    description_panel.offset_top = CardUI.DESC_PANEL_TOP
+    description_panel.offset_bottom = CardUI.DESC_PANEL_TOP + (
+        CardUI.DESC_PANEL_HEIGHT_WITH_BONUS if card.bonus_requirement != Card.Requirement.NONE
+        else CardUI.DESC_PANEL_HEIGHT)
+    var available := description_panel.size.y
+    for font_size: int in CHARGED_DESC_FONT_SIZE_CANDIDATES:
+        charged_card_description.add_theme_font_size_override("normal_font_size", font_size)
+        charged_card_description.text = "[center]%s[/center]" % card.get_colorized_description(
+            text, font_size + 2)
+        if charged_card_description.get_content_height() <= available:
+            return
 
 
 # The socketed CardUI stays hidden the whole time it sits in the socket (see _on_card_charged's
@@ -2901,6 +2916,12 @@ func _set_socket_empty() -> void:
     requirement_panel.add_theme_stylebox_override("panel", CardUI.NONE_STYLEBOX)
     requirement_label.text = "Drop a card"
     requirement_panel.modulate.a = 0.5
+    # Restore the defaults: the last socketed card may have stepped the font down and resized the
+    # panel, and this placeholder would otherwise inherit both.
+    charged_card_description.add_theme_font_size_override(
+        "normal_font_size", CHARGED_DESC_FONT_SIZE_CANDIDATES[0])
+    description_panel.offset_top = CardUI.DESC_PANEL_TOP
+    description_panel.offset_bottom = CardUI.DESC_PANEL_TOP + CardUI.DESC_PANEL_HEIGHT
     charged_card_description.text = "[center]Place a card here[/center]"
     description_panel.modulate.a = 0.6
     bonus_effect.hide()
