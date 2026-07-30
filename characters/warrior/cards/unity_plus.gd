@@ -1,6 +1,6 @@
 extends Card
 
-func apply_effects(targets: Array [Node], _modifiers: ModifierHandler) -> void:
+func apply_effects(targets: Array[Node], _modifiers: ModifierHandler) -> void:
     if meets_requirement():
         var block_effect := BlockEffect.new()
         block_effect.amount = 18
@@ -13,7 +13,7 @@ func apply_effects(targets: Array [Node], _modifiers: ModifierHandler) -> void:
 
 func get_dynamic_description(_modifiers: ModifierHandler, _target: Node = null) -> String:
     if is_inked():
-        return "Block ?"
+        return "Gain ? Block"
     if meets_requirement():
-        return "Block 18"
-    return "Gain X18 Block"
+        return "Gain 18 Block"
+    return "Gain 18 Block"

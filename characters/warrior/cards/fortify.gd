@@ -2,7 +2,7 @@ extends Card
 
 const MUSCLE_STATUS = preload("res://statuses/muscle.tres")
 
-func apply_effects(targets: Array [Node], _modifiers: ModifierHandler) -> void:
+func apply_effects(targets: Array[Node], _modifiers: ModifierHandler) -> void:
     if not meets_requirement():
         return
 
@@ -26,7 +26,7 @@ func _on_dice_rolled():
 
 func get_dynamic_description(_modifiers: ModifierHandler, _target: Node = null) -> String:
     if is_inked():
-        return "Block ?. Gain 2 Strength"
+        return "Gain ? Block. Gain 2 Strength"
     if not has_active_roll():
         return "Gain X Block. Gain 2 Strength"
     if not meets_requirement():

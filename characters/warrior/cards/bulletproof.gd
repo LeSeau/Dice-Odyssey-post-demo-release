@@ -12,7 +12,7 @@ func apply_effects(targets: Array[Node], _modifiers: ModifierHandler) -> void:
 
 func get_dynamic_description(_modifiers: ModifierHandler, _target: Node = null) -> String:
     if is_inked():
-        return "Block ?"
+        return "Gain ? Block"
     if not has_active_roll() or not meets_requirement():
         return "Gain X2 Block"
     return "Gain X2 Block (%d)" % (int(Global.roll_value) * 2)

@@ -41,7 +41,7 @@ func _on_rampart_landed(player: Node, value: int) -> void:
 
 func get_dynamic_description(_modifiers: ModifierHandler, _target: Node = null) -> String:
     if is_inked():
-        return "Block ?. Throw 2 Odd Dice that Block their roll"
+        return "Gain ? Block. Throw 2 Odd Dice. Each grants Block equal to its roll"
     if not has_active_roll():
-        return "Gain X Block. Throw 2 Odd Dice that Block their roll"
-    return "Gain X Block (%d). Throw 2 Odd Dice that Block their roll" % Global.roll_value
+        return "Gain X Block. Throw 2 Odd Dice. Each grants Block equal to its roll"
+    return "Gain X Block (%d). Throw 2 Odd Dice. Each grants Block equal to its roll" % Global.roll_value

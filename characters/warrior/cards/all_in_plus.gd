@@ -83,4 +83,4 @@ func _total_remaining() -> int:
 
 
 func get_dynamic_description(_modifiers: ModifierHandler, _target: Node = null) -> String:
-    return "Charge 1 Blue Dice. Then, deal X damage: spend all your remaining Dice, each adds its own roll\n(%d Dice remaining)" % _total_remaining()
+    return "Charge 1 Blue Dice. Then, deal X damage: spend all your remaining Dice, each adds its roll\n(%d Dice remaining)" % _total_remaining()

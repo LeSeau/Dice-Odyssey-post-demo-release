@@ -14,8 +14,8 @@ func _effective_damage() -> int:
 
 func get_dynamic_description(modifiers: ModifierHandler, target: Node = null) -> String:
     if is_inked():
-        return "Deal ? damage; Power above 8 counts DOUBLE"
+        return "Deal ? damage. Power above 8 counts double"
     if not has_active_roll():
-        return "Deal X damage; Power above 8 counts DOUBLE"
+        return "Deal X damage. Power above 8 counts double"
     var total := apply_target_modifier(modifiers.get_modified_value(_effective_damage(), Modifier.Type.DMG_DEALT), target)
-    return "Deal X damage; Power above 8 counts DOUBLE (%d)" % total
+    return "Deal X damage (%d). Power above 8 counts double" % total

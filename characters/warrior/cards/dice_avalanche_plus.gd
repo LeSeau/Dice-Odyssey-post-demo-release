@@ -41,4 +41,4 @@ func _owned_type_count() -> int:
 
 
 func get_dynamic_description(_modifiers: ModifierHandler, _target: Node = null) -> String:
-    return "Throw one Dice of each type you own. Each deals its roll\n(%d Dice)" % _owned_type_count()
+    return "Throw one Dice of each type you own. Each deals damage equal to its roll\n(%d Dice)" % _owned_type_count()

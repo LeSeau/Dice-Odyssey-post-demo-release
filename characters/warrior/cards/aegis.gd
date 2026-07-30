@@ -1,7 +1,7 @@
 extends Card
 
 
-func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
+func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     if meets_requirement():
         var block_effect := BlockEffect.new()
         block_effect.amount = Global.roll_value*3
@@ -12,7 +12,7 @@ func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
 
 func get_dynamic_description(_modifiers: ModifierHandler, _target: Node = null) -> String:
     if is_inked():
-        return "Block ?"
+        return "Gain ? Block"
     if not has_active_roll() or not meets_requirement():
         return "Gain X3 Block"
     return "Gain X3 Block (%d)" % (Global.roll_value * 3)

@@ -1,7 +1,7 @@
 extends Card
 
 
-func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void: 
+func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void: 
     var support_effect := SupportEffect.new()
     support_effect.sound = sound
     support_effect.execute(targets)
@@ -15,7 +15,7 @@ func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
 
 func get_dynamic_description(_modifiers: ModifierHandler, _target: Node = null) -> String:
     if is_inked():
-        return "Block ?. Draw 2 cards"
+        return "Gain ? Block. Draw 2 cards"
     if not has_active_roll():
         return "Gain X Block. Draw 2 cards"
     return "Gain X Block (%d). Draw 2 cards" % Global.roll_value

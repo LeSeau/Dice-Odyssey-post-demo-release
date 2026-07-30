@@ -26,8 +26,8 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
 
 func get_dynamic_description(modifiers: ModifierHandler, _target: Node = null) -> String:
     if is_inked():
-        return "At the start of your next turn, deal ? damage to all enemies"
+        return "At the start of your next turn, deal ? damage to ALL enemies"
     if not has_active_roll():
-        return "At the start of your next turn, deal X2 damage to all enemies"
+        return "At the start of your next turn, deal X2 damage to ALL enemies"
     var total := modifiers.get_modified_value(int(Global.roll_value) * 2, Modifier.Type.DMG_DEALT)
-    return "At the start of your next turn, deal X2 damage to all enemies (%d)" % total
+    return "At the start of your next turn, deal X2 damage to ALL enemies (%d)" % total
