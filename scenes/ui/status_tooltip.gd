@@ -1,6 +1,8 @@
 extends Panel
 
-@onready var vbox := $VBoxContainer
+# (Removed a dead `@onready var vbox := $VBoxContainer`: the node actually lives at
+# MarginContainer/VBoxContainer, so it resolved to null and printed a "Node not found" error
+# every single time a status tooltip spawned. Nothing ever read it.)
 @onready var tooltip_title: RichTextLabel = %TooltipTitle
 @onready var tooltip_label: RichTextLabel = %TooltipText
 
@@ -23,37 +25,47 @@ func get_tooltip_content(status: Status) -> void:
 
     match status.id:
         "absorb":
-            text = "At the end of their turn, gain strength equal to your last roll."
+            text = "At the end of its turn, this enemy gains Strength equal to your last roll."
         "infused":
-            text = "Your dice rolls gain 2 power."
+            text = "Your Dice rolls gain 2 Power."
         "canalize":
-            text = "If your power exceeds 9, gain 3 strength."
+            # Read off CanalizeStatus's own constants rather than retyped here - same reason as
+            # Parasite below: these are the tuning dial, and when the Strength moved 3 -> 2
+            # (Dragonpriest retune, 2026-07-28) this line kept promising the old number.
+            text = "Each time your Power climbs above %d, this enemy gains %d Strength." % [
+                CanalizeStatus.CANALIZE_THRESHOLD, CanalizeStatus.CANALIZE_STRENGTH]
         "chaos":
             text = "When you roll a Dice, discard 1 random card. Then, draw a card."
         "exposed":
-            text = "Take 50% more damage."
+            text = "Take 50% more damage. Wears off by 1 each turn."
         "ink":
-            text = "Your Power is hidden. Lose 1 ink stack every time you play a Card."
+            text = "Hides your Power. Playing a card removes 1 stack."
         "strength":
-            text = "Deal X more damage on each attack." 
+            # Subject-less on purpose - this same string is shown on ENEMY Strength badges.
+            text = "Attacks deal this much more damage."
         "true_strength":
-            text = "Gain Strength each turn."
+            text = "Gains %d Strength each turn." % TrueStrengthStatus.STRENGTH_PER_TURN
         "weak":
-            text = "Your next roll loses 1 power per stack."
+            text = "Your next roll loses 1 Power per stack, then it wears off."
         "lucky":
-            text = "Your next roll will be the highest possible outcome."
+            text = "Your next roll lands on the highest possible face. One roll per stack."
         "unlucky":
-            text = "Your next roll will be the lowest possible outcome."
+            text = "Your next roll lands on the lowest possible face. One roll per stack."
         "flux":
             text = "This enemy prevents you from rolling the same Dice type twice in a row."
         "berserk":
-            text = "You deal double damage with Red Dice"
-        "marionette":
-            text = "At the start of each turn, gain a Scout 2 card"
+            text = "You deal double damage with Red Dice."
+        # NOTE: no "marionette" case on purpose. Its .tres tooltip is already correct AND the
+        # "+" variant (id "marionette_plus") never matched here anyway, so it fell through to
+        # the .tres regardless - meaning a hardcoded entry could only ever drift from its own
+        # upgrade. It had: it promised "Scout 2" while the card grants Scout 3.
         "sigil":
-            text = "Everytime your power hits exactly the Sigil number, gain 1 Blue Dice. The Sigil number changes every turn."
+            # "this number" points at the badge, which IS the Sigil number - same house
+            # pattern as Earthquake's "deal this much damage". Kept to 3 lines: the panel is
+            # fixed-height and a 4th line spills (measured, debug_tooltip_fit.gd).
+            text = "Match this number with your Power to gain 1 Blue Dice. It changes each turn."
         "greedy":
-            text = "Gains 2 Strength for every 6 dice rolled this fight."
+            text = "Gains 2 Strength for every 6 Dice rolled this fight."
         "parasite":
             # Read off ParasiteStatus's own constants rather than retyped here: those two
             # numbers are the tuning dial for how greedy the player may be, and the last time
@@ -63,13 +75,13 @@ func get_tooltip_content(status: Status) -> void:
         "depleted":
             text = "You have 1 less Blue Dice next turn for each stack."
         "energized":
-            text = "You have X more Blue Dice next turn."
+            text = "You have 1 more Blue Dice next turn."
         "serenity":
             text = "You draw 1 more Card each turn."
         "emanation":
             text = "You have 1 more Blue Dice each turn for the rest of the fight."
         "eclipse":
-            text = "The next card you play does not reset your Power"
+            text = "The next card you play does not reset your Power."
         _:
             text = status.tooltip if status.tooltip != "" else "No description available."
 

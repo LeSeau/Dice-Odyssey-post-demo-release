@@ -12,5 +12,5 @@ has_counter = false
 counter = 0
 starter_relic = false
 icon = ExtResource("1_uc41c")
-tooltip = "Everytime you roll a 6, deal 5 damage to a random enemy"
+tooltip = "Every time you roll a 6, deal 5 damage to a random enemy"
 tags = ""

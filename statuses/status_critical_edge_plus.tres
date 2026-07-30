@@ -12,4 +12,4 @@ can_expire = false
 duration = 1
 stacks = 1
 icon = ExtResource("1_icon")
-tooltip = "Whenever you roll the highest possible value for your active Dice, deal 7 damage to a random enemy"
+tooltip = "Rolling your active Dice's highest face deals 7 damage to a random enemy."

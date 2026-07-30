@@ -18,68 +18,77 @@ func get_tooltip_content(requirement):
     var text := ""
     var title_text := ""
 
+    # "Power" is capitalized everywhere in this table: it's the name of a resource the player
+    # sees spelled that way on every card and in the HUD, so lowercase "power" read as a
+    # different, generic word.
     if requirement == "MAX":
-        text += "Your power cannot exceed this value\n"
+        text += "Your Power must be this value or less."
     elif requirement == "MIN":
-        text += "Your power must be at least this value"
+        text += "Your Power must be at least this value."
     elif requirement == "RED":
-        text += "Must be played on a Red Dice"
+        text += "Must be played on a Red Dice."
     elif requirement == "MULTIPLE":
-        text += "Your power must be a multiple of this value"
+        text += "Your Power must be a multiple of this value."
     elif requirement == "EXACT":
-        text += "Your power must be exactly this value"
+        text += "Your Power must be exactly this value."
     elif requirement == "EVEN":
-        text += "Your power must be an even number"
+        text += "Your Power must be an even number."
     elif requirement == "ODD":
-        text += "Your power must be an odd number"
+        text += "Your Power must be an odd number."
     elif requirement == "Charge":
-        text += "Gain 1 Dice this turn. If no Dice type is mentioned, it matches your active Dice."
+        text += "Gain that many Dice this turn. If no type is named, they match your active Dice."
     elif requirement == "Refuel":
-        text += "Regain 1 Dice for each consecutive roll of the same Dice type"
+        text += "Regain 1 Dice for each consecutive roll of the same Dice type."
     elif requirement == "Exhaust":
-        text += "Can play this card only once per battle"
+        text += "Once played, the card is removed for the rest of the fight."
     elif KeywordColorizer.DICE_TOOLTIP_TEXT.has(requirement):
         text += KeywordColorizer.DICE_TOOLTIP_TEXT[requirement]
     elif requirement == "Lucky":
-        text += "Your next roll will be the highest possible outcome."
+        text += "Your next roll lands on the highest possible face. One roll per stack."
     elif requirement == "Unlucky":
-        text += "Your next roll will be the lowest possible outcome."
+        text += "Your next roll lands on the lowest possible face. One roll per stack."
     elif requirement == "Depleted":
-        text += "You have 1 less Dice next turn for each stack."
+        # Blue specifically: Electrify (the only source) hands out Odd dice and charges the
+        # cost in Blue, so a generic "1 less Dice" would hide which slot actually shrinks.
+        text += "You have 1 less Blue Dice next turn for each stack."
     elif requirement == "Energized":
-        text += "You have X more Blue Dice next turn."
+        text += "You have 1 more Blue Dice next turn."
     elif requirement == "Infused":
-        text += "Your dice rolls gain 2 power"
+        text += "Your Dice rolls gain 2 Power."
     elif requirement == "Exposed":
-        text += "Take 50% more damage."
+        text += "Take 50% more damage. Wears off by 1 each turn."
     elif requirement == "Weak":
-        text+= "Your next roll loses 1 power per stack."
+        text += "Your next roll loses 1 Power per stack, then it wears off."
     elif requirement == "Strength":
-        text += "Deal X more damage on each attack."
+        # Subject-less on purpose: the same string is shown for ENEMY Strength badges, so
+        # "you deal" would be wrong half the time.
+        text += "Attacks deal this much more damage."
     elif requirement == "Scout":
-        text += "See X possible outcomes for your next roll and choose one to guarantee"
+        text += "See that many possible rolls and pick one to be your next roll."
     elif requirement == "Boost":
-        text += "Increases your Power after your next roll"
+        text += "Adds that much Power to your next roll."
     elif requirement == "Throw":
-        text += "Rolls a bonus Dice without using any of your own"
+        text += "Rolls a bonus Dice without using any of your own."
     elif requirement == "Support":
-        text += "Cards that don't attack or block but instead manipulate Power"
+        text += "Cards that don't attack or block but instead manipulate Power."
     elif requirement == "Power":
         text += "The sum of your consecutive rolls on the same Dice type. Cards with [img=13]res://power_glyph.png[/img] use this number."
     elif requirement == "REST":
-        text += "Heal 33% of your Max HP"
+        text += "Heal 33% of your Max HP."
     elif requirement == "UPGRADE":
-        text += "Permanently improve a card in your deck"
+        text += "Permanently improve a card in your deck."
     elif requirement == "Blessing":
         text += "A lasting effect for the rest of the combat. Exhausts when played."
     elif requirement == "Celestial":
-        text += "This card does not need Power or Dice to be played. It does not reset Power after being played."
+        # The panel is fixed-height and silently clips past 3 lines; the old 95-char version
+        # sat right on that limit.
+        text += "Needs no Dice or Power to play, and doesn't reset your Power."
     elif requirement == "Common":
-        text += "A Common card."
+        text += "The most frequent card rarity."
     elif requirement == "Uncommon":
-        text += "An Uncommon card."
+        text += "Less common, with stronger effects."
     elif requirement == "Rare":
-        text += "A Rare card."
+        text += "The rarest and most powerful cards."
     #if bonus_requirement == "MAX":
         #text += "Your power cannot exceed this value\n"
     #elif bonus_requirement == "MIN":

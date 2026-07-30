@@ -91,13 +91,15 @@ const DICE_KEYWORD_COLORS := {
 # itself isn't repeated in the body text since both tooltip panels already show it as the title.
 const DICE_TOOLTIP_TEXT := {
     "Blue Dice": "Faces: 1-6",
-    "Red Dice": "Faces: 1-6. Select a card before rolling the Dice.",
+    "Red Dice": "Faces: 1-6. Place a card on it first, then roll to play that card.",
     "Pixie Dice": "Faces: 1-3",
     "Odd Dice": "Faces: 1, 3, 5, 7",
     "Even Dice": "Faces: 2, 4, 6, 8",
     "Evil Dice": "Faces: 6, 6, 6, 0",
     "Giant Dice": "Faces: 1-12",
-    "Magma Dice": "Faces: 1-6. Deals X damage to ALL enemies every roll.",
+    # "its value", never "X": cards taught the player that X means the Power glyph, and a
+    # Magma roll damages for that single roll, not for your banked Power.
+    "Magma Dice": "Faces: 1-6. Every roll deals its value as damage to ALL enemies.",
     "Mech Dice": "Faces: 1-6. After each roll, you can add or subtract 1 Power.",
 }
 

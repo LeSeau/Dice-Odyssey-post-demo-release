@@ -103,11 +103,11 @@ func _get_tooltip_text_for_icon() -> String:
         "shield", "block_icon_intent":
             return "This enemy will block damage next turn."
         "debuff_icon_3":
-            return "This enemy will inflict a negative effect to you."
+            return "This enemy will inflict a negative effect on you."
         "debuff_icon":
-            return "This enemy will inflict a negative effect to you."
+            return "This enemy will inflict a negative effect on you."
         "debuff_intent":
-            return "This enemy will inflict a negative effect to you."
+            return "This enemy will inflict a negative effect on you."
         "buff_icon_intent":
             return "This enemy will gain a positive effect."
         "buff_icon":

@@ -12,6 +12,6 @@ can_expire = false
 duration = 0
 stacks = 1
 icon = ExtResource("1_dnals")
-tooltip = "to do"
+tooltip = "Attacks deal this much more damage."
 hide_when_zero = false
 hide_counter_when_zero = false

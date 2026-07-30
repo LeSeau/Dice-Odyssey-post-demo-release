@@ -12,6 +12,6 @@ can_expire = false
 duration = 1
 stacks = 1
 icon = ExtResource("1_8n174")
-tooltip = "Gain one more Blue Dice each turn for the rest of the fight"
+tooltip = "You deal double damage with Red Dice."
 hide_when_zero = false
 hide_counter_when_zero = false

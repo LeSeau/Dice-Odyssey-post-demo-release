@@ -3,7 +3,9 @@ extends Status
 
 const MUSCLE_STATUS := preload("res://statuses/muscle.tres")
 
-var stacks_per_turn := 2
+# const, not a var, so the status tooltip can read the real number off the class instead of
+# retyping it (status_tooltip.gd). Nothing ever assigned this from outside.
+const STRENGTH_PER_TURN := 2
 
 
 func apply_status(target: Node) -> void:
@@ -11,7 +13,7 @@ func apply_status(target: Node) -> void:
     
     var status_effect := StatusEffect.new()
     var muscle := MUSCLE_STATUS.duplicate()
-    muscle.stacks = stacks_per_turn
+    muscle.stacks = STRENGTH_PER_TURN
     status_effect.status = muscle
     status_effect.execute([target])
     
