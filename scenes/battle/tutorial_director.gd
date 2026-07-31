@@ -278,7 +278,12 @@ func _unlift_card() -> void:
 # sit where the card USED to be and stay there while the card rose out of it. Safe to read a
 # plain rect once settled: highlight_card_lift zeroes the card's rotation, so the lifted card
 # is the one card in the fan that is actually axis-aligned.
-func _pulse_lifted_card() -> void:
+#
+# annotate_requirement additionally captions the card's requirement ribbon (see
+# _card_requirement_rect). It rides along here rather than in its own deferred function
+# because it needs the exact same settle-wait and the exact same staleness guards - two
+# independent timers racing the same lift would just be two ways to get it wrong.
+func _pulse_lifted_card(annotate_requirement: bool = false) -> void:
     var target := _lifted_card
     var started_at := _step_index
     await get_tree().create_timer(hand.hover_time + 0.05).timeout
@@ -289,6 +294,33 @@ func _pulse_lifted_card() -> void:
     # Transform-mapped rather than get_global_rect(): the lifted card is SCALED, and
     # get_global_rect() reports the unscaled size, which would undersize the frame.
     overlay.show_pulse(target.get_global_transform() * Rect2(Vector2.ZERO, target.size), 4.0)
+    if not annotate_requirement:
+        return
+    var ribbon := _card_requirement_rect(target)
+    if ribbon.size == Vector2.ZERO:
+        return
+    # Note on the LEFT with a right-pointing arrow: the rest of the fan sits immediately right
+    # of the lifted card, and an arrow coming down onto the ribbon from above would have to
+    # cross the card's own artwork. Left of the card at ribbon height is open floor.
+    # "Power" picks up the glyph automatically (show_info_note runs the authored-text pass).
+    overlay.show_info_note_pointing(
+        "Power requirement to play this Card", ribbon, TutorialOverlay.PointerDir.RIGHT)
+
+
+# Screen rect of the lifted card's requirement ribbon (the "MAX 3" bar). Mapped through the
+# card's global transform for the same reason _pulse_lifted_card does it - the lifted card is
+# scaled, so get_global_rect() on a child would report the unscaled size and land short.
+func _card_requirement_rect(card_ui: CardUI) -> Rect2:
+    if not is_instance_valid(card_ui):
+        return Rect2()
+    var ribbon := card_ui.requirement_panel
+    if ribbon == null or not ribbon.visible:
+        return Rect2()
+    # The ribbon's OWN global transform already folds in every ancestor's scale, so mapping
+    # its unscaled local rect through it gives the true drawn rect in one step. Reading
+    # get_global_position() and pairing it with the raw size would land the right corner but
+    # the wrong width (size is authored, unscaled).
+    return ribbon.get_global_transform() * Rect2(Vector2.ZERO, ribbon.size)
 
 
 # dice.gd renders a Power of 0 at 40% alpha (see its _on_* handlers). Steps whose subject is
@@ -837,7 +869,9 @@ func _step_t2_5() -> void:
     overlay.show_pointer(_enemy_arrow_point(), TutorialOverlay.PointerDir.DOWN)
     _apply_gate({"cards": [LOW_BLOW_ID]})
     _wait(Events.card_played, 1)
-    _pulse_lifted_card()
+    # The MAX 3 ribbon is what this step's copy is actually ABOUT, and nothing marked it -
+    # the player had to work out which strip of the card "that MAX 3 ribbon" meant.
+    _pulse_lifted_card(true)
 
 
 func _step_t2_6() -> void:
@@ -997,15 +1031,34 @@ func _step_t3_5() -> void:
     # its own auto-advance for during the tutorial (see the change there).
 
 
+# The one beat that gets the title-card treatment besides T1.1, and for the same reason in
+# reverse: this is the last thing the tutorial ever says, so it should close the game's
+# opening rather than look like one more instruction box. Reusing show_welcome bookends the
+# whole tutorial - first panel and last panel share a presentation nothing in between has -
+# and inherits its warm dim, decorative title, divider, halo and staged entrance for free.
 func _step_t3_6() -> void:
-    overlay.set_dim(TutorialOverlay.Dim.FULL)
+    overlay.set_dim(TutorialOverlay.Dim.FULL, TutorialOverlay.DIM_TINT_WARM)
     # The fight is already won here - skipping the tutorial at this point would soft-lock
     # (the director owns emitting battle_won; a skip would shut the overlay down without
     # ever emitting it), so the skip affordance goes away for this final beat.
     overlay.skip_button.hide()
-    overlay.set_text(
-        "[center]That was the [color=gold]worst-looking roll[/color] on offer, and you picked it on purpose. That is Dice Odyssey: you don't [color=gold]hope[/color] for luck, you stack it, refuel it, and choose the face you need. Out there you'll find stranger Dice, wilder Cards, and enemies who cheat harder than you do. [color=gold]Hover anything[/color] to learn more.",
-        "center", true)
+    # Four beats, deliberately separated: what you just did / what the game is / what's out
+    # there / how to find out. Run together as one block this reads as a wall of text at the
+    # exact moment the player has stopped being taught and is being sent off.
+    #
+    # "didn't pick the HIGHEST" and not "didn't JUST pick the highest": the roll actually
+    # taken was the lowest of the three on offer, so the "not just X, but Y" shape would
+    # credit them for something they pointedly did not do, one line after the whole finale
+    # was built around them turning down the 5.
+    #
+    # Gold is #f2c14e, not the generic step box's "gold" - it's the welcome card's own accent,
+    # and the two panels are meant to look like a matched pair.
+    overlay.show_welcome(
+        "Your Odyssey Begins!",
+        "[center]You didn't pick the [color=#f2c14e]highest[/color] roll on offer. You picked the [color=#f2c14e]best one for the situation[/color]." \
+        + "\n\nThat is Dice Odyssey: you don't hope for luck, you [color=#f2c14e]make it happen[/color]. And when you can't, you [color=#f2c14e]adapt[/color]." \
+        + "\n\nAhead lie other [color=#f2c14e]Dice[/color] with their own faces and effects, and [color=#c896ff]Cards[/color] built to spend their [color=red]Power[/color] in far stranger ways." \
+        + "\n\nHover anything (Cards, Dice, Relics, Enemies) to learn more.")
     _apply_gate({})
     overlay.continue_pressed.connect(_on_victory_continue_pressed, CONNECT_ONE_SHOT)
 

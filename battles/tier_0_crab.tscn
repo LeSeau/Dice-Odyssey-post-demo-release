@@ -6,8 +6,8 @@
 [node name="Tier0Crab" type="Node2D"]
 
 [node name="Crab" parent="." instance=ExtResource("1_uaugs")]
-width = 326
-height = 326
-position = Vector2(892, 380)
+width = 285
+height = 285
+position = Vector2(892, 396)
 stats = ExtResource("2_shtaq")
 sprite_y_offset = 10

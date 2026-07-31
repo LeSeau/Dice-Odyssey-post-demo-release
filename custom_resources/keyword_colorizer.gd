@@ -321,7 +321,11 @@ static func add_power_glyph_to_authored_text(text: String, glyph_px: int) -> Str
     var result := _swap_x_placeholder(text, glyph_px)
     var re_p := RegEx.new()
     re_p.compile("(\\[color=[^\\]]+\\])?\\bPower\\b")
-    return re_p.sub(result, "%s $0" % power_glyph_img(glyph_px), true)
+    # NBSP, never a plain space - same reason as the card path in _apply_power_glyph: a plain
+    # space is a legal break for AUTOWRAP_WORD, so a long authored line (the tutorial's sign-off
+    # panel hit this) can leave the glyph stranded alone at the end of a line with its own word
+    # wrapped to the next one.
+    return re_p.sub(result, "%s%s$0" % [power_glyph_img(glyph_px), NBSP], true)
 
 
 # Whether `text` will render the Power glyph - the word "Power" or the standalone X

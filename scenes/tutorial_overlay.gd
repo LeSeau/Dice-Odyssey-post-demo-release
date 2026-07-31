@@ -456,23 +456,57 @@ func _restart_bob_tween(axis: Vector2) -> void:
         .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
 
-# Second, informational arrow (see info_arrow). Always points DOWN, sitting above target_point.
+# Second, informational arrow (see info_arrow). Defaults to pointing DOWN, sitting above
+# target_point, but takes the same PointerDir as show_pointer for targets whose free space is
+# to the side rather than above (the Low Blow requirement ribbon: the rest of the fan is
+# immediately right of it, so its note has to come in from the left).
 # STATIC by default - when it shares the screen with the bobbing action pointer, Julien wanted
 # it to sit still so it reads as a label rather than a "do something here" prompt. Steps where
 # it's the ONLY arrow pass animated=true, since there's nothing for it to be confused with and
 # a still arrow just gets lost.
-func show_info_pointer(target_point: Vector2, animated: bool = false) -> void:
-    info_arrow.position = target_point - Vector2(info_arrow.size.x / 2.0, info_arrow.size.y + POINTER_GAP)
+func show_info_pointer(target_point: Vector2, animated: bool = false,
+        direction: PointerDir = PointerDir.DOWN) -> void:
+    # Every direction is derived from the DOWN texture by flip/rotate, for the reason spelled
+    # out in show_pointer: the standalone "up" art doesn't actually point straight up.
+    info_arrow.texture = ARROW_TEXTURES[PointerDir.DOWN]
+    info_arrow.flip_v = direction == PointerDir.UP
+    info_arrow.pivot_offset = info_arrow.size / 2.0
+    var half := info_arrow.size / 2.0
+    # Measured from the arrow's INK, not its box (see ARROW_ART_*): using half.y here put the
+    # drawn tip ~31px off its target instead of the 8 it reads as.
+    var reach := INFO_ARROW_TARGET_GAP + _info_arrow_ink().x
+    var bob_axis := Vector2(0, -1)
+    # All four placed the same way: put the arrow's CENTRE `reach` away from the target along
+    # the pointing axis, then convert centre back to position. Rotation is about pivot_offset
+    # (= half), so the visual centre is position + half at any angle.
+    match direction:
+        PointerDir.DOWN:  # tip points down - sits ABOVE the target
+            info_arrow.rotation = 0.0
+            info_arrow.position = target_point - Vector2(0, reach) - half
+        PointerDir.UP:  # tip points up - sits BELOW the target
+            info_arrow.rotation = 0.0
+            info_arrow.position = target_point + Vector2(0, reach) - half
+            bob_axis = Vector2(0, 1)
+        PointerDir.RIGHT:  # tip points right - sits LEFT of the target
+            info_arrow.rotation = -PI / 2.0
+            info_arrow.position = target_point - Vector2(reach, 0) - half
+            bob_axis = Vector2(1, 0)
+        PointerDir.LEFT:  # tip points left - sits RIGHT of the target
+            info_arrow.rotation = PI / 2.0
+            info_arrow.position = target_point + Vector2(reach, 0) - half
+            bob_axis = Vector2(-1, 0)
     info_arrow.show()
     if _info_bob_tween and _info_bob_tween.is_valid():
         _info_bob_tween.kill()
     if not animated:
         return
-    var base_y := info_arrow.position.y
+    # Bobs along its own pointing axis, so a sideways arrow slides sideways rather than
+    # up-down (which would read as unrelated to what it's pointing at).
+    var base := info_arrow.position
     _info_bob_tween = create_tween().set_loops()
-    _info_bob_tween.tween_property(info_arrow, "position:y", base_y - POINTER_BOB_DISTANCE, POINTER_BOB_TIME) \
+    _info_bob_tween.tween_property(info_arrow, "position", base + bob_axis * POINTER_BOB_DISTANCE, POINTER_BOB_TIME) \
         .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-    _info_bob_tween.tween_property(info_arrow, "position:y", base_y, POINTER_BOB_TIME) \
+    _info_bob_tween.tween_property(info_arrow, "position", base, POINTER_BOB_TIME) \
         .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
 
@@ -483,31 +517,108 @@ func hide_info_pointer() -> void:
 
 
 const INFO_NOTE_W := 224.0
+const INFO_NOTE_MIN_W := 120.0
+const INFO_NOTE_FIT_STEP := 8.0
 const INFO_NOTE_PAD := 12.0
 
-# Small caption placed to the RIGHT of anchor_rect (the space above/around the Power number is
-# cramped by the dice panel/slots; the open ground toward the enemy isn't). Auto-heights to its
-# text the same width-first way as set_text.
-func show_info_note(text: String, anchor_rect: Rect2) -> void:
-    var inner_w := INFO_NOTE_W - INFO_NOTE_PAD * 2.0
+# tutorial_arrow_down.png is mostly empty canvas: its ink occupies y 0.184..0.818 of a 500px
+# square texture, and STRETCH_KEEP_ASPECT_CENTERED then letterboxes that square inside the
+# arrow's 64x86 box. So the DRAWN tip sits ~20px inside the box edge, and positioning the box
+# POINTER_GAP from a target leaves ~31px of visible air instead of 8. These let the info arrow
+# be placed by where its ink actually is.
+# NOTE: show_pointer (the main action arrow) has the same slack and is deliberately left
+# alone - its spacing is already tuned by eye across every step and tightening it here would
+# silently move all of them.
+const ARROW_ART_TOP_FRAC := 0.184
+const ARROW_ART_BOTTOM_FRAC := 0.818
+# Visible air between the arrow's ink and the thing on either side of it.
+const INFO_ARROW_TARGET_GAP := 8.0
+const INFO_ARROW_NOTE_GAP := 10.0
+
+# Small caption placed to the RIGHT of anchor_rect by default (the space above/around the
+# Power number is cramped by the dice panel/slots; the open ground toward the enemy isn't).
+# place_left flips it to the other side for anchors whose right is occupied - the lifted card's
+# requirement ribbon has the rest of the fan sitting immediately right of it. Explicit rather
+# than auto-chosen: "does it fit on screen" would say yes for the card (there IS room), and the
+# overlay has no way to know what game content is under that room.
+# Auto-heights to its text the same width-first way as set_text.
+func show_info_note(text: String, anchor_rect: Rect2, place_left: bool = false,
+        gap: float = 24.0) -> void:
+    info_label.text = KeywordColorizer.add_power_glyph_to_authored_text(text, GLYPH_PX_NOTE)
+    var panel_w := _fit_info_note_width()
+    var inner_w := panel_w - INFO_NOTE_PAD * 2.0
     info_label.position = Vector2(INFO_NOTE_PAD, INFO_NOTE_PAD)
     info_label.size = Vector2(inner_w, 10.0)
-    info_label.text = KeywordColorizer.add_power_glyph_to_authored_text(text, GLYPH_PX_NOTE)
     var content_h: float = maxf(info_label.get_content_height(), 20.0)
     info_label.size = Vector2(inner_w, content_h)
     var panel_h := content_h + INFO_NOTE_PAD * 2.0
 
-    var pos_x := anchor_rect.position.x + anchor_rect.size.x + 24.0
+    var pos_x: float = anchor_rect.position.x + anchor_rect.size.x + gap
+    if place_left:
+        # panel_w, not INFO_NOTE_W: the panel shrinks to its text, and subtracting the max
+        # width here would push a narrow note away from the anchor by whatever it saved.
+        pos_x = anchor_rect.position.x - gap - panel_w
     var pos_y := anchor_rect.get_center().y - panel_h / 2.0
-    pos_x = clampf(pos_x, 0.0, DESIGN_CANVAS_SIZE.x - INFO_NOTE_W)
+    pos_x = clampf(pos_x, 0.0, DESIGN_CANVAS_SIZE.x - panel_w)
     pos_y = clampf(pos_y, 92.0, DESIGN_CANVAS_SIZE.y - panel_h)
     info_panel.position = Vector2(pos_x, pos_y)
-    info_panel.size = Vector2(INFO_NOTE_W, panel_h)
+    info_panel.size = Vector2(panel_w, panel_h)
     info_panel.show()
+
+
+# Narrowest width that still wraps info_label.text onto the fewest lines it can manage.
+# Content height only ever falls as width grows, so the height at INFO_NOTE_W IS the minimum;
+# walking up from INFO_NOTE_MIN_W and stopping at the first width that matches it gives a
+# balanced wrap with no dead space. Without this the panel was always the full 224, which both
+# stranded a single orphan word on line 2 and left a short caption floating in empty box.
+func _fit_info_note_width() -> float:
+    var best_h := _measure_info_note_height(INFO_NOTE_W)
+    var w := INFO_NOTE_MIN_W
+    while w < INFO_NOTE_W:
+        if _measure_info_note_height(w) <= best_h:
+            return w
+        w += INFO_NOTE_FIT_STEP
+    return INFO_NOTE_W
+
+
+func _measure_info_note_height(panel_w: float) -> float:
+    info_label.size = Vector2(panel_w - INFO_NOTE_PAD * 2.0, 10.0)
+    return info_label.get_content_height()
 
 
 func hide_info_note() -> void:
     info_panel.hide()
+
+
+# Distance from the info arrow's PIVOT to its drawn tip (.x) and to its drawn tail (.y), along
+# whichever axis it points. Derived rather than hardcoded so it survives the box being resized.
+func _info_arrow_ink() -> Vector2:
+    # Square texture under KEEP_ASPECT_CENTERED: drawn edge = the box's smaller side, and it
+    # sits centred in the box along the longer one.
+    var drawn: float = minf(info_arrow.size.x, info_arrow.size.y)
+    var letterbox: float = (info_arrow.size.y - drawn) / 2.0
+    var pivot: float = info_arrow.size.y / 2.0
+    var tip: float = letterbox + ARROW_ART_BOTTOM_FRAC * drawn
+    var tail: float = letterbox + ARROW_ART_TOP_FRAC * drawn
+    return Vector2(tip - pivot, pivot - tail)
+
+
+# Places the caption AND its pointer as one unit beside anchor_rect. The spacing is computed
+# here rather than handed in because this is the only place that knows where the arrow's ink
+# sits inside its box - the first version took a hand-picked gap at the call site and ended up
+# with ~31px of dead air between the note and the arrow AND between the arrow and the card.
+# Currently only LEFT/RIGHT are laid out; DOWN/UP notes have no caller and would need their
+# own stacking rule rather than a side offset.
+func show_info_note_pointing(text: String, anchor_rect: Rect2, direction: PointerDir) -> void:
+    var edge: Vector2 = Vector2(anchor_rect.position.x, anchor_rect.get_center().y)
+    if direction == PointerDir.LEFT:
+        edge.x = anchor_rect.position.x + anchor_rect.size.x
+    show_info_pointer(edge, false, direction)
+    var ink := _info_arrow_ink()
+    # Arrow tip sits INFO_ARROW_TARGET_GAP from the anchor, so its tail is that plus the ink's
+    # full length away; the note starts one more small gap beyond that.
+    var note_gap: float = INFO_ARROW_TARGET_GAP + ink.x + ink.y + INFO_ARROW_NOTE_GAP
+    show_info_note(text, anchor_rect, direction == PointerDir.RIGHT, note_gap)
 
 
 # ---------------------------------------------------------------- Pulse frame
