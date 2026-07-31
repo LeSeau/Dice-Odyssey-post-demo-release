@@ -39,7 +39,12 @@ const ACT2_RESKIN := {
     "Lich":            {"art": "res://assets/enemies_act2/act2_lich.png",         "name": "Necromancer"},
     "Dragon Priest":   {"art": "res://assets/enemies_act2/act2_dragonpriest.png", "name": "Cinderlord"},
     "Gargantua":       {"art": "res://assets/enemies_act2/act2_gargantua.png",    "name": "Devourer"},
-    "Leviathan":       {"art": "res://assets/enemies_act2/act2_leviathan.png",    "name": "The Dicelord"},
+    # box_mult/x_shift: the Dicelord inherits the Leviathan node's box (309px, tuned
+    # for that WIDE sprite) and the enemy template's baked +124px sprite offset — the
+    # narrow act-2 art ended up elite-sized and crowding the right screen edge. Runtime
+    # override only (the .tscn is shared with the act-1 Leviathan, which stays as-is).
+    "Leviathan":       {"art": "res://assets/enemies_act2/act2_leviathan.png",    "name": "The Dicelord",
+                        "box_mult": 1.26, "x_shift": -72.0},
 }
 
 # Act-local tier set by run.gd at room entry; -1 (debug launches without run.gd)
@@ -152,6 +157,7 @@ func start_battle() -> void:
     Events.battle_started.emit()
     relics.relics_activated.connect(_on_relics_activated)
     relics.activate_relics_by_type(Relic.Type.START_OF_COMBAT)
+    _maybe_announce_boss()
 
 
 # Must run BETWEEN setup_enemies() (stats instances exist - set_enemy_stats
@@ -204,7 +210,8 @@ func _bake_bonus_damage(enemy: Enemy, amount: int) -> void:
 # are untouched - only the look and name change. update_enemy() re-renders the sprite
 # and re-fits it into the Enemy node's existing width/height box, so grounding is
 # best-effort (not per-fight tuned - Julien will polish act 2 properly later).
-func _reskin_enemy(enemy: Enemy) -> void:
+# Static so debug_act2_reskin.gd calls THIS function instead of a drifting mirror copy.
+static func _reskin_enemy(enemy: Enemy) -> void:
     var skin: Dictionary = ACT2_RESKIN.get(enemy._display_name, {})
     if skin.is_empty():
         return
@@ -216,7 +223,44 @@ func _reskin_enemy(enemy: Enemy) -> void:
     # New art has its own proportions; the act-1 name-label centering no longer
     # applies, so fall back to canvas-centered rather than a stale per-enemy value.
     enemy.stats.content_center_x = 0.5
+    # Optional presence overrides (currently only the Dicelord). Grow the box around
+    # the feet line - the box expands from its center, so half the added height is
+    # given back to position.y or the enemy would sink through the floor.
+    var box_mult: float = skin.get("box_mult", 1.0)
+    if not is_equal_approx(box_mult, 1.0):
+        var added_h := enemy.height * (box_mult - 1.0)
+        enemy.width = roundi(enemy.width * box_mult)
+        enemy.height = roundi(enemy.height * box_mult)
+        enemy.position.y -= added_h * 0.5 * enemy.scale.y
+    enemy.position.x += float(skin.get("x_shift", 0.0)) * enemy.scale.x
     enemy.update_enemy()
+
+
+# Boss intro banner (launch checklist "Boss presence"): the boss fight opened with
+# zero framing — reuse the act banner (same MinionPro gold plate as "ACT 2: ...",
+# already a self-contained one-shot CanvasLayer) to announce the boss by its display
+# name, post-reskin so act 2 says THE DICELORD while act 1 says LEVIATHAN. Delayed a
+# beat so the arena reads first; the turn banner can't collide (it skips turn 0).
+const BOSS_BANNER_DELAY := 0.55
+const BOSS_BANNER_LIFETIME := 3.2  # announce() beat is ~2.2s; free well after it ends
+
+func _maybe_announce_boss() -> void:
+    var tier: int = act_tier if act_tier >= 0 else (battle_stats.battle_tier if battle_stats else -1)
+    if tier != 4:
+        return
+    get_tree().create_timer(BOSS_BANNER_DELAY, false).timeout.connect(_announce_boss)
+
+
+func _announce_boss() -> void:
+    var enemies := enemy_handler.get_children().filter(
+        func(child): return child is Enemy and not child.is_queued_for_deletion()
+    )
+    if enemies.is_empty():
+        return
+    var banner := (load("res://scenes/ui/act_banner.tscn") as PackedScene).instantiate()
+    add_child(banner)
+    banner.announce(String(enemies[0]._display_name).to_upper())
+    get_tree().create_timer(BOSS_BANNER_LIFETIME, false).timeout.connect(banner.queue_free)
 
 
 # Debug launches (act_tier still -1) and any unrecognized tier fall back to the

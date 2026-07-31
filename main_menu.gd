@@ -20,6 +20,9 @@ func _ready()  -> void:
     # same ornate menu-button style (main_menu.tscn) - the background art itself
     # (main_menu_v4.png) no longer has any button painted into it.
     load_run_button.visible = SaveManager.has_save()
+    # Version stamp - single source of truth is application/config/version in
+    # project.godot; the .tscn text is only an editor placeholder.
+    $VersionLabel.text = "v%s" % ProjectSettings.get_setting("application/config/version", "?")
 
 
 # Reads the save straight from disk instead of trusting has_save() alone (which

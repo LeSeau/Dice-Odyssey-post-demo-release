@@ -8,7 +8,7 @@ extends Node
 #       --rendering-driver opengl3 --position 2000,2000
 
 const VIEW := Vector2i(1280, 720)
-const OUT := "C:/Users/julie/AppData/Local/Temp/claude/C--Users-julie-Desktop-daiso-august-copy/e1d58dd1-3ee2-469e-b562-69e18bad70fc/scratchpad/act2_render"
+const OUT := "C:/Users/julie/AppData/Local/Temp/claude/C--Users-julie-Desktop-daiso-august-copy/84e67efa-8f47-49dc-a8ed-f8b15e4565bf/scratchpad/act2_render"
 
 const BG := {
 	"hallway": "res://assets/backgrounds/combat_bg_act2_hallway_arcane_library.png",
@@ -119,15 +119,6 @@ func _render(scene_path: String, bg_key: String, do_reskin: bool = true, name_ov
 	await get_tree().process_frame
 
 
-# Mirror of battle.gd::_reskin_enemy (kept in sync by using the real const dict).
+# The real battle.gd::_reskin_enemy (static since 2026-07-31) — no mirror copy to drift.
 func _reskin(enemy: Enemy) -> void:
-	var skin: Dictionary = Battle.ACT2_RESKIN.get(enemy._display_name, {})
-	if skin.is_empty():
-		return
-	var tex: Texture2D = load(skin["art"])
-	if tex == null:
-		return
-	enemy.stats.art = tex
-	enemy._display_name = skin["name"]
-	enemy.stats.content_center_x = 0.5
-	enemy.update_enemy()
+	Battle._reskin_enemy(enemy)

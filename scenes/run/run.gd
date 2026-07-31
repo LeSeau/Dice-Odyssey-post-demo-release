@@ -106,6 +106,9 @@ var initial_event_pool: Array[EventStats] = []
 var sfx_click = preload("res://sfx/219069__annabloom__click1.wav")
 
 func _ready() -> void:
+    # Dev shortcuts (Map/Battle buttons): keep them for in-editor staging/screenshot
+    # work, hide them from the release export players get (launch checklist item).
+    $DebugButtons.visible = OS.is_debug_build()
     call_deferred("_late_init")
 
 
