@@ -38,9 +38,16 @@ const PICK_HOLD := 0.32
 const PICK_PUNCH_SCALE := 1.09
 const PICK_SETTLE_SCALE := 1.03
 const PICK_FLASH_COLOR := Color(1.5, 1.48, 1.35)
-const PICK_SFX := preload("res://sounds/dicerollsound3.mp3")
-const PICK_SFX_PITCH := 0.95
-const PICK_SFX_VOLUME_DB := -4.0
+# Was dicerollsound3 (Julien, 2026-07-31: "dice roll sfx is weird") - nothing is being rolled
+# here, and a rattle right after three card swishes read as a different game. The pick now
+# uses the same card sample as the reveal and the deck arrival, pitched UP and louder: the
+# whole ceremony becomes one instrument, "swish swish swish - SNAP - thunk". It also runs out
+# (~1.1s) right as the card lands, so it never bleeds into the rewards screen behind.
+# Unused one-line swaps if you want something more distinct: res://Item2A.wav (2.4s, too long
+# to clear the landing), res://sounds/usedrunesound.wav (1.5s), res://sounds/nexteventsound.wav.
+const PICK_SFX := preload("res://drawcardsound.wav")
+const PICK_SFX_PITCH := 1.15
+const PICK_SFX_VOLUME_DB := -2.0
 const REJECT_TIME := 0.26
 const REJECT_TINT := Color(0.6, 0.6, 0.6, 0.0)
 const REJECT_SCALE := 0.93

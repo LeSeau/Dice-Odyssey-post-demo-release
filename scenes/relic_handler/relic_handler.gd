@@ -7,7 +7,9 @@ const RELIC_APPLY_INTERVAL := 0.5
 const RELIC_UI = preload("res://scenes/relic_handler/relic_ui.tscn")
 
 @onready var relics_control: RelicsControl = $RelicsControl
-@onready var relics: HBoxContainer = %Relics
+# HFlowContainer since 2026-07-31 (was HBoxContainer): the row now spans the screen and
+# WRAPS to a second line instead of relics past the 7th being clipped out of existence.
+@onready var relics: HFlowContainer = %Relics
 
 func _ready() -> void:
     relics.child_exiting_tree.connect(_on_relics_child_exiting_tree)
@@ -17,7 +19,7 @@ func activate_relics_by_type(type: Relic.Type) -> void:
     if type == Relic.Type.EVENT_BASED:
         return
     
-    var relic_queue: Array [RelicUI] = _get_all_relic_ui_nodes().filter(
+    var relic_queue: Array[RelicUI] = _get_all_relic_ui_nodes().filter(
         func(relic_ui: RelicUI):
             return relic_ui.relic.type == type
     )
@@ -57,12 +59,10 @@ func _resize_for_top_bar(relic_ui: RelicUI) -> void:
     relic_ui.custom_minimum_size = Vector2(TOP_BAR_ICON_SIZE, TOP_BAR_ICON_SIZE)
     relic_ui.offset_right = TOP_BAR_ICON_SIZE
     relic_ui.offset_bottom = TOP_BAR_ICON_SIZE
-    # The Relics row (relic_handler.tscn) is taller than the icon itself on purpose -
-    # SHRINK_CENTER keeps the icon at its native size, vertically centered, instead of the
-    # HBoxContainer's default FILL stretching it to fill the taller row. That slack is what
-    # gives the hover "flash" (Icon scales to 1.2x, see relic_ui.gd) room to breathe: without
-    # it, RelicsControl's clip_contents (needed to mask relics off the current scroll page)
-    # was cutting the top/bottom of the icon off mid-animation.
+    # SHRINK_CENTER keeps the icon at its native size, vertically centered in its flow line,
+    # instead of the container's default FILL stretching it. That slack is what gives the
+    # hover "flash" (Icon scales to 1.2x, see relic_ui.gd) room to breathe - RelicsControl
+    # used to clip_contents (for the old scroll pages) and cut the icon off mid-animation.
     relic_ui.size_flags_vertical = Control.SIZE_SHRINK_CENTER
     var icon := relic_ui.get_node("Icon") as TextureRect
     icon.offset_right = TOP_BAR_ICON_SIZE

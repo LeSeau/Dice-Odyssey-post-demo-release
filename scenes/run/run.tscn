@@ -473,13 +473,13 @@ layout_mode = 3
 anchors_preset = 0
 offset_left = 44.0
 offset_top = 84.0
-offset_right = 494.0
+offset_right = 1194.0
 offset_bottom = 164.0
 mouse_filter = 2
 
 [node name="RelicHandler" parent="TopBar/RelicBar" instance=ExtResource("9_4670w")]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(450, 80)
+custom_minimum_size = Vector2(1150, 80)
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0

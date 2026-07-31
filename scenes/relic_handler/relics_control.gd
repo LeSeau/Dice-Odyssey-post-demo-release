@@ -1,13 +1,18 @@
 class_name RelicsControl
 extends Control
 
+# Paging is DEAD since 2026-07-31: the row spans the screen and %Relics is an HFlowContainer
+# that wraps to a second line, so nothing ever has to be scrolled out of view (the arrows
+# were already visible = false / disabled in the scene, and clip_contents is now off too).
+# Kept as a no-op shell rather than ripped out - the buttons are still wired here and the
+# node is referenced by relic_handler.gd.
 const RELICS_PER_PAGE := 5
 const TWEEN_SCROLL_DURATION := 0.2
 
-@export var left_button: TextureButton 
-@export var right_button: TextureButton 
+@export var left_button: TextureButton
+@export var right_button: TextureButton
 
-@onready var relics: HBoxContainer = %Relics
+@onready var relics: HFlowContainer = %Relics
 @onready var page_width = self.custom_minimum_size.x
 
 var num_of_relics := 0

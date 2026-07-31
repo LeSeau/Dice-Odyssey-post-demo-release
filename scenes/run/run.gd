@@ -14,6 +14,13 @@ const SHOP_SCENE := preload ("res://scenes/shop/card_shop.tscn")
 
 const TREASURE_GOLD_REWARD := 50
 
+# The tutorial fight is a solo Skeleton, and so is this pool entry - drawing it on floor 1-3
+# right after the tutorial replays the exact same fight (Julien, 2026-07-31: "should be a
+# 1 time fight only"). Burned from the pool for the rest of the run the moment the tutorial
+# fight is served. Safe for tier 0: 12 entries, 9 of them collapse into the "slimes" group,
+# so 3 distinct picks remain for the 3 tier-0 floors even with this one gone.
+const TUTORIAL_TWIN_BATTLE := "res://battles/tier_0_crab.tres"
+
 # --- Act 2 (placeholder content) -----------------------------------------
 # Act 2 recycles act-1 fights: each act-local tier draws from a HIGHER act-1
 # pool (act-2 floors 1-3 serve act-1 tier-1 fights, everything deeper serves
@@ -419,6 +426,7 @@ func _get_unique_battle_for_tier(tier: int) -> BattleStats:
         var tutorial_fight: BattleStats = load("res://battles/tutorial_fight.tres")
         Global.tutorial_fight = false   # so only the first fight is forced
         Global.tutorial_dice_shop_explanation_needed = true
+        _burn_tutorial_twin_battle()
         return tutorial_fight
     # In act 2 the act-local tier draws from a higher act-1 pool (see
     # ACT2_SOURCE_TIER) - everything below works on the source tier, since that's
@@ -468,6 +476,18 @@ func _get_unique_battle_for_tier(tier: int) -> BattleStats:
     
     # Fallback
     return unused_battles[0]
+
+
+# Marks the pool's solo-Skeleton fight as already used, so the tutorial is the only time you
+# see it. Matched on resource_path against the live pool (the SAME object the draw filters on,
+# so used_battles.has() lines up) and it rides the save file for free - used_battles is
+# persisted by path. If tier 0 ever exhausts, the tier reset lets it back in rather than
+# hard-locking the draw; that only happens past 3 tier-0 fights, which act 1 can't reach.
+func _burn_tutorial_twin_battle() -> void:
+    for battle: BattleStats in battle_stats_pool.pool:
+        if battle.resource_path == TUTORIAL_TWIN_BATTLE and not used_battles.has(battle):
+            used_battles.append(battle)
+            return
 
 
 func _on_event_room_entered(room: Room) ->  void:

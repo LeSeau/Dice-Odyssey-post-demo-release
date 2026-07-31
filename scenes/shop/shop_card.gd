@@ -72,5 +72,12 @@ func _on_card_gui_input(event: InputEvent) -> void:
         _sold = true
         Events.shop_card_bought.emit(card, gold_cost)
         SFXPlayer.play(load("res://sounds/buydicesound.wav"))
+        # Freeze the slot's footprint BEFORE emptying it (Julien, 2026-07-31: "when i buy a
+        # card in the shop, the other cards slightly move"). This VBox is sized by its card
+        # (140 wide), but the scene's custom_minimum_size floor is only 120 - so once the
+        # card and price are freed the slot snapped 20px narrower, and %Cards being a
+        # SHRINK_CENTER HBox split that between the two sides: every other card slid 10px.
+        # Pinning the combined min size leaves an empty gap exactly where the card was.
+        custom_minimum_size = get_combined_minimum_size()
         card_container.queue_free()
         price.queue_free()
