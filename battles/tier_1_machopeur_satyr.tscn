@@ -2,7 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://d0efyathkfg74" path="res://scenes/enemy/enemy.tscn" id="1_ppjke"]
 [ext_resource type="Resource" uid="uid://bigsatyrtier1aaa" path="res://enemies/satyr/bigger_satyr_enemy_tier1.tres" id="2_uspug"]
-[ext_resource type="Resource" uid="uid://machopeurtier1aa" path="res://enemies/machopeur/machopeur_enemy_tier1.tres" id="3_fmr0d"]
+[ext_resource type="Resource" uid="uid://bcv301xye6h6a" path="res://enemies/machopeur/machopeur_enemy_tier1.tres" id="3_fmr0d"]
 
 [node name="Tier1MachopeurSatyr" type="Node2D"]
 

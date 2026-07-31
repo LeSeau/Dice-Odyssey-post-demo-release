@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scenes/ui/gold_ui.gd" id="1_rd1f3"]
 [ext_resource type="Texture2D" uid="uid://dowk6are8jaul" path="res://gold_icon_v2.png" id="2_pllhh"]
-[ext_resource type="LabelSettings" uid="uid://c8x4k2n9wq3rt" path="res://scenes/ui/topbar_label_settings.tres" id="3_lblst"]
+[ext_resource type="LabelSettings" uid="uid://dko24yqmrk8ye" path="res://scenes/ui/topbar_label_settings.tres" id="3_lblst"]
 
 [node name="GoldUI" type="HBoxContainer"]
 offset_right = 40.0

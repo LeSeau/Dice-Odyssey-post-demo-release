@@ -2,7 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://d0efyathkfg74" path="res://scenes/enemy/enemy.tscn" id="1_pdfuf"]
 [ext_resource type="Resource" uid="uid://crab1enemytier2a" path="res://enemies/crab/crab_enemy_tier2.tres" id="2_77x4v"]
-[ext_resource type="Resource" uid="uid://plantenemytier2a" path="res://enemies/plant/plant_enemy_tier2.tres" id="3_acshb"]
+[ext_resource type="Resource" uid="uid://c7md71woy8tpo" path="res://enemies/plant/plant_enemy_tier2.tres" id="3_acshb"]
 
 [node name="Tier2PlantCrab" type="Node2D"]
 

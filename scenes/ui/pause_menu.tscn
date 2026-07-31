@@ -3,9 +3,9 @@
 [ext_resource type="Script" path="res://scenes/ui/pause_menu.gd" id="1_script"]
 [ext_resource type="FontFile" uid="uid://b1es4i7nr43mv" path="res://fonts/CinzelDecorative-Bold.otf" id="2_cinzel"]
 [ext_resource type="FontFile" uid="uid://dujsng7qdioan" path="res://assets/static/Roboto_Condensed-SemiBold.ttf" id="3_roboto"]
-[ext_resource type="StyleBox" uid="uid://c8k2n5xr9j7wq" path="res://scenes/shop/shop_button_normal.tres" id="4_btn_n"]
-[ext_resource type="StyleBox" uid="uid://dqm3v7x8k2n5w" path="res://scenes/shop/shop_button_hover.tres" id="5_btn_h"]
-[ext_resource type="StyleBox" uid="uid://bx6v9n3k8q2wr" path="res://scenes/shop/shop_button_pressed.tres" id="6_btn_p"]
+[ext_resource type="StyleBox" uid="uid://d33nvcmlyrn4o" path="res://scenes/shop/shop_button_normal.tres" id="4_btn_n"]
+[ext_resource type="StyleBox" uid="uid://btiy0p7cdp753" path="res://scenes/shop/shop_button_hover.tres" id="5_btn_h"]
+[ext_resource type="StyleBox" uid="uid://0f1dsnbsuyaw" path="res://scenes/shop/shop_button_pressed.tres" id="6_btn_p"]
 [ext_resource type="Texture2D" path="res://assets/images/slider_knob.png" id="7_knob"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
