@@ -9,6 +9,15 @@ Owner tags: **[J]** = Julien, **[C]** = Claude, **[J→C]** = Julien decides/pro
 - Starting deck = correct 12-card version (4 Strike / 4 Block / Low Blow / Reinforce / Recombobulate / Scout 3)
 - `art/starter-deck-art-refresh` branch merged into main
 - Card reward Skip button exists
+- **"Choose a card" screen — full ceremony pass done 2026-07-30/31 (not yet playtested).** Fixed the
+  "REWARDS" ghost bleeding through the picker's dimmers; added a staggered card reveal with a gold
+  flash + motes on Rares (the pity system's payoff); added a pick beat that flies the chosen card to
+  the top-bar deck button; restyled Skip and the title banner into the shared navy/gold language
+  (the banner was the only panel title in the game still on white MinionPro, and its red-plus-gold
+  plaque read like a fourth card). Two long-standing bugs fixed in passing: wrong `@onready` paths
+  logging two "Node not found" errors on every reward screen, and stale shop-button stylebox UIDs.
+  Skip consolation and a boss-specific screen variant were **explicitly declined by Julien** — don't
+  re-propose. Tuning knobs are the `REVEAL_*`/`RARE_*`/`PICK_*`/`FLIGHT_*` constants in `card_rewards.gd`.
 - Tested by Julien: 9 dice infusions, achievements, exhaust pile placement, card animations, fountain heal event
 - Audio placeholders replaced: Evil crack (glass sound), orb-landing SFX, achievement jingle
 - Dice Shop icon replaced

@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://chf3urm1jm2wf"]
+[gd_scene load_steps=20 format=3 uid="uid://chf3urm1jm2wf"]
 
 [ext_resource type="PackedScene" uid="uid://d2vlobkkv27hu" path="res://scenes/ui/card_menu_ui.tscn" id="1_1w0ra"]
 [ext_resource type="Script" path="res://scenes/ui/card_rewards.gd" id="1_s1lqh"]
@@ -10,27 +10,38 @@
 [ext_resource type="FontFile" uid="uid://dltntsanjiykq" path="res://fonts/LuckiestGuy-Regular.ttf" id="8_0m1kg"]
 [ext_resource type="Texture2D" uid="uid://c47ru55nwc6vr" path="res://focus_illustration.png" id="9_w8dp1"]
 [ext_resource type="Resource" uid="uid://bx4ddyc6uumk5" path="res://characters/warrior/cards/card_emanation.tres" id="10_blsgcard"]
+[ext_resource type="StyleBox" uid="uid://d33nvcmlyrn4o" path="res://scenes/shop/shop_button_normal.tres" id="11_skpn"]
+[ext_resource type="StyleBox" uid="uid://btiy0p7cdp753" path="res://scenes/shop/shop_button_hover.tres" id="12_skph"]
+[ext_resource type="StyleBox" uid="uid://0f1dsnbsuyaw" path="res://scenes/shop/shop_button_pressed.tres" id="13_skpp"]
+[ext_resource type="FontFile" uid="uid://bm3deysyi2y55" path="res://Belwe Bold/Belwe Bold.otf" id="14_skpf"]
+[ext_resource type="FontFile" uid="uid://b2y60c4274gkj" path="res://fonts/Cinzel-Bold.otf" id="15_ttlf"]
 
 [sub_resource type="Theme" id="Theme_xppm6"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ja6sr"]
-bg_color = Color(0.34902, 0.0784314, 0.0784314, 1)
+bg_color = Color(0.08, 0.102, 0.16, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.6, 0.45098, 0.101961, 1)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
+border_color = Color(0.788235, 0.635294, 0.152941, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0, 0, 0.55)
+shadow_size = 6
+shadow_offset = Vector2(0, 4)
 
 [sub_resource type="LabelSettings" id="LabelSettings_wsdgn"]
-font = ExtResource("3_d6n2a")
-font_size = 40
-font_color = Color(0.972439, 0.956963, 0.949899, 1)
-shadow_size = 5
-shadow_color = Color(0, 0, 0, 1)
+font = ExtResource("15_ttlf")
+font_size = 34
+font_color = Color(0.933333, 0.709804, 0.164706, 1)
+outline_size = 6
+outline_color = Color(0.0901961, 0.0627451, 0.0196078, 1)
+shadow_size = 4
+shadow_color = Color(0, 0, 0, 0.6)
+shadow_offset = Vector2(2, 3)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ejl2v"]
 bg_color = Color(0.144787, 0.273985, 0.277578, 1)
@@ -73,15 +84,15 @@ color = Color(0.00392157, 0, 0, 0.835294)
 
 [node name="Panel" type="Panel" parent="."]
 z_index = 10
-custom_minimum_size = Vector2(350, 50)
+custom_minimum_size = Vector2(366, 57)
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -175.0
-offset_top = 74.6667
-offset_right = 175.0
-offset_bottom = 124.667
+offset_left = -183.0
+offset_top = 68.0
+offset_right = 183.0
+offset_bottom = 125.0
 grow_horizontal = 2
 theme = SubResource("Theme_xppm6")
 theme_override_styles/panel = SubResource("StyleBoxFlat_ja6sr")
@@ -93,13 +104,13 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -126.0
-offset_top = -20.5
-offset_right = 126.0
-offset_bottom = 20.5
+offset_left = -183.0
+offset_top = -28.5
+offset_right = 183.0
+offset_bottom = 28.5
 grow_horizontal = 2
 grow_vertical = 2
-text = "Choose a card  "
+text = "Choose a card"
 label_settings = SubResource("LabelSettings_wsdgn")
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -139,9 +150,15 @@ layout_mode = 2
 layout_mode = 2
 
 [node name="SkipCardReward" type="Button" parent="VBoxContainer"]
-custom_minimum_size = Vector2(130, 0)
+custom_minimum_size = Vector2(170, 48)
 layout_mode = 2
 size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0.933333, 0.709804, 0.164706, 1)
+theme_override_fonts/font = ExtResource("14_skpf")
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = ExtResource("11_skpn")
+theme_override_styles/hover = ExtResource("12_skph")
+theme_override_styles/pressed = ExtResource("13_skpp")
 text = "Skip"
 
 [node name="CanvasLayer" type="CanvasLayer" parent="VBoxContainer"]

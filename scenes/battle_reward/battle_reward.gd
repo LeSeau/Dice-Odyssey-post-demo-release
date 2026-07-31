@@ -296,6 +296,11 @@ func _show_card_rewards() -> void:
     add_child(card_rewards)
     card_rewards.card_reward_selected.connect(_on_card_reward_taken)
 
+    # Hide the rewards panel while the picker overlay is up - its "REWARDS" title used to
+    # ghost through the picker's dimmers right behind the "Choose a card" banner. Restored
+    # in _on_card_reward_taken, which fires for both pick and skip.
+    reward_panel.hide()
+
     var card_reward_array: Array[Card] = []
     var available_cards: Array[Card] = character_stats.draftable_cards.cards.duplicate(true)
     var owned_cards: Array[Card] = character_stats.deck.cards
@@ -372,6 +377,8 @@ func _update_rare_pity(rare_drawn: bool) -> void:
 
 
 func _on_card_reward_taken(card: Card) -> void:
+    # Before the null guard - the panel must come back on skip too.
+    reward_panel.show()
     if not character_stats or not card:
         return
     print("reward taken")

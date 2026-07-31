@@ -13,9 +13,9 @@
 [ext_resource type="Texture2D" uid="uid://dq5o7hv31n0h7" path="res://gg.png" id="9_7bn3q"]
 [ext_resource type="FontFile" uid="uid://bm3deysyi2y55" path="res://Belwe Bold/Belwe Bold.otf" id="11_nmt2g"]
 [ext_resource type="Texture2D" uid="uid://c6w3p47gbm7w4" path="res://discordlogo.png" id="12_gb0mm"]
-[ext_resource type="StyleBox" uid="uid://c8k2n5xr9j7wq" path="res://scenes/shop/shop_button_normal.tres" id="13_act2n"]
-[ext_resource type="StyleBox" uid="uid://dqm3v7x8k2n5w" path="res://scenes/shop/shop_button_hover.tres" id="14_act2h"]
-[ext_resource type="StyleBox" uid="uid://bx6v9n3k8q2wr" path="res://scenes/shop/shop_button_pressed.tres" id="15_act2p"]
+[ext_resource type="StyleBox" uid="uid://d33nvcmlyrn4o" path="res://scenes/shop/shop_button_normal.tres" id="13_act2n"]
+[ext_resource type="StyleBox" uid="uid://btiy0p7cdp753" path="res://scenes/shop/shop_button_hover.tres" id="14_act2h"]
+[ext_resource type="StyleBox" uid="uid://0f1dsnbsuyaw" path="res://scenes/shop/shop_button_pressed.tres" id="15_act2p"]
 [ext_resource type="Script" path="res://scenes/ui/run_stats_panel.gd" id="16_rstat"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_l7wgc"]
