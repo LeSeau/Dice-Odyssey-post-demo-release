@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Dice Odyssey"
-config/version="0.1.0"
+config/version="0.2.4"
 run/main_scene="res://scenes/ui/main_menu.tscn"
 config/features=PackedStringArray("4.3", "Mobile")
 config/icon="res://assets/images/blue6.png"
