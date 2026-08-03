@@ -23,6 +23,18 @@ extends CanvasLayer
 var _end_turn_highlight_active := false
 var _end_turn_highlight_tween: Tween
 
+# Turn-cycle guard: true from the player_turn_ended emit until the next hand finishes
+# drawing (player_hand_drawn). While active, no second player_turn_ended may be emitted -
+# a double emit mid-cycle re-runs the whole discard -> enemy turn -> draw chain on top of
+# the in-flight one (every enemy performs its action a second time, then two 5-card hands
+# get dealt). The button's disabled flag alone can't be the guard: it used to re-enable on
+# a flat 3s timer, which lands mid-enemy-turn in any fight whose full cycle outlasts 3s -
+# most multi-enemy fights, and nearly everything on the slower web export.
+var _turn_cycle_active := false
+# Generation token so a stale watchdog from cycle N can never clear/re-enable during
+# cycle N+1 (the await below outlives the cycle it was armed for).
+var _turn_cycle_id := 0
+
 # Reshuffle flourish (2026-07-17): the discard->draw reshuffle used to be an invisible counter
 # swap. A few mini "card backs" (plain Panels wearing the normal card frame stylebox - instantly
 # reads as a face-down card at this size) now arc from the discard pile button to the draw pile
@@ -83,27 +95,51 @@ func _set_char_stats(value: CharacterStats) -> void:
 
 
 func _on_player_hand_drawn() -> void:
+    _turn_cycle_active = false
     # During the tutorial, TutorialDirector owns this button's disabled state (per-step
     # input gating) - re-enabling here would silently unlock End Turn mid-script. Same
-    # guard on the delayed re-enable below.
+    # guard on the watchdog re-enable below.
     if not Global.tutorial_on:
         end_turn_button.disabled = false
     _update_end_turn_highlight()
 
 
 func _on_end_turn_button_pressed() -> void:
+    _begin_turn_cycle()
+
+
+# Emergency/Tension emit force_end_turn from the card play itself; the 1s grace lets the
+# card's own flight/SFX land before the turn actually ends. The button is disabled for the
+# whole grace window so a manual End Turn click can't race the delayed emit into a second
+# turn cycle.
+func _on_force_end_turn() -> void:
+    end_turn_button.disabled = true
+    _stop_end_turn_highlight()
+    await get_tree().create_timer(1.0).timeout
+    _begin_turn_cycle()
+
+
+# The ONLY place player_turn_ended is emitted from - every way of ending the turn funnels
+# through here so the cycle guard can refuse re-entry.
+func _begin_turn_cycle() -> void:
+    if _turn_cycle_active:
+        return
+    _turn_cycle_active = true
+    _turn_cycle_id += 1
+    var cycle_id := _turn_cycle_id
     end_turn_button.disabled = true
     _stop_end_turn_highlight()
     Events.player_turn_ended.emit()
-    await get_tree().create_timer(3.0).timeout
-    if not Global.tutorial_on:
-        end_turn_button.disabled = false
-    _update_end_turn_highlight()
-
-
-func _on_force_end_turn() -> void:
-    await get_tree().create_timer(1.0).timeout
-    Events.player_turn_ended.emit()
+    # Watchdog, not a schedule: player_hand_drawn is what legitimately ends the cycle and
+    # re-enables the button. This only rescues a genuinely stalled cycle, so it must
+    # outlast the slowest legitimate one (a 4-enemy fight on the web export) - never
+    # shorten it back toward the old 3s.
+    await get_tree().create_timer(20.0).timeout
+    if _turn_cycle_active and cycle_id == _turn_cycle_id:
+        _turn_cycle_active = false
+        if not Global.tutorial_on:
+            end_turn_button.disabled = false
+        _update_end_turn_highlight()
 
 
 func _on_card_played_for_highlight(_card: Card) -> void:

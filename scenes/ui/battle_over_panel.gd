@@ -26,6 +26,9 @@ func _ready() -> void:
 
 func show_screen(_text: String, type: Type) -> void:
 	if type == Type.LOSE:
+		# Hide the run HUD chrome (relic bar + Discord pin) that floats above this panel;
+		# both exits (Try Again / Main Menu) rebuild the scene, so no restore is needed.
+		Events.end_screen_hud_visibility.emit(false)
 		audio_player.stream = load("res://gameoversound.wav")
 		audio_player.play()
 		show()

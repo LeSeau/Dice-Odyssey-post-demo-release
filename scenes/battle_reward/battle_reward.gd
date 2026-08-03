@@ -436,6 +436,9 @@ const GG_STATS_REVEAL_DELAY := 0.25
 # Settle-in pop for the GG panel, then hand off to the run-stats scoreboard's own
 # staggered reveal (same beat structure as the Game Over screen).
 func _show_gg_panel() -> void:
+    # The relic bar + Discord pin (run.tscn CanvasLayers) would render over the panel
+    # title otherwise - restored by the Continue button on the act-1 variant.
+    Events.end_screen_hud_visibility.emit(false)
     gg_panel.show()
     gg_panel.pivot_offset = gg_panel.size / 2.0
     gg_panel.modulate.a = 0.0
@@ -464,6 +467,8 @@ Act 2 is an [color=#f0c040]early preview[/color]: most of it will be properly re
 func _on_continue_act_2_button_pressed() -> void:
     SFXPlayer.play(Global.sfx_click)
     gg_panel.hide()
+    # The run continues past this panel - bring the relic bar + Discord pin back.
+    Events.end_screen_hud_visibility.emit(true)
 
 
 func _on_gg_main_menu_button_pressed() -> void:

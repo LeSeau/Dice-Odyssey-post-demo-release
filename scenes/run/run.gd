@@ -132,6 +132,7 @@ func _late_init() -> void:
     Events.stop_map_music.connect(_on_stop_map_music)
     Events.start_map_music.connect(_on_start_map_music)
     Events.check_if_can_purchase_dice.connect(_on_check_if_can_purchase_dice)
+    Events.end_screen_hud_visibility.connect(_on_end_screen_hud_visibility)
 
     if Global.load_run_requested:
         Global.load_run_requested = false
@@ -140,6 +141,20 @@ func _late_init() -> void:
         _start_run()
     _on_update_dice_top_bar()
     map_music.play()
+
+
+# The RelicBar and the Discord pin live on CanvasLayers, so they float above EVERY view -
+# including the full-screen end panels (Game Over / Act 1 Complete / Dungeon Conquered),
+# where 5+ relic icons land straight on the panel title. The panels ask for them to be
+# hidden while they're up; Act 1 Complete's Continue restores them (the one exit where the
+# run keeps going - every other exit destroys this scene anyway).
+func _on_end_screen_hud_visibility(hud_visible: bool) -> void:
+    var relic_bar := get_node_or_null("TopBar/RelicBar")
+    if relic_bar:
+        relic_bar.visible = hud_visible
+    var discord_pin := get_node_or_null("CanvasLayer/JoinDiscordControl")
+    if discord_pin:
+        discord_pin.visible = hud_visible
 
 
     

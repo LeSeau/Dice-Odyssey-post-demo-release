@@ -68,6 +68,12 @@ signal enemy_died(enemy: Enemy)
 # Battle-related events
 signal battle_started
 signal battle_over_screen_requested(text: String, type: BattleOverPanel.Type)
+# Emitted by the full-screen end panels (Game Over, Act 1 Complete, Dungeon Conquered) so
+# run.gd can hide the HUD chrome that floats above every view (RelicBar + the Discord pin,
+# both on CanvasLayers) - with 5+ relics the bar renders straight over the panel title.
+# false = end screen showing, hide them; true = restore (Act 1 Complete's Continue button,
+# the one end-panel exit where the run keeps going).
+signal end_screen_hud_visibility(hud_visible: bool)
 signal battle_won
 signal show_reward
 signal force_end_turn
