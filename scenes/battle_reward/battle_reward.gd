@@ -222,7 +222,7 @@ func _on_relic_reward_mouse_entered(relic: Relic, button: Control) -> void:
     var my_id := _relic_hover_id
 
     relic_tooltip_instance = TooltipScene.instantiate()
-    get_tree().root.add_child(relic_tooltip_instance)
+    Global.add_tooltip(relic_tooltip_instance, self)
 
     # Get the Tooltip panel child
     var tooltip_panel = relic_tooltip_instance.get_node("Tooltip")
@@ -271,7 +271,7 @@ func _on_relic_reward_mouse_entered(relic: Relic, button: Control) -> void:
 
     for i in range(tags_to_show.size()):
         var tag_tooltip = TooltipScene.instantiate()
-        get_tree().root.add_child(tag_tooltip)
+        Global.add_tooltip(tag_tooltip, self)
         var tag_panel = tag_tooltip.get_node("Tooltip")
         tag_panel.get_tooltip_content(tags_to_show[i])
         var tag_pos = (base_pos + Vector2(0, i * (TOOLTIP_HEIGHT + TOOLTIP_SPACING))).round()

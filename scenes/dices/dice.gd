@@ -421,7 +421,7 @@ func _on_card_aim_target_changed(_card_ui) -> void:
 func _on_power_hover_entered() -> void:
     _cleanup_power_tooltip()
     var tooltip := PowerTooltipScene.instantiate()
-    get_tree().root.add_child(tooltip)
+    Global.add_tooltip(tooltip, self)
     var tooltip_panel: Panel = tooltip.get_node("Tooltip")
     tooltip_panel.get_tooltip_content("Power")
     tooltip_panel.show_tooltip(POWER_TOOLTIP_POS)

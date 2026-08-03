@@ -52,7 +52,7 @@ static func spawn_below(button: Control, text: String) -> Node:
     # Godot at load time (confirmed: hung indefinitely on a headless run). Deferring to a
     # runtime load() call sidesteps it since the script is already fully loaded by then.
     var layer: Node = load(SCENE_PATH).instantiate()
-    button.get_tree().root.add_child(layer)
+    Global.add_tooltip(layer, button)
     var panel: IconTooltip = layer.get_node("IconTooltip")
     var anchor := button.global_position + Vector2(button.size.x / 2.0, button.size.y)
     panel.show_tooltip(anchor, text)

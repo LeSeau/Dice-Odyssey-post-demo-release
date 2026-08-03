@@ -142,7 +142,7 @@ func _on_trade_button_mouse_entered(button: Button) -> void:
         var entry: Dictionary = entries[i]
         var relic: Relic = entry["relic"]
         var tooltip := TooltipScene.instantiate()
-        get_tree().root.add_child(tooltip)
+        Global.add_tooltip(tooltip, self)
         var panel = tooltip.get_node("Tooltip")
         panel.tooltip_title.text = "[color=#%s][b]%s%s[/b][/color]" % [entry["color"], entry["label"], relic.relic_name]
         # See relic_ui.gd's _fit_tooltip_title - the title box is fixed-width and doesn't

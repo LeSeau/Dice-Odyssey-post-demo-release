@@ -133,7 +133,7 @@ func _on_mouse_entered() -> void:
         return
 
     tooltip_instance = TooltipScene.instantiate()
-    get_tree().root.add_child(tooltip_instance)
+    Global.add_tooltip(tooltip_instance, self)
     var tooltip_panel = tooltip_instance.get_node("Tooltip")
     tooltip_panel.get_node("%TooltipText").text = text
     tooltip_panel.show_tooltip(global_position + Vector2(-40, -80))
@@ -153,6 +153,19 @@ func _start_tooltip_safety_timeout(this_tooltip) -> void:
     this_tooltip.queue_free()
 
 func _on_mouse_exited() -> void:
+    if tooltip_instance and is_instance_valid(tooltip_instance):
+        tooltip_instance.queue_free()
+        tooltip_instance = null
+
+
+# The reported "This enemy will attack you" popup that never went away (2026-08-03): kill the
+# enemy while its intent is hovered and this node is freed mid-hover, so mouse_exited never
+# fires. The 8s timeout above cannot save it either - that's a coroutine owned by THIS node,
+# so it dies with it, silently, leaving a tooltip parented to the tree root with nothing left
+# alive that knows about it. It then survived into the map, the shop and the next fight,
+# sitting on top of the enemy row. Global.add_tooltip() registers the tooltip against this
+# node so the central sweep catches it too; this is the immediate, same-frame cleanup.
+func _exit_tree() -> void:
     if tooltip_instance and is_instance_valid(tooltip_instance):
         tooltip_instance.queue_free()
         tooltip_instance = null

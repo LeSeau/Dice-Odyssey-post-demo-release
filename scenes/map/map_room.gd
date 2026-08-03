@@ -212,7 +212,7 @@ func _on_affordable_badge_mouse_entered() -> void:
         return
     _hide_affordable_badge_tooltip()
     var layer: Node = load(AFFORDABLE_BADGE_TOOLTIP_SCENE).instantiate()
-    get_tree().root.add_child(layer)
+    Global.add_tooltip(layer, affordable_badge)
     var panel: IconTooltip = layer.get_node("IconTooltip")
     var screen_pos: Vector2 = get_viewport().get_canvas_transform() * affordable_badge.global_position
     panel.show_body_tooltip(screen_pos, AFFORDABLE_BADGE_TOOLTIP_TEXT)

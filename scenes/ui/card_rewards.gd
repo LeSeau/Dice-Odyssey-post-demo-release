@@ -7,9 +7,22 @@ const CARD_MENU_UI = preload("res://scenes/ui/card_menu_ui.tscn")
 
 # --- Reveal ceremony -----------------------------------------------------------------------
 # Staggered card entrance, mirroring battle_reward.gd's _animate_reward_entrance recipe
-# (settle one frame -> center pivot -> alpha+scale tween). The resting scale is CAPTURED from
-# the node after the settle frame instead of assumed - the Cards HBox / CardMenuUI
-# CenterContainer pair owns what a card's resting transform actually is.
+# (settle one frame -> center pivot -> alpha+scale tween).
+#
+# ⚠️ The resting scale is Vector2.ONE, hard-coded, and must stay that way. An earlier version
+# CAPTURED it (`var rest_scale := menu.scale`) one frame after add_child, on the theory that
+# the Cards HBox / CardMenuUI CenterContainer pair owns a card's real resting transform. It
+# does - and the value it owns is always exactly 1.0, because Container.fit_child_in_rect()
+# force-assigns scale (1,1) (and rotation 0) to every child it lays out. So the capture could
+# only ever read one of two things: the correct 1.0, or - if it won the race against the
+# container's DEFERRED sort - card_menu_ui.tscn's authored root scale, which is (2, 2).
+# Capturing 2.0 made the entrance tween animate the card TO double size and stash 2.0 in
+# _rest_scales, and since nothing re-sorts the row afterwards, the container never took it
+# back: every card rendered at 420x630 instead of 210x315, overflowing and overlapping into
+# the unreadable mess reported on 2026-08-03 ("the choose cards screen became GIGANTIC").
+# Which side of that race you land on depends on where in the frame the picker was opened,
+# which is why it looked fine locally and broke in the web build.
+const REST_SCALE := Vector2.ONE
 const REVEAL_BASE_DELAY := 0.22
 const REVEAL_STAGGER := 0.16
 const REVEAL_TIME := 0.3
@@ -109,6 +122,12 @@ func _on_skip_pressed() -> void:
 
 func clear_rewards() -> void:
     for card in cards.get_children():
+        # remove_child BEFORE queue_free: queue_free only takes effect at the end of the
+        # frame, so without this the row still contains the three placeholder cards baked
+        # into card_rewards.tscn (authored at scale 2, see REST_SCALE) while set_rewards()
+        # adds the three real ones - six children laid out in a 500px row for a frame, and
+        # the container's first sort happening against the wrong set.
+        cards.remove_child(card)
         card.queue_free()
         bonus_explanation_box.visible = false
         blessing_explanation_box.visible = false
@@ -134,10 +153,13 @@ func set_rewards(new_cards: Array[Card]) -> void:
     for card: Card in rewards:
         var new_card := CARD_MENU_UI.instantiate() as CardMenuUI
         cards.add_child(new_card)
+        # card_menu_ui.tscn's root is authored at scale (2, 2) (its RESET track keys that same
+        # value). Every parent that uses it is a Container, which resets that to (1, 1) on its
+        # next sort - but that sort is deferred, so until it runs this node reports 2.0 to
+        # anything that asks. Pin it now so there is no window where the wrong value can be
+        # read or drawn. See the REST_SCALE note above for what reading it cost.
+        new_card.scale = REST_SCALE
         new_card.card = card
-
-        # 🔥 Make it bigger by scaling its visuals
-        new_card.get_node("Visuals").scale = Vector2(1.5, 1.5)  # Adjust the factor as needed
 
         # Connect click
         new_card.get_node("Visuals").gui_input.connect(_on_card_menu_clicked.bind(new_card, card))
@@ -184,7 +206,7 @@ func _animate_card_entrance(menu: CardMenuUI, index: int, is_rare: bool) -> void
     await get_tree().process_frame
     if not is_instance_valid(menu) or _picked:
         return
-    var rest_scale: Vector2 = menu.scale
+    var rest_scale := REST_SCALE
     _rest_scales[menu] = rest_scale
     menu.pivot_offset = menu.size / 2.0
     menu.scale = rest_scale * REVEAL_START_SCALE

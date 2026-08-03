@@ -357,6 +357,15 @@ var tooltip_instance_bonus: CanvasLayer
 func _exit_tree() -> void:
     _cleanup_dice_tooltips()
 
+# Also called right before every spawn, which is the fix for the OTHER leak here (reported
+# 2026-08-03: "hovering an even dice then leaving the shop leaves a permanent obstruction").
+# All nine dice share this one `tooltip_instance_requirement` slot, and each
+# _on_dice_N_mouse_entered() used to assign straight over it. Sliding the mouse along the
+# dice row is enough: every handler waits 0.01s before spawning, and is_mouse_over_dice()
+# tests the WHOLE shop rect rather than the individual die, so several pending handlers can
+# all pass their check and spawn. Each new tooltip overwrote the reference to the previous
+# one, which was then unreachable - mouse_exited and _exit_tree could only ever free the last
+# one, so the earlier tooltips outlived the shop and floated over the map/fight underneath.
 func _cleanup_dice_tooltips() -> void:
     if tooltip_instance_requirement and is_instance_valid(tooltip_instance_requirement):
         tooltip_instance_requirement.queue_free()
@@ -373,8 +382,9 @@ func _on_dice_1_mouse_entered() -> void:
 
     var dice_pos = dice_1.global_position + Vector2(0, dice_1.size.y - 510)
 
+    _cleanup_dice_tooltips()
     tooltip_instance_requirement = TooltipScene.instantiate()
-    get_tree().root.add_child(tooltip_instance_requirement)
+    Global.add_tooltip(tooltip_instance_requirement, self)
     var tooltip_panel = tooltip_instance_requirement.get_node("DiceTooltip")
     tooltip_panel.get_tooltip_content("evil")
     tooltip_panel.show_tooltip(dice_pos)
@@ -383,7 +393,7 @@ func _on_dice_1_mouse_entered() -> void:
     var need_additional_tooltip = false
     if need_additional_tooltip:
         tooltip_instance_bonus = TooltipScene.instantiate()
-        get_tree().root.add_child(tooltip_instance_bonus)
+        Global.add_tooltip(tooltip_instance_bonus, self)
         var tooltip_bonus_panel = tooltip_instance_bonus.get_node("DiceTooltip")
         tooltip_bonus_panel.get_tooltip_content("evil")
         tooltip_bonus_panel.show_tooltip(dice_pos + Vector2(0, 75))  # slight offset
@@ -408,8 +418,9 @@ func _on_dice_2_mouse_entered() -> void:
 
     var dice_pos = dice_2.global_position + Vector2(0, dice_2.size.y - 510)
 
+    _cleanup_dice_tooltips()
     tooltip_instance_requirement = TooltipScene.instantiate()
-    get_tree().root.add_child(tooltip_instance_requirement)
+    Global.add_tooltip(tooltip_instance_requirement, self)
     var tooltip_panel = tooltip_instance_requirement.get_node("DiceTooltip")
     tooltip_panel.get_tooltip_content("giant")
     tooltip_panel.show_tooltip(dice_pos)
@@ -434,8 +445,9 @@ func _on_dice_3_mouse_entered() -> void:
 
     var dice_pos = dice_3.global_position + Vector2(0, dice_3.size.y - 510)
 
+    _cleanup_dice_tooltips()
     tooltip_instance_requirement = TooltipScene.instantiate()
-    get_tree().root.add_child(tooltip_instance_requirement)
+    Global.add_tooltip(tooltip_instance_requirement, self)
     var tooltip_panel = tooltip_instance_requirement.get_node("DiceTooltip")
     tooltip_panel.get_tooltip_content("magma")
     tooltip_panel.show_tooltip(dice_pos)
@@ -460,8 +472,9 @@ func _on_dice_4_mouse_entered() -> void:
 
     var dice_pos = dice_4.global_position + Vector2(0, dice_4.size.y - 510)
 
+    _cleanup_dice_tooltips()
     tooltip_instance_requirement = TooltipScene.instantiate()
-    get_tree().root.add_child(tooltip_instance_requirement)
+    Global.add_tooltip(tooltip_instance_requirement, self)
     var tooltip_panel = tooltip_instance_requirement.get_node("DiceTooltip")
     tooltip_panel.get_tooltip_content("even")
     tooltip_panel.show_tooltip(dice_pos)
@@ -486,8 +499,9 @@ func _on_dice_5_mouse_entered() -> void:
 
     var dice_pos = dice_5.global_position + Vector2(0, dice_5.size.y - 510)
 
+    _cleanup_dice_tooltips()
     tooltip_instance_requirement = TooltipScene.instantiate()
-    get_tree().root.add_child(tooltip_instance_requirement)
+    Global.add_tooltip(tooltip_instance_requirement, self)
     var tooltip_panel = tooltip_instance_requirement.get_node("DiceTooltip")
     tooltip_panel.get_tooltip_content("odd")
     tooltip_panel.show_tooltip(dice_pos)
@@ -513,8 +527,9 @@ func _on_dice_6_mouse_entered() -> void:
 
     var dice_pos = dice_6.global_position + Vector2(0, dice_6.size.y - 510)
 
+    _cleanup_dice_tooltips()
     tooltip_instance_requirement = TooltipScene.instantiate()
-    get_tree().root.add_child(tooltip_instance_requirement)
+    Global.add_tooltip(tooltip_instance_requirement, self)
     var tooltip_panel = tooltip_instance_requirement.get_node("DiceTooltip")
     tooltip_panel.get_tooltip_content("blue")
     tooltip_panel.show_tooltip(dice_pos)
@@ -541,8 +556,9 @@ func _on_dice_7_mouse_entered() -> void:
 
     var dice_pos = dice_7.global_position + Vector2(0, dice_7.size.y - 510)
 
+    _cleanup_dice_tooltips()
     tooltip_instance_requirement = TooltipScene.instantiate()
-    get_tree().root.add_child(tooltip_instance_requirement)
+    Global.add_tooltip(tooltip_instance_requirement, self)
     var tooltip_panel = tooltip_instance_requirement.get_node("DiceTooltip")
     tooltip_panel.get_tooltip_content("red")
     tooltip_panel.show_tooltip(dice_pos)
@@ -566,8 +582,9 @@ func _on_dice_8_mouse_entered() -> void:
 
     var dice_pos = dice_8.global_position + Vector2(0, dice_8.size.y - 510)
 
+    _cleanup_dice_tooltips()
     tooltip_instance_requirement = TooltipScene.instantiate()
-    get_tree().root.add_child(tooltip_instance_requirement)
+    Global.add_tooltip(tooltip_instance_requirement, self)
     var tooltip_panel = tooltip_instance_requirement.get_node("DiceTooltip")
     tooltip_panel.get_tooltip_content("green")
     tooltip_panel.show_tooltip(dice_pos)
@@ -589,8 +606,9 @@ func _on_dice_9_mouse_entered() -> void:
 
     var dice_pos = dice_9.global_position + Vector2(0, dice_9.size.y - 510)
 
+    _cleanup_dice_tooltips()
     tooltip_instance_requirement = TooltipScene.instantiate()
-    get_tree().root.add_child(tooltip_instance_requirement)
+    Global.add_tooltip(tooltip_instance_requirement, self)
     var tooltip_panel = tooltip_instance_requirement.get_node("DiceTooltip")
     tooltip_panel.get_tooltip_content("mech")
     tooltip_panel.show_tooltip(dice_pos)

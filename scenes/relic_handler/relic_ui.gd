@@ -80,7 +80,7 @@ func _on_mouse_entered() -> void:
 
     # Tooltip principal de la relique (nom + description), au curseur
     tooltip_instance = TooltipScene.instantiate()
-    get_tree().root.add_child(tooltip_instance)
+    Global.add_tooltip(tooltip_instance, self)
     var tooltip_panel = tooltip_instance.get_node("Tooltip")
     tooltip_panel.tooltip_title.text = "[color=gold][b]%s[/b][/color]" % relic.relic_name
     _fit_tooltip_title(tooltip_panel.tooltip_title, relic.relic_name)
@@ -136,7 +136,7 @@ func _on_mouse_entered() -> void:
 
     for i in range(tags_to_show.size()):
         var tag_tooltip = TooltipScene.instantiate()
-        get_tree().root.add_child(tag_tooltip)
+        Global.add_tooltip(tag_tooltip, self)
         var tag_panel = tag_tooltip.get_node("Tooltip")
         tag_panel.get_tooltip_content(tags_to_show[i])
         var tag_pos = (base_pos + Vector2(0, i * (TOOLTIP_HEIGHT + TOOLTIP_SPACING))).round()

@@ -415,7 +415,7 @@ func _on_deal_die_mouse_exited() -> void:
 func _show_dice_tooltip() -> void:
     _cleanup_dice_tooltip()
     _dice_tooltip = DICE_TOOLTIP_SCENE.instantiate()
-    get_tree().root.add_child(_dice_tooltip)
+    Global.add_tooltip(_dice_tooltip, self)
     var tooltip_panel = _dice_tooltip.get_node("DiceTooltip")
     tooltip_panel.get_tooltip_content(_deal_type)
     tooltip_panel.show_tooltip(Vector2(810, 180))

@@ -1043,7 +1043,7 @@ func _on_card_frame_mouse_entered() -> void:
     
     for i in range(tooltips_to_show.size()):
         var tooltip = TooltipScene.instantiate()
-        get_tree().root.add_child(tooltip)
+        Global.add_tooltip(tooltip, self)
         var tooltip_panel = tooltip.get_node("Tooltip")
         tooltip_panel.get_tooltip_content(tooltips_to_show[i])
         

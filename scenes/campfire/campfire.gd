@@ -50,7 +50,7 @@ func _on_upgrade_button_mouse_entered() -> void:
         return
 
     var tooltip = TooltipScene.instantiate()
-    get_tree().root.add_child(tooltip)
+    Global.add_tooltip(tooltip, self)
     var tooltip_panel = tooltip.get_node("Tooltip")
     tooltip_panel.get_tooltip_content("UPGRADE")
 
@@ -80,7 +80,7 @@ func _on_heal_zone_mouse_entered() -> void:
         return
 
     var tooltip = TooltipScene.instantiate()
-    get_tree().root.add_child(tooltip)
+    Global.add_tooltip(tooltip, self)
     var tooltip_panel = tooltip.get_node("Tooltip")
     _set_rest_tooltip_content(tooltip_panel)
 
@@ -110,7 +110,7 @@ func _on_heal_button_mouse_entered() -> void:
         return
 
     var tooltip = TooltipScene.instantiate()
-    get_tree().root.add_child(tooltip)
+    Global.add_tooltip(tooltip, self)
     var tooltip_panel = tooltip.get_node("Tooltip")
     _set_rest_tooltip_content(tooltip_panel)
 

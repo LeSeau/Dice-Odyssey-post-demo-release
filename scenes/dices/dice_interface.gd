@@ -426,7 +426,7 @@ func _show_tooltip(dice_node: VBoxContainer, dice_type: String) -> void:
         tooltip_instance.queue_free()
         tooltip_instance = null
     tooltip_instance = TooltipScene.instantiate()
-    get_tree().root.add_child(tooltip_instance)
+    Global.add_tooltip(tooltip_instance, self)
     var tooltip_panel = tooltip_instance.get_node("DiceTooltip")
     tooltip_panel.get_tooltip_content(dice_type)
     tooltip_panel.show_tooltip(Vector2(498, 123))  # adjust to taste
@@ -435,6 +435,13 @@ func _hide_tooltip() -> void:
     if tooltip_instance and is_instance_valid(tooltip_instance):
         tooltip_instance.queue_free()
         tooltip_instance = null
+
+
+# Combat can end (or the view can be swapped) while a dice slot is hovered - mouse_exited
+# never fires on a node being destroyed, and the tooltip lives on the tree root, so without
+# this it outlives the battle. Same bug class as shop.gd's dice tooltips.
+func _exit_tree() -> void:
+    _hide_tooltip()
         
         
 

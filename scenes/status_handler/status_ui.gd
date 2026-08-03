@@ -57,8 +57,9 @@ func _on_icon_mouse_entered() -> void:
 
     var status_pos = icon.global_position + Vector2(0, icon.size.y + 5)
 
+    _cleanup_tooltip()
     tooltip_instance_requirement = TooltipScene.instantiate()
-    get_tree().root.add_child(tooltip_instance_requirement)
+    Global.add_tooltip(tooltip_instance_requirement, self)
 
     var tooltip_panel = tooltip_instance_requirement.get_node("StatusTooltip")
 
@@ -67,6 +68,17 @@ func _on_icon_mouse_entered() -> void:
 
 
 func _on_icon_mouse_exited() -> void:
+    _cleanup_tooltip()
+
+
+# A status badge is freed whenever its status expires or its enemy dies - both can happen
+# while the badge is hovered, and mouse_exited never fires on a node being destroyed. The
+# tooltip is parented to the tree root, so without this it stays on screen for good.
+func _exit_tree() -> void:
+    _cleanup_tooltip()
+
+
+func _cleanup_tooltip() -> void:
     if tooltip_instance_requirement and is_instance_valid(tooltip_instance_requirement):
         tooltip_instance_requirement.queue_free()
         tooltip_instance_requirement = null

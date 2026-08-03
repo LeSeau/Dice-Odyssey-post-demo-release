@@ -49,7 +49,7 @@ func _on_accept_mouse_entered() -> void:
     var my_id := _hover_id
     _cleanup_tooltip()
     _dice_tooltip = DiceTooltipScene.instantiate()
-    get_tree().root.add_child(_dice_tooltip)
+    Global.add_tooltip(_dice_tooltip, self)
     var panel = _dice_tooltip.get_node("DiceTooltip")
     panel.get_tooltip_content("evil")
     panel.show_tooltip(_tooltip_position())

@@ -88,6 +88,69 @@ func _input(event: InputEvent) -> void:
         Input.set_custom_mouse_cursor(texture, Input.CURSOR_ARROW, CURSOR_HOTSPOT)
 
 
+# --- Floating tooltip lifetime -------------------------------------------------------------
+# Every hover tooltip in the game is instantiated on mouse_entered and parented to
+# get_tree().root - NOT to the node that spawned it - so it can render above every CanvasLayer
+# (z_index never crosses a CanvasLayer boundary). The cost of that is there is nothing tying
+# the tooltip's life to its owner's: if the owner dies or its screen goes away while the
+# tooltip is up, mouse_exited never fires and the tooltip sits on the root forever, surviving
+# into the map, the shop, the next fight. That is the "This enemy will attack you" popup that
+# never left (reported 2026-08-03: an enemy died mid-hover, taking its IntentUI - and with it
+# the coroutine that was supposed to time the tooltip out - with it).
+#
+# Per-site cleanup (_exit_tree, free-before-respawn) is still done where it belongs, but there
+# are ~30 spawn sites and every one of them is one refactor away from leaking again. So the
+# rule is enforced centrally instead: a tooltip registered here is freed as soon as its owner
+# is gone, out of the tree, or invisible. Spawn tooltips with Global.add_tooltip() and this is
+# handled - never call get_tree().root.add_child() on a tooltip directly.
+const TOOLTIP_GROUP := "floating_tooltip"
+const TOOLTIP_OWNER_META := "tooltip_owner"
+# 6 frames ~= 0.1s at 60fps. This is a safety net, not the primary cleanup path, so it does
+# not need to run every frame - and get_nodes_in_group() allocates.
+const TOOLTIP_SWEEP_FRAMES := 6
+
+var _tooltip_sweep_countdown := TOOLTIP_SWEEP_FRAMES
+
+
+# Parents `tooltip` under the tree root (as every tooltip needs) and ties its life to
+# `tooltip_owner` - typically the node whose mouse_entered spawned it, or the specific child
+# that owns the hover (a badge, a button) when that node can be hidden on its own.
+func add_tooltip(tooltip: Node, tooltip_owner: Node) -> void:
+    tooltip.add_to_group(TOOLTIP_GROUP)
+    tooltip.set_meta(TOOLTIP_OWNER_META, weakref(tooltip_owner))
+    get_tree().root.add_child(tooltip)
+
+
+func _process(_delta: float) -> void:
+    _tooltip_sweep_countdown -= 1
+    if _tooltip_sweep_countdown > 0:
+        return
+    _tooltip_sweep_countdown = TOOLTIP_SWEEP_FRAMES
+    for tooltip in get_tree().get_nodes_in_group(TOOLTIP_GROUP):
+        if tooltip.is_queued_for_deletion():
+            continue
+        if not _tooltip_owner_is_live(tooltip):
+            tooltip.queue_free()
+
+
+func _tooltip_owner_is_live(tooltip: Node) -> bool:
+    # weakref, not the node itself: a plain reference in meta would keep a freed node's slot
+    # alive and is_instance_valid() on it is exactly the check we are trying to avoid relying on.
+    var ref = tooltip.get_meta(TOOLTIP_OWNER_META, null)
+    if ref == null:
+        return true  # not registered through add_tooltip() - not ours to police
+    var tooltip_owner = ref.get_ref()
+    if tooltip_owner == null or not is_instance_valid(tooltip_owner):
+        return false
+    if not tooltip_owner.is_inside_tree():
+        return false
+    # Covers the screen being hidden rather than freed - e.g. run.gd hides the live view
+    # (and its nested CanvasLayers) when the map is consulted over the top of it.
+    if tooltip_owner is CanvasItem and not tooltip_owner.is_visible_in_tree():
+        return false
+    return true
+
+
 var testing_mode: bool = false
 var tutorial_on = false
 var tutorial_reset_power_warning = true
