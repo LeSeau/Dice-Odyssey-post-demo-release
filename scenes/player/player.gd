@@ -101,7 +101,10 @@ func take_damage(damage: int, which_modifier: Modifier.Type) -> void:
 
     sprite_2d.material = WHITE_SPRITE_MATERIAL
     var modified_damage := modifier_handler.get_modified_value(damage, which_modifier)
-    Global.damage_to_display = modified_damage
+    # Display (and stats) report what reaches HP, not the raw attack: block soaks first.
+    # Mirrors the exact clamp stats.take_damage applies right below.
+    Global.blocked_to_display = mini(stats.block, modified_damage)
+    Global.damage_to_display = modified_damage - Global.blocked_to_display
 
     _play_hit_reaction()
     stats.take_damage(modified_damage)

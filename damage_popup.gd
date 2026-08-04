@@ -35,6 +35,14 @@ const SPAWN_FLASH_SETTLE_DURATION := 0.1
 const HOP_HEIGHT_MIN := 14.0
 const HOP_HEIGHT_MAX := 42.0
 
+# "Blocked" popup styling (fully-absorbed hits): steel blue instead of damage red, a
+# notch smaller than the numbers - it's information, not pain. Punch kept gentle.
+const BLOCKED_COLOR := Color(0.55, 0.75, 0.95)
+const BLOCKED_DARK_COLOR := Color(0.03, 0.09, 0.18)
+const BLOCKED_FONT_SIZE := 28
+const BLOCKED_PUNCH_T := 0.18
+
+
 func show_damage(amount: int) -> void:
     label.text = "-" + str(amount)
     var punch_t := clampf(amount / PUNCH_DAMAGE_CAP, 0.0, 1.0)
@@ -42,6 +50,22 @@ func show_damage(amount: int) -> void:
     # Resting size scales with damage, so a big hit's number stays visibly bigger the
     # whole time it's on screen (not just for the spawn punch). ~1 dmg -> 1.0, 24+ -> 1.6.
     var rest_scale: float = clampf(1.0 + amount / 40.0, 1.0, 1.6)
+    _animate(punch_t, rest_scale)
+
+
+func show_blocked() -> void:
+    label.text = "Blocked"
+    # LabelSettings is a sub-resource shared by every popup instance - duplicate before
+    # recoloring or every damage number in the fight turns blue with it.
+    label.label_settings = label.label_settings.duplicate()
+    label.label_settings.font_color = BLOCKED_COLOR
+    label.label_settings.outline_color = BLOCKED_DARK_COLOR
+    label.label_settings.shadow_color = BLOCKED_DARK_COLOR
+    label.label_settings.font_size = BLOCKED_FONT_SIZE
+    _animate(BLOCKED_PUNCH_T, 1.0)
+
+
+func _animate(punch_t: float, rest_scale: float) -> void:
     var overshoot_mult := lerpf(OVERSHOOT_MIN, OVERSHOOT_MAX, punch_t)
     var start_scale := lerpf(START_SCALE_MIN, START_SCALE_MAX, punch_t)
     var hop_height := lerpf(HOP_HEIGHT_MIN, HOP_HEIGHT_MAX, punch_t)

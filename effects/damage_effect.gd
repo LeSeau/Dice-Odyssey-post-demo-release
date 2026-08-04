@@ -73,7 +73,12 @@ func execute(targets: Array[Node]) -> void:
             damage_popup.global_position = popup_origin if popup_origin != Vector2.ZERO \
                     else target.global_position
             damage_popup.fade_duration = 1.0
-            damage_popup.show_damage(Global.damage_to_display)
+            # Fully-blocked hit: no red "-6" lying about HP loss - the shield ate it all.
+            # A hit that is 0 for any OTHER reason keeps the plain number.
+            if Global.damage_to_display <= 0 and Global.blocked_to_display > 0:
+                damage_popup.show_blocked()
+            else:
+                damage_popup.show_damage(Global.damage_to_display)
 
             var hit_pitch := clampf(1.12 - final_amount * 0.01, 0.82, 1.12)
             var hit_volume_db := clampf(

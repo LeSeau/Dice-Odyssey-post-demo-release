@@ -213,7 +213,13 @@ var next_roll_modifier = 0
 # roll_dice() for the consumer - it used to check `!= 0`, which silently ignored a guaranteed
 # 0 and rolled normally instead.
 var next_guaranteed_roll = -1
+# What actually reached HP on the last hit (post-block since 2026-08-04, itch feedback:
+# "attacked for 6 with 5 block should show 1"). The popup AND every stat/achievement hook
+# in damage_effect.gd read this - one number, no display/stat divergence.
 var damage_to_display = 0
+# How much of the last hit the target's block soaked. Lets damage_effect.gd tell a fully
+# BLOCKED hit (show "Blocked") apart from a hit that was 0 for other reasons (show "-0").
+var blocked_to_display = 0
 var final_enemy_damage = 0
 var dice_inventory = ["blue", "red"]
 var roll_history = []

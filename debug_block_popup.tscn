@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://dbgblockpopup04"]
+
+[ext_resource type="Script" path="res://debug_block_popup.gd" id="1_dbgbp"]
+
+[node name="DebugBlockPopup" type="Node"]
+script = ExtResource("1_dbgbp")

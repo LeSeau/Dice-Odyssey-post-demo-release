@@ -17,7 +17,7 @@
 [ext_resource type="Texture2D" uid="uid://bgwa4qau0i542" path="res://dice shop clean outline.png" id="10_wacie"]
 [ext_resource type="Texture2D" uid="uid://ye2g85fpdt1y" path="res://deck.png" id="13_pm2lc"]
 [ext_resource type="FontFile" uid="uid://dltntsanjiykq" path="res://fonts/LuckiestGuy-Regular.ttf" id="20_hicqd"]
-[ext_resource type="LabelSettings" path="res://scenes/ui/topbar_label_settings.tres" id="21_topbarlbl"]
+[ext_resource type="LabelSettings" uid="uid://dko24yqmrk8ye" path="res://scenes/ui/topbar_label_settings.tres" id="21_topbarlbl"]
 [ext_resource type="Texture2D" uid="uid://des7u80d2851r" path="res://discord_logo_test.png" id="25_5yr4f"]
 [ext_resource type="Texture2D" uid="uid://debpwfe3e4476" path="res://assets/images/shop.jpg" id="30_a4wio"]
 [ext_resource type="FontFile" uid="uid://dujsng7qdioan" path="res://assets/static/Roboto_Condensed-SemiBold.ttf" id="32_hr3b7"]
@@ -196,6 +196,7 @@ grow_vertical = 2
 
 [node name="MapButton" type="Button" parent="DebugButtons"]
 unique_name_in_owner = true
+visible = false
 layout_mode = 2
 text = "Map
 "
@@ -203,6 +204,7 @@ icon_alignment = 1
 
 [node name="BattleButton" type="Button" parent="DebugButtons"]
 unique_name_in_owner = true
+visible = false
 layout_mode = 2
 text = "Battle
 "
@@ -269,9 +271,8 @@ stretch_mode = 5
 [node name="HealthLabel" type="Label" parent="TopBar/BarItems/HBoxContainer"]
 custom_minimum_size = Vector2(65, 0)
 layout_mode = 2
-size_flags_vertical = 4
-label_settings = ExtResource("21_topbarlbl")
 text = "66/66"
+label_settings = ExtResource("21_topbarlbl")
 vertical_alignment = 1
 
 [node name="VSeparator" type="VSeparator" parent="TopBar/BarItems"]
@@ -479,7 +480,6 @@ mouse_filter = 2
 
 [node name="RelicHandler" parent="TopBar/RelicBar" instance=ExtResource("9_4670w")]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(1150, 80)
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
