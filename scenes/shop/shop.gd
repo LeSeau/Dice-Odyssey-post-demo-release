@@ -119,7 +119,7 @@ func _ready():
     update_dice_price()
 
 func _on_button_pressed() -> void:
-    Events.shop_exited.emit()
+    Events.dice_shop_closed.emit()
 
 
 # A centered [coin sprite][number] row that fills its parent, mouse-transparent so it
@@ -630,7 +630,7 @@ func _on_dice_9_mouse_exited() -> void:
 func _on_exit_shop_button_pressed() -> void:
     print("exiting shop")
     Events.check_if_can_purchase_dice.emit()
-    Events.show_map_requested.emit()
+    Events.dice_shop_closed.emit()
 
 
 func reroll_shop_dice() -> void:

@@ -300,6 +300,13 @@ func _show_card_rewards() -> void:
     # ghost through the picker's dimmers right behind the "Choose a card" banner. Restored
     # in _on_card_reward_taken, which fires for both pick and skip.
     reward_panel.hide()
+    # Same treatment for the RelicBar (and the Discord pin): the "Choose a card" banner renders
+    # at y 102..187 and the relic row occupies y 90..126, so a late-run collection lands right
+    # on the banner. Every other full-screen panel was moved down out of that stripe instead,
+    # but this one can't be - its banner/card geometry is wound into the entrance stagger, the
+    # rare flash and the fly-to-deck animation. Hiding matches what the end screens already do,
+    # and the picker is a brief modal where the relics aren't actionable anyway.
+    Events.end_screen_hud_visibility.emit(false)
 
     var card_reward_array: Array[Card] = []
     var available_cards: Array[Card] = character_stats.draftable_cards.cards.duplicate(true)
@@ -377,8 +384,9 @@ func _update_rare_pity(rare_drawn: bool) -> void:
 
 
 func _on_card_reward_taken(card: Card) -> void:
-    # Before the null guard - the panel must come back on skip too.
+    # Before the null guard - the panel and the HUD must come back on skip too.
     reward_panel.show()
+    Events.end_screen_hud_visibility.emit(true)
     if not character_stats or not card:
         return
     print("reward taken")

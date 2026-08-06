@@ -229,9 +229,9 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/margin_left = 180
-theme_override_constants/margin_top = 110
+theme_override_constants/margin_top = 130
 theme_override_constants/margin_right = 180
-theme_override_constants/margin_bottom = 110
+theme_override_constants/margin_bottom = 90
 
 [node name="TextureRect" type="TextureRect" parent="MarginContainer"]
 visible = false

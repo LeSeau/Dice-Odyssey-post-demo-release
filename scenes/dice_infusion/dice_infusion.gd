@@ -24,7 +24,10 @@ const TITLE_GOLD := Color(0.972439, 0.866667, 0.541176)  # act-banner gold
 const CREAM := Color(0.93, 0.88, 0.8)
 const PANEL_BG := Color(0.075, 0.055, 0.11)
 
-const PANEL_MIN_SIZE := Vector2(370, 430)
+# Height dropped 430 -> 382 on 2026-08-06 to buy the room the title needed once it moved
+# clear of the relic band; the Options HBox is now y 254..636 and the INFUSE button starts
+# at 644, so a taller panel would grow straight through it.
+const PANEL_MIN_SIZE := Vector2(370, 382)
 const DIE_SIZE := 170.0
 const DIE_HOLDER_SIZE := Vector2(210.0, 190.0)
 const GLOW_SIZE := 300.0

@@ -1,7 +1,8 @@
-[gd_scene load_steps=11 format=3 uid="uid://jg7s3ul6gyqj"]
+[gd_scene load_steps=12 format=3 uid="uid://jg7s3ul6gyqj"]
 
 [ext_resource type="Script" path="res://scenes/ui/card_pile_view.gd" id="1_byypi"]
 [ext_resource type="PackedScene" uid="uid://d2vlobkkv27hu" path="res://scenes/ui/card_menu_ui.tscn" id="1_gt0jo"]
+[ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="2_arrowfont"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_6m3id"]
 font_size = 36
@@ -90,6 +91,7 @@ corner_radius_bottom_left = 8
 shadow_size = 0
 
 [sub_resource type="LabelSettings" id="LabelSettings_arrow"]
+font = ExtResource("2_arrowfont")
 font_size = 180
 font_color = Color(0.941176, 0.752941, 0.188235, 1)
 outline_size = 14
@@ -125,7 +127,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/margin_left = 50
-theme_override_constants/margin_top = 95
+theme_override_constants/margin_top = 130
 theme_override_constants/margin_right = 50
 theme_override_constants/margin_bottom = 50
 
@@ -246,9 +248,9 @@ anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -190.0
-offset_top = 93.0
+offset_top = 130.0
 offset_right = -98.0
-offset_bottom = 141.0
+offset_bottom = 178.0
 grow_horizontal = 0
 theme_override_colors/font_color = Color(0.941176, 0.752941, 0.188235, 1)
 theme_override_colors/font_hover_color = Color(1, 1, 1, 1)

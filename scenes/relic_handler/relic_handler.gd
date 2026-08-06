@@ -41,9 +41,22 @@ func add_relics(relics_array: Array[Relic]) -> void:
 # relic_ui.tscn's own Icon rect (32x32 inside a 56x56 box, see the scene file) is shared with
 # shop_relic.tscn's already-tuned display (scaled 3.2x, sized around that exact footprint) -
 # touching it there would blow out the shop's shadow/backdrop. Scoped fix instead: only the
-# instances THIS handler creates (the top-bar/RelicBar row) get resized bigger with their icon
+# instances THIS handler creates (the top-bar/RelicBar row) get resized, with their icon
 # actually filling the box, closing the gap left by relic_ui.tscn's own unused padding.
-const TOP_BAR_ICON_SIZE := 64.0
+#
+# 46px since 2026-08-06 (was 64). The band this row occupies runs the full screen width and
+# floats above every view, so its HEIGHT decides whether the panels underneath stay readable.
+# 64px put the band at y 84..164 - exactly the stripe the dice infusion title, "Upgrade a Card"
+# and the dice shop panel live in. At 46 the band is y 82..128 and those three were moved just
+# below it. Events are the exception and are not solved by size: an event panel needs ~620px
+# and starts under the 80px top bar, so no usable icon size fits above one - run.gd hides this
+# row for the duration of an event instead.
+#
+# Sizing is also capacity: at 46 + 3 separation, ~23 relics fit on ONE line between x 20 and
+# x 1194 (past that the HFlowContainer wraps to a second row, which would land back on those
+# titles). A run realistically ends with 10-18, but if that ever stops being true the fix is a
+# "+N" overflow chip rather than shrinking these again.
+const TOP_BAR_ICON_SIZE := 46.0
 
 func add_relic(relic: Relic) -> void:
     if has_relic(relic.id):
@@ -65,6 +78,11 @@ func _resize_for_top_bar(relic_ui: RelicUI) -> void:
     # used to clip_contents (for the old scroll pages) and cut the icon off mid-animation.
     relic_ui.size_flags_vertical = Control.SIZE_SHRINK_CENTER
     var icon := relic_ui.get_node("Icon") as TextureRect
+    # custom_minimum_size FIRST, and it is not optional: relic_ui.tscn ships the Icon with a
+    # 56x56 minimum, which silently clamps anything smaller however the offsets are set. That
+    # never showed while this size was 64 (56 < 64, so the offsets won); at 46 it would have
+    # pinned every icon back to 56 and none of the resize below would be visible.
+    icon.custom_minimum_size = Vector2(TOP_BAR_ICON_SIZE, TOP_BAR_ICON_SIZE)
     icon.offset_right = TOP_BAR_ICON_SIZE
     icon.offset_bottom = TOP_BAR_ICON_SIZE
     icon.pivot_offset = Vector2(TOP_BAR_ICON_SIZE / 2.0, TOP_BAR_ICON_SIZE / 2.0)

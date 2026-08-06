@@ -7,9 +7,9 @@
 [ext_resource type="PackedScene" uid="uid://djrenoyp58mtl" path="res://scenes/relic_handler/relic_ui.tscn" id="4_htge4"]
 
 [node name="RelicHandler" type="HBoxContainer"]
-custom_minimum_size = Vector2(1150, 80)
+custom_minimum_size = Vector2(1174, 46)
 offset_right = 1150.0
-offset_bottom = 80.0
+offset_bottom = 46.0
 mouse_filter = 2
 script = ExtResource("1_xtngu")
 
@@ -26,7 +26,7 @@ stretch_mode = 5
 flip_h = true
 
 [node name="RelicsControl" type="Control" parent="." node_paths=PackedStringArray("left_button", "right_button")]
-custom_minimum_size = Vector2(1150, 80)
+custom_minimum_size = Vector2(1174, 46)
 layout_mode = 2
 mouse_filter = 2
 script = ExtResource("3_syhtq")
@@ -39,8 +39,8 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = 8.0
-offset_bottom = -8.0
+offset_top = 0.0
+offset_bottom = 0.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2

@@ -129,6 +129,7 @@ func _late_init() -> void:
     Events.open_deck_view.connect(_on_open_deck_view)
     Events.open_deck_view_for_upgrade.connect(_on_open_deck_view_for_upgrade)
     Events.show_map_requested.connect(_on_show_map_requested)
+    Events.dice_shop_closed.connect(_on_dice_shop_closed)
     Events.stop_map_music.connect(_on_stop_map_music)
     Events.start_map_music.connect(_on_start_map_music)
     Events.check_if_can_purchase_dice.connect(_on_check_if_can_purchase_dice)
@@ -310,6 +311,11 @@ func _change_view(scene: PackedScene) -> Node:
     return new_view
     
 func _show_map() -> void:
+    # Whatever hid the run HUD (an event panel, the card-reward picker, an end screen's
+    # Continue) is done by the time we're back on the map, so restore it unconditionally
+    # here rather than pairing every hide with its own show - one screen forgetting would
+    # otherwise leave the player without a relic bar for the rest of the run.
+    Events.end_screen_hud_visibility.emit(true)
     # Act transition beat: the first return to the map after the act-1 boss (i.e. right
     # after the boss reward screen exits) is intercepted by the dice infusion screen.
     # The actual act-2 entry (heal, new map, ACT 2 banner) happens in
@@ -679,6 +685,13 @@ func _on_map_exited(room: Room) -> void:
                 _change_view(EVENT_SCENE)
 
             dice_shop.set_available(false)
+            # Events are the one screen the relic row cannot share the top of the frame with.
+            # An event panel needs ~620px of height and starts directly under the 80px top bar,
+            # leaving ~15px of slack in a 720px frame - so pushing its title below a relic band
+            # only works if the band is ~15px tall, i.e. unusably small icons. Every other
+            # full-screen panel had the room and was moved down instead (see the dice infusion
+            # title, "Upgrade a Card", the dice shop panel). Restored by _show_map().
+            Events.end_screen_hud_visibility.emit(false)
 
 
 
@@ -724,7 +737,24 @@ func _on_dice_shop_pressed() -> void:
         dice_shop_instance.queue_free()
     dice_shop_instance = DICE_SHOP_SCENE.instantiate()
     $TopBar.add_child(dice_shop_instance)
-    map.show_map()
+    # Only when there is nothing else on screen. The dice shop is a floating panel that was
+    # designed to sit over the map, and this used to call show_map() unconditionally - so
+    # opening it from inside a room (campfire, treasure, event) revealed the map BEHIND the
+    # room you were standing in. On the map itself the map is already shown, so this is a
+    # no-op there; the only case it ever changed anything was the one it broke.
+    if current_view.get_child_count() == 0:
+        map.show_map()
+
+
+# Closing the dice shop must ONLY close the dice shop. Its exit buttons used to emit
+# show_map_requested / shop_exited, both of which run.gd routes to _show_map() - and
+# _show_map() frees whatever is in current_view. So opening the dice shop at a campfire and
+# closing it again destroyed the campfire and dumped the player back on the map, losing the
+# rest/upgrade. Same for treasure, events and the card shop.
+func _on_dice_shop_closed() -> void:
+    if dice_shop_instance:
+        dice_shop_instance.queue_free()
+        dice_shop_instance = null
     
     
 func _on_hp_changed() -> void:

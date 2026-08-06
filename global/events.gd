@@ -132,6 +132,10 @@ signal clear_socket
 signal temporary_dice_added(dice_type: String)
 signal add_card_to_hand_requested(card: Card)
 signal show_map_requested
+# Closing the floating dice shop panel. Deliberately NOT shop_exited/show_map_requested:
+# those mean "this room is over, go back to the map", which frees the current view - the
+# dice shop only ever floats on top of a room, so it must not navigate anywhere.
+signal dice_shop_closed
 # Emitted by the act-2 dice infusion screen (scenes/dice_infusion/) once the pick is
 # locked in and its ceremony has played - run.gd answers by entering act 2 + showing
 # the new map.

@@ -472,10 +472,10 @@ layout_mode = 2
 [node name="RelicBar" type="Control" parent="TopBar"]
 layout_mode = 3
 anchors_preset = 0
-offset_left = 44.0
-offset_top = 84.0
+offset_left = 20.0
+offset_top = 82.0
 offset_right = 1194.0
-offset_bottom = 164.0
+offset_bottom = 128.0
 mouse_filter = 2
 
 [node name="RelicHandler" parent="TopBar/RelicBar" instance=ExtResource("9_4670w")]
