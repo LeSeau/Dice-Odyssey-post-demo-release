@@ -147,7 +147,11 @@ const CALM_RISE_TIME := 0.15
 const CALM_FALL_TIME := 0.12
 const CALM_ARC_X := 8.0
 const CALM_TILT := 0.0
-const CALM_FLIP_DELAYS := [0.11, 0.09, 0.09]
+# Must finish inside the SHORTEST possible flight, else the landing has to cut them off
+# (it does - see _on_roll_landed - but a visibly truncated shuffle is worse than a short
+# one). Worst case is a coiled press on a low roll with fast jitter: 0.05 + 0.132 + 0.103
+# = ~0.285s. These sum to 0.23, leaving ~0.05s of margin.
+const CALM_FLIP_DELAYS := [0.09, 0.07, 0.07]
 # Per-roll timing spread + value-driven landing character (Julien, 2026-08): every roll
 # jitters its rise/fall a little; HIGH rolls hang briefly at the apex; MAX rolls hold
 # visibly in the air (with a tiny shiver of potential) then fall faster and harder - the
@@ -1225,6 +1229,18 @@ func _start_face_flips(faces: Array, delays: Array) -> void:
 # orbs + dust + squash + aura pulse + emanation flare + hit-stop, and the max-roll
 # celebration on top. Whatever the flight looked like, the payoff reads the same.
 func _on_roll_landed(roll_index: int, values: Array, faces: Array) -> void:
+    # ⚠️ KILL THE FACE-SHUFFLE FIRST. The flips run on their OWN tween (so they don't stall
+    # the flight), which means they are NOT ordered against this callback: if the flight
+    # finishes first, a still-pending flip fires afterwards and overwrites the settled
+    # result with a random face - the die showed a 3 while Power correctly counted a 1
+    # (Julien, 2026-08-07, in the tutorial where the rolls are forced and the mismatch is
+    # obvious). It became reachable when the ROLL-button coil started skipping the 0.05s
+    # wind-up step, pulling the flight's end back under the 0.29s flip schedule on
+    # low/mid rolls (which have no apex hang to pad them). Killing here makes the ordering
+    # structural instead of a timing coincidence - the settled face can no longer be
+    # overwritten no matter how the flight timing drifts in future tuning.
+    if _roll_flip_tween and _roll_flip_tween.is_valid():
+        _roll_flip_tween.kill()
     # Exact-snap the flight transform before anything else reads the die: the flight
     # tweens target these values anyway, but a killed/interrupted one must not leave a
     # residual rotation or squeeze baked under the punch tweens below.
