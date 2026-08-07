@@ -228,12 +228,17 @@ func play(targets: Array[Node], char_stats: CharacterStats, modifiers: ModifierH
     Events.card_played.emit(self)
     Events.check_ink_status.emit()
 
-    var particles = preload("res://scenes/card_ui/card_particles.tscn").instantiate()
-    var target_array = targets if is_single_targeted() else _get_targets(targets)
-    if target_array.size() > 0:
-        target_array[0].get_parent().add_child(particles)
-        particles.global_position = target_array[0].get_viewport().get_mouse_position()
-        particles.play_effect(Global.roll_value, Global.dice_type)
+    # ATTACK impacts are carried by the directional slash smear now (enemy.gd::
+    # _spawn_hit_smear) - the radial burst on top read as generic magic and buried the
+    # slash (Julien, 2026-08). Non-attack cards keep the burst: block/buff resolving on
+    # a body still wants its "magic happened here" bloom, and there's no slash there.
+    if type != Type.ATTACK:
+        var particles = preload("res://scenes/card_ui/card_particles.tscn").instantiate()
+        var target_array = targets if is_single_targeted() else _get_targets(targets)
+        if target_array.size() > 0:
+            target_array[0].get_parent().add_child(particles)
+            particles.global_position = target_array[0].get_viewport().get_mouse_position()
+            particles.play_effect(Global.roll_value, Global.dice_type)
     
     # Berserker infusion (Red act-2 infusion): the card socketed on the Red die deals 50%
     # more damage when its roll plays it. Global.playing_red_card is true for exactly that

@@ -51,11 +51,20 @@ func _on_mouse_entered() -> void:
 
 func _on_mouse_exited() -> void:
     _animate_scale(REST_SCALE, 0.12, Tween.TRANS_SINE, Tween.EASE_OUT)
+    # Dragging off a held press cancels the click (Godot fires no `pressed`), so the die
+    # must relax too - otherwise it stays squashed forever. Dragging back in and
+    # releasing still rolls; the builder just plays its own wind-up since the coil is gone.
+    dice.release_die_coil()
 
 
+# The button->die weld: pressing down coils the die into its wind-up squash and holds it
+# (dice.coil_die refuses when depleted/mid-roll, matching _flash_press's own gate).
+# `pressed` fires on RELEASE and launches the hop straight from the held coil - the press
+# compresses the die, letting go is the throw.
 func _on_button_down() -> void:
     _animate_scale(PRESS_SCALE, 0.06, Tween.TRANS_EXPO, Tween.EASE_OUT)
     _flash_press()
+    dice.coil_die()
 
 
 # Neutral white flash on press - independent of active dice color on purpose, so the

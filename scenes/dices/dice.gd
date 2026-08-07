@@ -58,6 +58,46 @@ var _power_tooltip: Node = null
 
 
 var ink_is_on = false
+
+
+func _process(_delta: float) -> void:
+    # Glow follow (see GLOW_FOLLOW_* above). No-op until the first roll captures the rest
+    # transforms; from then on the glows track the die's offset every frame - which is 0
+    # whenever the die is at rest, so this also pins them home between rolls.
+    if _dice_display_rest_captured:
+        var glow_offset := dice_display.position - _dice_display_rest_position
+        aura.position = _aura_rest_position + glow_offset * GLOW_FOLLOW_AURA
+        emanation.position = _emanation_rest_position + glow_offset * GLOW_FOLLOW_EMANATION
+
+
+# Called by the ROLL button on button_down: compress the die and hold. Refused when the
+# active type has no dice (the button's own press flash skips too - the pair stays
+# visibly inert) or mid-roll (nothing to coil, the die is airborne).
+func coil_die() -> void:
+    if _roll_in_progress:
+        return
+    if int(Global.get(Global.dice_type + "_dice_current_amount")) <= 0:
+        return
+    _die_coiled = true
+    dice_display.pivot_offset = dice_display.size / 2.0
+    if _die_coil_tween and _die_coil_tween.is_valid():
+        _die_coil_tween.kill()
+    _die_coil_tween = create_tween()
+    _die_coil_tween.tween_property(dice_display, "scale", Vector2(1.12, 0.82), 0.08) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+
+# Relax a held coil without rolling - the cancel path (cursor dragged off the button,
+# or the roll refused at release). No-op when nothing is coiled.
+func release_die_coil() -> void:
+    if not _die_coiled:
+        return
+    _die_coiled = false
+    if _die_coil_tween and _die_coil_tween.is_valid():
+        _die_coil_tween.kill()
+    _die_coil_tween = create_tween()
+    _die_coil_tween.tween_property(dice_display, "scale", Vector2.ONE, 0.09) \
+        .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 # How many ±1 power adjustments have been spent on the CURRENT mech roll. Base mech allows 1;
 # the Clockwork infusion (Mech) allows 2 (see _mech_adjustments_allowed).
 var mech_adjustments_used := 0
@@ -76,6 +116,188 @@ const INFERNO_SECOND_BURN_DELAY := 0.35
 # rolling far more dice than the player actually had. Set true the instant a roll
 # is accepted, cleared once _apply_roll_result() has emitted that signal.
 var _roll_in_progress := false
+
+# --- Roll animation presets --------------------------------------------------------
+# Four different takes on the core roll verb. Change ROLL_STYLE_DEFAULT below to switch;
+# debug_roll_feel.gd renders any of them via the ROLL_STYLE env var so they can be
+# compared side by side without editing code.
+#   HOP  - leaps off the plinth, tumbles, slams back down. Playful, physical. (default)
+#   TOSS - thrown toward the camera: swells until it dominates the panel, hangs, snaps
+#          back on the result. Biggest frame presence - built for muted thumbnails.
+#   SPIN - never leaves the plinth: spins like a roulette reel, decelerating, then
+#          wobbles to a stop. Compact, tense, slot-machine energy.
+#   DROP - yanked up and dropped hard, then bounces twice to rest. Heaviest, longest
+#          settle - the most literal "real dice hitting a table".
+#   CALM - the hop with the tumble removed: the die stays upright the whole flight and
+#          swaps faces slowly. Keeps the weight (dust, landing squash, hit-stop) without
+#          the vertigo. Default, because rotating a large centred element 5-15x per turn
+#          is a genuine motion-sensitivity problem, not just a taste call (Julien got
+#          dizzy testing the spinning versions - players would too, over a full run).
+enum RollStyle { HOP, TOSS, SPIN, DROP, CALM }
+const ROLL_STYLE_DEFAULT := RollStyle.CALM
+var roll_style: RollStyle = ROLL_STYLE_DEFAULT
+
+# CALM tuning. Lower and slower than HOP - without the tumble to carry the eye, a big
+# fast arc reads as twitchy. TILT is a gentle one-way rock (radians) instead of a spin:
+# 0.0 is dead upright (what "hop without spin" literally means); ~0.10 adds a little
+# life without anything going round. Face swaps are slow enough to read as a die
+# settling rather than a strobe.
+const CALM_HOP_HEIGHT := 46.0
+const CALM_RISE_TIME := 0.15
+const CALM_FALL_TIME := 0.12
+const CALM_ARC_X := 8.0
+const CALM_TILT := 0.0
+const CALM_FLIP_DELAYS := [0.11, 0.09, 0.09]
+# Per-roll timing spread + value-driven landing character (Julien, 2026-08): every roll
+# jitters its rise/fall a little; HIGH rolls hang briefly at the apex; MAX rolls hold
+# visibly in the air (with a tiny shiver of potential) then fall faster and harder - the
+# hang-then-SMASH grammar the thrown dice already speak.
+const CALM_TIME_JITTER := 0.12
+const CALM_HIGH_HANG := 0.05
+const CALM_HIGH_HANG_FRAC := 0.7
+const CALM_MAX_HANG := 0.15
+const CALM_MAX_FALL_TIME := 0.085
+# Landing rattle, every roll, scaled by value^2 so low rolls stay quiet: on a d6 a 1-3
+# doesn't shake at all (under LAND_SHAKE_MIN), a 4 barely trembles, a 6 rattles hard.
+const LAND_SHAKE_STRENGTH := 8.0
+const LAND_SHAKE_MIN := 2.0
+# --- Landing audio + chain ladder (juice_audit P0b) -------------------------------
+# The landing was SILENT before this - all roll audio played at the button press. Now
+# every slam lands a thud whose PITCH climbs with the chain (each consecutive same-type
+# roll steps up - the Balatro scoring ladder, and the thing that makes sound-on clips
+# satisfying) while its VOLUME scales with the roll's value. Max rolls add a heavier
+# impact on top. Both streams are PLACEHOLDERS (documented convention) - swap the files
+# freely, the pitch/volume structure is the point.
+const LAND_THUD_SOUND := preload("res://sounds/dicerollsound3.mp3")
+const LAND_SMASH_SOUND := preload("res://impact1.ogg")
+const LAND_THUD_BASE_PITCH := 0.72
+const LAND_THUD_CHAIN_PITCH_STEP := 0.07
+const LAND_THUD_CHAIN_PITCH_CAP := 6
+# The Power number's side of the beat: its punch deepens with chain depth (not just this
+# roll's value), and crossing POWER_TIER_THRESHOLD banked power in one chain fires a
+# one-shot ignition flare on the number - a top-tier moment ordinary turns never show.
+const POWER_CHAIN_PUNCH_STEP := 0.06
+const POWER_CHAIN_PUNCH_CAP := 5
+const POWER_TIER_THRESHOLD := 18
+# Mid-roll impact curve (Julien, 2026-08: "the 6s look really good, the others need more
+# impact"). Ordinary landings get a value-scaled mini flash, a deeper squash, a frac-based
+# hit-stop and a faster fall - the middle of the ladder rises, while the max keeps its
+# exclusive KIND of celebration (gold flash + burst + flare + hang) so headroom survives.
+const LAND_FLASH_BASE := 0.15
+const LAND_FLASH_VALUE_BONUS := 0.55
+const LAND_HIT_STOP_MIN := 0.05
+const LAND_HIT_STOP_MAX := 0.13
+const LAND_FALL_SPEEDUP := 0.15
+
+# TOSS tuning. Peak scale is the whole point - at 1.55 the 140px die renders ~215px and
+# briefly owns the frame, which is what makes it read at thumbnail size.
+const TOSS_PEAK_SCALE := 1.55
+const TOSS_MAX_BONUS := 1.08
+const TOSS_LIFT := 26.0
+const TOSS_RISE_TIME := 0.16
+const TOSS_HANG_TIME := 0.05
+const TOSS_FALL_TIME := 0.10
+const TOSS_SPIN_TURNS := 1.25
+const TOSS_FLIP_DELAYS := [0.06, 0.05, 0.05, 0.06, 0.07]
+
+# SPIN tuning. The squeeze narrows the die while it's fast, which sells "spinning on
+# edge" without any new art.
+const SPIN_TURNS := 3.0
+const SPIN_WINDUP_TIME := 0.07
+const SPIN_TIME := 0.34
+const SPIN_SQUEEZE := 0.84
+const SPIN_WOBBLE_ANGLE := 0.15
+const SPIN_WOBBLE_TIME := 0.11
+const SPIN_FLIP_DELAYS := [0.07, 0.03, 0.03, 0.035, 0.04, 0.05, 0.06, 0.075]
+
+# DROP tuning. Bounce fractions are of the drop height, decaying.
+const DROP_HEIGHT := 150.0
+const DROP_LIFT_TIME := 0.09
+const DROP_FALL_TIME := 0.13
+const DROP_SPIN_TURNS := 1.5
+const DROP_BOUNCES := [0.30, 0.12]
+const DROP_FLIP_DELAYS := [0.04, 0.045, 0.05, 0.06]
+
+# --- Roll hop (the core roll verb: hop + tumble + slam, see juice_audit_2026-08.md P0) ---
+# The die physically leaves its plinth, spins a full turn while cycling faces, and slams
+# back down on the result. Total airtime ~0.25s + 0.10s wind-up squash = same budget as the
+# old wiggle-in-place, so multi-roll turns don't get slower - the motion replaces dead time.
+const ROLL_HOP_HEIGHT := 52.0
+const ROLL_HOP_RISE_TIME := 0.14
+const ROLL_HOP_FALL_TIME := 0.11
+# Full turns over the airtime (sign randomized per roll). Most of the spin happens on the
+# way up so the tumble visibly decelerates into the landing instead of spinning at a
+# constant robotic rate.
+const ROLL_SPIN_TURNS := 1.0
+# Per-roll variation so back-to-back rolls don't trace the identical path (Julien,
+# 2026-08: "solid base but a bit too similar each time"). Height/arc/spin-rhythm jitter
+# is trajectory-only - every toss still lands on the exact rest transform.
+const ROLL_HOP_HEIGHT_JITTER := 0.18
+const ROLL_HOP_ARC_X := 16.0
+const ROLL_SPIN_RISE_FRACTION_MIN := 0.52
+const ROLL_SPIN_RISE_FRACTION_MAX := 0.72
+# Some rolls get a small second bounce after the slam (real-dice read). NEVER on a max
+# roll - the hit-stop + celebration own that landing beat, and diluting it would cost
+# the "smash" Julien specifically likes; also skipped on a rolled 1 (a dud shouldn't
+# bounce with energy).
+const ROLL_DOUBLE_BOUNCE_CHANCE := 0.35
+const ROLL_DOUBLE_BOUNCE_HEIGHT := 0.26
+# Max rolls toss slightly higher: bigger rise -> bigger fall -> bigger smash, a subtle
+# wind-up for the celebration that follows.
+const ROLL_MAX_HOP_BONUS := 1.15
+# Face-swap delays (seconds between swaps) across the airtime - decelerating, like the old
+# flip_intervals, but now the swaps ride a die that's actually tumbling.
+const ROLL_FLIP_DELAYS := [0.10, 0.06, 0.07, 0.07]
+# The in-flight animation tweens, tracked so a new roll (or anything else that needs the
+# die at rest) can kill them and snap the die back to its true resting transform first.
+# Without this, capturing "start position" while a previous max-roll shake is still
+# offsetting the die would bake that offset in as the new rest and the die would drift.
+var _roll_anim_tween: Tween
+var _roll_flip_tween: Tween
+# Secondary motion that runs alongside the main flight on its own timeline (SPIN's
+# squeeze). Tracked with the rest so a re-roll kills it instead of leaving the die
+# squashed at whatever width the interrupted spin left behind.
+var _roll_aux_tween: Tween
+var _dice_shake_tween: Tween
+# Set by a builder whose settle already owns dice_display.position after landing (the
+# double bounce) - the landing rattle would fight it for the same property, alternating
+# writes every frame. One-shot: _on_roll_landed reads and clears it.
+var _suppress_land_shake := false
+# Tier-crossing latch for POWER_TIER_THRESHOLD. Deliberately NOT reset by the power-reset
+# paths: it's recomputed on every roll, and after a reset the first roll's recompute sets
+# it false (no single face reaches the threshold), so a stale true can't suppress a real
+# crossing - and touching the reset paths isn't worth it for a celebratory one-shot.
+var _power_tier_active := false
+var _roll_history_punch_tween: Tween
+var _dice_display_rest_position := Vector2.ZERO
+var _dice_display_rest_captured := false
+# The glow layers follow the die's flight (Julien, 2026-08): each _process frame mirrors
+# the die's offset-from-rest onto the aura (1:1 - it's the die's own halo) and the
+# emanation (damped - it's the ambient light pool, and it should LAG like heavy light,
+# which also keeps its shader's hard-coded dice-row clearance band from shifting far).
+# Mirroring in _process instead of parallel tweens means every motion source (hop, hang
+# shiver, landing shake, double bounce) is covered automatically, and at rest the offset
+# is ZERO so both layers are pinned exactly to their captured homes.
+const GLOW_FOLLOW_AURA := 1.0
+const GLOW_FOLLOW_EMANATION := 0.35
+var _aura_rest_position := Vector2.ZERO
+var _emanation_rest_position := Vector2.ZERO
+# Button->die weld (Julien, 2026-08: "feel your ROLL press make the dice hop"). Godot
+# buttons fire `pressed` on RELEASE, which this exploits: button_down COILS the die into
+# its wind-up squash and HOLDS it there for as long as the button is held; releasing
+# launches the hop from the coil (the builders skip their own compress step when coiled).
+# The press literally compresses the die, the release lets it go.
+var _die_coil_tween: Tween
+var _die_coiled := false
+# Plinth dip on big landings ("the table felt it"). ⚠️ The ROLL Button is NOT inside
+# Panel - it's a sibling on the dice root (button.gd's $".." is the Dice itself) - so the
+# dip must move BOTH. Dipping Panel alone moved only die+aura, which vanished inside the
+# landing celebration: "the roll button is not moving by an inch" (Julien, 2026-08).
+var _panel_dip_tween: Tween
+var _panel_rest_position := Vector2.ZERO
+var _roll_button_rest_position := Vector2.ZERO
+# Max-fall motion smear: ghost counter reset per roll, advanced by _smear_step.
+var _smear_spawned := 0
 
 const MECH_ARROW_HOVER_SCALE := Vector2(1.2, 1.2)
 const MECH_ARROW_HOVER_DURATION := 0.1
@@ -521,6 +743,7 @@ func roll_dice():
     if not Global.roll_history.is_empty():
         for enemy in get_tree().get_nodes_in_group("enemies"):
             if enemy.status_handler._has_status("flux"):
+                release_die_coil()
                 play_error_sound()
                 return
     # Check if we can roll this type
@@ -554,6 +777,7 @@ func roll_dice():
 
     if not can_roll:
         print("no more " + dice_type + " dice")
+        release_die_coil()
         play_error_sound()
         return
 
@@ -649,108 +873,624 @@ func roll_dice():
         _apply_roll_result(roll_index, values, faces)
         return
 
-# --- Normal roll with animation ---
-    var tween = create_tween()
-    var start_position = dice_display.position
+# --- Normal roll with animation: wind-up squash -> hop with tumble -> slam on the result ---
+    # Kill any leftover motion (previous max-roll shake, previous hop) and snap the die back
+    # to its true rest transform BEFORE reading it, so a fast re-roll can't bake a mid-shake
+    # offset in as the new resting spot.
+    for stale in [_roll_anim_tween, _roll_flip_tween, _roll_aux_tween, _dice_shake_tween]:
+        if stale and stale.is_valid():
+            stale.kill()
+    # One-shot flag from the previous roll's builder - if that roll got interrupted
+    # before landing, a stale true here would silently eat THIS roll's landing rattle.
+    _suppress_land_shake = false
+    _smear_spawned = 0
+    if _die_coil_tween and _die_coil_tween.is_valid():
+        _die_coil_tween.kill()
+    if _dice_display_rest_captured:
+        dice_display.position = _dice_display_rest_position
+    else:
+        _dice_display_rest_position = dice_display.position
+        _aura_rest_position = aura.position
+        _emanation_rest_position = emanation.position
+        _panel_rest_position = (dice_display.get_parent() as Control).position
+        _roll_button_rest_position = ($Button as Control).position
+        _dice_display_rest_captured = true
+    dice_display.rotation = 0.0
+    # Center pivot so the spin (and every scale punch) rotates/grows around the die's
+    # middle - the TextureRect default is top-left, which reads as the die swinging on a hinge.
+    dice_display.pivot_offset = dice_display.size / 2.0
 
-    # Anticipation squash: a quick compress right before the toss, so the whole roll
-    # has a wind-up beat instead of starting cold straight into the shake.
-    tween.tween_property(dice_display, "scale", Vector2(1.1, 0.85), 0.05) \
-        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-    tween.tween_property(dice_display, "scale", Vector2(1.0, 1.0), 0.06) \
+    var tween = create_tween()
+    _roll_anim_tween = tween
+    var start_position := _dice_display_rest_position
+    # The result is already decided (roll_index above), so the flight can be flavored by
+    # it: max rolls toss bigger, and the landing dust scales with the value (see
+    # _on_roll_landed). Explicit bool, not `:=` - values is an untyped Array so .max() is
+    # Variant and the analyzer refuses to infer through the comparison.
+    var roll_val_ahead: int = values[roll_index]
+    var is_max_ahead: bool = roll_val_ahead == values.max()
+    # Every preset ends by handing off to the same landing beat, so the celebration,
+    # orbs, hit-stop and dust stay identical no matter which flight played.
+    var land := _on_roll_landed.bind(roll_index, values, faces)
+
+    match roll_style:
+        RollStyle.TOSS:
+            _build_roll_toss(tween, faces, start_position, is_max_ahead, land)
+        RollStyle.SPIN:
+            _build_roll_spin(tween, faces, is_max_ahead, land)
+        RollStyle.DROP:
+            _build_roll_drop(tween, faces, start_position, is_max_ahead, land)
+        RollStyle.HOP:
+            _build_roll_hop(tween, faces, start_position, roll_val_ahead, is_max_ahead, land)
+        _:
+            _build_roll_calm(tween, faces, start_position, roll_val_ahead,
+                    float(roll_val_ahead) / maxf(1.0, float(values.max())), is_max_ahead, land)
+
+
+# CALM: the hop with the tumble taken out. Same leap, dust, landing squash and hit-stop
+# as HOP, but the die never rotates - it stays upright the whole way and swaps faces
+# slowly, so a turn full of rolls doesn't spin anything in the centre of the screen.
+# Timing is value-aware: high rolls hang at the apex, max rolls hold-then-SMASH.
+func _build_roll_calm(tween: Tween, faces: Array, start_position: Vector2,
+        roll_val: int, val_frac: float, is_max: bool, land: Callable) -> void:
+    var hop_height := CALM_HOP_HEIGHT \
+            * randf_range(1.0 - ROLL_HOP_HEIGHT_JITTER, 1.0 + ROLL_HOP_HEIGHT_JITTER)
+    # Hop height scales with the value: a rolled 1-2 does a small unenthusiastic hop
+    # (~55-65% height), a big roll leaps. Extends the value ladder into the FLIGHT -
+    # before this, only the landing scaled and small rolls hopped like winners
+    # (Julien, 2026-08: "1s and 2s hop a bit too much").
+    hop_height *= lerpf(0.55, 1.0, val_frac)
+    if is_max:
+        hop_height *= ROLL_MAX_HOP_BONUS
+    var arc_x := randf_range(-CALM_ARC_X, CALM_ARC_X)
+    # One-way rock, not a turn: leans out on the rise and returns upright on the fall.
+    # At CALM_TILT = 0.0 these are no-ops and the die is perfectly level throughout.
+    var tilt := CALM_TILT * (1.0 if arc_x >= 0.0 else -1.0)
+    var do_double_bounce: bool = randf() < ROLL_DOUBLE_BOUNCE_CHANCE \
+            and not is_max and roll_val > 1
+    # Per-roll timing spread + apex hang by value: nothing on low rolls, a blink on high
+    # ones, a real held beat on max. The fall after a max hang is faster and harder
+    # (cubic ease-in) - the hang loads the smash.
+    var rise_time := CALM_RISE_TIME * randf_range(1.0 - CALM_TIME_JITTER, 1.0 + CALM_TIME_JITTER)
+    var fall_time := CALM_FALL_TIME * randf_range(1.0 - CALM_TIME_JITTER, 1.0 + CALM_TIME_JITTER)
+    var hang_time := 0.0
+    if is_max:
+        hang_time = CALM_MAX_HANG * randf_range(0.85, 1.2)
+        fall_time = CALM_MAX_FALL_TIME
+    else:
+        # Bigger rolls fall faster - arrival speed is most of perceived impact, and a
+        # 5 dropping at the same lazy rate as a 1 is why mid rolls read as weightless.
+        fall_time *= 1.0 - LAND_FALL_SPEEDUP * val_frac
+        if val_frac >= CALM_HIGH_HANG_FRAC:
+            hang_time = CALM_HIGH_HANG * randf_range(0.7, 1.3)
+
+    # Anticipation squash - the only "wind-up" cue left now that there's no spin to
+    # telegraph. Skipped when the ROLL button already coiled the die on button_down (the
+    # held press IS the wind-up); the release step below then launches straight from the
+    # held compression, which is the whole button->die weld.
+    if not _die_coiled:
+        tween.tween_property(dice_display, "scale", Vector2(1.12, 0.82), 0.05) \
+            .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+    _die_coiled = false
+    tween.tween_property(dice_display, "scale", Vector2(1.0, 1.0), 0.05) \
         .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
-    # Physical shake with slight vertical component
-    tween.tween_property(dice_display, "position", start_position + Vector2(-10, -4), 0.04)
-    tween.tween_property(dice_display, "position", start_position + Vector2(10, 4), 0.04)
-    tween.tween_property(dice_display, "position", start_position, 0.03)
+    var apex := start_position + Vector2(arc_x, -hop_height)
+    tween.tween_property(dice_display, "position", apex, rise_time) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    tween.parallel().tween_property(dice_display, "rotation", tilt, rise_time) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
-    # Face flips with deceleration (feels like die losing momentum)
-    var flip_intervals = [0.03, 0.05, 0.08]
-    for i in range(3):
-        tween.tween_callback(func():
-            var anim_index = randi() % faces.size()
+    if hang_time > 0.0:
+        if is_max:
+            # The held beat before the smash, with a tiny shiver - the die vibrating
+            # with potential rather than parking mid-air.
+            var shiver_steps := 3
+            for i in shiver_steps:
+                var jit := Vector2(randf_range(-2.5, 2.5), randf_range(-1.5, 1.5))
+                tween.tween_property(dice_display, "position", apex + jit,
+                        hang_time / shiver_steps)
+        else:
+            tween.tween_interval(hang_time)
+
+    tween.tween_property(dice_display, "position", start_position, fall_time) \
+        .set_trans(Tween.TRANS_CUBIC if is_max else Tween.TRANS_QUAD) \
+        .set_ease(Tween.EASE_IN)
+    tween.parallel().tween_property(dice_display, "rotation", 0.0, fall_time) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+    if is_max:
+        # Motion smear on the smash fall: 3 ghost afterimages trail the die down. Rides
+        # the fall step in parallel so it stays synced no matter how the earlier timing
+        # varied (coil skip, hang jitter).
+        tween.parallel().tween_method(_smear_step, 0.0, 1.0, fall_time)
+    if do_double_bounce:
+        _suppress_land_shake = true
+    tween.tween_callback(land)
+
+    if do_double_bounce:
+        tween.tween_interval(0.05)
+        tween.tween_property(dice_display, "position",
+            start_position + Vector2(arc_x * -0.3, -hop_height * ROLL_DOUBLE_BOUNCE_HEIGHT),
+            0.09).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+        tween.tween_property(dice_display, "position", start_position, 0.08) \
+            .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+
+    _start_face_flips(faces, CALM_FLIP_DELAYS)
+
+
+# HOP: leap off the plinth, tumble, slam back down. Playful and physical; the per-roll
+# height/arc/spin-rhythm jitter and the optional rebound keep repeat rolls from tracing
+# an identical path.
+func _build_roll_hop(tween: Tween, faces: Array, start_position: Vector2,
+        roll_val: int, is_max: bool, land: Callable) -> void:
+    var spin_sign := 1.0 if randf() < 0.5 else -1.0
+    var total_spin := spin_sign * TAU * ROLL_SPIN_TURNS
+    var hop_height := ROLL_HOP_HEIGHT \
+            * randf_range(1.0 - ROLL_HOP_HEIGHT_JITTER, 1.0 + ROLL_HOP_HEIGHT_JITTER)
+    if is_max:
+        hop_height *= ROLL_MAX_HOP_BONUS
+    var arc_x := randf_range(-ROLL_HOP_ARC_X, ROLL_HOP_ARC_X)
+    var rise_fraction := randf_range(ROLL_SPIN_RISE_FRACTION_MIN, ROLL_SPIN_RISE_FRACTION_MAX)
+    # Never on a max roll (the hit-stop owns that landing) or a rolled 1 (a dud shouldn't
+    # rebound with energy).
+    var do_double_bounce: bool = randf() < ROLL_DOUBLE_BOUNCE_CHANCE \
+            and not is_max and roll_val > 1
+
+    # Anticipation squash: a quick compress right before the toss, so the whole roll
+    # has a wind-up beat instead of starting cold straight into the hop.
+    tween.tween_property(dice_display, "scale", Vector2(1.12, 0.82), 0.05) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+    tween.tween_property(dice_display, "scale", Vector2(1.0, 1.0), 0.05) \
+        .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+    # Rise and fall are separate steps so the spin can be split across them (rise_fraction
+    # up, the rest down) - the tumble decelerates into the landing rather than rotating at
+    # a constant robotic rate.
+    tween.tween_property(dice_display, "position",
+        start_position + Vector2(arc_x, -hop_height), ROLL_HOP_RISE_TIME) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    tween.parallel().tween_property(dice_display, "rotation",
+        total_spin * rise_fraction, ROLL_HOP_RISE_TIME) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+    tween.tween_property(dice_display, "position", start_position, ROLL_HOP_FALL_TIME) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+    tween.parallel().tween_property(dice_display, "rotation", total_spin, ROLL_HOP_FALL_TIME) \
+        .set_trans(Tween.TRANS_LINEAR)
+    if do_double_bounce:
+        _suppress_land_shake = true
+    tween.tween_callback(land)
+
+    # Optional rebound with a counter-drift, so the die settles back opposite its toss
+    # direction. The landing squash's elastic settle runs in parallel on scale, which
+    # reads as the die wobbling through the bounce.
+    if do_double_bounce:
+        tween.tween_interval(0.05)
+        tween.tween_property(dice_display, "position",
+            start_position + Vector2(arc_x * -0.3, -hop_height * ROLL_DOUBLE_BOUNCE_HEIGHT),
+            0.09).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+        tween.tween_property(dice_display, "position", start_position, 0.08) \
+            .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+
+    _start_face_flips(faces, ROLL_FLIP_DELAYS)
+
+
+# TOSS: thrown up toward the camera. The die swells until it dominates the panel, hangs
+# for a beat at peak (the "read the face" moment), then snaps back to rest on the result.
+# Biggest frame presence of the four - the die carries the shot on its own, which is what
+# a muted thumbnail needs.
+func _build_roll_toss(tween: Tween, faces: Array, start_position: Vector2,
+        is_max: bool, land: Callable) -> void:
+    var spin_sign := 1.0 if randf() < 0.5 else -1.0
+    var total_spin := spin_sign * TAU * TOSS_SPIN_TURNS
+    var peak := TOSS_PEAK_SCALE * randf_range(0.94, 1.06)
+    if is_max:
+        peak *= TOSS_MAX_BONUS
+    var drift := randf_range(-10.0, 10.0)
+
+    # Grip-and-throw wind-up: squeeze narrow/tall (gathered in the hand) before release -
+    # deliberately the opposite axis from HOP's flat squash so the two read differently
+    # from the very first frame.
+    tween.tween_property(dice_display, "scale", Vector2(0.86, 1.14), 0.06) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+    tween.tween_property(dice_display, "scale", Vector2(peak, peak), TOSS_RISE_TIME) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    tween.parallel().tween_property(dice_display, "position",
+        start_position + Vector2(drift, -TOSS_LIFT), TOSS_RISE_TIME) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    tween.parallel().tween_property(dice_display, "rotation",
+        total_spin * 0.7, TOSS_RISE_TIME) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+    tween.tween_interval(TOSS_HANG_TIME)
+
+    # Snap back to rest: the collapse IS the impact.
+    tween.tween_property(dice_display, "scale", Vector2.ONE, TOSS_FALL_TIME) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+    tween.parallel().tween_property(dice_display, "position", start_position, TOSS_FALL_TIME) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+    tween.parallel().tween_property(dice_display, "rotation", total_spin, TOSS_FALL_TIME) \
+        .set_trans(Tween.TRANS_LINEAR)
+    tween.tween_callback(land)
+
+    _start_face_flips(faces, TOSS_FLIP_DELAYS)
+
+
+# SPIN: never leaves the plinth. Spins like a roulette reel, decelerating, squeezed narrow
+# while fast (the "on edge" read, no new art needed), then wobbles to a stop on the result.
+# Most compact of the four - the die stays exactly where the eye already is, so nothing in
+# the HUD is ever occluded.
+func _build_roll_spin(tween: Tween, faces: Array, is_max: bool, land: Callable) -> void:
+    var spin_sign := 1.0 if randf() < 0.5 else -1.0
+    var turns := SPIN_TURNS * randf_range(0.85, 1.15)
+    if is_max:
+        turns += 0.5
+    var total_spin := spin_sign * TAU * turns
+
+    # Counter-rotation wind-up: pull back against the spin before the reel releases.
+    tween.tween_property(dice_display, "rotation", -spin_sign * 0.22, SPIN_WINDUP_TIME) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+    tween.tween_property(dice_display, "rotation", total_spin, SPIN_TIME) \
+        .set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+    tween.tween_callback(land)
+
+    # Wobble to a stop, like a spinning top toppling into place. Runs after the landing
+    # callback, which has already snapped rotation to 0 - so these tween from upright.
+    tween.tween_property(dice_display, "rotation",
+        spin_sign * SPIN_WOBBLE_ANGLE, SPIN_WOBBLE_TIME) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+    tween.tween_property(dice_display, "rotation",
+        -spin_sign * SPIN_WOBBLE_ANGLE * 0.4, SPIN_WOBBLE_TIME * 0.8) \
+        .set_trans(Tween.TRANS_SINE)
+    tween.tween_property(dice_display, "rotation", 0.0, SPIN_WOBBLE_TIME * 0.6) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+    # The squeeze rides its own timeline (a sequential squeeze-then-release can't be
+    # expressed as one parallel() step against the spin). Leading interval keeps it in
+    # sync with the wind-up, and it lands back at ONE exactly when the spin ends.
+    if _roll_aux_tween and _roll_aux_tween.is_valid():
+        _roll_aux_tween.kill()
+    _roll_aux_tween = create_tween()
+    _roll_aux_tween.tween_interval(SPIN_WINDUP_TIME)
+    _roll_aux_tween.tween_property(dice_display, "scale",
+        Vector2(SPIN_SQUEEZE, 1.08), SPIN_TIME * 0.3) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+    _roll_aux_tween.tween_property(dice_display, "scale", Vector2.ONE, SPIN_TIME * 0.7) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+    _start_face_flips(faces, SPIN_FLIP_DELAYS)
+
+
+# DROP: yanked up out of frame and dropped hard, then bounces twice to rest. Heaviest of
+# the four, and the only one whose character lives in the SETTLE rather than the impact.
+func _build_roll_drop(tween: Tween, faces: Array, start_position: Vector2,
+        is_max: bool, land: Callable) -> void:
+    var spin_sign := 1.0 if randf() < 0.5 else -1.0
+    var total_spin := spin_sign * TAU * DROP_SPIN_TURNS
+    var height := DROP_HEIGHT * randf_range(0.9, 1.1)
+    if is_max:
+        height *= 1.12
+    var drift := randf_range(-12.0, 12.0)
+
+    # Yank up fast (snatched off the plinth), then a hard accelerating fall.
+    tween.tween_property(dice_display, "position",
+        start_position + Vector2(drift, -height), DROP_LIFT_TIME) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    tween.parallel().tween_property(dice_display, "rotation",
+        total_spin * 0.55, DROP_LIFT_TIME) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+    tween.tween_property(dice_display, "position", start_position, DROP_FALL_TIME) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+    tween.parallel().tween_property(dice_display, "rotation", total_spin, DROP_FALL_TIME) \
+        .set_trans(Tween.TRANS_LINEAR)
+    tween.tween_callback(land)
+
+    # Decaying bounces. These run AFTER the landing callback, so the roll is already
+    # resolved and _roll_in_progress is clear - the settle never blocks the next roll.
+    for bounce_frac: float in DROP_BOUNCES:
+        var bounce_h := height * bounce_frac
+        var bounce_t := DROP_FALL_TIME * (0.55 + bounce_frac)
+        tween.tween_property(dice_display, "position",
+            start_position + Vector2(drift * bounce_frac * 0.5, -bounce_h), bounce_t) \
+            .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+        tween.tween_property(dice_display, "position", start_position, bounce_t * 0.85) \
+            .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+
+    _start_face_flips(faces, DROP_FLIP_DELAYS)
+
+
+# Face swaps ride their own tween: they're time-based, not step-based, so welding them
+# into the flight's position steps would stall the motion at each swap. Never shows the
+# same face twice in a row. The landing face itself is set by _apply_roll_result.
+func _start_face_flips(faces: Array, delays: Array) -> void:
+    if _roll_flip_tween and _roll_flip_tween.is_valid():
+        _roll_flip_tween.kill()
+    _roll_flip_tween = create_tween()
+    # One-element array, not a bare int: GDScript lambdas capture locals by VALUE, so an int
+    # written inside the callback would never persist to the next swap - the dedup would
+    # silently never fire. Arrays are captured by reference.
+    var last_anim_index := [-1]
+    for flip_delay: float in delays:
+        _roll_flip_tween.tween_interval(flip_delay)
+        _roll_flip_tween.tween_callback(func():
+            var anim_index := randi() % faces.size()
+            if faces.size() > 1 and anim_index == last_anim_index[0]:
+                anim_index = (anim_index + 1) % faces.size()
+            last_anim_index[0] = anim_index
             dice_display.texture = faces[anim_index]
         )
-        tween.tween_interval(flip_intervals[i])
 
-    # Snap to result + impact scale punch (size varies by roll value)
-    tween.tween_callback(func():
-        _apply_roll_result(roll_index, values, faces)
-        var roll_val = values[roll_index]
-        var is_max_roll = roll_val == values.max()
 
-        _spawn_power_orbs(roll_val, dice_type, is_max_roll)
+# The shared landing beat, identical across every roll style: resolve the result, then
+# orbs + dust + squash + aura pulse + emanation flare + hit-stop, and the max-roll
+# celebration on top. Whatever the flight looked like, the payoff reads the same.
+func _on_roll_landed(roll_index: int, values: Array, faces: Array) -> void:
+    # Exact-snap the flight transform before anything else reads the die: the flight
+    # tweens target these values anyway, but a killed/interrupted one must not leave a
+    # residual rotation or squeeze baked under the punch tweens below.
+    dice_display.rotation = 0.0
+    dice_display.position = _dice_display_rest_position
+    dice_display.scale = Vector2.ONE
+    _apply_roll_result(roll_index, values, faces)
+    var roll_val = values[roll_index]
+    var is_max_roll = roll_val == values.max()
 
-        var punch_scale = 1.08 + (roll_val / 60.0)  # 1.09 on 1, 1.28 on 12
-        if is_max_roll:
-            punch_scale += 0.10
-        punch_scale = clampf(punch_scale, 1.08, 1.5)
-        var impact = create_tween()
-        impact.tween_property(dice_display, "scale", Vector2(punch_scale, punch_scale), 0.06).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
-        impact.tween_property(dice_display, "scale", Vector2(1.0, 1.0), 0.10).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+    var val_frac := float(roll_val) / maxf(1.0, float(values.max()))
 
-        # Subtle transient pulse on the per-dice-type aura behind the die, on every landing
-        # (not just max rolls) - reuses the existing aura node/shader instead of new art,
-        # scaled by roll value so a bigger roll gives a slightly bigger pulse. Always settles
-        # back to AURA_SCALE_REST (not a charge-dependent size) - the "grows with power" story
-        # lives entirely in _update_dice_aura_charge()'s shader parameters now, not in scale.
-        var aura_punch = AURA_SCALE_REST + 0.05 + (roll_val / 100.0)
-        var aura_pulse := create_tween()
-        aura_pulse.tween_property(aura, "scale", Vector2(aura_punch, aura_punch), 0.07) \
+    _spawn_power_orbs(roll_val, dice_type, is_max_roll)
+    # Dust scales with the result: a 1 lands with a plop, a max roll kicks up a cloud -
+    # the landing communicates the value the same way the celebration ladder does.
+    var dust_mult := 0.7 + 0.8 * val_frac
+    if is_max_roll:
+        dust_mult *= 1.25
+    _spawn_roll_land_dust(dust_mult)
+
+    # Land thud: pitch climbs with chain depth (Global.roll_history already includes this
+    # roll - _apply_roll_result appended it above), volume with the roll's value. Priority
+    # 0 (not -1): the landing is the beat of the whole animation, orb plinks get stolen
+    # before it does.
+    var chain_depth := Global.roll_history.size()
+    var thud_pitch := LAND_THUD_BASE_PITCH \
+            + LAND_THUD_CHAIN_PITCH_STEP * clampi(chain_depth - 1, 0, LAND_THUD_CHAIN_PITCH_CAP)
+    SFXPlayer.play(LAND_THUD_SOUND, false, thud_pitch, lerpf(-8.0, -2.0, val_frac))
+    if is_max_roll:
+        # The heavier smash rides on top of (not instead of) the thud, so the max landing
+        # keeps its place at the top of the same ladder rather than sounding unrelated.
+        SFXPlayer.play(LAND_SMASH_SOUND, false, randf_range(0.92, 1.0), -2.0)
+
+    # Landing rattle, every roll, value^2 so the low end stays quiet (a d6 1-3 computes
+    # under LAND_SHAKE_MIN and doesn't shake at all). Skipped when the builder's double
+    # bounce owns the settle - two tweens fighting over position reads as jitter, not
+    # weight. This replaces the old max-only _shake_dice_display() call.
+    # ^1.5, not ^2: the old quadratic falloff kept mid rolls nearly still, which was a
+    # big part of "only the 6s feel good". A d6 3 now trembles, a 5 genuinely rattles;
+    # 1-2 stay silent (the ladder needs its quiet bottom).
+    var shake_strength := LAND_SHAKE_STRENGTH * pow(val_frac, 1.5)
+    if is_max_roll:
+        shake_strength += 2.0
+    if shake_strength >= LAND_SHAKE_MIN and not _suppress_land_shake:
+        _shake_dice_display(shake_strength)
+    _suppress_land_shake = false
+
+    # Value-fraction curve (not raw roll value): a green d3's 3 is a big roll FOR THAT
+    # DIE and squashes like one; raw-value scaling made small dice permanently limp.
+    var punch_scale = 1.10 + 0.30 * val_frac
+    if is_max_roll:
+        punch_scale += 0.16
+    punch_scale = clampf(punch_scale, 1.10, 1.56)
+    var is_dud: bool = roll_val == values.min() and not is_max_roll
+    var impact = create_tween()
+    if is_dud:
+        # The dud's sad settle: a real deflate instead of an impact squash - the die
+        # lands, visibly sags, and slowly breathes back. Paired with a brief DIM (the
+        # die's light going out for a beat - brightness reads at a glance where a few
+        # px of scale never did), no shake, no flash and the quiet thud, the min face
+        # reads as a sigh.
+        impact.tween_property(dice_display, "scale", Vector2(1.03, 0.95), 0.06) \
+            .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+        impact.tween_property(dice_display, "scale", Vector2(0.93, 0.90), 0.12) \
+            .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+        impact.tween_property(dice_display, "scale", Vector2(1.0, 1.0), 0.30) \
+            .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+        # Absolute-target dim (0.78 gray -> WHITE), same anti-ratchet rule as the
+        # flashes: never restore from a live modulate read. The dud path skips both
+        # flash tweens, so nothing else owns modulate during this.
+        var dim := create_tween()
+        dim.tween_property(dice_display, "modulate", Color(0.78, 0.78, 0.82, 1.0), 0.08) \
+            .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+        dim.tween_property(dice_display, "modulate", Color.WHITE, 0.38) \
+            .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+    else:
+        # Landing squash: wider than tall on the impact frame (the die hits the plinth),
+        # then an elastic settle back to square. Reads as weight, where a uniform
+        # grow-punch reads as inflation. The vertical crush deepens with value too.
+        impact.tween_property(dice_display, "scale",
+            Vector2(punch_scale + 0.04, 0.86 - 0.08 * val_frac), 0.05) \
             .set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
-        aura_pulse.tween_property(aura, "scale", Vector2(AURA_SCALE_REST, AURA_SCALE_REST), 0.16) \
-            .set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+        impact.tween_property(dice_display, "scale", Vector2(1.0, 1.0), 0.14).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
 
-        # Emanation flare on the same landing beat: spike "surge" instantly, decay it out.
-        # Tracked so rapid rolls restart the flare instead of stacking tweens on the param.
-        if emanation.material is ShaderMaterial:
-            if _emanation_surge_tween and _emanation_surge_tween.is_valid():
-                _emanation_surge_tween.kill()
-            emanation.material.set_shader_parameter("surge", 1.0)
-            _emanation_surge_tween = create_tween()
-            _emanation_surge_tween.tween_property(
-                emanation.material, "shader_parameter/surge", 0.0, EMANATION_SURGE_DECAY_TIME) \
-                .set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+    # Plinth dip on big landings - the whole panel (die, aura, ROLL button) absorbs the
+    # hit and springs back: "the table felt it". The drop is INSTANT, not tweened: the
+    # hit-stop below freezes time in this same callback, so a tweened descent was frozen
+    # at its undipped first frame and the whole effect played invisibly after the freeze
+    # (why Julien never saw the 2px version - that, and 2px was under the perception
+    # floor anyway). An instant set means the freeze HOLDS the dipped impact frame.
+    # Anchored on the captured rest so rapid landings can't walk the panel downward.
+    if val_frac >= 0.55 or is_max_roll:
+        var panel := dice_display.get_parent() as Control
+        var roll_button := $Button as Control
+        if _panel_dip_tween and _panel_dip_tween.is_valid():
+            _panel_dip_tween.kill()
+        var dip := 9.0 if is_max_roll else 6.0
+        panel.position = _panel_rest_position + Vector2(0, dip)
+        roll_button.position = _roll_button_rest_position + Vector2(0, dip)
+        _panel_dip_tween = create_tween()
+        _panel_dip_tween.tween_property(panel, "position:y", _panel_rest_position.y, 0.22) \
+            .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+        _panel_dip_tween.parallel().tween_property(
+                roll_button, "position:y", _roll_button_rest_position.y, 0.22) \
+            .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
-        # Landing impact: brief hit-stop so every roll lands with weight, bigger on a max-value
-        # roll. Roughly doubled (was 0.02-0.07/0.09) now that hit_stop()'s time_scale default
-        # is a harder freeze - the old duration was tuned for the old, softer time_scale and
-        # was imperceptible either way.
-        var hit_stop_duration = clampf(roll_val * 0.013, 0.04, 0.14)
-        if is_max_roll:
-            hit_stop_duration = 0.2
-        Shaker.hit_stop(hit_stop_duration)
+    # Mini impact flash on every NON-max landing, brightness scaled by value - the "hit"
+    # frame ordinary rolls never had. Warm-biased (blue channel dampened) to lean gold
+    # like the house style. Max rolls skip it: max_flash below owns their modulate, and
+    # both tweens target ABSOLUTE colors ending at WHITE, so neither can ratchet the way
+    # live-read restores do (documented power-color trap).
+    if not is_max_roll and not is_dud:
+        var flash_b := LAND_FLASH_BASE + LAND_FLASH_VALUE_BONUS * val_frac
+        var land_flash := create_tween()
+        land_flash.tween_property(dice_display, "modulate",
+            Color(1.0 + flash_b, 1.0 + flash_b, 1.0 + flash_b * 0.7, 1.0), 0.04) \
+            .set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+        land_flash.tween_property(dice_display, "modulate", Color.WHITE, 0.16) \
+            .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 
-        # Max-roll celebration: gold flash + particle burst on top of the normal landing.
-        # The burst is tinted per dice type (accent pulled toward warm gold) so a max roll
-        # on magma erupts fiery, on evil violet, etc. - the flash itself stays gold-white,
-        # the universal "success" beat.
-        if is_max_roll:
-            var burst_material := gpu_particles_2d.process_material as ParticleProcessMaterial
-            if burst_material:
-                burst_material.color = DicePalette.burst(dice_type)
-            gpu_particles_2d.emitting = true
-            var max_flash := create_tween()
-            max_flash.tween_property(dice_display, "modulate", Color(2.2, 2.0, 1.2, 1.0), 0.06) \
-                .set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
-            max_flash.tween_property(dice_display, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.22) \
-                .set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
-            _shake_dice_display()
-    )
+    # Subtle transient pulse on the per-dice-type aura behind the die, on every landing
+    # (not just max rolls) - reuses the existing aura node/shader instead of new art,
+    # scaled by roll value so a bigger roll gives a slightly bigger pulse. Always settles
+    # back to AURA_SCALE_REST (not a charge-dependent size) - the "grows with power" story
+    # lives entirely in _update_dice_aura_charge()'s shader parameters now, not in scale.
+    var aura_punch = AURA_SCALE_REST + 0.04 + 0.18 * val_frac
+    var aura_pulse := create_tween()
+    aura_pulse.tween_property(aura, "scale", Vector2(aura_punch, aura_punch), 0.07) \
+        .set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+    aura_pulse.tween_property(aura, "scale", Vector2(AURA_SCALE_REST, AURA_SCALE_REST), 0.16) \
+        .set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
 
-# Real visible shake (not a time_scale freeze) for the max-roll moment specifically.
-# Inline rather than reusing Shaker.shake() since that's typed for Node2D and dice_display
-# is a Control (TextureRect) - different CanvasItem branch, position still works the same way.
-func _shake_dice_display() -> void:
-    var orig_pos := dice_display.position
-    var shake_tween := create_tween()
-    var strength := 6.0
+    # Emanation flare on the same landing beat: spike "surge" instantly, decay it out.
+    # Tracked so rapid rolls restart the flare instead of stacking tweens on the param.
+    if emanation.material is ShaderMaterial:
+        if _emanation_surge_tween and _emanation_surge_tween.is_valid():
+            _emanation_surge_tween.kill()
+        emanation.material.set_shader_parameter("surge", 1.0)
+        _emanation_surge_tween = create_tween()
+        _emanation_surge_tween.tween_property(
+            emanation.material, "shader_parameter/surge", 0.0, EMANATION_SURGE_DECAY_TIME) \
+            .set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+
+    # Landing impact: brief hit-stop so every roll lands with weight, bigger on a max-value
+    # roll. Roughly doubled (was 0.02-0.07/0.09) now that hit_stop()'s time_scale default
+    # is a harder freeze - the old duration was tuned for the old, softer time_scale and
+    # was imperceptible either way.
+    # Frac-based, not raw value: the old roll_val * 0.013 gave a d3's best roll a 0.04s
+    # stop (imperceptible) while a d12's mid rolls outscored a d6's max. Every die now
+    # spans the same felt range, and the mid-range stop is finally perceptible.
+    var hit_stop_duration = lerpf(LAND_HIT_STOP_MIN, LAND_HIT_STOP_MAX, val_frac)
+    if is_max_roll:
+        hit_stop_duration = 0.22
+    Shaker.hit_stop(hit_stop_duration)
+
+    # Max-roll celebration: gold flash + particle burst + white-hot impact flare at the
+    # die's base, on top of the normal landing. The burst is tinted per dice type (accent
+    # pulled toward warm gold) so a max roll on magma erupts fiery, on evil violet, etc. -
+    # the flash itself stays gold-white, the universal "success" beat. The flare reuses
+    # the thrown-die "BAM" glow at the impact point, which is what makes the landing read
+    # as a SMASH rather than a light show. (The rattle fired above, value-scaled.)
+    if is_max_roll:
+        var burst_material := gpu_particles_2d.process_material as ParticleProcessMaterial
+        if burst_material:
+            burst_material.color = DicePalette.burst(dice_type)
+        gpu_particles_2d.emitting = true
+        var die_rect := dice_display.get_global_rect()
+        _spawn_thrown_die_flare(self,
+                Vector2(die_rect.get_center().x, die_rect.end.y - 14.0),
+                DicePalette.burst(dice_type), true)
+        var max_flash := create_tween()
+        max_flash.tween_property(dice_display, "modulate", Color(2.2, 2.0, 1.2, 1.0), 0.06) \
+            .set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+        max_flash.tween_property(dice_display, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.22) \
+            .set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
+
+# Ghost-afterimage spawner for the max fall, driven 0->1 across the fall by tween_method.
+# Spawns at fixed progress thresholds (not per-frame) so the trail is 3 clean ghosts, not
+# a smudge; _smear_spawned resets in roll_dice.
+func _smear_step(t: float) -> void:
+    const THRESHOLDS := [0.15, 0.45, 0.75]
+    while _smear_spawned < THRESHOLDS.size() and t >= THRESHOLDS[_smear_spawned]:
+        _smear_spawned += 1
+        var ghost := TextureRect.new()
+        ghost.texture = dice_display.texture
+        ghost.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+        ghost.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+        ghost.size = dice_display.size
+        ghost.scale = dice_display.scale
+        ghost.pivot_offset = dice_display.pivot_offset
+        ghost.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        ghost.modulate = Color(1.0, 1.0, 1.0, 0.28)
+        # Sibling of DiceDisplay with default z 0: renders under the die (z 1), so the
+        # trail reads as left-behind light, never as a second die on top.
+        dice_display.get_parent().add_child(ghost)
+        ghost.position = dice_display.position
+        var tw := ghost.create_tween()
+        tw.tween_property(ghost, "modulate:a", 0.0, 0.11) \
+            .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+        tw.tween_callback(ghost.queue_free)
+
+
+# Small scale pop on the roll-history rack (the RichTextLabel node, not Global's array),
+# fired when a new chain face lands. Tracked so rapid rolls restart it from rest instead
+# of compounding mid-pop scales.
+func _punch_roll_history() -> void:
+    roll_history.pivot_offset = roll_history.size / 2.0
+    if _roll_history_punch_tween and _roll_history_punch_tween.is_valid():
+        _roll_history_punch_tween.kill()
+        roll_history.scale = Vector2.ONE
+    _roll_history_punch_tween = create_tween()
+    _roll_history_punch_tween.tween_property(roll_history, "scale", Vector2(1.12, 1.12), 0.06) \
+        .set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+    _roll_history_punch_tween.tween_property(roll_history, "scale", Vector2.ONE, 0.12) \
+        .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
+# Real visible shake (not a time_scale freeze), now on every landing with value-scaled
+# strength (see _on_roll_landed). Inline rather than reusing Shaker.shake() since that's
+# typed for Node2D and dice_display is a Control (TextureRect) - different CanvasItem
+# branch, position still works the same way.
+func _shake_dice_display(strength := 6.0) -> void:
+    # Anchor on the captured rest position, not a live read: this runs right after the hop's
+    # landing snap, but if anything ever reorders those, a live read would bake a mid-motion
+    # offset into every shake step. Tracked in _dice_shake_tween so the next roll_dice()
+    # can kill it and re-snap instead of capturing a shaken position as the new rest.
+    var orig_pos := _dice_display_rest_position if _dice_display_rest_captured \
+        else dice_display.position
+    _dice_shake_tween = create_tween()
     for i in 6:
         var offset := Vector2(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)) * strength
-        shake_tween.tween_property(dice_display, "position", orig_pos + offset, 0.025)
+        _dice_shake_tween.tween_property(dice_display, "position", orig_pos + offset, 0.025)
         strength *= 0.7
-    shake_tween.tween_property(dice_display, "position", orig_pos, 0.03)
+    _dice_shake_tween.tween_property(dice_display, "position", orig_pos, 0.03)
+
+
+# Soft dust poof at the die's base on every landing - the grounding half of the hop:
+# without it the slam reads as the die stopping mid-air. Same soft-radial + additive
+# recipe as the thrown-die shock puff, but squashed into a ground-hugging ellipse,
+# neutral warm (dust, not magic) and low alpha so it never fights the max-roll burst
+# when the two stack (additive-blend stacking lesson).
+func _spawn_roll_land_dust(size_mult := 1.0) -> void:
+    var puff := TextureRect.new()
+    puff.texture = _get_power_orb_texture()
+    puff.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    puff.stretch_mode = TextureRect.STRETCH_SCALE
+    puff.size = Vector2(46.0, 46.0)
+    puff.pivot_offset = puff.size / 2.0
+    puff.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    puff.material = _get_power_orb_material()
+    # Alpha rises with the puff's size so big landings kick up denser (not just wider)
+    # dust - capped under the additive-stacking ceiling.
+    puff.modulate = Color(0.82, 0.74, 0.58, minf(0.55, 0.25 + 0.2 * size_mult))
+    puff.scale = Vector2(0.7, 0.4)
+    # Sibling of DiceDisplay (z_index 1) with default z 0: the dust renders BEHIND the die,
+    # peeking out around its bottom edge - a ground puff, not a flash on top of the art.
+    dice_display.get_parent().add_child(puff)
+    var die_rect := dice_display.get_global_rect()
+    puff.global_position = Vector2(die_rect.get_center().x, die_rect.end.y - 10.0) \
+        - puff.size / 2.0
+    var tw := puff.create_tween()
+    tw.tween_property(puff, "scale", Vector2(2.2, 0.9) * size_mult, 0.22) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    tw.parallel().tween_property(puff, "modulate:a", 0.0, 0.22) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+    tw.tween_callback(puff.queue_free)
 
 
 # Soft white radial gradient, tinted per-orb via modulate - lets every dice-type color reuse
@@ -815,7 +1555,13 @@ func _orb_bezier_step(t: float, orb: TextureRect, p0: Vector2, p1: Vector2, p2: 
 func _spawn_power_orbs(roll_val: int, type: String, is_max_roll: bool) -> void:
     if roll_val <= 0:
         return  # evil dice's 0 face (and any other zero-value roll) adds nothing - no orbs, no reaction
-    var origin := dice_display.get_global_rect().get_center()
+    # Orbs erupt from UNDER the die, spread along its bottom edge - squeezed out by the
+    # slam rather than radiating from the die's heart. Fires on the landing frame, so
+    # the read is impact -> power (Julien, 2026-08). The bezier control point sits above
+    # min(start, end) so they still arc up and over into the Power number.
+    var die_rect := dice_display.get_global_rect()
+    var origin := Vector2(die_rect.get_center().x, die_rect.end.y - 8.0)
+    var origin_spread_x := die_rect.size.x * 0.38
     var target := current_power.get_global_rect().get_center()
     # Overbright multiply (same trick as the max-roll flash's Color(2.2, 2.0, 1.2, 1.0)) so the
     # orbs pop against the panel rather than reading as a flat/dim tint - was too shy at 1.0.
@@ -869,7 +1615,7 @@ func _spawn_power_orbs(roll_val: int, type: String, is_max_roll: bool) -> void:
         orb.size = Vector2(size, size)
         orb.pivot_offset = orb.size / 2.0
 
-        var start := origin + Vector2(randf_range(-14.0, 14.0), randf_range(-14.0, 14.0))
+        var start := origin + Vector2(randf_range(-origin_spread_x, origin_spread_x), randf_range(-4.0, 8.0))
         var end := target + Vector2(randf_range(-10.0, 10.0), randf_range(-10.0, 10.0))
         orb.global_position = start - orb.size / 2.0
 
@@ -1102,6 +1848,22 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
     current_power.modulate.a = 1.0
     _spawn_roll_popup(Global.last_roll)
     var power_punch = 1.2 + (Global.last_roll / 20.0)  # 1.25 on 1, 1.5 on 6, 1.8 on 12
+    # Chain ladder: the deeper into a same-type chain this roll is, the harder the number
+    # punches - the 4th consecutive roll HITS harder than the 1st even at the same face
+    # value. Depth = history size BEFORE this roll's append (it happens further down).
+    power_punch += POWER_CHAIN_PUNCH_STEP \
+            * clampi(Global.roll_history.size(), 0, POWER_CHAIN_PUNCH_CAP)
+    # Tier crossing: banking POWER_TIER_THRESHOLD+ in one chain fires a one-shot ignition
+    # flare on the number + a brief freeze. Deliberately NO persistent tint while above -
+    # the power color paths are a documented minefield of restore-to-snapshot bugs, and a
+    # one-shot beat can't fight them.
+    var tier_was := _power_tier_active
+    _power_tier_active = Global.roll_value >= POWER_TIER_THRESHOLD
+    if _power_tier_active and not tier_was:
+        _spawn_thrown_die_flare(self, current_power.get_global_rect().get_center(),
+                DicePalette.burst(dice_type), true)
+        Shaker.hit_stop(0.1)
+        power_punch += 0.25
     # Resting size grows with the turn's accumulated power (not just this single roll), so a
     # big turn leaves the number visibly bigger between rolls instead of snapping back to
     # the same neutral size every time - the goal Julien described as "feel more powerful"
@@ -1209,6 +1971,10 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
     Global.roll_history.append(Global.last_roll)
     print(Global.roll_history)
     update_roll_history_ui()
+    # The chain rack punches in sync with the landing (this whole function runs on the
+    # landing frame) - the new mini-face ARRIVES instead of just appearing, which is what
+    # makes the chain legible to someone who doesn't know the mechanic yet.
+    _punch_roll_history()
 
     # Emit appropriate events
     if dice_type != "red":

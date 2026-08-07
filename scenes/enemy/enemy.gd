@@ -30,6 +30,37 @@ var _hit_rest_position: Vector2
 var _hit_rest_sprite_scale: Vector2
 var _hit_reaction_active := false
 
+# Directional hit smear (juice_audit P1a): a radial burst says "something happened", a
+# smear says "force came FROM somewhere". Shared soft-streak texture + additive material,
+# static so all enemies reuse one instance (same recipe as dice.gd's power orbs).
+const HIT_SMEAR_MIN_DAMAGE := 3
+static var _smear_texture: GradientTexture2D
+static var _smear_material: CanvasItemMaterial
+
+
+static func _get_smear_texture() -> GradientTexture2D:
+    if _smear_texture:
+        return _smear_texture
+    var gradient := Gradient.new()
+    gradient.set_color(0, Color(1, 1, 1, 1))
+    gradient.set_color(1, Color(1, 1, 1, 0))
+    _smear_texture = GradientTexture2D.new()
+    _smear_texture.gradient = gradient
+    _smear_texture.width = 64
+    _smear_texture.height = 64
+    _smear_texture.fill = GradientTexture2D.FILL_RADIAL
+    _smear_texture.fill_from = Vector2(0.5, 0.5)
+    _smear_texture.fill_to = Vector2(0.5, 0.0)
+    return _smear_texture
+
+
+static func _get_smear_material() -> CanvasItemMaterial:
+    if _smear_material:
+        return _smear_material
+    _smear_material = CanvasItemMaterial.new()
+    _smear_material.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+    return _smear_material
+
 @export var stats: EnemyStats : set = set_enemy_stats
 @export var width: int 
 @export var height: int
@@ -530,6 +561,7 @@ func take_damage(damage: int, which_modifier: Modifier.Type) -> void:
     Global.damage_to_display = modified_damage - Global.blocked_to_display
 
     _play_hit_reaction()
+    _spawn_hit_smear(modified_damage)
     stats.take_damage(modified_damage)
 
     # Short, sharp white flash. Was 0.17s, which left the enemy a featureless white
@@ -572,6 +604,134 @@ func flash_impact() -> void:
             if is_instance_valid(self) and stats.health > 0:
                 sprite_2d.material = _base_sprite_material
     )
+
+
+# Directional slash smear on hit: a two-layer streak (wide accent sweep + thin white-hot
+# core) sweeping upper-left to lower-right (the player attacks from the left), with a
+# handful of sparks flung along the slash direction. Tinted by the active dice type's
+# accent so a magma hit slashes orange, a blue hit indigo. This REPLACES the old radial
+# card-particle burst on attacks (gated off in card.gd::play - the burst buried the
+# slash; Julien, 2026-08). Length/sparks scale with damage; hits under
+# HIT_SMEAR_MIN_DAMAGE (block chip, 1-point ticks) stay smear-free. Spawned as children
+# of this enemy so multi-body fight scales (0.65-0.75 Enemy.scale) shrink it with the body.
+func _spawn_hit_smear(damage: int) -> void:
+    if damage < HIT_SMEAR_MIN_DAMAGE:
+        return
+    # Deferred a beat past take_damage's white flash: the smear used to spawn in the same
+    # instant the whole sprite went flat white, and additive light over a white silhouette
+    # is invisible - "I can barely see it" (Julien, 2026-08). Now the beat is flash pop ->
+    # colored slash sweeping the restored sprite. The delay tween is owned by this node,
+    # so a killing blow that frees the enemy silently cancels the pending slash.
+    var delay := create_tween()
+    delay.tween_interval(0.055)
+    delay.tween_callback(_spawn_hit_smear_now.bind(damage))
+
+
+func _spawn_hit_smear_now(damage: int) -> void:
+    var accent := DicePalette.accent(Global.dice_type)
+    var angle := 0.55 + randf_range(-0.12, 0.12)
+    var dir := Vector2(cos(angle), sin(angle))
+    var length := clampf(88.0 + damage * 6.0, 88.0, 230.0)
+    var origin := sprite_2d.position \
+            + Vector2(randf_range(-10.0, 10.0), randf_range(-14.0, 6.0)) - dir * length * 0.35
+    # Two blend modes on purpose, one per failure mode: the wide sweep is NORMAL-blend
+    # saturated accent (additive washes to pastel and dies on light backgrounds - this is
+    # what makes the slash read as unmistakably BLUE/ORANGE/etc), the thin core is
+    # additive white-hot (which is what survives on dark act-2 backgrounds). Between the
+    # two, some layer is loud on every ground the game has.
+    _spawn_smear_streak(origin, dir, angle, length,
+            Vector2(length / 64.0, 0.78),
+            Color(accent.r, accent.g, accent.b, 0.95), 0.72, false)
+    _spawn_smear_streak(origin + dir * 12.0, dir, angle, length,
+            Vector2(length / 64.0 * 1.12, 0.24),
+            Color(1.8, 1.75, 1.6, 0.95), 0.46, true)
+
+    # The MASS: a dense one-shot cone of accent motes blasting along the slash line. This
+    # is what the old radial burst had that streaks alone don't - ~75 glowing particles
+    # for half a second reads as an event, 2 sprites read as a glint ("the particles were
+    # 10x more noticeable", Julien 2026-08). Same particle language the burst spoke, but
+    # AIMED: spread 26° instead of 165°, so the explosion continues the cut instead of
+    # saying "something happened here".
+    var burst := CPUParticles2D.new()
+    burst.one_shot = true
+    burst.explosiveness = 1.0
+    burst.amount = clampi(40 + damage * 3, 40, 90)
+    burst.lifetime = 0.42
+    burst.texture = _get_smear_texture()
+    burst.material = _get_smear_material()
+    burst.direction = dir
+    burst.spread = 26.0
+    burst.initial_velocity_min = 220.0
+    burst.initial_velocity_max = 480.0
+    burst.gravity = Vector2(0, 260)
+    burst.scale_amount_min = 0.07
+    burst.scale_amount_max = 0.16
+    burst.color = Color(accent.r * 1.6, accent.g * 1.6, accent.b * 1.6, 1.0)
+    burst.z_index = 8
+    add_child(burst)
+    burst.position = origin + dir * length * 0.4
+    burst.emitting = true
+    var cleanup := burst.create_tween()
+    cleanup.tween_interval(0.75)
+    cleanup.tween_callback(burst.queue_free)
+    # Sparks flung along the slash: the debris that continues the force after the streak
+    # fades. Count scales with damage.
+    var spark_count := 3 + mini(damage / 5, 4)
+    for i in spark_count:
+        var spark := Sprite2D.new()
+        spark.texture = _get_smear_texture()
+        spark.material = _get_smear_material()
+        spark.modulate = Color(accent.r + 0.6, accent.g + 0.6, accent.b + 0.6,
+                randf_range(0.6, 0.9))
+        spark.z_index = 9
+        var s := randf_range(0.10, 0.22)
+        spark.scale = Vector2(s * randf_range(1.6, 2.6), s)
+        var spark_dir := dir.rotated(randf_range(-0.35, 0.35))
+        spark.rotation = spark_dir.angle()
+        add_child(spark)
+        spark.position = origin + dir * length * randf_range(0.35, 0.75)
+        var travel := spark_dir * randf_range(55.0, 130.0)
+        var spark_tw := spark.create_tween()
+        spark_tw.tween_property(spark, "position", spark.position + travel,
+                randf_range(0.16, 0.26)) \
+            .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+        spark_tw.parallel().tween_property(spark, "modulate:a", 0.0, randf_range(0.14, 0.24)) \
+            .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+        spark_tw.tween_callback(spark.queue_free)
+
+
+# One streak layer of the slash. The streak sweeps forward along `dir` while stretching
+# slightly and fading - motion sells the cut more than the shape does. `additive` false =
+# normal blend, for saturated color that survives light backgrounds and the white flash.
+func _spawn_smear_streak(origin: Vector2, dir: Vector2, angle: float, length: float,
+        streak_scale: Vector2, color: Color, life: float, additive := true) -> void:
+    var smear := Sprite2D.new()
+    smear.texture = _get_smear_texture()
+    if additive:
+        smear.material = _get_smear_material()
+    smear.modulate = color
+    # ⚠️ The enemy's Sprite2D sits at z_index 7 (enemy.tscn) - anything lower renders
+    # BEHIND the body, which is why the first slashes were barely visible. 9 clears the
+    # sprite while staying under the IntentUI at 10.
+    smear.z_index = 9
+    smear.rotation = angle
+    smear.scale = streak_scale
+    add_child(smear)
+    smear.position = origin
+    # Anime-slash anatomy: the sweep happens FAST (first ~45% of life), then the line
+    # HOLDS at full brightness before fading slowly - "I barely have time to see what's
+    # going on" (Julien, 2026-08) was the old everything-in-motion-while-fading version.
+    # Two tweens: motion, then a separate hold-then-fade owning alpha and the free.
+    var tw := smear.create_tween()
+    tw.tween_property(smear, "position", origin + dir * length * 0.6, life * 0.45) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    tw.parallel().tween_property(smear, "scale:x", streak_scale.x * 1.3, life * 0.45) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    var fade := smear.create_tween()
+    fade.tween_interval(life * 0.35)
+    fade.tween_property(smear, "modulate:a", 0.0, life * 0.65) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+    fade.tween_callback(smear.queue_free)
 
 
 # Directional knockback + sprite squash on hit. Knockback rides self.position (the same

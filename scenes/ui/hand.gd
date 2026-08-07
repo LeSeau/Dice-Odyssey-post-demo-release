@@ -27,6 +27,25 @@ const TUTORIAL_SCALE := Vector2(1.06, 1.06)
 # down (the plain hover's mouse_exited reset). Cleared by clear_card_lift when the step ends.
 var tutorial_locked_card: CardUI = null
 
+# TutorialDirector's input gate, mirrored here. null = no gate (every normal fight); an Array
+# of allowed card ids = only those cards may be picked up.
+#
+# It has to live in THIS file, not only in the director, because both places that decide a
+# CardUI's `disabled` are here and both used to hand cards back interactive behind the gate's
+# back:
+#   * add_card() builds every CardUI fresh, so it arrives at the default disabled = false. The
+#     turn-start deal takes ~1.25s (5 cards x HAND_DRAW_INTERVAL) and player_hand_drawn - the
+#     only thing that re-applied the gate - fires at the very END, so a whole scripted turn's
+#     hand was fully playable for over a second on every turn.
+#   * _on_card_ui_reparent_requested() re-enabled unconditionally on the way back to BASE, so
+#     one cancelled drag un-gated that card permanently.
+# Either one lets an off-script card be played mid-step, which is what desynced the tutorial
+# for the itch playtester who "just started clicking things": their Reinforce went out during
+# the Low Blow step, and the step that later asked for Reinforce found it in the discard and
+# disabled the entire hand, ROLL, every dice slot and End Turn at once - only "Skip Tutorial"
+# was left clickable. Both paths now ask the gate instead of assuming.
+var tutorial_card_gate = null
+
 # Store original vertical Y positions (not X!)
 var _original_positions: Dictionary = {}
 var _original_z_indices: Dictionary = {}
@@ -37,6 +56,12 @@ func _ready() -> void:
     Events.add_card_to_hand_requested.connect(_on_add_card_to_hand_requested)
     Events.hover_playable_cards.connect(_on_hover_playable_cards)
     
+func tutorial_gate_allows(card_ui: CardUI) -> bool:
+    if tutorial_card_gate == null:
+        return true
+    return card_ui.card != null and tutorial_card_gate.has(card_ui.card.id)
+
+
 func add_card(card: Card) -> void:
     var new_card_ui := CARD_UI_SCENE.instantiate() as CardUI
     add_child(new_card_ui)
@@ -48,6 +73,10 @@ func add_card(card: Card) -> void:
 
     new_card_ui.mouse_entered.connect(_on_card_mouse_entered.bind(new_card_ui))
     new_card_ui.mouse_exited.connect(_on_card_mouse_exited.bind(new_card_ui))
+
+    # Set AFTER .card is assigned (the gate matches on card.id) and before the card can take
+    # any input, so a card dealt mid-step is never live for a frame. No-op outside the tutorial.
+    new_card_ui.disabled = not tutorial_gate_allows(new_card_ui)
 
     new_card_ui.set_playable_visual(_get_glow_state(card))
     _play_draw_entrance(new_card_ui)
@@ -94,7 +123,9 @@ func _on_card_ui_reparent_requested(child: CardUI) -> void:
     child.reparent(self)
     var new_index := clampi(child.original_index, 0, get_child_count())
     move_child.call_deferred(child, new_index)
-    child.set_deferred("disabled", false)
+    # Deliberately NOT an unconditional re-enable: a card coming home from a cancelled drag
+    # must land back under whatever gate is in force, or the tutorial loses it for good.
+    child.set_deferred("disabled", not tutorial_gate_allows(child))
     call_deferred("_update_card_positions")
 
 func _update_card_positions() -> void:

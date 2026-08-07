@@ -20,6 +20,10 @@ const RECOMBOBULATE_ID := "card_recombobulate"
 const SCOUT3_ID := "card_oracle3"
 
 const AIM_NUDGE_TIMEOUT := 4.0
+# How long a step is allowed to sit with nothing the player can actually click before the
+# stuck guard hands the fight back (see _on_stuck_check_timeout). Comfortably longer than the
+# turn-start deal (~1.25s) and both _delay_step pauses, so a normal beat never trips it.
+const STUCK_CHECK_DELAY := 2.5
 const ENEMY_ARROW_DROP := 34.0
 # Pause after the first Strike connects, before the "Power went back to 0" box appears.
 const POST_HIT_BEAT := 1.0
@@ -50,6 +54,7 @@ var _step_index := -1
 var _enemy_highlight_on := false
 var _scout_gated := false
 var _aim_nudge_timer: Timer
+var _stuck_timer: Timer
 var _lifted_card: CardUI
 var _power_alpha_boosted := false
 
@@ -101,6 +106,12 @@ func _ready() -> void:
     _aim_nudge_timer.wait_time = AIM_NUDGE_TIMEOUT
     add_child(_aim_nudge_timer)
     _aim_nudge_timer.timeout.connect(_on_aim_nudge_timeout)
+
+    _stuck_timer = Timer.new()
+    _stuck_timer.one_shot = true
+    add_child(_stuck_timer)
+    _stuck_timer.timeout.connect(_on_stuck_check_timeout)
+
     Events.card_aim_started.connect(_on_card_aim_started)
     Events.card_aim_ended.connect(_on_card_aim_ended)
     Events.player_hand_drawn.connect(_on_player_hand_drawn)
@@ -128,6 +139,56 @@ func _clear_pending() -> void:
     if _has_pending and _pending_signal.is_connected(_pending_callable):
         _pending_signal.disconnect(_pending_callable)
     _has_pending = false
+
+
+# Like _wait(), but only advances when the emitted value passes `accepts` - anything else is
+# ignored and the step simply stays put, still asking for the thing it asked for.
+#
+# Every "play this card" step used to be a plain _wait(Events.card_played). There is exactly
+# ONE emitter of that signal (Card.play) and it does not care which card it was, so ANY card
+# reaching play advanced the step. One off-script play therefore shifted every remaining step
+# by one, and a few beats later the script asked for a card that was already in the discard -
+# which _apply_gate answers by disabling the whole hand, ROLL, every dice slot AND End Turn at
+# once. That is the hard lock an itch playtester hit: the tutorial was asking for Reinforce
+# while Reinforce was in the discard, and "Skip Tutorial" was the only thing left clickable.
+#
+# The gate holes that let the off-script play happen in the first place are closed in hand.gd,
+# but the director should never be one mis-timed click away from soft-locking regardless of how
+# a card got played, so the waits name their card now.
+func _wait_for(sig: Signal, accepts: Callable) -> void:
+    _clear_pending()
+    # Deliberately NOT CONNECT_ONE_SHOT: the connection has to survive emissions that don't
+    # match. _clear_pending() tears it down instead, and _advance() always runs that first.
+    _pending_callable = func(value: Variant) -> void:
+        if accepts.call(value):
+            _advance()
+    _pending_signal = sig
+    _has_pending = true
+    sig.connect(_pending_callable)
+
+
+# Both read the card ids straight out of the gate the step just applied, rather than taking
+# their own list: the step's "these cards are clickable" and its "this is what I'm waiting for"
+# can then never drift apart, which is precisely the kind of edit-one-forget-the-other slip
+# that ends in a locked tutorial. Call them immediately after _apply_gate.
+
+# card_played emits the Card resource itself...
+func _wait_card_played() -> void:
+    var allowed_ids: Array = _current_gate.get("cards", [])
+    var accepts := func(value: Variant) -> bool:
+        return value is Card and allowed_ids.has((value as Card).id)
+    _wait_for(Events.card_played, accepts)
+
+
+# ...while card_charged emits the CardUI holding it.
+func _wait_card_charged() -> void:
+    var allowed_ids: Array = _current_gate.get("cards", [])
+    var accepts := func(value: Variant) -> bool:
+        if not (value is CardUI):
+            return false
+        var c: Card = (value as CardUI).card
+        return c != null and allowed_ids.has(c.id)
+    _wait_for(Events.card_charged, accepts)
 
 
 # Lets a step breathe before it draws anything (see _step_t1_5). Returns FALSE if the tutorial
@@ -194,6 +255,11 @@ func _apply_gate(gate: Dictionary) -> void:
     roll_button.disabled = not gate.get("roll", false)
 
     var allowed_ids: Array = gate.get("cards", [])
+    # Mirrored onto the Hand so cards that arrive LATER land gated too - the loop below only
+    # reaches the ones that exist right now, and Hand hands out fresh CardUIs (turn-start deal)
+    # and re-enables returning ones (cancelled drag) on its own schedule. See
+    # Hand.tutorial_card_gate for the two leaks this closes.
+    hand.tutorial_card_gate = allowed_ids
     for card_ui: CardUI in hand.get_children():
         card_ui.disabled = not (card_ui.card and allowed_ids.has(card_ui.card.id))
 
@@ -204,6 +270,7 @@ func _apply_gate(gate: Dictionary) -> void:
             slot.mouse_filter = Control.MOUSE_FILTER_STOP if allowed_dice.has(dtype) else Control.MOUSE_FILTER_IGNORE
 
     end_turn_button.disabled = not gate.get("end_turn", false)
+    _arm_stuck_check()
 
 
 func _gate_scout_faces(allowed_index: int) -> void:
@@ -243,6 +310,85 @@ func _on_player_hand_drawn() -> void:
     if not Global.tutorial_on:
         return
     _apply_gate(_current_gate)
+
+
+# ---------------------------------------------------------------- Stuck guard
+#
+# Last-resort net. Every gate is a whitelist - "only these things are clickable" - so a step
+# whose required thing isn't there leaves NOTHING clickable except Skip. That is not a
+# hypothetical: it shipped to itch, where a player who "just started clicking things" reached
+# the Reinforce step with Reinforce already in the discard and had exactly one live button on
+# the whole screen.
+#
+# The specific desync behind that report is fixed above (specific waits) and in hand.gd (no
+# more cards slipping out from under the gate), but a scripted 3-turn fight has a lot of
+# surface area and players will keep finding new ways through it. So rather than trusting the
+# script to be airtight, this checks the only thing that actually matters - can the player
+# still DO the thing the current step is asking for - and hands the fight back if not.
+# Releasing the tutorial early is always recoverable; a dead screen never is.
+
+func _arm_stuck_check() -> void:
+    if not Global.tutorial_on or _stuck_timer == null:
+        return
+    _stuck_timer.start(STUCK_CHECK_DELAY)
+
+
+func _on_stuck_check_timeout() -> void:
+    if not Global.tutorial_on or not is_instance_valid(overlay):
+        return
+    # A card being dragged or aimed has been reparented to the ui_layer, so it isn't a hand
+    # child and a card step reads as unsatisfiable for as long as the player holds it. Look
+    # again later rather than judging mid-gesture.
+    if Global.dragging_card or _gate_is_actionable():
+        _arm_stuck_check()
+        return
+    _release_tutorial(
+        "[center]Alright, you're improvising! The tutorial will step aside, this fight is yours to finish. [color=gold]Roll[/color] your Dice, play [color=#c896ff]Cards[/color] with the [color=red]Power[/color] you build, and [color=gold]end your turn[/color] when you're done.")
+
+
+# Is there anything on screen right now that the player can click to move this step forward?
+func _gate_is_actionable() -> bool:
+    if _current_gate.get("end_turn", false):
+        return true
+    if _current_gate.get("roll", false) and _can_roll_now():
+        return true
+    for dtype: String in _current_gate.get("dice_types", []):
+        if dice_interface.get(DiceInterface.DICE_TYPE_TO_NODE.get(dtype, "")) != null:
+            return true
+    var allowed_ids: Array = _current_gate.get("cards", [])
+    for card_ui: CardUI in hand.get_children():
+        # visible matters: a card socketed on the Red Dice is hidden but is still a hand
+        # child, and it cannot be played from the hand while it sits in the socket.
+        if card_ui.visible and card_ui.card and allowed_ids.has(card_ui.card.id):
+            return true
+    # Nothing gated in at all means the step is waiting on the overlay's own Continue button,
+    # or on the Scout panel (which gates its own faces via battle.gd). Fine either way - as
+    # long as one of them is actually on screen.
+    if _current_gate.is_empty():
+        return _overlay_awaits_click() or scout_panel.visible
+    return false
+
+
+func _overlay_awaits_click() -> bool:
+    if not is_instance_valid(overlay):
+        return false
+    # is_visible_in_tree(), not .visible: both buttons live inside panels that get hidden as a
+    # whole, so their own flag can read true while nothing is drawn.
+    if overlay.continue_button and overlay.continue_button.is_visible_in_tree():
+        return true
+    return overlay.welcome_button and overlay.welcome_button.is_visible_in_tree()
+
+
+# Mirrors dice.gd::roll_dice's own preconditions - a ROLL step is only actionable if pressing
+# the button would actually roll something rather than just play the error sound.
+func _can_roll_now() -> bool:
+    var amount_prop: String = DiceInterface.DICE_TYPE_TO_AMOUNT.get(Global.dice_type, "")
+    if amount_prop.is_empty() or int(Global.get(amount_prop)) <= 0:
+        return false
+    if Global.dice_type == "red":
+        return active_dice.charged_card_texture != null \
+            and active_dice.charged_card_texture.texture != null
+    return true
 
 
 # ---------------------------------------------------------------- Lookups
@@ -534,16 +680,44 @@ func _on_aim_nudge_timeout() -> void:
 # ---------------------------------------------------------------- Skip
 
 func _on_skip_pressed() -> void:
+    _release_tutorial()
+
+
+# The one way the tutorial ends early, shared by the Skip button and the stuck guard: every
+# input un-gated, forced rolls and scout faces dropped, director inert for the rest of what is
+# now a normal fight. Kept in a single place so there is only one teardown to get right.
+#
+# closing_note is for the stuck guard - the player didn't ask for the tutorial to end, so it
+# says so and reminds them what the controls are, then closes on Continue. Skip passes nothing
+# and the overlay just goes away, since pressing Skip already said everything.
+func _release_tutorial(closing_note: String = "") -> void:
     Global.tutorial_forced_rolls = []
     Global.tutorial_forced_scout_faces = []
     _reset_between_steps()  # also clears the pending completion-signal wait, un-gates the
                             # scout faces and drops the finale's halo
-    _apply_gate({"roll": true, "cards": _all_card_ids(), "dice_types": DiceInterface.DICE_TYPE_TO_NODE.keys(), "end_turn": true})
-    overlay.shutdown()
+    if _stuck_timer:
+        _stuck_timer.stop()
     # Must be set false BEFORE any further hand draws: _on_player_hand_drawn and the
     # battle_over hook both early-return on this, turning the director inert for the
-    # rest of the (now normal) fight.
+    # rest of the (now normal) fight. Also before _apply_gate below, whose _arm_stuck_check
+    # would otherwise put the guard straight back on duty.
     Global.tutorial_on = false
+    _apply_gate({"roll": true, "cards": _all_card_ids(), "dice_types": DiceInterface.DICE_TYPE_TO_NODE.keys(), "end_turn": true})
+    # AFTER that _apply_gate, which mirrors its own (hand-shaped, already-stale) allow-list onto
+    # the Hand: from here on every card drawn or returned must come back fully interactive.
+    hand.tutorial_card_gate = null
+    if closing_note.is_empty():
+        overlay.shutdown()
+        return
+    overlay.set_dim(TutorialOverlay.Dim.NONE)
+    overlay.skip_button.hide()
+    overlay.set_text(closing_note, "near_dice", true)
+    overlay.continue_pressed.connect(_on_release_note_dismissed, CONNECT_ONE_SHOT)
+
+
+func _on_release_note_dismissed() -> void:
+    if is_instance_valid(overlay):
+        overlay.shutdown()
 
 
 func _all_card_ids() -> Array:
@@ -677,7 +851,7 @@ func _step_t1_4b() -> void:
     _highlight_enemy()
     overlay.show_pointer(_enemy_arrow_point(), TutorialOverlay.PointerDir.DOWN)
     _apply_gate({"cards": [STRIKE_ID]})
-    _wait(Events.card_played, 1)
+    _wait_card_played()
     _pulse_lifted_card()
 
 
@@ -758,7 +932,7 @@ func _step_t1_8() -> void:
     _lift_card(BLOCK_ID)
     overlay.show_pointer(_point_above(_socket_rect()), TutorialOverlay.PointerDir.DOWN)
     _apply_gate({"cards": [BLOCK_ID]})
-    _wait(Events.card_charged, 1)
+    _wait_card_charged()
 
 
 func _step_t1_9() -> void:
@@ -846,7 +1020,7 @@ func _step_t2_3() -> void:
         "near_dice", false)
     _lift_card(RECOMBOBULATE_ID)
     _apply_gate({"cards": [RECOMBOBULATE_ID]})
-    _wait(Events.card_played, 1)
+    _wait_card_played()
     _pulse_lifted_card()
 
 
@@ -868,7 +1042,7 @@ func _step_t2_5() -> void:
     _highlight_enemy()
     overlay.show_pointer(_enemy_arrow_point(), TutorialOverlay.PointerDir.DOWN)
     _apply_gate({"cards": [LOW_BLOW_ID]})
-    _wait(Events.card_played, 1)
+    _wait_card_played()
     # The MAX 3 ribbon is what this step's copy is actually ABOUT, and nothing marked it -
     # the player had to work out which strip of the card "that MAX 3 ribbon" meant.
     _pulse_lifted_card(true)
@@ -893,7 +1067,7 @@ func _step_t2_7() -> void:
         "near_dice", false)
     _lift_card(REINFORCE_ID)
     _apply_gate({"cards": [REINFORCE_ID]})
-    _wait(Events.card_played, 1)
+    _wait_card_played()
     _pulse_lifted_card()
 
 
@@ -904,7 +1078,7 @@ func _step_t2_8() -> void:
         "near_dice", false)
     _lift_card(BLOCK_ID)
     _apply_gate({"cards": [BLOCK_ID]})
-    _wait(Events.card_played, 1)
+    _wait_card_played()
     _pulse_lifted_card()
 
 
