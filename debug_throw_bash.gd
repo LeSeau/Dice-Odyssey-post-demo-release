@@ -36,6 +36,16 @@ func _ready() -> void:
 	Global.blue_dice_current_amount = 2
 	Global.red_dice_max_amount = 1
 	Global.red_dice_current_amount = 1
+	if mode == "reel":
+		# Marketing capture: own every thrown type so the dice row reads "dice game"
+		# and the 8-die volley below is a legal Dice Avalanche fan-out.
+		for t in ["blue", "red", "evil", "giant", "green", "even", "odd", "magma"]:
+			Global.set("%s_dice_max_amount" % t, 1)
+			Global.set("%s_dice_current_amount" % t, 1)
+		Global.blue_dice_max_amount = 2
+		Global.blue_dice_current_amount = 2
+		Global.thrown_dice_bonus_fight = 0
+		Global.last_played_card_position = CARD_RELEASE
 
 	var bg := TextureRect.new()
 	bg.texture = load("res://assets/backgrounds/combat_bg_act1_hallway_mountain_ruins.png")
@@ -58,6 +68,9 @@ func _ready() -> void:
 	var fight_path := OS.get_environment("THROW_BASH_FIGHT")
 	if fight_path == "":
 		fight_path = "res://battles/tier_1_crab_satyr.tscn"
+		if mode == "reel":
+			# Big readable bruiser + a neighbor for context.
+			fight_path = "res://battles/tier_1_machopeur_satyr.tscn"
 	var fight: Node = (load(fight_path) as PackedScene).instantiate()
 	add_child(fight)
 
@@ -102,6 +115,33 @@ func _ready() -> void:
 	for i in 6:
 		await get_tree().process_frame
 
+	# reel: stage the real play - exact-kill HP on the target, the card presented at the
+	# real stage-hold spot, a beat to read it, then the volley erupts from the card.
+	var reel_card = null  # untyped: .card is a script property (typed Control would not compile)
+	if mode == "reel":
+		# Widest-sprite pick grabs the edge-hugging Satyr here; the mid-screen Marauder
+		# is the readable target (popups clipped at the screen edge on the Satyr).
+		for child in fight.get_children():
+			if child is Enemy and String(child.name).begins_with("Machopeur"):
+				enemy = child
+		var st = enemy.get("stats")
+		st.max_health = 47  # == the fixed volley total below, so the LAST die kills
+		st.health = 47
+		reel_card = (load("res://scenes/ui/card_menu_ui.tscn") as PackedScene).instantiate()
+		add_child(reel_card)
+		reel_card.card = load("res://characters/warrior/cards/card_dice_avalanche.tres")
+		reel_card.position = Vector2(345, 300)  # center (415,405): clears the big roll die
+		reel_card.pivot_offset = Vector2(70, 105)
+		reel_card.modulate.a = 0.0
+		reel_card.scale = Vector2(0.9, 0.9)
+		var pop := create_tween()
+		pop.set_parallel(true)
+		pop.tween_property(reel_card, "modulate:a", 1.0, 0.22)
+		pop.tween_property(reel_card, "scale", Vector2(1.12, 1.12), 0.3) \
+				.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		for i in 34:
+			await get_tree().process_frame
+
 	var throws: Array = []
 	var tail_frames := 0
 	match mode:
@@ -111,6 +151,30 @@ func _ready() -> void:
 		"airland":
 			throws = [{"type": "giant", "value": 9, "target": null}]
 			tail_frames = 55
+		"reel":
+			# Marketing take: fixed values (deterministic), REAL damage through the card's
+			# own _land_thrown_die (popups at impact, HP chip, hit-stop), giant 12 last as
+			# the killing blow. Sum = 47 = target HP, so no mid-volley death/retarget.
+			var av := [["blue", 3], ["green", 2], ["odd", 7], ["red", 5],
+					["even", 8], ["magma", 4], ["evil", 6], ["giant", 12]]
+			for e in av:
+				throws.append({"type": e[0], "value": e[1], "target": enemy})
+			var av_card: Card = load("res://characters/warrior/cards/card_dice_avalanche.tres")
+			var stagger := Global.dice_throw_volley_stagger(throws.size())
+			for i in throws.size():
+				var entry: Dictionary = throws[i]
+				av_card._land_thrown_die(get_tree(), enemy, int(entry["value"]),
+						Global.DICE_THROW_FLIGHT_TIME + stagger * i,
+						av_card.sound, String(entry["type"]), int(entry["value"]))
+			if reel_card != null:
+				var exit := create_tween()
+				exit.set_parallel(true)
+				exit.tween_property(reel_card, "position", Vector2(1150, 620), 0.42) \
+						.set_delay(0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+				exit.tween_property(reel_card, "scale", Vector2(0.12, 0.12), 0.42) \
+						.set_delay(0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+				exit.tween_property(reel_card, "modulate:a", 0.0, 0.28).set_delay(0.5)
+			tail_frames = 150
 		"avalanche":
 			# One die of each owned type at the target - the max Dice Avalanche fan-out,
 			# for checking the drumroll spacing / per-hit readability.
@@ -127,8 +191,11 @@ func _ready() -> void:
 			]
 			tail_frames = 80
 
-	print("[throw-bash] emitting '%s' now (movie lead-in frames end here)" % mode)
-	Events.dice_thrown.emit(throws, CARD_RELEASE)
+	var emit_origin := CARD_RELEASE
+	if mode == "reel":
+		emit_origin = Vector2(415, 405)  # the staged card's center - dice erupt from the card
+	print("[throw-bash] emitting '%s' now at engine frame %d (movie lead-in ends here)" % [mode, Engine.get_process_frames()])
+	Events.dice_thrown.emit(throws, emit_origin)
 
 	for f in tail_frames:
 		await get_tree().process_frame
