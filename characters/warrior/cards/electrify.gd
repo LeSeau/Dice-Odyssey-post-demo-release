@@ -20,8 +20,8 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     status_effect.status = depleted
     var player_targets = targets[0].get_tree().get_nodes_in_group("player")
     status_effect.execute(player_targets)
-    # The Depleted cost is paid in BLUE, not in the Odd dice this card just handed out
-    # (Julien, 2026-07-30): the card is a cross-type trade - a burst of Odd now, one fewer
+    # The Depleted cost is paid in BLUE, not in the Ricochet dice this card just handed out
+    # (Julien, 2026-07-30): the card is a cross-type trade - a burst of Ricochet now, one fewer
     # Blue on your next turn - so taxing the same type it just granted would cancel its own
     # point. Reverts the 07-28 switch to odd_dice_bonus_amount.
     Global.blue_dice_bonus_amount -= 1

@@ -147,6 +147,9 @@ func start_battle() -> void:
     Global.gargantua_debuff_attack_done = false
     Global.ink_active = false
     Global.thrown_dice_bonus_fight = 0
+    # Golem carry-over is per-FIGHT: dice banked at the end of one combat must not show up
+    # in the opening hand of the next one.
+    Global.golem_dice_carryover = 0
     # battle_started MUST fire before the START_OF_COMBAT relic cascade below: that cascade
     # synchronously calls player_handler.start_battle() -> start_turn() -> emits
     # player_turn_started, which recomputes each dice type's current_amount from its

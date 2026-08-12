@@ -240,7 +240,9 @@ var card_removals_bought = 0
 # Column order of the dice shop - shop_dice_selection / shop_dice_deal_index index space.
 const DICE_TYPE_ORDER := ["evil", "giant", "magma", "even", "odd", "blue", "red", "green", "mech"]
 const DICE_BASE_PRICES := {
-    "evil": 240, "giant": 240, "magma": 270, "even": 210, "odd": 190,
+    # Golem ("even") and Ricochet ("odd") were repriced 210/190 -> 240 in the rework: carry-over
+    # and the once-per-roll reroll put both in the same build-defining tier as Evil/Giant.
+    "evil": 240, "giant": 240, "magma": 270, "even": 240, "odd": 240,
     "blue": 180, "red": 180, "green": 150, "mech": 200,
 }
 # Every dice purchase (ANY type) raises ALL dice prices by this factor. Die #1 at base =
@@ -397,6 +399,26 @@ var no_reset: bool = false
 # reset_run_state() for run hygiene.
 var thrown_dice_bonus_fight := 0
 
+# Golem Dice (internal type "even"): unspent dice roll over into the next turn instead of
+# being lost. Captured from the leftover count on player_turn_ended and consumed by
+# dice_interface's refill on the next player_turn_started.
+#
+# ⚠️ This CANNOT just read even_dice_current_amount at refill time, which is what the other
+# eight types effectively do. Buying a Golem die in the shop does `current += 1` BETWEEN
+# fights (shop.gd), so the refill would read that purchase as "carried over" and hand out
+# the die twice. Fight-scoped for the same reason ink_active is: leftovers must not survive
+# into the next combat. Reset by battle.gd::start_battle() and reset_run_state().
+var golem_dice_carryover := 0
+
+# True only while a Ricochet reroll is travelling through dice.gd's roll path. Read by
+# dice_interface._on_dice_rolled to skip the die decrement: a reroll re-rolls the die you
+# already spent, it must not spend a second one. Everything ELSE on that path is deliberately
+# left alone - relics, per-roll counters and the Bulwark infusion all treat the reroll as a
+# second roll (Julien's call, 2026-08-12); only Power, roll history and the shown face are
+# rewound, because those are the only ones that can be undone without a rewind system for
+# damage already dealt and Block already granted.
+var ricochet_reroll_active := false
+
 var pending_card_rewards = 1
 var hound_debuff_attack_done = false
 var gargantua_debuff_attack_done = false
@@ -444,6 +466,7 @@ func reset_run_state() -> void:
     power_generated_this_turn = 0
     no_reset = false
     thrown_dice_bonus_fight = 0
+    golem_dice_carryover = 0
 
     ink_active = false
     charged_dice_this_turn = false

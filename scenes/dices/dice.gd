@@ -25,6 +25,8 @@ var _power_tooltip: Node = null
 @onready var mech_section: Control = $MechSection
 @onready var mech_increase: TextureButton = $MechSection/MechIncrease
 @onready var mech_decrease: TextureButton = $MechSection/MechDecrease
+@onready var ricochet_section: Control = $RicochetSection
+@onready var ricochet_button: TextureButton = $RicochetSection/RicochetButton
 @onready var bonus_separator: ColorRect = $CardDropArea/CardBackground/CardFrame/BonusSeparator
 
 @onready var aura: ColorRect = $Panel/Aura
@@ -101,6 +103,27 @@ func release_die_coil() -> void:
 # How many ±1 power adjustments have been spent on the CURRENT mech roll. Base mech allows 1;
 # the Clockwork infusion (Mech) allows 2 (see _mech_adjustments_allowed).
 var mech_adjustments_used := 0
+
+# --- Ricochet Dice ("odd"): one reroll per roll ---------------------------------------------
+# Deliberately built on the Mech ±1 pattern (same "post-roll adjustment" shape, same button
+# polish, same column beside the die) with ONE critical divergence, flagged here because it is
+# the thing that breaks if someone later "tidies" the two to match: Mech's allowance refreshes
+# at the end of EVERY roll, because every Mech roll is a new die. A Ricochet reroll is the SAME
+# roll happening again, so refreshing on its landing would grant an endless reroll chain. See
+# the guarded reset at the end of _apply_roll_result.
+var ricochet_rerolls_used := 0
+# Power state as it stood immediately BEFORE the current roll resolved, so a reroll can put the
+# discarded result back exactly. Captured in roll_dice() on fresh rolls only - a reroll has
+# already restored to this same state, so re-capturing would be a no-op at best.
+var _ricochet_snapshot := {}
+
+
+# One reroll per roll. A function rather than a constant so a future Ricochet infusion can
+# raise it the way Clockwork raises _mech_adjustments_allowed().
+func _ricochet_rerolls_allowed() -> int:
+    return 1
+
+
 # Inferno infusion (Magma): only the FIRST magma roll of a turn double-burns. Reset in
 # _on_player_turn_started.
 var _magma_burned_this_turn := false
@@ -310,6 +333,7 @@ const MECH_ARROW_PUNCH_DURATION := 0.08
 
 var _mech_increase_tween: Tween
 var _mech_decrease_tween: Tween
+var _ricochet_reroll_tween: Tween
 
 # Power "clang" impact (power-manipulation cards - see _play_power_clang). Tracked so rapid
 # re-triggers kill the prior tweens instead of compounding. _power_resting_modulate is
@@ -742,9 +766,15 @@ func roll_dice():
     if _roll_in_progress:
         return
     var can_roll = false
+    var is_ricochet_reroll: bool = Global.ricochet_reroll_active
     dice_type = Global.dice_type
-    # Flux check
-    if not Global.roll_history.is_empty():
+    # Flux check.
+    # A Ricochet reroll is exempt: Flux's rule is "no SECOND roll until your Power resets", and
+    # a reroll is not a second roll - it replaces the one roll you already legally made, spends
+    # no extra die and leaves the chain the same length. (Side effect, and a good one: Ricochet
+    # is a soft counter to Flux. Flagged for Julien rather than assumed - if it should instead
+    # be locked out under Flux, delete the `not is_ricochet_reroll and` below.)
+    if not is_ricochet_reroll and not Global.roll_history.is_empty():
         for enemy in get_tree().get_nodes_in_group("enemies"):
             if enemy.status_handler._has_status("flux"):
                 release_die_coil()
@@ -779,6 +809,12 @@ func roll_dice():
         "mech":
             can_roll = Global.mech_dice_current_amount > 0
 
+    # A reroll bypasses the stock check entirely: it consumes no die, so rerolling the result
+    # of your LAST Ricochet die (count now 0) has to stay legal - otherwise the reroll silently
+    # stops working exactly when the die is scarcest.
+    if is_ricochet_reroll:
+        can_roll = true
+
     if not can_roll:
         print("no more " + dice_type + " dice")
         release_die_coil()
@@ -786,6 +822,20 @@ func roll_dice():
         return
 
     _roll_in_progress = true
+
+    # Snapshot the Power state this roll is about to modify, so a Ricochet reroll can put back
+    # exactly what the discarded result changed. Fresh rolls only - a reroll has already
+    # restored to this same state, and re-capturing would overwrite the original with itself.
+    # Taken here, before _apply_roll_result banks anything and before next_roll_modifier is
+    # consumed, so the captured modifier is the un-spent one.
+    if dice_type == "odd" and not is_ricochet_reroll:
+        _ricochet_snapshot = {
+            "roll_value": Global.roll_value,
+            "power_generated_this_turn": Global.power_generated_this_turn,
+            "roll_history": Global.roll_history.duplicate(),
+            "next_roll_modifier": Global.next_roll_modifier,
+            "power_tier_active": _power_tier_active,
+        }
 
     play_dice_roll_sound()
     Global.fight_dice_rolled+=1
@@ -2001,8 +2051,20 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
     Events.hover_playable_cards.emit()
     mech_adjustments_used = 0
     _update_mech_buttons()
+    # ⚠️ The Ricochet allowance refreshes only on a FRESH roll. Mech resets unconditionally
+    # here because every Mech roll is a new die; a reroll is the SAME roll landing again, so
+    # resetting on its landing would immediately grant another reroll of it - unlimited.
+    if not Global.ricochet_reroll_active:
+        ricochet_rerolls_used = 0
+    Global.ricochet_reroll_active = false
     _update_charged_card_description()
     _roll_in_progress = false
+    # ⚠️ MUST come after `_roll_in_progress = false`. _can_ricochet_reroll() reads that flag,
+    # so updating the button any earlier evaluates it as "a roll is still in progress", leaves
+    # the button disabled, and nothing re-runs this afterwards - the reroll is dead for the
+    # whole turn. (Shipped that way briefly; caught in playtest, not by the harness, because
+    # the harness asserted on the predicate instead of on the button's actual state.)
+    _update_ricochet_button()
 
 
 const OCTET_MUSCLE_STATUS := preload("res://statuses/muscle.tres")
@@ -2129,6 +2191,15 @@ func _on_active_dice_changed(new_dice_type):
     _update_power_float()
     Events.change_current_power.emit()
 
+    # Switching type starts a new chain (roll_value/history were just zeroed above), so the
+    # Ricochet allowance and snapshot go with it. _update_ricochet_button() also owns showing
+    # and hiding the section, mirroring the mech_section branches earlier in this function -
+    # it has to run AFTER roll_history is cleared, since it reads it.
+    ricochet_rerolls_used = 0
+    _ricochet_snapshot = {}
+    Global.ricochet_reroll_active = false
+    _update_ricochet_button()
+
 # The Power number's true resting colour: per-type RGB captured in update_dice_display(),
 # but carrying whatever alpha is live right now (the dimmed 0.4 at zero power vs 1.0 with
 # power banked is owned by the roll/reset paths, not by the palette).
@@ -2254,6 +2325,13 @@ func _on_player_turn_started() -> void:
     # Global.roll_value = 0  # This is now handled in the dice_interface.gd
     mech_adjustments_used = 0
     _update_mech_buttons()
+    # New turn = new chain: no roll left to reroll, so drop the allowance and the stale
+    # snapshot. Clearing the Global flag here too is belt-and-braces against it surviving an
+    # interrupted roll and silently making the next roll free.
+    ricochet_rerolls_used = 0
+    _ricochet_snapshot = {}
+    Global.ricochet_reroll_active = false
+    _update_ricochet_button()
 
 func _on_dice_roll_reset() -> void:
 
@@ -2289,6 +2367,12 @@ func _on_dice_roll_reset() -> void:
         update_roll_history_ui()
     mech_adjustments_used = 0
     _update_mech_buttons()
+    # A card spent the Power: the roll it came from is gone, so there is nothing left to
+    # reroll back into. Same reasoning as the turn-start reset above.
+    ricochet_rerolls_used = 0
+    _ricochet_snapshot = {}
+    Global.ricochet_reroll_active = false
+    _update_ricochet_button()
     Events.hover_playable_cards.emit()
     _update_charged_card_description()
 
@@ -2775,6 +2859,99 @@ func _on_mech_decrease_pressed() -> void:
 # Clockwork infusion (Mech) lets you adjust twice per roll instead of once.
 func _mech_adjustments_allowed() -> int:
     return 2 if Global.is_dice_infused("mech") else 1
+
+
+# --- Ricochet reroll --------------------------------------------------------------------
+func _on_ricochet_reroll_pressed() -> void:
+    if not _can_ricochet_reroll():
+        return
+    ricochet_rerolls_used += 1
+    _ricochet_restore_snapshot()
+    _ricochet_reroll_tween = _play_mech_arrow_punch(ricochet_button, _ricochet_reroll_tween)
+    _update_ricochet_button()
+
+    # Hand the reroll to the NORMAL roll path - same builder, same _on_roll_landed (which kills
+    # _roll_flip_tween on its first line). A bespoke mini-animation here is exactly what caused
+    # the 0.2.7 face/value mismatch: two paths writing the shown face with no ordering between
+    # them. The flag is what makes roll_dice() treat this as a reroll rather than a new roll;
+    # _apply_roll_result clears it once the result has landed.
+    Global.ricochet_reroll_active = true
+    roll_dice()
+
+
+func _can_ricochet_reroll() -> bool:
+    return dice_type == "odd" \
+            and not _roll_in_progress \
+            and ricochet_rerolls_used < _ricochet_rerolls_allowed() \
+            and not _ricochet_snapshot.is_empty() \
+            and not Global.roll_history.is_empty()
+
+
+# Puts back exactly what the discarded roll changed. Scope is deliberate and matches the design
+# call: Power (banked + this turn's total), the history entry and the shown face are rewound;
+# relic triggers, per-roll counters and the Bulwark infusion are NOT, because by the time this
+# button can be clicked they have already dealt damage and granted Block that no rewind could
+# take back honestly.
+func _ricochet_restore_snapshot() -> void:
+    if _ricochet_snapshot.is_empty():
+        return
+    Global.roll_value = _ricochet_snapshot["roll_value"]
+    Global.power_generated_this_turn = _ricochet_snapshot["power_generated_this_turn"]
+    # ⚠️ Typed local, NOT `Global.roll_history = _ricochet_snapshot[...].duplicate()`.
+    # A Dictionary subscript is Variant, and assigning a Variant into Global.roll_history
+    # (which every other writer assigns a plain `[]` to) degrades the type the analyzer
+    # infers for that autoload member from Array to Variant PROJECT-WIDE. That silently
+    # breaks every `:=` that reads it elsewhere - dice.gd's own chain_depth/rolled_values
+    # and both Dice Slap cards - with "Cannot infer the type ..." parse errors pointing at
+    # innocent pre-existing lines. Naming the type here keeps the member's inference intact.
+    var restored_history: Array = _ricochet_snapshot["roll_history"]
+    Global.roll_history = restored_history.duplicate()
+    _power_tier_active = _ricochet_snapshot["power_tier_active"]
+
+    # A Boost consumed by the discarded roll comes back with it - "fully undone" has to mean
+    # undone, not burned. Note the asymmetry with a Scout/Focus/Lucky guarantee, which stays
+    # spent (Julien's call): a refunded guarantee would force the SAME face again and make the
+    # reroll a no-op, whereas a refunded flat modifier applies to whichever result you keep.
+    Global.next_roll_modifier = _ricochet_snapshot["next_roll_modifier"]
+    if Global.next_roll_modifier > 0:
+        _on_display_next_roll_modifier()
+    else:
+        next_roll_bonus_panel.hide()
+
+    _set_power_text(Global.roll_value)
+    current_power.modulate.a = 0.4 if Global.roll_value == 0 else 1.0
+    _update_power_float()
+    _update_dice_aura_charge()
+    update_roll_history_ui()
+    Events.change_current_power.emit()
+    Events.hover_playable_cards.emit()
+
+
+func _update_ricochet_button() -> void:
+    if not is_instance_valid(ricochet_section):
+        return
+    ricochet_section.visible = dice_type == "odd"
+    var usable := _can_ricochet_reroll()
+    ricochet_section.modulate.a = 1.0 if usable else 0.3
+    ricochet_button.disabled = not usable
+
+
+func _on_ricochet_button_mouse_entered() -> void:
+    if ricochet_button.disabled:
+        return
+    if _ricochet_reroll_tween and _ricochet_reroll_tween.is_valid():
+        _ricochet_reroll_tween.kill()
+    _ricochet_reroll_tween = create_tween()
+    _ricochet_reroll_tween.tween_property(ricochet_button, "scale", MECH_ARROW_HOVER_SCALE,
+            MECH_ARROW_HOVER_DURATION).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
+func _on_ricochet_button_mouse_exited() -> void:
+    if _ricochet_reroll_tween and _ricochet_reroll_tween.is_valid():
+        _ricochet_reroll_tween.kill()
+    _ricochet_reroll_tween = create_tween()
+    _ricochet_reroll_tween.tween_property(ricochet_button, "scale", Vector2.ONE,
+            MECH_ARROW_HOVER_DURATION).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
 
 func _update_mech_buttons() -> void:

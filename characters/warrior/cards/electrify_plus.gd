@@ -22,7 +22,7 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     status_effect.status = depleted
     var player_targets = targets[0].get_tree().get_nodes_in_group("player")
     status_effect.execute(player_targets)
-    # Blue, not Odd - see electrify.gd for why the cost is deliberately cross-type.
+    # Blue, not Ricochet - see electrify.gd for why the cost is deliberately cross-type.
     Global.blue_dice_bonus_amount -= 1
     Events.reset_charged_card.emit()
 func _on_dice_rolled():

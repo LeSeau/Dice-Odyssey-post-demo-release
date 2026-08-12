@@ -19,8 +19,12 @@ const ACCENT := {
     "green": Color("48D147"),  # forest leaf (was mint 33ff99, didn't match the mossy die)
     "magma": Color("FF5A14"),  # lava orange
     "mech":  Color("B9C1CB"),  # light steel, matches the silvery pips/rivets
-    "even":  Color("FF9526"),  # saturated orange (was a pale ffaa55)
-    "odd":   Color("E9B83D"),  # aged brass (was lemon ffd60b, die is bronze not yellow)
+    # even/odd colours were EXCHANGED with the bodies in the Golem/Ricochet rework: the
+    # internal type strings stayed put but the art swapped, so "even" (Golem) now wears the
+    # cracked ochre body and "odd" (Ricochet) the orange one. Colour follows the body, not
+    # the type string - do not "fix" these back by name.
+    "even":  Color("E9B83D"),  # Golem: aged brass/ochre, cracked stone body
+    "odd":   Color("FF9526"),  # Ricochet: saturated orange body
     "evil":  Color("E14FE1"),  # fuchsia crack-veins
     "giant": Color("A9D648"),  # moss lime on the stone boulder (was neon 99ff55)
 }
@@ -32,8 +36,8 @@ const OUTLINE := {
     "green": Color("0C3A10"),
     "magma": Color("4E1000"),
     "mech":  Color("1F2429"),
-    "even":  Color("592800"),
-    "odd":   Color("47360A"),
+    "even":  Color("47360A"),  # Golem (ochre) - exchanged with odd, see ACCENT above
+    "odd":   Color("592800"),  # Ricochet (orange) - exchanged with even, see ACCENT above
     "evil":  Color("3C0A44"),
     "giant": Color("2C3A0D"),
 }

@@ -1,6 +1,6 @@
 extends Card
 
-# Gain X Block now, then the thrown Odd Dice adds ITS roll as more Block when it lands
+# Gain X Block now, then the thrown Ricochet Dice adds ITS roll as more Block when it lands
 # (1/3/5/7 - always pays something). Thrown-die ruling: raw roll, no modifiers. Block
 # cards use Global.roll_value raw per the established convention (no DMG modifier).
 
@@ -33,7 +33,7 @@ func _on_rampart_landed(player: Node, value: int) -> void:
 
 func get_dynamic_description(_modifiers: ModifierHandler, _target: Node = null) -> String:
     if is_inked():
-        return "Gain ? Block. Throw an Odd Dice that grants Block equal to its roll"
+        return "Gain ? Block. Throw a Ricochet Dice that grants Block equal to its roll"
     if not has_active_roll():
-        return "Gain X Block. Throw an Odd Dice that grants Block equal to its roll"
-    return "Gain X Block (%d). Throw an Odd Dice that grants Block equal to its roll" % Global.roll_value
+        return "Gain X Block. Throw a Ricochet Dice that grants Block equal to its roll"
+    return "Gain X Block (%d). Throw a Ricochet Dice that grants Block equal to its roll" % Global.roll_value

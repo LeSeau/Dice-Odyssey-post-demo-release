@@ -1,6 +1,6 @@
 extends Card
 
-# Rampart+ throws TWO Odd Dice (1/3/5/7) instead of one Even Dice - each adds ITS roll as
+# Rampart+ throws TWO Ricochet Dice (1/3/5/7) instead of one - each adds ITS roll as
 # more Block when it lands, sequenced by the shared volley stagger so each landing punch
 # stays legible. Gain X Block still applies immediately. Own script because count + die type
 # live in the throw. Thrown-die ruling: raw roll, no modifiers.
@@ -41,7 +41,7 @@ func _on_rampart_landed(player: Node, value: int) -> void:
 
 func get_dynamic_description(_modifiers: ModifierHandler, _target: Node = null) -> String:
     if is_inked():
-        return "Gain ? Block. Throw 2 Odd Dice. Each grants Block equal to its roll"
+        return "Gain ? Block. Throw 2 Ricochet Dice. Each grants Block equal to its roll"
     if not has_active_roll():
-        return "Gain X Block. Throw 2 Odd Dice. Each grants Block equal to its roll"
-    return "Gain X Block (%d). Throw 2 Odd Dice. Each grants Block equal to its roll" % Global.roll_value
+        return "Gain X Block. Throw 2 Ricochet Dice. Each grants Block equal to its roll"
+    return "Gain X Block (%d). Throw 2 Ricochet Dice. Each grants Block equal to its roll" % Global.roll_value

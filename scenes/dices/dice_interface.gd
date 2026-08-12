@@ -74,6 +74,7 @@ func _ready() -> void:
     Events.dice_rolled.connect(_on_dice_rolled)
     Events.dice_amount_changed.connect(_on_dice_amount_changed)
     Events.player_turn_started.connect(_on_player_turn_started)
+    Events.player_turn_ended.connect(_on_player_turn_ended)
     Events.dice_bought.connect(_on_dice_bought)
     Events.resize_dice_interface.connect(_on_resize_dice_interface)
     Events.charge_dice_animation.connect(_on_charge_dice_animation)
@@ -93,6 +94,14 @@ func _ready() -> void:
 
 # Called when a dice is rolled
 func _on_dice_rolled(dice_type: String, roll_value: int):
+    # A Ricochet reroll re-rolls the die already spent on the first result, so it must not
+    # consume a second one. Skipping the per-type branch skips its label refresh too, which is
+    # correct (the count didn't move) - but the highlight refresh at the tail of this function
+    # still has to run, since the reroll DID change Global.roll_value and that drives the
+    # "you still have dice on another slot" nudge.
+    if Global.ricochet_reroll_active:
+        update_selected_highlight()
+        return
     if Global.dice_type == "blue":  # Reduce only if it's the blue die
         if Global.blue_dice_current_amount > 0:  
             Global.blue_dice_current_amount -= 1
@@ -241,6 +250,16 @@ func _on_dice_9_gui_input(event: InputEvent) -> void:
         
         
         
+func _on_player_turn_ended() -> void:
+    # Bank whatever Golem Dice the player didn't spend, for the next turn's refill to add on.
+    # Read at turn END rather than at the next turn's start so a shop purchase (which does
+    # `current += 1` between fights) can never be mistaken for a leftover - see the comment
+    # on Global.golem_dice_carryover.
+    # Explicit int: Global's dice counters are untyped, so `:=`/maxi() can't infer from them.
+    var leftover: int = Global.even_dice_current_amount
+    Global.golem_dice_carryover = maxi(0, leftover)
+
+
 func _on_player_turn_started() -> void:
     Global.blue_dice_current_amount = Global.blue_dice_max_amount + Global.blue_dice_bonus_amount + Global.blue_dice_bonus_amount_fight
     Global.red_dice_current_amount = Global.red_dice_max_amount + Global.red_dice_bonus_amount
@@ -248,7 +267,17 @@ func _on_player_turn_started() -> void:
     Global.green_dice_current_amount = Global.green_dice_max_amount + Global.green_dice_bonus_amount
     Global.giant_dice_current_amount = Global.giant_dice_max_amount + Global.giant_dice_bonus_amount
     Global.magma_dice_current_amount = Global.magma_dice_max_amount + Global.magma_dice_bonus_amount
-    Global.even_dice_current_amount = Global.even_dice_max_amount + Global.even_dice_bonus_amount
+    # Golem Dice: the one type that does NOT simply reset to max+bonus. Whatever went
+    # unspent last turn (captured in _on_player_turn_ended) is added on top. No cap - the
+    # cost of hoarding is the tempo you gave up to do it.
+    # A NEGATIVE bonus (Depleted from Electrify, the Dicelord's Dice Theft) eats into the
+    # carried dice like it eats into any other type's refill, hence the single clamp over
+    # the whole sum rather than protecting the carry: "you have 1 less Dice next turn"
+    # stays honest, and banking dice can't be used to dodge the debuff.
+    Global.even_dice_current_amount = maxi(0,
+            Global.even_dice_max_amount + Global.even_dice_bonus_amount
+            + Global.golem_dice_carryover)
+    Global.golem_dice_carryover = 0
     Global.odd_dice_current_amount = Global.odd_dice_max_amount + Global.odd_dice_bonus_amount
     Global.mech_dice_current_amount = Global.mech_dice_max_amount + Global.mech_dice_bonus_amount + Global.mech_dice_bonus_amount_fight
 

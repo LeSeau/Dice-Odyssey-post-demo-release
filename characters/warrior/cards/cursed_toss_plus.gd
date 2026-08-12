@@ -1,6 +1,6 @@
 extends Card
 
-# Cursed Toss+ : THREE thrown Blue Dice instead of two. Own script because the count lives
+# Cursed Toss+ : TWO thrown Golem Dice instead of one. Own script because the count lives
 # in the throw loop. See cursed_toss.gd for the design notes.
 
 const THROW_COUNT := 2

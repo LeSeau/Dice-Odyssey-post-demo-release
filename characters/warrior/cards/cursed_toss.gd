@@ -1,6 +1,6 @@
 extends Card
 
-# A free two-die volley: hurls 2 conjured Blue Dice (d6) at the target, each dealing its
+# A free throw: hurls 1 conjured Golem Dice (2/4/6/8) at the target, dealing its
 # own roll (Julien, 2026-07-25: "basically Slash but funnier" - Slash was cut for it).
 # Celestial + SUPPORT flag: playable at zero resources and it never resets your Power, so
 # the dice are pure bonus damage on top of whatever you had banked. Strength applies to

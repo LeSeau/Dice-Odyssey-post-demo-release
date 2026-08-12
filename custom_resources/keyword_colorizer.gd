@@ -41,7 +41,7 @@ static var power_glyph_mode := PowerGlyphMode.WORD_WITH_GLYPH
 const KEYWORDS: Array[String] = [
     "Charge", "Refuel", "Scout", "Boost", "Throw", "Infused", "Weak", "Exposed", "Lucky",
     "Unlucky", "Depleted", "Energized", "Strength", "Muscle", "Exhaust", "Support", "REST",
-    "Blue Dice", "Red Dice", "Pixie Dice", "Odd Dice", "Even Dice", "Evil Dice",
+    "Blue Dice", "Red Dice", "Pixie Dice", "Ricochet Dice", "Golem Dice", "Evil Dice",
     "Giant Dice", "Magma Dice", "Mech Dice",
 ]
 
@@ -75,8 +75,10 @@ const DICE_KEYWORD_COLORS := {
     "Blue Dice": "3D7BFF",
     "Red Dice": "FF2F3E",
     "Pixie Dice": "48D147",
-    "Odd Dice": "E9B83D",
-    "Even Dice": "FF9526",
+    # Ricochet = internal "odd" (orange body), Golem = internal "even" (ochre body). The
+    # colours were exchanged along with the art - keep these matching DicePalette.ACCENT.
+    "Ricochet Dice": "FF9526",
+    "Golem Dice": "E9B83D",
     "Evil Dice": "E14FE1",
     "Giant Dice": "A9D648",
     "Magma Dice": "FF5A14",
@@ -93,8 +95,11 @@ const DICE_TOOLTIP_TEXT := {
     "Blue Dice": "Faces: 1-6",
     "Red Dice": "Faces: 1-6. Place a card on it first, then roll to play that card.",
     "Pixie Dice": "Faces: 1-3",
-    "Odd Dice": "Faces: 1, 3, 5, 7",
-    "Even Dice": "Faces: 2, 4, 6, 8",
+    # Both now carry their mechanic, since the mechanic IS the identity of these two dice.
+    # Kept under the longest existing body (Red, 66 chars) and the die's own name is not
+    # repeated - both tooltip panels already show it as the title.
+    "Ricochet Dice": "Faces: 1, 3, 5, 7. Once per roll, you can reroll the result.",
+    "Golem Dice": "Faces: 2, 4, 6, 8. Unspent dice carry over to your next turn.",
     "Evil Dice": "Faces: 6, 6, 6, 0",
     "Giant Dice": "Faces: 1-12",
     # "its value", never "X": cards taught the player that X means the Power glyph, and a
@@ -111,8 +116,15 @@ const DICE_TOOLTIP_TEXT := {
 # display-only change. dice_display_name() is the one place that still needs to turn a raw type
 # string into its shown name (dice_tooltip.gd's shop/battle hover tooltip title) - every other
 # consumer already reads the literal "Pixie Dice" string straight out of a card/relic's own text.
+# Same display-only treatment applied again in the Golem/Ricochet rework (2026-08-12): the
+# two parity dice were re-identified around new mechanics, but "odd"/"even" stay the internal
+# strings for exactly the Pixie reasons - the Global variable trios, save data, both dice
+# shaders, the odd*/even*.png filenames and the two infusion keys (Bulwark on odd, Octet on
+# even) are all keyed by them. Nothing migrates; only what the player reads changes.
 const DICE_TYPE_DISPLAY_NAME_OVERRIDES := {
     "green": "Pixie",
+    "odd": "Ricochet",
+    "even": "Golem",
 }
 
 

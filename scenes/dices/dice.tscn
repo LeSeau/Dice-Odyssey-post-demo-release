@@ -1,4 +1,4 @@
-[gd_scene load_steps=63 format=3 uid="uid://drwjp5bi8wmx6"]
+[gd_scene load_steps=64 format=3 uid="uid://drwjp5bi8wmx6"]
 
 [ext_resource type="Texture2D" uid="uid://c17qq0sj25epy" path="res://assets/images/blue1.png" id="1_hxyyb"]
 [ext_resource type="Script" path="res://scenes/dices/dice.gd" id="1_xhb7n"]
@@ -31,6 +31,7 @@
 [ext_resource type="LabelSettings" uid="uid://bhrpkq50bp811" path="res://scenes/card_ui/card_ui_bonus_requirement_label.tres" id="18_ngl5c"]
 [ext_resource type="LabelSettings" uid="uid://cu35utjlrjheh" path="res://scenes/card_ui/card_ui_bonus_effect_label.tres" id="19_fus44"]
 [ext_resource type="Shader" path="res://scenes/dices/power_float.gdshader" id="power_float_shader"]
+[ext_resource type="Texture2D" uid="uid://cotvmmq0l2hqb" path="res://ricochet_reroll_icon.png" id="20_ricochet"]
 
 [sub_resource type="Theme" id="Theme_co3io"]
 
@@ -299,48 +300,48 @@ border_width_bottom = 1
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_x0x7m"]
 bg_color = Color(0.784314, 0.533333, 0.0392157, 1)
-border_width_left = 2
-border_width_top = 4
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(1, 1, 0.227451, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.14902, 0.101961, 0.0784314, 1)
 corner_radius_top_left = 7
 corner_radius_top_right = 7
 corner_radius_bottom_right = 7
 corner_radius_bottom_left = 7
-shadow_color = Color(0.749461, 0.315833, 0.04451, 1)
+shadow_color = Color(0.239216, 0.101961, 0, 0.8)
 shadow_size = 1
-shadow_offset = Vector2(1, 2)
+shadow_offset = Vector2(1, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_aoef4"]
-bg_color = Color(0.827451, 0.639216, 0.054902, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(1, 1, 0.227451, 1)
+bg_color = Color(0.890196, 0.713726, 0.101961, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.14902, 0.101961, 0.0784314, 1)
 corner_radius_top_left = 7
 corner_radius_top_right = 7
 corner_radius_bottom_right = 7
 corner_radius_bottom_left = 7
-shadow_color = Color(0.749461, 0.315833, 0.04451, 1)
-shadow_size = 1
-shadow_offset = Vector2(1, 2)
+shadow_color = Color(0.239216, 0.101961, 0, 0.8)
+shadow_size = 3
+shadow_offset = Vector2(1, 3)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dxu5e"]
-bg_color = Color(0.827451, 0.639216, 0.054902, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(1, 1, 0.227451, 1)
+bg_color = Color(0.784314, 0.533333, 0.0392157, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.14902, 0.101961, 0.0784314, 1)
 corner_radius_top_left = 7
 corner_radius_top_right = 7
 corner_radius_bottom_right = 7
 corner_radius_bottom_left = 7
-shadow_color = Color(0.749461, 0.315833, 0.04451, 1)
+shadow_color = Color(0.239216, 0.101961, 0, 0.8)
 shadow_size = 1
-shadow_offset = Vector2(1, 2)
+shadow_offset = Vector2(1, 1)
 
 [sub_resource type="LabelSettings" id="LabelSettings_7fdwi"]
 font = ExtResource("7_vre42")
@@ -541,6 +542,25 @@ offset_bottom = 178.0
 pivot_offset = Vector2(28.5, 42.5)
 modulate = Color(0.75, 0.78, 0.82, 1)
 texture_normal = ExtResource("5_ti466")
+ignore_texture_size = true
+stretch_mode = 6
+
+[node name="RicochetSection" type="Control" parent="."]
+visible = false
+anchors_preset = 0
+offset_left = -49.0
+offset_right = -3.0
+offset_bottom = 179.0
+
+[node name="RicochetButton" type="TextureButton" parent="RicochetSection"]
+layout_mode = 0
+offset_left = -11.0
+offset_top = 58.0
+offset_right = 46.0
+offset_bottom = 115.0
+pivot_offset = Vector2(28.5, 28.5)
+modulate = Color(1, 0.941176, 0.839216, 1)
+texture_normal = ExtResource("20_ricochet")
 ignore_texture_size = true
 stretch_mode = 6
 
@@ -892,6 +912,9 @@ theme_override_font_sizes/normal_font_size = 14
 [connection signal="pressed" from="MechSection/MechDecrease" to="." method="_on_mech_decrease_pressed"]
 [connection signal="mouse_entered" from="MechSection/MechDecrease" to="." method="_on_mech_decrease_mouse_entered"]
 [connection signal="mouse_exited" from="MechSection/MechDecrease" to="." method="_on_mech_decrease_mouse_exited"]
+[connection signal="pressed" from="RicochetSection/RicochetButton" to="." method="_on_ricochet_reroll_pressed"]
+[connection signal="mouse_entered" from="RicochetSection/RicochetButton" to="." method="_on_ricochet_button_mouse_entered"]
+[connection signal="mouse_exited" from="RicochetSection/RicochetButton" to="." method="_on_ricochet_button_mouse_exited"]
 [connection signal="pressed" from="CardDropArea/CancelRedCardPanel/CancelRedCard" to="." method="_on_cancel_red_card_pressed"]
 [connection signal="button_down" from="Button" to="Button" method="_on_button_down"]
 [connection signal="button_up" from="Button" to="Button" method="_on_button_up"]
