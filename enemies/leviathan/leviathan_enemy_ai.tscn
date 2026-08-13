@@ -7,7 +7,7 @@
 [ext_resource type="AudioStream" uid="uid://de2ryat1pxq6" path="res://art/enemy_attack.ogg" id="5_cidr0"]
 [ext_resource type="Script" path="res://enemies/leviathan/2.gd" id="5_vii1k"]
 [ext_resource type="Script" path="res://enemies/leviathan/weak_debuff_attack.gd" id="5_yomxc"]
-[ext_resource type="Texture2D" path="res://block_icon_intent.png" id="6_l5rrt"]
+[ext_resource type="Texture2D" uid="uid://cqpfpmrf2sc8" path="res://buff_block_intent.png" id="6_l5rrt"]
 [ext_resource type="Texture2D" uid="uid://ckf4qt26na5g7" path="res://debuff_intent.png" id="6_y6hbq"]
 [ext_resource type="AudioStream" uid="uid://k8m4o3hlwm7l" path="res://art/enemy_block.ogg" id="10_ymuyf"]
 [ext_resource type="Script" path="res://enemies/leviathan/dicelord_dice_theft.gd" id="11_theft"]
@@ -51,16 +51,14 @@ type = 1
 chance_weight = 5.0
 action_id = "leviathan_weak_attack"
 
-[node name="block_buff" type="Node" parent="."]
-script = ExtResource("5_vii1k")
-intent = SubResource("Resource_wjyov")
-sound = ExtResource("10_ymuyf")
-type = 1
-chance_weight = 4.0
-action_id = "leviathan_block"
-
 [node name="dice_theft" type="Node" parent="."]
 script = ExtResource("11_theft")
 intent = SubResource("Resource_theft")
 sound = ExtResource("5_cidr0")
 action_id = "dicelord_dice_theft"
+
+[node name="block_buff" type="Node" parent="."]
+script = ExtResource("5_vii1k")
+intent = SubResource("Resource_wjyov")
+sound = ExtResource("10_ymuyf")
+action_id = "leviathan_block"

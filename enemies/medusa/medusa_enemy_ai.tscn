@@ -8,7 +8,7 @@
 [ext_resource type="Script" path="res://custom_resources/intent.gd" id="4_6lvhs"]
 [ext_resource type="Script" path="res://enemies/medusa/medusa_block_action.gd" id="4_p5663"]
 [ext_resource type="AudioStream" uid="uid://de2ryat1pxq6" path="res://art/enemy_attack.ogg" id="5_317b0"]
-[ext_resource type="Texture2D" path="res://block_icon_intent.png" id="8_in3ia"]
+[ext_resource type="Texture2D" uid="uid://cqpfpmrf2sc8" path="res://buff_block_intent.png" id="8_in3ia"]
 [ext_resource type="AudioStream" uid="uid://k8m4o3hlwm7l" path="res://art/enemy_block.ogg" id="10_ixvgu"]
 
 [sub_resource type="Resource" id="Resource_f0b2u"]
@@ -49,6 +49,4 @@ action_id = "medusa_attack"
 script = ExtResource("4_p5663")
 intent = SubResource("Resource_e64n5")
 sound = ExtResource("10_ixvgu")
-type = 1
-chance_weight = 4.0
 action_id = "medusa_block"

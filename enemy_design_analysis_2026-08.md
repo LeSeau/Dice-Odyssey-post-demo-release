@@ -8,7 +8,9 @@ dice-native enemy design space + concrete proposals, to be reviewed and cherry-p
 systems/enemies for now. Keep only (a) a pattern/numbers pass on EXISTING enemies to escape the
 "attack, block & gain strength, same attack" trap, and (b) maybe 2-3 curse/status cards. That
 scoped plan is §8 — read it first; §1–§7 remain as the reference analysis and the post-launch
-menu (new fights, die theft, timers, summons, Dicelord P2 are all PARKED).**
+menu (new fights, die theft, timers, summons, Dicelord P2 are all PARKED). §9 (added 2026-08-13,
+on Julien's follow-up "pretty much every fight should have an implicit timer") extends §8 with
+an enemy-scaling ramp column — same scope philosophy, designed to land in the same batches.**
 
 **Sources**: (a) deep-dive of the STS1 Fandom wiki per-enemy Pattern sections (decompiled move
 logic: weights, repetition caps, conditional overrides, A17/18/19 pattern changes) + the GDC 2019
@@ -682,6 +684,262 @@ semantics at 5-card hand size, and 2 vs 3 curse cards.
 
 ---
 
+## 9. EXTENSION (2026-08-13) — "every fight is a clock", systematized (implicit timers via enemy scaling)
+
+**STATUS: ANALYSIS ONLY — NOTHING IMPLEMENTED, NO VERDICTS YET.** Julien's follow-up ask:
+*"pretty much every fight should have an implicit timer (enemy scaling)."* This section
+systematizes §1.2 across the roster. It EXTENDS §8, same scope philosophy — existing enemies,
+existing plumbing, numbers not systems — and the ramp column below is designed against §8's
+*proposed* kits, so each enemy gets ONE edit pass covering both.
+
+### 9.1 Why now — three facts that sharpened this
+
+1. **Golem carryover shipped uncapped (08-12).** Unspent Golem dice now carry to the next turn,
+   and the stall was validated as fun ("changes how you plan & play your turn"). But with no
+   timers anywhere, "turtle behind Block, stockpile Golem, unload once" is unpriced — the
+   optimal line risks becoming the degenerate one. **The implicit timer is the price of a
+   stockpile turn**, and it's the alternative to capping carryover: prefer pricing time
+   (dramatic, a decision every turn) over capping the pool (feels bad, kills the fantasy).
+   Corollary: if this pass ships, do NOT also cap carryover later — that's a double nerf.
+2. **Disciplined play disarms the elite clocks.** Canalize / Absorb / Parasite are *greed*
+   clocks: their counterplay (spend small / end on a low face / spread generation) produces a
+   **stable-state fight** — DP hits 11 flat forever while you politely spend in packets; the
+   Lich hits 8 flat forever while you politely end low. Mastering the counterplay currently
+   *stops the clock* instead of slowing it — the exact stable-state §1.2 forbids, and it gets
+   worse with mastery (the better you play, the flatter the fight). Note §8's proposed elite
+   cycles are DPT-parity and clockless too — §9 is their missing half.
+3. **§2.1's census line "ramps everywhere — good" was too generous.** The file-level re-audit
+   (9.2, code-verified 2026-08-13) shows promised time ramps on only ~6 kits; several apparent
+   ramps are dead code or dodgeable taxes.
+
+### 9.2 The real clock census (code-verified)
+
+Four different qualities of "clock" exist today — only the first one satisfies the principle:
+
+- **Promised time ramps (6 kits)**: Marauder (True Strength engine — the Cultist model),
+  Defender (+1 Str/cycle), Oculus (+2 Str/cycle), Venom Bloom (+3 Str/cycle), Sigil Slug
+  (+2 Muscle in its guard beat), Maelstrom (+3 Muscle in its alternation).
+- **RNG ramps (3 kits)** — rise in *expectation* only: Skeleton (block+Muscle 1, weighted,
+  capped), Medusa (block+Muscle 3, weighted, capped), Leviathan (block+Muscle 4, weighted).
+  Over a long stall these do close in — a legitimate gentle clock.
+- **Greed clocks (5)** — scale with player behavior, not time, and are *dodgeable* (that's
+  their design, fine — but they don't give the FIGHT a timer): Canalize, Absorb, Parasite,
+  Flux (a lockout, not even a ramp). **Exception: Greedy is semi-unavoidable** (you must roll
+  dice to play at all) ≈ the roster's one real timer today. ⚠️ The 08-13 dice-price pass
+  raised rolls/turn (~+33% on floors 4-8) → Greedy silently *accelerated*; Gargantua is now
+  the fastest clock in the game. Use him as the calibration ceiling, and if he overshoots in
+  playtest the dial is his per-6-rolls rate, not this plan.
+- **No clock at all**: Goblin, S.Satyr, B.Satyr, S./B. Kraken, Hound, Lurker, and the elite
+  base kits — Lich & Gargantua's block+Muscle nodes exist in their AI scenes but are **dead
+  code** behind the `get_child(0)` fallback (§2.4-3), so Lich = 8 flat forever, DP = 11 flat
+  forever. **Lurker is the purest siege in the game**: Flux throttles YOUR dps while he never
+  grows — long fight, zero escalation, nothing degrades. The stable-state poster child.
+
+### 9.3 The toolkit — four tools, two rejected
+
+1. **Muscle ramp rider** — an existing cycle beat gains "+N Muscle to self". The Defender
+   model generalized. Badge = free legibility, and post-07-04 every intent already shows
+   modified damage, so the ramp telegraphs itself one turn ahead at zero UI cost.
+2. **Damage-step on repeat** — an action's damage grows per *use* (Book of Stabbing's 6×N):
+   runtime counter on the action node (fresh per battle — no save concern, checkpoints are
+   map-only). Silent but intent-honest. Best used on SPIKES: **ramp the spike, not the floor**
+   — the floor stays stable learnable block math, pressure concentrates in the one beat you
+   were already supposed to block. ⚠️ Implementation caution: the step must feed the same
+   path the intent reads (the §2.4 Chimera `base_damage` snapshot footgun is exactly the trap
+   here — no perform-time surprises).
+3. **Cadence promotion** — force an existing weighted block+Muscle pick every Nth turn
+   (Crab's `fight_turn % 4` plumbing, zero new numbers): converts an RNG clock into a promised
+   one AND gives a weighted-soup kit a scannable pulse. For Medusa and Leviathan.
+4. **Soft-enrage backstop** (the only new-ish piece, optional) — §9.5.
+
+Rejected: **cadence acceleration** (spike every 4 turns, then 3, then 2 — changing the
+pattern's *shape* mid-fight breaks the legibility §8 exists to build; grow the numbers, keep
+the shape) and **debuff escalation** (Weak 1→2→3 or Unlucky ramps = misery spiral; ramp an
+applier's damage instead — Goblin's Unlucky stays at 1 forever).
+
+### 9.4 Per-enemy ramp column (builds on §8.2's proposed kits, not today's)
+
+**Tier 0: untouched entirely.** Validated teaching tier, solos die by turn 4, Marauder/Venom
+Bloom already ramp — and critter-pack stalls are *harmless by irrelevance*: no cross-fight
+resource exists (Power, Muscle, Golem stock all reset per battle), so turtling a fight you've
+already won pays nothing. Stalling only pays where a hard body must eventually be burst —
+that's T1+ keys, elites, boss, which is where the column lands.
+
+| Enemy | Clock after §8 | §9 addition | Check |
+|---|---|---|---|
+| **Goblin** (T1) | none | **+1 Muscle rider on the new 9 beat** ("winds up harder every round") | cycles: 7/9/5+U → 8/10/6 → 9/11/7; DPT 7.0 → 8.0 → 9.0; first visible step ~turn 5 = T1's par edge — deliberate, T1 is where tempo teaching starts. Alt: silent damage-step 9→11→13 (verdict 9.7-4) |
+| **Lurker** (T1) | none (Flux carries) | **VERDICT NEEDED**: flat 6 becomes 6→7→8→9… (+1/turn damage-step) | overrides §8's "flatness is the point". Rationale: Flux caps the player's throughput, so this is the game's longest stable siege — +1/turn converts it into the race a Flux fight should be. Skip if playtest says double-taxed |
+| Skeleton, Oculus, Sigil, Defender | RNG creep / promised ramps | **leave** | already satisfy the principle; Skeleton stays the untouched model |
+| **Medusa** (T2) | RNG ramp | ✅ **IMPLEMENTED 2026-08-13** (see 9.8): guard promoted to `fight_turn % 4 == 3` | RNG clock → promised clock, weighted soup gets a pulse, zero new numbers |
+| **Hound** (T2) | Molten Roar EVENT (§8) | **leave** — the Roar is his drama; backstop covers deep stalls | flag: an HP-threshold event is damage-triggered, not time-triggered — it never punishes stalling; he stays clockless without the backstop |
+| Krakens, B.Satyr | none | **leave** (comp filler, small bodies; backstop) | — |
+| **Lich** (elite) | clockless after §8 (8/10/5+W2, Absorb aside) | **+1 Muscle rider on the soul-sap beat** (5+Weak2 also stokes HIM — he drains you and keeps it; the flavor writes itself) | cycles: 8/10/5+W2 → 9/11/6 → 10/12/7; disciplined Absorb-dodging now *slows* the clock instead of stopping it. Absorb untouched |
+| **Dragonpriest** (elite) | clockless after §8 (12 / 8+block6 / 15, Canalize aside) | **damage-step the 15 SPIKE per use: 15 → 18 → 21** ("the channeling builds") | spikes land ~turns 3/6/9; 21 = 32% of 66 HP, under the 35-45% ceiling, and only deep stalls see it. Floors stay 12 and 8+6 forever — stable math, growing exam |
+| **Gargantua** (elite) | Greedy ≈ real timer | **leave** — the calibration ceiling; no authored ramp should out-pace Greedy | see 9.2 note on its silent acceleration |
+| **Leviathan** (boss) | RNG ramp (weighted M4) | ✅ **IMPLEMENTED 2026-08-13** (see 9.8): guard promoted to `fight_turn % 4 == 2` — note the different phase, forced by the Dicelord theft collision | smallest possible boss touch (a cadence gate on an existing beat, not a kit change) — but it IS a boss touch pre-release, **still revertible in one line if Julien vetoes** |
+
+**Why DP's spike-ramp doesn't repeat the §4.6 Canalize contradiction**: Cinderlord's argument
+was that a hard *deadline* demands big turns while Canalize punishes big turns — contradiction.
+A soft *ramp* demands **pace**, not bursts: with Canalize up, the pushed line is "spend small
+but constantly" — more total spending, less hoarding. That's tension (the good kind), not
+contradiction. The same logic clears the Lich: end-low discipline still works, it just no
+longer freezes the fight.
+
+### 9.5 The soft-enrage backstop (optional — the "no fight is stable-state" invariant)
+
+One shared status + one turn hook, nothing per-enemy: **from turn T (per tier), every living
+enemy gains +1 Muscle per turn, forever, uncapped.** Proposed T = fight-length target max + 2
+(§5): **T0 turn 6 / T1 turn 7 / T2 turn 8 / elites turn 9 / boss turn 11.**
+
+- **Invisible on-curve by construction** — §5 targets end fights 2+ turns before it starts.
+  It exists so "turtle + stockpile" is *mathematically dead everywhere* (uncapped beats any
+  block ceiling eventually), not to be seen in normal play. That also makes it shippable
+  pre-release with near-zero balance risk.
+- **Honesty rule (the §2.4 Absorb lesson)**: unlike authored ramps (self-telegraphing via
+  intent), this is a hidden RULE — so it must surface as a visible status badge with a real
+  tooltip written day one ("Gains 1 Strength every turn", name TBD by Julien — Frenzy /
+  Restless / Dungeon's Wrath). Shared-vocabulary status like Weak, not a signature aura
+  (standing rule respected). Optional courtesy: badge appears 1 turn before the first stack.
+- **Multi-body note**: +1/turn/enemy quadruples the total ramp in 4-body fights — likely fine
+  (bodies are dying by then), but the ACT2_DAMAGE_BASE per-fight-budget precedent is the
+  fallback if playtests disagree. Accelerating variant (+1/+2/+3…) is the tuning lever if
+  flat +1 outlasts anyone's patience.
+- **It's optional**: without it, the authored column already covers every fight where stalling
+  *pays* (T1 keys, elites, boss); the clockless leftovers (critter packs, Hound, Krakens) are
+  stall-proof by irrelevance (9.4). Recommended anyway as the invariant + future-content
+  insurance — it's the cheapest item in this whole doc (1 status .tres + 1 hook + tooltip).
+
+### 9.6 Guardrails & interactions
+
+- **One time-clock per fight.** Never Muscle-creep AND damage-step the same kit; fights that
+  already carry a greed clock get the gentlest ramp (Lich/DP get one slow beat, Gargantua gets
+  none, Lurker is a verdict).
+- **Setup archetypes are protected by placement**: every authored ramp's first visible step
+  lands turn 4+; Blessing/Scout/infusion setup is turns 1-2. The backstop only ever bites
+  degenerate stalls, not setup.
+- **Block archetype stays valid**: ramped damage is still exact, telegraphed, blockable —
+  Block *buys* time, it just no longer *stops* time. That's the correct relationship.
+- **New players**: slopes are +1-3 per cycle, never cliffs; the spike math they actually lose
+  to is unchanged. A beginner deep past par eats a faster loss, not a grindier one —
+  roguelike-correct mercy.
+- **Anti-bloat (§1.9)**: ramps add zero turns and only shorten stalls; the two cadence
+  promotions gate existing beats rather than adding defensive ones.
+- **Honesty**: all ramps surface in intent numbers automatically (07-04 fix); Muscle ramps get
+  the badge free; damage-steps are silent-but-honest (the intent number IS the display, the
+  Book-of-Stabbing precedent); only the backstop needs new UI (its badge). No invisible
+  MID-fight growth ever — the act-2 flat bake stays fine because it's fight-START state, not
+  growth.
+
+### 9.7 Order & verdicts
+
+Rides §8's batches — one edit pass per enemy: the T1 texture batch adds Goblin's rider
+(+ Lurker if approved); the elite batch adds Lich/DP ramps + the Medusa/Leviathan cadence
+gates. The backstop is a standalone XS item, viable pre-release. The §8.4 wiring pass remains
+the prerequisite for everything (Lich/Gargantua/Sigil edits are unsafe until `is_performable`
+is explicit).
+
+**Verdicts needed from Julien:**
+1. **The elite principle** — ramps on TOP of the greed taxes, yes? (The philosophical one:
+   "mastering the counterplay should slow the clock, not stop it.")
+2. **Backstop go/no-go** (+ its name, + whether it telegraphs 1 turn early).
+3. **Lurker creep** — override "flatness is the point", or keep the siege?
+4. **Goblin**: Muscle rider (visible badge) vs silent damage-steps?
+5. ~~Medusa / Leviathan cadence promotions~~ — **DONE 2026-08-13, see §9.8.** Still needs a
+   playtest verdict on the boss touch specifically.
+6. **Numbers sign-off** — every figure above is first-pass, priced against §5's D/P bands.
+
+### 9.8 SHIPPED (2026-08-13) — the cadence promotions
+
+**VERIFIED BY HARNESS (19 checks, 0 fail, incl. a negative control) — NOT PLAYTESTED.**
+Harness: `debug_cadence_promotion.gd`/`.tscn` at repo root (not committed, auto-excluded from
+the web export by the preset's `debug_*` filter). It boots the REAL AI scenes and drives
+`EnemyActionPicker.get_action()` over fight_turn 0-23 × 80 trials.
+
+**What changed (4 files):**
+
+| File | Change |
+|---|---|
+| `enemies/medusa/medusa_block_action.gd` | `is_performable` → `Global.fight_turn % 4 == 3` |
+| `enemies/medusa/medusa_enemy_ai.tscn` | BlockAction: `type`/`chance_weight` lines removed (→ CONDITIONAL); intent icon → `buff_block_intent.png` |
+| `enemies/leviathan/2.gd` | `is_performable` → `Global.fight_turn % 4 == 2` |
+| `enemies/leviathan/leviathan_enemy_ai.tscn` | block_buff: same removal + icon swap; **dice_theft moved ahead of block_buff in child order** |
+
+**Promotion means REMOVAL from the chance pool, not addition on top of it.** The beat is now
+CONDITIONAL only — leaving it weighted as well would roughly double its frequency and tank DPT.
+Removing `chance_weight` matters too: a stale weight on a CONDITIONAL node is dead data, exactly
+the decoy §2.4 flags on Temple Defender. Verified via `total_weight`: Medusa 15→11, Leviathan
+14→10.
+
+**Measured parity** (harness, damage-weighted over 24 turns, guard beats counting 0):
+
+| | DPT before (analytic) | DPT after (measured) | Δ | Muscle/turn before → after |
+|---|---|---|---|---|
+| Medusa | ~10.76 | **10.23** | −4.9% | 0.63 (RNG) → **0.75 (guaranteed)** |
+| Leviathan | ~12.83 | **12.35** | −3.7% | 0.89 (RNG) → **1.00 (guaranteed)** |
+
+The "before" figures are steady-state with the old `never twice in a row` cap, which held the
+real block rate at ~21-22% rather than the naive weight share (26.7% / 28.6%). So both enemies
+land slightly softer early and reliably heavier late — the intended promoted-clock trade.
+
+**⚠️ The two enemies use DIFFERENT phases, and that is deliberate.** Medusa matches the
+Skeleton's playtested `% 4 == 3`. Leviathan uses `% 4 == 2` because its AI scene is shared with
+the act-2 Dicelord, whose theft is CONDITIONAL on `% 3 == 1`. Two conditional cadences on
+moduli 4 and 3 collide every 12 turns and the picker resolves collisions by **child order** —
+one beat is silently dropped. `% 4 == 3` first collides on **turn 7**, inside the 6-9 turn boss
+target; `% 4 == 2` pushes it to **turn 10**, outside it. Belt-and-braces: dice_theft is now
+ordered before block_buff, so when a collision does land the boss's identity move always beats
+his metronome (verified: act-2 theft fires on 1/4/7/10/13/16/19/22, guard on 2/6/14/18).
+Anyone changing either modulus must redo this collision math.
+
+**Also checked**: child 0 of the Leviathan picker is still `leviathan_ink_attack` — the picker's
+last-resort `get_child(0)` anti-freeze return must never become the act-2-only theft node, or an
+act-1 Leviathan could steal dice.
+
+**Intent honesty fix, same pass**: both guard beats grant Muscle (3 / 4) but telegraphed with
+the plain `block_icon_intent.png`, i.e. the ramp was invisible on the very beat that produces
+it. Both now use `buff_block_intent.png`, which already existed with a wired tooltip and was
+used by exactly one enemy (Temple Defender). Now that the ramp is promised rather than random,
+its telegraph has to say so. The block number ("9" / "8") is unchanged.
+
+### 9.9 Intent icon debt (raised by Julien 2026-08-13: "we'll need a new intent for attack+buff?")
+
+Correct — and the gap is slightly wider than that. Current icon set: attack, block, buff,
+**buff+block** (the only painted combo), debuff (×3 near-duplicate files: `debuff_intent`,
+`debuff_icon`, `intent_debuff`). Combos beyond buff+block do not exist.
+
+The existing convention for uncovered combos is *pick the more notable icon and let the number
+mean damage* — Medusa's attack+Weak shows the debuff icon with "12". It ships and it playtests,
+but it's ambiguous, and §8/§9's beats lean on combos much harder:
+
+| Needed by | Combo | Status |
+|---|---|---|
+| §9.4 Goblin rider (9 + 1 Muscle), §9.4 Lich rider (5 + Weak 2 + 1 Muscle) | **attack + buff** | **missing — Julien's catch** |
+| §8.2 Dragonpriest GUARDED STRIKE (8 & block 6) | **attack + block** | **missing** |
+| §8.2 Oculus GUARD (+2 Str & block 4) | buff + block | covered |
+| Dicelord Dice Theft | steal | placeholder (`debuff_intent`), pre-existing debt |
+| §4.6 Cinderlord ritual / §4.5 Roll the Bones / §4.6 summons / junk cards | countdown, enemy-die, summon, curse-card, "?" | post-launch (already listed in §3.3 rule 7) |
+
+**Two ways to solve it, and the choice matters more than the art:**
+
+- **(a) Paint the combos** — follows the `buff_block_intent` precedent, ~2 new icons for the
+  scoped plan. Cheapest now, but combos grow combinatorially: attack+buff+debuff (the Lich
+  rider is literally that) has no icon and would need a third.
+- **(b) Composite intent — a second icon slot.** `IntentUI` is already an `HBoxContainer` of
+  `IconSlot` + `LabelSlot`; adding an optional second `IconSlot` lets ANY pair be expressed
+  from the existing single-purpose icons, with no new art ever. More code (an `Intent` gains a
+  secondary icon; `_sync_label_slot`'s hand-maintained width logic gains a sibling), and it
+  makes the telegraph visually wider/busier, which matters because the intent already bobs
+  above every enemy's head. **Recommendation: (a) for the scoped §8/§9 batch** (2 icons, zero
+  risk, matches the shipped precedent), and keep (b) in the pocket for the post-launch act-2
+  wave, where the combo count actually explodes.
+
+**⚠️ Whichever way: `intent_ui.gd::_get_tooltip_text_for_icon()` matches on the icon's FILE
+BASENAME.** A new icon with no matching `match` case silently falls through to the generic
+"This enemy is preparing something." — the same class of bug as Absorb's missing tooltip
+(§2.4-1). Add the case in the same commit as the art.
+
+---
+
 ## Appendix — proposal quick-reference (FULL menu — §8 is the scoped subset)
 
 | Proposal | Act/Tier | New plumbing | Cost | Phase |
@@ -706,3 +964,5 @@ semantics at 5-card hand size, and 2 vs 3 curse cards.
 | Lead Die / Cursed Pact (junk wave 2) | A2 | in-hand passives | M | 5 |
 | Necromancer summons | A2 elite | mid-fight spawn | H | 6 |
 | Repetition-cap "ascension" dial | future | none | S | later |
+| §9 ramp column (Goblin/Lich/DP + Medusa/Leviathan cadence, ±Lurker) | A1-A2 | none (riders, use-counters, cadence gates) | S | rides §8's batches |
+| §9 soft-enrage backstop status | all fights | 1 status + 1 turn hook | XS | standalone, pre-release viable |
