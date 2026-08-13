@@ -24,8 +24,18 @@ func _ready() -> void:
 	var shop: Control = (load("res://scenes/shop/dice_shop.tscn") as PackedScene).instantiate()
 	vp.add_child(shop)
 
-	for i in 6:
-		await get_tree().process_frame
+	# ~1.5s of real frames so breathing/motes are underway when the still is captured.
+	# Along the way, sample the visible halos' alphas: a still can't show desync, but
+	# three well-separated alpha values at one instant (and re-ordered at the next) can.
+	for sample in 3:
+		for i in 30:
+			await get_tree().process_frame
+		var line := "[dice-shop-render] glow alphas:"
+		for index in Global.shop_dice_selection:
+			var tex: TextureRect = shop.get_node(
+					"MarginContainer/Panel/HBoxContainer/Dice%d/Dice%dTexture" % [index + 1, index + 1])
+			line += " %.3f" % tex.get_child(0).modulate.a
+		print(line)
 	await RenderingServer.frame_post_draw
 
 	var img := vp.get_texture().get_image()

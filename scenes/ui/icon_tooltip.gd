@@ -63,6 +63,24 @@ static func spawn_below(button: Control, text: String) -> Node:
     return layer
 
 
+# Body-text sibling of spawn_below(), for buttons whose explanation is a full sentence rather
+# than a one-word label (see the BODY_FONT comment above for why those need a different
+# treatment). Same lifecycle contract: store the returned Node and free() it on mouse_exited.
+# show_body_tooltip() anchors just BELOW the point it's given, so the button's bottom-center
+# is the right anchor here, exactly as in spawn_below().
+static func spawn_body_below(button: Control, text: String) -> Node:
+    var layer: Node = load(SCENE_PATH).instantiate()
+    Global.add_tooltip(layer, button)
+    var panel: IconTooltip = layer.get_node("IconTooltip")
+    var anchor := button.global_position + Vector2(button.size.x / 2.0, button.size.y)
+    panel.show_body_tooltip(anchor, text)
+    layer.get_tree().create_timer(SAFETY_TIMEOUT).timeout.connect(func():
+        if is_instance_valid(layer):
+            layer.queue_free()
+    )
+    return layer
+
+
 func show_tooltip(anchor_bottom_center: Vector2, text: String) -> void:
     label.text = "[center][color=gold][b]%s[/b][/color][/center]" % text
     show()

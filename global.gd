@@ -240,14 +240,17 @@ var card_removals_bought = 0
 # Column order of the dice shop - shop_dice_selection / shop_dice_deal_index index space.
 const DICE_TYPE_ORDER := ["evil", "giant", "magma", "even", "odd", "blue", "red", "green", "mech"]
 const DICE_BASE_PRICES := {
-    # Golem ("even") and Ricochet ("odd") were repriced 210/190 -> 240 in the rework: carry-over
-    # and the once-per-roll reroll put both in the same build-defining tier as Evil/Giant.
-    "evil": 240, "giant": 240, "magma": 270, "even": 240, "odd": 240,
-    "blue": 180, "red": 180, "green": 150, "mech": 200,
+    # Ordering is deliberate (2026-08-13 dice-variety pass): a first die of a NEW type must not
+    # be undercut by another copy of a starter, so the discovery aisle (green..odd) sits below
+    # blue/red, and only the genuinely stronger dice (evil/giant/magma) keep a premium over them.
+    # Bases are tuned so die #1 is a first-shop commitment (~floor 5-7), not a floor-3 impulse
+    # buy - total dice count is governed by the escalation below, not by these numbers.
+    "evil": 185, "giant": 185, "magma": 220, "even": 165, "odd": 165,
+    "blue": 170, "red": 170, "green": 115, "mech": 145,
 }
 # Every dice purchase (ANY type) raises ALL dice prices by this factor. Die #1 at base =
-# the happy milestone; die #2 at ~1.4x = late-run stretch; die #3 = trophy.
-const DICE_PRICE_ESCALATION := 1.4
+# the happy milestone; die #2 at ~1.5x = late-act-1 stretch; die #3 at ~2.25x = act-2 trophy.
+const DICE_PRICE_ESCALATION := 1.5
 const DICE_DEAL_DISCOUNT := 0.8  # the deal die sells at 80% of the current escalated price
 
 

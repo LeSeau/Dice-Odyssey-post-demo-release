@@ -219,17 +219,20 @@ func _setup_deal_stall() -> void:
 # Infusion-style treatment (Julien: "the small orbs rising to the top, like the dice
 # infusion screen"): a SMALL soft halo behind the die + a steady stream of rising accent
 # motes over it. Recipe copied from dice_infusion.gd. Built in code inside the stall.
-const DEAL_MOTE_INTERVAL := 0.35
+const DEAL_MOTE_INTERVAL := 0.27  # single die, own timer; bumped from 0.35
 
 func _setup_deal_glow() -> void:
     _deal_accent = DicePalette.accent(_deal_type)
     # Small breathing halo behind the die (kept subtle - the motes are the main effect).
     _deal_glow = TextureRect.new()
-    _deal_glow.texture = _get_glow_texture()
+    # Shaped halo (rounded square, follows the die silhouette) - same swap as the dice shop
+    # and infusion screen; the radial circle behind a square die read as shape-blind. The
+    # deal motes keep the radial texture.
+    _deal_glow.texture = DicePalette.die_halo_texture()
     _deal_glow.material = _get_additive_material()
     _deal_glow.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
     _deal_glow.stretch_mode = TextureRect.STRETCH_SCALE
-    _deal_glow.size = Vector2(150, 150)
+    _deal_glow.size = Vector2(166, 166)
     # Centered on the die art (offset 42-158 / 60-176 in stall space -> center 100,118).
     _deal_glow.position = Vector2(100, 118) - _deal_glow.size / 2.0
     _deal_glow.pivot_offset = _deal_glow.size / 2.0
@@ -262,7 +265,7 @@ func _spawn_deal_mote() -> void:
     mote.material = _get_additive_material()
     mote.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
     mote.stretch_mode = TextureRect.STRETCH_SCALE
-    var mote_size := randf_range(9.0, 18.0)
+    var mote_size := randf_range(10.0, 20.0)
     mote.size = Vector2(mote_size, mote_size)
     mote.mouse_filter = Control.MOUSE_FILTER_IGNORE
     mote.modulate = Color(_deal_accent.r, _deal_accent.g, _deal_accent.b, 0.0)
@@ -272,7 +275,7 @@ func _spawn_deal_mote() -> void:
 
     var rise := randf_range(70.0, 110.0)
     var duration := randf_range(1.1, 1.7)
-    var peak_alpha := randf_range(0.4, 0.7)
+    var peak_alpha := randf_range(0.46, 0.78)
     var t := create_tween()
     t.set_parallel(true)
     t.tween_property(mote, "position:y", mote.position.y - rise, duration) \

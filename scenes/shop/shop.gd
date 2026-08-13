@@ -61,12 +61,52 @@ const PRICE_FONT := preload("res://fonts/luckiest_guy_numbers.tres")
 # image, which renders small and sits low on the text baseline.
 var _dice_price_labels: Array[Label] = []
 var _reroll_price_label: Label = null
+# The "all three are different" half of this is the whole reason to spend the 20 gold, so it
+# is stated outright: before 2026-08-13 a reroll drew from all 9 types and could legitimately
+# hand back dice that were already on display, which read as the button not working.
+const REROLL_TOOLTIP_TEXT := "Offers three new Dice. All three are guaranteed to be different types from the ones shown now."
+var _reroll_tooltip: Node = null
+
+# Soft accent-tinted halo + rising motes behind each die (2026-08-13, Julien: "a small glow
+# like on dice infusion") - the infused-style presentation the card shop's deal die already
+# has, via the now-shared DicePalette.glow_texture()/additive_material() recipe. Halo sits
+# BEHIND the die art (show_behind_parent), so it only ever reads as rim light.
+# The die art is opaque and covers the halo's center, so only the ring past the die edge is
+# ever visible - the halo must be a good deal larger than the 200px die for that ring to
+# clear the ~10%-luminosity visibility floor. Shaped die_halo_texture (rounded square, not
+# the radial circle - Julien's call) is much brighter at the die edge than the old radial
+# tail was, hence the lower alphas.
+const GLOW_SIZE := 320.0
+const GLOW_ALPHA_LOW := 0.32
+const GLOW_ALPHA_HIGH := 0.5
+# One shared timer cycles the 3 visible dice, so this is the SHOP-WIDE rate: divide by 3
+# for the per-die rate (~0.78s), unlike the infusion/deal-die timers which are per-die.
+# Bumped from 0.42 on Julien's "slightly increase mote intensity/frequency" pass.
+const MOTE_INTERVAL := 0.26
+var _dice_columns: Array = []
+var _mote_cursor := 0
+# {node, phase, period} per halo, driven by _process. Phases are golden-ratio-spaced by
+# column index; the random offset just rotates the whole pattern per shop visit.
+var _glow_pulses: Array = []
+var _glow_time := 0.0
+var _glow_phase_offset := randf()
 
 
 
 func _ready():
     Events.dice_price_changed.connect(_on_dice_price_changed)
     var dice_nodes = [dice_1, dice_2, dice_3, dice_4, dice_5, dice_6, dice_7, dice_8, dice_9]
+    _dice_columns = dice_nodes
+
+    # Accent halo behind every die + one shared mote timer. All 9 are set up (hidden columns
+    # hide their glow with them), so a reroll swaps which glows show for free.
+    for i in dice_nodes.size():
+        _setup_dice_glow(i)
+    var mote_timer := Timer.new()
+    mote_timer.wait_time = MOTE_INTERVAL
+    mote_timer.autostart = true
+    mote_timer.timeout.connect(_spawn_shop_mote)
+    add_child(mote_timer)
     
     # Hide all dice containers initially
     for dice in dice_nodes:
@@ -115,6 +155,10 @@ func _ready():
     rrow["label"].text = str(reroll_price)
     _reroll_price_label = rrow["label"]
     reroll_btn.add_child(rrow["hbox"])
+    # Wired here rather than in the .tscn simply because the button is already resolved
+    # above; the label/coin row inside it are mouse-transparent, so these still fire.
+    reroll_btn.mouse_entered.connect(_on_reroll_button_mouse_entered)
+    reroll_btn.mouse_exited.connect(_on_reroll_button_mouse_exited)
 
     update_dice_price()
 
@@ -356,6 +400,7 @@ var tooltip_instance_bonus: CanvasLayer
 # screen comes next. Same bug class already fixed once in relic_ui.gd.
 func _exit_tree() -> void:
     _cleanup_dice_tooltips()
+    _hide_reroll_tooltip()
 
 # Also called right before every spawn, which is the fix for the OTHER leak here (reported
 # 2026-08-03: "hovering an even dice then leaving the shop leaves a permanent obstruction").
@@ -640,12 +685,22 @@ func reroll_shop_dice() -> void:
     for dice in dice_nodes:
         dice.hide()
 
-    # Generate a new random selection of 3 unique dice
-    var chosen_indexes := []
-    while chosen_indexes.size() < 3:
-        var rand_index = randi() % existing_dices
-        if not chosen_indexes.has(rand_index):
-            chosen_indexes.append(rand_index)
+    # A reroll replaces the offer WHOLESALE: draw only from the types that aren't on display
+    # (6 of the 9 remain, so 3 can always be drawn). The old version drew from all 9 and could
+    # return dice that were already there - paying for an offer that partly didn't change reads
+    # as a broken button, and it made the reroll price impossible to judge. Buying a die leaves
+    # it on display, so shop_dice_selection is always the 3 currently-shown types.
+    var previously_shown: Array = Global.shop_dice_selection
+    var candidates := []
+    for index in existing_dices:
+        if not previously_shown.has(index):
+            candidates.append(index)
+    candidates.shuffle()
+    # Only reachable if the stored selection is ever bigger than it should be - falling back to
+    # the shown types beats handing the rest of the function fewer than 3 dice.
+    while candidates.size() < 3:
+        candidates.append(randi() % existing_dices)
+    var chosen_indexes := candidates.slice(0, 3)
 
     # Save the selection in Global. The card shop's deal die must stay outside the 3
     # types shown here, so a reroll re-picks it too.
@@ -655,6 +710,108 @@ func reroll_shop_dice() -> void:
     # Show the new dice
     for index in chosen_indexes:
         dice_nodes[index].show()
+
+    # Refreshes the affordable/unaffordable price colours (gold just went down by the reroll
+    # cost) and re-derives Global.cheapest_dice_price, which is keyed off the SELECTION and so
+    # was left describing the previous offer - that value drives the map's "you can afford a
+    # Dice" badge.
+    update_dice_price()
+
+
+func _setup_dice_glow(column_index: int) -> void:
+    var die_texture: TextureRect = _dice_columns[column_index].get_node(
+            "Dice%dTexture" % (column_index + 1))
+    var accent: Color = DicePalette.accent(Global.DICE_TYPE_ORDER[column_index])
+    var glow := TextureRect.new()
+    glow.texture = DicePalette.die_halo_texture()
+    glow.material = DicePalette.additive_material()
+    glow.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    glow.stretch_mode = TextureRect.STRETCH_SCALE
+    glow.show_behind_parent = true
+    glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    glow.size = Vector2(GLOW_SIZE, GLOW_SIZE)
+    glow.position = (die_texture.custom_minimum_size - glow.size) / 2.0
+    glow.pivot_offset = glow.size / 2.0
+    glow.modulate = Color(accent.r, accent.g, accent.b, GLOW_ALPHA_LOW)
+    die_texture.add_child(glow)
+
+    # Deterministic phase spread (Julien: the three glows read as breathing in lockstep).
+    # A random 0-1.4s lead-in tween was tried first and failed structurally: uniform draws
+    # can cluster, and during the lead-in every halo idles at the same LOW value, so the
+    # first cycle - most of a shop visit - still looked synchronized. Golden-ratio spacing
+    # by column index puts ANY 3 visible columns at well-separated points of the cycle from
+    # the very first frame, and the per-die period keeps them drifting apart after that.
+    var phase := fmod(column_index * 0.618 + _glow_phase_offset, 1.0) * TAU
+    _glow_pulses.append({"node": glow, "phase": phase, "period": randf_range(2.7, 3.4)})
+
+
+# Sine-driven breathing for all 9 halos (hidden columns cost nothing visible). _process
+# instead of looping tweens so each halo can START mid-cycle at its assigned phase - a
+# Tween loop always begins at a leg boundary, which is exactly the synchronization problem.
+func _process(delta: float) -> void:
+    _glow_time += delta
+    for entry in _glow_pulses:
+        var glow: TextureRect = entry["node"]
+        var wave: float = 0.5 + 0.5 * sin(TAU * _glow_time / entry["period"] + entry["phase"])
+        glow.modulate.a = lerpf(GLOW_ALPHA_LOW, GLOW_ALPHA_HIGH, wave)
+        var glow_scale: float = lerpf(0.96, 1.06, wave)
+        glow.scale = Vector2(glow_scale, glow_scale)
+
+
+# Accent mote drifting up across the die face, dice-infusion recipe. Reads the CURRENT
+# selection every tick, so a reroll redirects the motes to the new dice automatically.
+func _spawn_shop_mote() -> void:
+    var shown: Array = Global.shop_dice_selection
+    if shown.is_empty():
+        return
+    _mote_cursor = (_mote_cursor + 1) % shown.size()
+    var column_index: int = shown[_mote_cursor]
+    var die_texture: TextureRect = _dice_columns[column_index].get_node(
+            "Dice%dTexture" % (column_index + 1))
+    var accent: Color = DicePalette.accent(Global.DICE_TYPE_ORDER[column_index])
+    var box: Vector2 = die_texture.custom_minimum_size
+
+    var mote := TextureRect.new()
+    mote.texture = DicePalette.glow_texture()
+    mote.material = DicePalette.additive_material()
+    mote.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    mote.stretch_mode = TextureRect.STRETCH_SCALE
+    var mote_size := randf_range(11.0, 22.0)
+    mote.size = Vector2(mote_size, mote_size)
+    mote.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    mote.modulate = Color(accent.r, accent.g, accent.b, 0.0)
+    mote.position = Vector2(
+        randf_range(12.0, box.x - 12.0 - mote_size),
+        box.y - randf_range(5.0, 40.0)
+    )
+    die_texture.add_child(mote)
+
+    var rise := randf_range(70.0, 115.0)
+    var duration := randf_range(1.1, 1.6)
+    var peak_alpha := randf_range(0.38, 0.62)
+    var t := create_tween()
+    t.set_parallel(true)
+    t.tween_property(mote, "position:y", mote.position.y - rise, duration) \
+            .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+    t.tween_property(mote, "position:x", mote.position.x + randf_range(-16.0, 16.0), duration)
+    t.tween_property(mote, "modulate:a", peak_alpha, duration * 0.3)
+    t.tween_property(mote, "modulate:a", 0.0, duration * 0.45).set_delay(duration * 0.55)
+    t.chain().tween_callback(mote.queue_free)
+
+
+func _on_reroll_button_mouse_entered() -> void:
+    _hide_reroll_tooltip()
+    _reroll_tooltip = IconTooltip.spawn_body_below($RerollButton, REROLL_TOOLTIP_TEXT)
+
+
+func _on_reroll_button_mouse_exited() -> void:
+    _hide_reroll_tooltip()
+
+
+func _hide_reroll_tooltip() -> void:
+    if is_instance_valid(_reroll_tooltip):
+        _reroll_tooltip.queue_free()
+    _reroll_tooltip = null
 
 
 func _on_reroll_button_pressed() -> void:

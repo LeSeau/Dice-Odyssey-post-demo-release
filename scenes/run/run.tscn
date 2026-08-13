@@ -196,7 +196,6 @@ grow_vertical = 2
 
 [node name="MapButton" type="Button" parent="DebugButtons"]
 unique_name_in_owner = true
-visible = false
 layout_mode = 2
 text = "Map
 "
@@ -204,7 +203,6 @@ icon_alignment = 1
 
 [node name="BattleButton" type="Button" parent="DebugButtons"]
 unique_name_in_owner = true
-visible = false
 layout_mode = 2
 text = "Battle
 "

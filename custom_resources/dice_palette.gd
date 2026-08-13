@@ -72,3 +72,75 @@ static func outline(type: String) -> Color:
 # charge) that should read "golden success, tinted by this die" rather than pure type color.
 static func burst(type: String, warmth: float = 0.45) -> Color:
     return accent(type).lerp(BURST_WARM_WHITE, warmth)
+
+
+# ---------------------------------------------------------------------------------------
+# Shared "infused-style" soft glow recipe (radial white->transparent gradient + additive
+# blend), the halo/mote look of the dice-infusion screen. Canonical home as of 2026-08-13:
+# dice_infusion.gd and card_shop.gd still carry their own private copies from before the
+# extraction - new consumers (dice shop, future screens) should use these instead of
+# copying the recipe a fourth time. Tint via modulate with the accent() of the type.
+static var _glow_texture: GradientTexture2D
+static var _additive_material: CanvasItemMaterial
+
+
+static func glow_texture() -> Texture2D:
+    if _glow_texture == null:
+        var gradient := Gradient.new()
+        gradient.set_color(0, Color(1, 1, 1, 1))
+        gradient.set_color(1, Color(1, 1, 1, 0))
+        gradient.add_point(0.55, Color(1, 1, 1, 0.35))
+        var tex := GradientTexture2D.new()
+        tex.gradient = gradient
+        tex.fill = GradientTexture2D.FILL_RADIAL
+        tex.fill_from = Vector2(0.5, 0.5)
+        tex.fill_to = Vector2(0.5, 0.0)
+        tex.width = 256
+        tex.height = 256
+        _glow_texture = tex
+    return _glow_texture
+
+
+static func additive_material() -> CanvasItemMaterial:
+    if _additive_material == null:
+        var mat := CanvasItemMaterial.new()
+        mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+        _additive_material = mat
+    return _additive_material
+
+
+# Rounded-SQUARE halo for glows sitting behind a die: the radial glow_texture() above reads
+# as a circle floating behind a square object (Julien flagged that on both the infusion
+# screen and the dice shop, 2026-08-13) - this one follows the die silhouette instead.
+# Alpha is an SDF falloff from a rounded-rect core sized so the core (and its hard edge)
+# stays hidden UNDER the opaque die art at every consumer's die:halo ratio - core = 52% of
+# the canvas, so keep halo size <= die_px / 0.52. glow_texture() stays the right pick for
+# motes/sparks, which are round by nature.
+static var _die_halo_texture: ImageTexture
+
+
+static func die_halo_texture() -> Texture2D:
+    if _die_halo_texture == null:
+        var size := 256
+        var half := size * 0.5
+        var core_half := half * 0.52
+        var corner_r := core_half * 0.34
+        var falloff := half - core_half
+        var data := PackedByteArray()
+        data.resize(size * size * 4)
+        for y in size:
+            for x in size:
+                var qx := absf(x + 0.5 - half) - (core_half - corner_r)
+                var qy := absf(y + 0.5 - half) - (core_half - corner_r)
+                var dist := Vector2(maxf(qx, 0.0), maxf(qy, 0.0)).length() \
+                        + minf(maxf(qx, qy), 0.0) - corner_r
+                var a := clampf(1.0 - dist / falloff, 0.0, 1.0)
+                a *= a
+                var i := (y * size + x) * 4
+                data[i] = 255
+                data[i + 1] = 255
+                data[i + 2] = 255
+                data[i + 3] = int(a * 255.0)
+        var img := Image.create_from_data(size, size, false, Image.FORMAT_RGBA8, data)
+        _die_halo_texture = ImageTexture.create_from_image(img)
+    return _die_halo_texture

@@ -31,7 +31,7 @@ const PANEL_MIN_SIZE := Vector2(370, 382)
 const DIE_SIZE := 170.0
 const DIE_HOLDER_SIZE := Vector2(210.0, 190.0)
 const GLOW_SIZE := 300.0
-const MOTE_INTERVAL := 0.4
+const MOTE_INTERVAL := 0.3  # per candidate panel (each has its own timer), bumped from 0.4
 
 @onready var title_label: Label = $Title
 @onready var subtitle_label: Label = $Subtitle
@@ -200,14 +200,17 @@ func _build_option_panel(dice_type: String) -> PanelContainer:
     die_holder.add_child(visual)
 
     var glow := TextureRect.new()
-    glow.texture = _get_glow_texture()
+    # Shaped halo (rounded square, follows the die silhouette) - Julien found the old radial
+    # circle behind a square die shape-blind, here and in the shops. Motes below keep the
+    # radial texture. Brighter at the die edge than the radial tail was, hence lower alphas.
+    glow.texture = DicePalette.die_halo_texture()
     glow.material = _get_additive_material()
     glow.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
     glow.stretch_mode = TextureRect.STRETCH_SCALE
     glow.size = Vector2(GLOW_SIZE, GLOW_SIZE)
     glow.position = (DIE_HOLDER_SIZE - glow.size) / 2.0
     glow.pivot_offset = glow.size / 2.0
-    glow.modulate = Color(accent.r, accent.g, accent.b, 0.5)
+    glow.modulate = Color(accent.r, accent.g, accent.b, 0.3)
     glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
     visual.add_child(glow)
 
@@ -226,9 +229,9 @@ func _build_option_panel(dice_type: String) -> PanelContainer:
     # Slow breathing pulse on the halo - killed on confirm so the ceremony owns it.
     var pulse := create_tween().set_loops()
     pulse.tween_property(glow, "scale", Vector2(1.08, 1.08), 1.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-    pulse.parallel().tween_property(glow, "modulate:a", 0.68, 1.5)
+    pulse.parallel().tween_property(glow, "modulate:a", 0.42, 1.5)
     pulse.tween_property(glow, "scale", Vector2(0.95, 0.95), 1.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-    pulse.parallel().tween_property(glow, "modulate:a", 0.45, 1.5)
+    pulse.parallel().tween_property(glow, "modulate:a", 0.28, 1.5)
     _pulse_tweens[dice_type] = pulse
 
     # Rising accent motes - "power seeping into the die".
@@ -332,7 +335,7 @@ func _spawn_mote(parent: Control, accent: Color) -> void:
 
     var rise := randf_range(70.0, 120.0)
     var duration := randf_range(1.1, 1.7)
-    var peak_alpha := randf_range(0.35, 0.6)
+    var peak_alpha := randf_range(0.42, 0.7)
     var t := create_tween()
     t.set_parallel(true)
     t.tween_property(mote, "position:y", mote.position.y - rise, duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
