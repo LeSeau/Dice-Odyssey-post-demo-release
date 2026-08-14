@@ -9,6 +9,7 @@ const CAMPFIRE_SCENE := preload ("res://scenes/campfire/campfire.tscn")
 const EVENT_SCENE := preload("res://scenes/events/event_add_new_card.tscn")
 const DICE_SHOP_SCENE = preload("res://scenes/shop/dice_shop.tscn")
 const DICE_INFUSION_SCENE := preload("res://scenes/dice_infusion/dice_infusion.tscn")
+const DICE_LOADOUT_SCENE := preload("res://scenes/dice_loadout/dice_loadout.tscn")
 
 const SHOP_SCENE := preload ("res://scenes/shop/card_shop.tscn")
 
@@ -219,9 +220,11 @@ func _on_update_dice_top_bar() -> void:
     # Always update blue and red dice (starting dice)
     blue_dice_amount.text = "x" + str(Global.blue_dice_max_amount)
     red_dice_amount.text = "x" + str(Global.red_dice_max_amount)
-    # Blue is assumed permanent, but Red can now be traded away entirely
-    # (event_hollow_idol.gd) - hide it the same way every other dice type
-    # already hides itself once its max_amount hits 0.
+    # Blue and Red used to be assumed permanent, but a run loadout (dice_loadout.gd)
+    # can now start a run without either (and Red can be traded away via
+    # event_hollow_idol.gd) - hide them at 0 the same way every other dice type
+    # already hides itself.
+    blue_dice.visible = Global.blue_dice_max_amount > 0
     red_dice.visible = Global.red_dice_max_amount > 0
 
     # Check if we need to add any new dice types
@@ -271,6 +274,19 @@ func _start_run() -> void:
     map.generate_new_map()
     map.unlock_floor(0)
     _update_floor_label()
+    # Run-identity beat (the "wish"): from the player's second run onward, the dice
+    # loadout picker (scenes/dice_loadout) precedes the map. Run #1 and tutorial runs
+    # keep the classic 2 Blue + 1 Red already in place from reset_run_state - the
+    # tutorial scripts Blue rolls and a Red socket, and a brand-new player shouldn't
+    # face a 5-way archetype choice with zero context. The stat is counted BEFORE the
+    # branch (so the run being started is itself run #N) and flushed immediately -
+    # quitting from the very first map must still mark run #1 as played.
+    var offer_loadout: bool = AchievementManager.get_stat("runs_started") >= 1 and not Global.tutorial_on
+    AchievementManager.add_stat("runs_started", 1)
+    AchievementManager.flush()
+    if offer_loadout:
+        _show_dice_loadout()
+        return
     # Act 1 gets the same announcement beat act 2 always had (_enter_act_2) - the map is
     # the first thing a player ever sees, and it opened with zero framing before this.
     act_banner.announce("ACT 1: THE RUINS")
@@ -348,6 +364,7 @@ func _setup_event_connections() -> void:
     Events.battle_won.connect(_on_battle_won)
     Events.battle_reward_exited.connect(_show_map)
     Events.dice_infusion_completed.connect(_on_dice_infusion_completed)
+    Events.dice_loadout_completed.connect(_on_dice_loadout_completed)
     Events.event_exited.connect(_show_map)
     Events.map_exited.connect(_on_map_exited)
     Events.shop_exited.connect(_show_map)
@@ -537,7 +554,7 @@ func _on_battle_won() -> void:
     print("battle won!")
     Global.cards_played_this_turn = 0
     Global.next_roll_modifier = 0
-    Global.dice_type = "blue"
+    Global.dice_type = Global.default_active_dice_type()
     var reward_scene := _change_view(BATTLE_REWARD_SCENE) as BattleReward
     reward_scene.run_stats = stats
     reward_scene.character_stats = character
@@ -601,6 +618,27 @@ func _show_dice_infusion() -> void:
 
 func _on_dice_infusion_completed() -> void:
     _enter_act_2()
+    _show_map()
+
+
+# The run-identity picker ("the wish", scenes/dice_loadout) - run #2+ only, see
+# _start_run. Mirrors _show_dice_infusion: a full-screen ceremony in current_view that
+# reports back through Events.dice_loadout_completed. Deliberately NO _save_checkpoint
+# before the pick: the previous run's save survives until the wish is confirmed, so
+# quitting mid-picker abandons nothing.
+func _show_dice_loadout() -> void:
+    dice_shop.set_available(false)
+    _change_view(DICE_LOADOUT_SCENE)
+
+
+func _on_dice_loadout_completed() -> void:
+    # The picker already wrote the chosen dice amounts into Global (state first,
+    # flourish after - same principle as the infusion screen). Refresh the top bar,
+    # then open the run exactly like _start_run's direct path: banner, then the map -
+    # whose _show_map() writes the run's first checkpoint, which is the moment the
+    # previous run's save is finally replaced.
+    _on_update_dice_top_bar()
+    act_banner.announce("ACT 1: THE RUINS")
     _show_map()
 
 

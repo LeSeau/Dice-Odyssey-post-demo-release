@@ -140,6 +140,10 @@ signal dice_shop_closed
 # locked in and its ceremony has played - run.gd answers by entering act 2 + showing
 # the new map.
 signal dice_infusion_completed
+# Emitted by the run-start dice loadout picker (scenes/dice_loadout) once the chosen
+# set's dice amounts are written into Global and its ceremony has played - run.gd
+# answers by announcing act 1 and showing the map. Run #2+ only (run.gd::_start_run).
+signal dice_loadout_completed
 signal card_type_played(card_type)
 
 signal show_warning_message

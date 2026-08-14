@@ -177,6 +177,9 @@ var _stats := {
 	"cards_bought": 0,
 	"dice_bought_from_shop": 0,
 	"events_completed": 0,
+	# Lifetime run counter - not tied to any achievement. run.gd gates the run-start
+	# dice loadout picker on it (picker appears from run #2 onward).
+	"runs_started": 0,
 }
 # Stats change every roll, so they're flushed at quiet moments (turn end / battle end /
 # quit) instead of writing the cfg file on every increment. Unlocks flush immediately.
@@ -280,6 +283,19 @@ func add_stat(key: String, amount: int) -> void:
 	for def in ACHIEVEMENTS:
 		if def.get("stat", "") == key and _stats[key] >= int(def.get("target", 0)):
 			unlock(def.id)
+
+
+# Read-only lifetime counter access (run.gd gates the dice-loadout picker on
+# "runs_started"). Returns 0 for unknown keys.
+func get_stat(key: String) -> int:
+	return int(_stats.get(key, 0))
+
+
+# Immediate write-through for callers that can't wait for the next quiet-moment flush -
+# run start counts "runs_started", and the player may quit from the very first map
+# without ever ending a turn or a battle.
+func flush() -> void:
+	_flush_if_dirty()
 
 
 # {current, target} for achievements with a counter, {} for one-shot ones. Once
@@ -489,6 +505,24 @@ func _load_from_disk() -> void:
 		_unlocked[def.id] = bool(cfg.get_value("unlocked", def.id, false))
 	for key: String in _stats.keys():
 		_stats[key] = int(cfg.get_value("stats", key, 0))
+	# Profile backfill: "runs_started" arrived with the run-start loadout picker
+	# (2026-08-13), which unlocks from run #2 on. A profile that predates the stat has
+	# obviously played before - any unlock or any nonzero lifetime stat proves it - and
+	# should see the picker on its very NEXT run, not after one more "first" run.
+	if int(_stats.get("runs_started", 0)) == 0:
+		var played_before := false
+		for def in ACHIEVEMENTS:
+			if _unlocked.get(def.id, false):
+				played_before = true
+				break
+		if not played_before:
+			for key: String in _stats.keys():
+				if key != "runs_started" and int(_stats[key]) > 0:
+					played_before = true
+					break
+		if played_before:
+			_stats["runs_started"] = 1
+			_dirty = true
 
 
 func _flush_if_dirty() -> void:

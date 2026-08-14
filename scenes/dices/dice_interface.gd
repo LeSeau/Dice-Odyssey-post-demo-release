@@ -324,10 +324,16 @@ func _on_dice_amount_changed():
     update_selected_highlight()
 
 func initialize_dices():
-    # Blue is assumed permanent (nothing in the game reduces it to 0 in
-    # practice) so it stays always-visible - but Red can now be traded away
-    # entirely (event_hollow_idol.gd), so it needs the same show/hide check
-    # already applied to every other non-blue dice type below.
+    # Blue used to be assumed permanent and stayed always-visible, but a run loadout
+    # (dice_loadout.gd, run #2+) can start a run with no Blue at all - so Blue gets the
+    # same show/hide check as Red (tradeable away via event_hollow_idol.gd) and every
+    # other type below. bonus_amount_fight is part of Blue's check because Emanation
+    # grants fight-scoped Blue dice to players who may own none.
+    if Global.blue_dice_max_amount > 0 or Global.blue_dice_current_amount > 0 or Global.blue_dice_bonus_amount > 0 or Global.blue_dice_bonus_amount_fight > 0:
+        dice_1.show()
+    else:
+        dice_1.hide()
+
     if Global.red_dice_max_amount > 0 or Global.red_dice_current_amount > 0 or Global.red_dice_bonus_amount > 0:
         dice_2.show()
     else:
@@ -415,7 +421,9 @@ func _resize_panel_for_dice_inventory() -> void:
     # initialize_dices()'s own per-type conditions) rather than relying on
     # Global.dice_inventory, which most temporary-dice-granting cards never
     # update (only cogwork.gd does) and is therefore frequently stale.
-    var visible_dice_count := 1  # blue is always shown
+    var visible_dice_count := 0
+    if Global.blue_dice_max_amount > 0 or Global.blue_dice_current_amount > 0 or Global.blue_dice_bonus_amount > 0 or Global.blue_dice_bonus_amount_fight > 0:
+        visible_dice_count += 1
     if Global.red_dice_max_amount > 0 or Global.red_dice_current_amount > 0 or Global.red_dice_bonus_amount > 0:
         visible_dice_count += 1
     if Global.evil_dice_max_amount > 0 or Global.evil_dice_current_amount > 0 or Global.evil_dice_bonus_amount > 0:
@@ -437,10 +445,10 @@ func _resize_panel_for_dice_inventory() -> void:
 func _on_charge_dice_animation():
     animation_player.play("charge")  # Play the 'charge' animation
     initialize_dices()
-    # initialize_dices() only refreshes the optional dice types' labels - blue (dice_1)
-    # and red (dice_2) are always-visible and skipped there, so charging a blue/red die
-    # (e.g. Disintegrate on the active blue die, Electrify, Spark, Blood Drop) wouldn't
-    # update its count. Refresh them here so the displayed amount stays correct.
+    # initialize_dices() only refreshes the optional dice types' LABELS - blue (dice_1)
+    # and red (dice_2) get visibility handling there but their labels aren't rewritten,
+    # so charging a blue/red die (e.g. Disintegrate on the active blue die, Electrify,
+    # Spark, Blood Drop) wouldn't update its count. Refresh them here.
     dice_1_label.text = str(Global.blue_dice_current_amount, "/", Global.blue_dice_max_amount)
     dice_2_label.text = str(Global.red_dice_current_amount, "/", Global.red_dice_max_amount)
     update_selected_highlight()

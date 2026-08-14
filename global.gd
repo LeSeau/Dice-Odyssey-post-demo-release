@@ -441,6 +441,18 @@ var load_run_requested := false
 # NOT reset here: testing_mode (dev switch), tutorial_on (set by the main menu before the
 # scene loads), load_run_requested (the flag that decides fresh-vs-load), player (node ref,
 # reassigned by the battle scene), and the preloaded sfx.
+# First dice type the player actually owns, in the combat interface's slot order - the
+# fallback "active die" used at battle start / battle end instead of a hard-coded "blue"
+# (run loadouts from dice_loadout.gd can start a run with no Blue at all). Red is
+# deliberately LAST: it rolls after the card is picked (the gamble die), so a fight
+# should never open on it while any planning die exists.
+func default_active_dice_type() -> String:
+    for type in ["blue", "evil", "giant", "magma", "even", "odd", "green", "mech", "red"]:
+        if get(type + "_dice_max_amount") > 0:
+            return type
+    return "blue"
+
+
 func reset_run_state() -> void:
     gold = 75
     player_hp = 66
