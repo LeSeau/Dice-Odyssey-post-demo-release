@@ -6,12 +6,16 @@ extends Node
 #   ... res://debug_intent_family.tscn --write-movie <dir>/f.png --fixed-fps 30
 #       --resolution 1280x720 --rendering-driver opengl3 --position 2000,2000
 
+# [primary icon, number, rider icon ("" = single-icon intent)]. The rider rows exercise the
+# STS2-style icon2 slot: two separate full-size glyphs side by side, number after the primary.
 const ICONS := [
-	["attack_icon_intent.png", "7"],
-	["block_icon_intent.png", "9"],
-	["debuff_intent.png", "2"],
-	["buff_icon_intent.png", "3"],
-	["buff_block_intent.png", "5"],
+	["attack_icon_intent.png", "7", ""],
+	["block_icon_intent.png", "9", ""],
+	["debuff_intent.png", "2", ""],
+	["buff_icon_intent.png", "3", ""],
+	["block_icon_intent.png", "5", "buff_icon_intent.png"],
+	["attack_icon_intent.png", "8", "debuff_intent.png"],
+	["attack_icon_intent.png", "12", "buff_icon_intent.png"],
 ]
 
 
@@ -30,13 +34,16 @@ func _ready() -> void:
 	for i in ICONS.size():
 		var iu = scene.instantiate()
 		layer.add_child(iu)
-		iu.position = Vector2(90 + i * 235, 300)
+		iu.position = Vector2(60 + i * 168, 300)
 		var it := Intent.new()
 		it.icon = load("res://" + ICONS[i][0])
 		it.current_text = ICONS[i][1]
+		if ICONS[i][2] != "":
+			it.icon2 = load("res://" + ICONS[i][2])
 		iu.update_intent(it)
 		await get_tree().process_frame
-		print("[fam] %-24s tooltip=%s" % [ICONS[i][0], iu._get_tooltip_text_for_icon()])
+		var label: String = ICONS[i][0] if ICONS[i][2] == "" else "%s + %s" % [ICONS[i][0], ICONS[i][2]]
+		print("[fam] %-44s tooltip=%s" % [label, iu._get_tooltip_text_for_icon()])
 
 	for f in 40:
 		await get_tree().process_frame

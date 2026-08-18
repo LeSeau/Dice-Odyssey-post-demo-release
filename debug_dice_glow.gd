@@ -80,6 +80,17 @@ func _ready() -> void:
 			dice.update_roll_history_ui()
 			dice._set_power_text(power)
 			dice._update_dice_aura_charge()
+			# Art check for the Mech +-1 arrows / Ricochet reroll button (2026-08-14 asset
+			# swap). This harness never performs a REAL roll, so their usable state is false
+			# and the section renders at 0.3 alpha - fine for behaviour, useless for judging
+			# artwork. Env-gated so the default shots are untouched.
+			dice._update_mech_buttons()
+			dice._update_ricochet_button()
+			if OS.get_environment("DICE_GLOW_BUTTONS") != "":
+				dice.mech_section.visible = type == "mech"
+				dice.mech_section.modulate.a = 1.0
+				dice.ricochet_section.visible = type == "odd"
+				dice.ricochet_section.modulate.a = 1.0
 			for i in SETTLE_FRAMES:
 				await get_tree().process_frame
 			await RenderingServer.frame_post_draw
