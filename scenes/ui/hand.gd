@@ -51,6 +51,9 @@ var _original_positions: Dictionary = {}
 var _original_z_indices: Dictionary = {}
 
 func _ready() -> void:
+    # In-hand passives (Global.in_hand) scan this node's children live - see Global's
+    # IN_HAND_* consts for why it reads the tree instead of a mirrored set.
+    add_to_group("hand")
     resized.connect(_update_card_positions)
     Events.fan_hand_requested.connect(_update_card_positions)
     Events.add_card_to_hand_requested.connect(_on_add_card_to_hand_requested)
@@ -339,6 +342,70 @@ func _on_hover_playable_cards() -> void:
         if child is CardUI and child.card:
             var card_ui := child as CardUI
             card_ui.set_playable_visual(_get_glow_state(card_ui.card))
+
+
+# ---------------------------------------------------------------------------
+# "You can still play something" flash (2026-08-15, STS2 audit 1.6)
+#
+# Fired when the player hovers End Turn. The reference does this and it's a genuinely
+# great teaching beat: the button answers "why would I NOT end my turn?" at the exact
+# moment the player considers it, instead of letting them discard a playable hand and
+# only find out later. Our End Turn nudge already handles the opposite case (pulsing gold
+# when nothing is left to do) - this is the other half of the same conversation.
+#
+# Deliberately modulate-ONLY. The fan owns position and rotation (and re-stomps both on
+# every fan_hand_requested), and scale/pivot are owned by the hover system - an effect on
+# any of those either gets erased or silently changes established hover behaviour. This is
+# the same constraint the draw entrance ran into, and the same solution.
+# ---------------------------------------------------------------------------
+const PLAYABLE_FLASH_COLOR := Color(1.7, 1.62, 1.25, 1.0)
+const PLAYABLE_FLASH_IN := 0.08
+const PLAYABLE_FLASH_OUT := 0.3
+const PLAYABLE_FLASH_STAGGER := 0.035
+
+# card -> the modulate it must return to. Needed because a second flash landing mid-flash
+# would otherwise capture the BRIGHTENED value as "resting" and cook it in permanently -
+# the same restore-to-a-live-reading trap that turned the Power number white in July.
+var _playable_flash_resting: Dictionary = {}
+var _playable_flash_tweens: Dictionary = {}
+
+
+func flash_playable_cards() -> void:
+    _reset_playable_flashes()
+    var i := 0
+    for child in get_children():
+        if not (child is CardUI):
+            continue
+        var card_ui := child as CardUI
+        if card_ui.card == null or card_ui.disabled:
+            continue
+        # current_glow_state is already maintained by set_playable_visual, so this asks the
+        # exact same question the card's own border is answering - the two can never
+        # disagree about what "playable" means.
+        if card_ui.current_glow_state != CardUI.PlayableGlow.HOT \
+                and card_ui.current_glow_state != CardUI.PlayableGlow.AVAILABLE:
+            continue
+        var resting := card_ui.modulate
+        _playable_flash_resting[card_ui] = resting
+        var flash := card_ui.create_tween()
+        _playable_flash_tweens[card_ui] = flash
+        flash.tween_interval(PLAYABLE_FLASH_STAGGER * i)
+        flash.tween_property(card_ui, "modulate", PLAYABLE_FLASH_COLOR, PLAYABLE_FLASH_IN) \
+            .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+        flash.tween_property(card_ui, "modulate", resting, PLAYABLE_FLASH_OUT) \
+            .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+        i += 1
+
+
+func _reset_playable_flashes() -> void:
+    for card_ui: Variant in _playable_flash_tweens.keys():
+        var tween: Tween = _playable_flash_tweens[card_ui]
+        if tween and tween.is_valid():
+            tween.kill()
+        if is_instance_valid(card_ui) and _playable_flash_resting.has(card_ui):
+            card_ui.modulate = _playable_flash_resting[card_ui]
+    _playable_flash_tweens.clear()
+    _playable_flash_resting.clear()
 
 func _get_glow_state(card: Card) -> CardUI.PlayableGlow:
     if card.can_play_without_dice:

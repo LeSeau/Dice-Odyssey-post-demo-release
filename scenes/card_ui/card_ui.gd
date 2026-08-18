@@ -883,7 +883,7 @@ func _on_char_stats_changed() -> void:
 
 func _on_red_dice_rolled() -> void:
     # Check if this specific card instance is the charged card
-    if card.instance_id == Global.charged_card_instance_id:
+    if Global.charged_card_instance_ids.has(card.instance_id):
         Global.dice_type = "red"
         if card.target == Card.Target.SINGLE_ENEMY:
             print("single enemy card")

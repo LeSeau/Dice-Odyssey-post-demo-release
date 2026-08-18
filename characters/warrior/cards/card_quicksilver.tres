@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="Card" load_steps=4 format=3 uid="uid://ck8p2m5tvn6wa"]
+
+[ext_resource type="Texture2D" uid="uid://ccuknbkkrlkt5" path="res://tuning_fork.png" id="1_icon"]
+[ext_resource type="Script" path="res://characters/warrior/cards/quicksilver.gd" id="2_script"]
+[ext_resource type="AudioStream" uid="uid://df64e7qat73gs" path="res://art/block.ogg" id="3_sound"]
+
+[resource]
+script = ExtResource("2_script")
+id = "card_quicksilver"
+name = "Quicksilver"
+type = 2
+target = 0
+description = "Your Blue Dice gain the reroll ability for the rest of combat"
+rarity = 0
+rarity_tier = 1
+red_only = false
+can_play_without_dice = false
+requirement = 1
+requirement_number = 6
+exhausts = true
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Exhaust, Blue Dice"
+upgraded = false
+icon = ExtResource("1_icon")
+tooltip_text = ""
+sound = ExtResource("3_sound")

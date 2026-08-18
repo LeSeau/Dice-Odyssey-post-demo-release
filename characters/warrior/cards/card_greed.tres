@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="Card" load_steps=4 format=3 uid="uid://c4cardgreed"]
+
+[ext_resource type="Texture2D" uid="uid://bhqtxybmbfujk" path="res://high_roller.png" id="1_icon"]
+[ext_resource type="Script" path="res://characters/warrior/cards/greed.gd" id="2_script"]
+[ext_resource type="AudioStream" uid="uid://cvjv56ti6hkis" path="res://impact1.ogg" id="3_sound"]
+
+[resource]
+script = ExtResource("2_script")
+id = "card_greed"
+name = "Greed"
+type = 0
+target = 1
+description = "Deal 7 damage, gain 7 Block and gain 7 Gold. Exhaust"
+rarity = 0
+rarity_tier = 1
+red_only = false
+can_play_without_dice = false
+requirement = 7
+requirement_number = 7
+exhausts = true
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Exhaust"
+upgraded = false
+icon = ExtResource("1_icon")
+tooltip_text = ""
+sound = ExtResource("3_sound")

@@ -1,6 +1,11 @@
 extends Node2D
 @onready var label: Label = $Label
-var fade_duration: float = 0.6
+# Total on-screen lifetime. Raised 0.6 -> 1.0 (2026-08-15, STS2 audit 4.4): theirs live
+# 2.0s, which is far more readable for multi-hit reads and for trailer footage, but we
+# fire numbers much more often than they do (dice volleys + AoE), so 2.0 would turn into
+# soup. 1.0 is the middle value - and it costs nothing thanks to the ease-IN fade below.
+# DamageEffect overrides this per-popup; keep the two in sync if that ever changes.
+var fade_duration: float = 1.0
 
 # All the "how punchy is this hit" scaling below rides on one shared 0..1 curve rather
 # than each having its own independent cap - keeps a 3 dmg poke and a 20 dmg haymaker
@@ -104,7 +109,12 @@ func _animate(punch_t: float, rest_scale: float) -> void:
     pos_tween.tween_property(self, "position", position + Vector2(drift, -hop_height), 0.1).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
     pos_tween.tween_property(self, "position", position + Vector2(drift, fall_distance), fall_duration).set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_IN)
 
+    # Fade with ease-IN (2026-08-15, STS2 audit 4.4): the alpha barely moves for most of
+    # the fade window and then drops off a cliff at the end, so the number stays fully
+    # readable for nearly its whole life instead of spending the back 40% as a ghost.
+    # A one-word change that buys readability without spending extra on-screen time.
     var fade_tween := create_tween()
-    fade_tween.tween_interval(fade_duration * 0.6)
-    fade_tween.tween_property(self, "modulate:a", 0.0, fade_duration * 0.4)
+    fade_tween.tween_interval(fade_duration * 0.45)
+    fade_tween.tween_property(self, "modulate:a", 0.0, fade_duration * 0.55) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
     fade_tween.tween_callback(queue_free)

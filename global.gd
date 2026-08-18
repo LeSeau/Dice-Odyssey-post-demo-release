@@ -49,6 +49,51 @@ func dice_throw_volley_stagger(count: int) -> float:
             DICE_THROW_STAGGER_MIN, DICE_THROW_STAGGER)
 
 
+# Is a card with this id sitting in the player's hand right now? Scans the live Hand rather
+# than any cached set - see the IN_HAND_* consts for why.
+func in_hand(card_id: String) -> bool:
+    var tree := get_tree()
+    if tree == null:
+        return false
+    var hand := tree.get_first_node_in_group("hand")
+    if hand == null:
+        return false
+    for child in hand.get_children():
+        if child is CardUI and child.card != null and child.card.id == card_id:
+            return true
+    return false
+
+
+# Extra Power a roll gets purely from cards being HELD (never from playing them).
+func in_hand_roll_bonus(dice_type: String) -> int:
+    var bonus := 0
+    if dice_type == "red" and in_hand(IN_HAND_RED_AURA):
+        bonus += 3
+    # Dead Weight is Loaded 1 while held, and Loaded applies to every type.
+    if in_hand(IN_HAND_DEAD_WEIGHT):
+        bonus += 1
+    return bonus
+
+
+# What faces `dice_type` can land on RIGHT NOW: a card's fight-scoped edit wins over the
+# infusion's set, which wins over the printed faces. Card.thrown_faces_for() and the Scout
+# preview both route through here so a trimmed die can never show a face it cannot roll.
+func current_face_values(dice_type: String) -> Array:
+    if face_overrides.has(dice_type):
+        return face_overrides[dice_type]
+    var infused: Array = DiceInfusions.roll_values_override(dice_type)
+    var values: Array = Card.DICE_FACE_VALUES.get(dice_type, [1, 2, 3, 4, 5, 6])
+    if not infused.is_empty():
+        values = infused
+    # Talisman, held in hand: this die cannot roll its lowest face. Applied here so the roll,
+    # the Scout preview and thrown dice all agree without any of them knowing about the card.
+    if in_hand(IN_HAND_TALISMAN) and values.size() > 1:
+        values = values.duplicate()
+        values.sort()
+        values = values.slice(1)
+    return values
+
+
 # Called once per thrown/conjured die at the moment it LANDS (card.gd::_on_thrown_die_landed
 # plus the air-land callbacks in windfall/rampart/kickstart). Design line (Julien,
 # 2026-07-23): a thrown die counts as a die you ROLLED - fight/turn dice counters, the run
@@ -59,6 +104,10 @@ func dice_throw_volley_stagger(count: int) -> float:
 func report_thrown_die_landed(dice_type: String, value: int) -> void:
     fight_dice_rolled += 1
     dice_amount_rolled_this_turn += 1
+    dice_types_rolled_this_turn[dice_type] = true
+    # A thrown 6 counts for Jackpot/Effigy, same as it already counts for Hunting Bow.
+    if value == 6:
+        sixes_rolled_this_fight += 1
     # Same ordering as dice.gd's real-roll path: counter first, then the report/emit, so
     # listeners read the already-incremented counters (Turbo Mode counts thrown dice too).
     AchievementManager.report_dice_rolled_this_turn(dice_amount_rolled_this_turn)
@@ -199,6 +248,10 @@ var dice_amount_rolled_this_turn = 0
 var dice_type = "blue"
 var current_card = null
 var charged_card_instance_id: int = 0
+# Every card currently sitting in a Red socket, in socket order. The scalar above stays
+# as socket 1 (a lot of code reads it); this is what the roll actually plays, so the
+# Second Socket card works by appending rather than by rewriting the socket system.
+var charged_card_instance_ids: Array[int] = []
 var playing_red_card = false
 var dragging_card = false
 var fight_turn = 0
@@ -402,6 +455,56 @@ var no_reset: bool = false
 # reset_run_state() for run hygiene.
 var thrown_dice_bonus_fight := 0
 
+# LOADED: a flat Power bonus added to EVERY roll, unlike Boost (next_roll_modifier) which is
+# consumed by one roll. The status badge is display only - the effect has to live here because
+# dice.gd reads it inside _apply_roll_result (same split as Emanation's fight-scoped global).
+# Fight-scoped: reset by battle.gd::start_battle() alongside ink_active AND in reset_run_state().
+# Distinct dice TYPES rolled this turn, used as a set (the value is always true). Drives the
+# rainbow archetype - Spectrum reads its size, the Prismatic Lens relic fires at 4. Turn-scoped:
+# cleared by player_handler.gd::start_turn next to dice_amount_rolled_this_turn.
+var dice_types_rolled_this_turn := {}
+# Natural 6s rolled this FIGHT (the rolled face itself, never a Boosted/Loaded 5->6). Drives
+# Jackpot and Effigy. Fight-scoped: reset by battle.gd::start_battle alongside ink_active.
+var sixes_rolled_this_fight := 0
+
+# Fight-scoped face-set edits from CARDS (Red trim, Counterfeit), keyed by dice type. Layered
+# ON TOP of a dice infusion's own override, and computed at play time from whatever the die's
+# faces are right then - so "remove the 2 lowest faces" trims the effective set, not the
+# printed one. Read by dice.gd (the roll), battle.gd (the Scout preview) and
+# Card.thrown_faces_for (thrown dice); all three must stay in step or the preview lies.
+var face_overrides := {}
+# Kaleidoscope: for THIS TURN only, switching dice type does not wipe the Power chain.
+var keep_power_on_type_change := false
+# Reservoir: how much Power survives a card's reset (0 = the normal full wipe).
+var power_kept_on_reset := 0
+# Socketless Red blessing: the Red die may be rolled with an empty socket, hitting everything.
+var socketless_red := false
+# "Keep your Dice": set when the card ends the turn, consumed by dice_interface's turn-end
+# capture, which stashes every type's leftovers in kept_dice for the next refill to add back.
+var keep_all_dice_next_turn := false
+var kept_dice := {}
+
+# IN-HAND PASSIVES: cards that do something while they SIT IN YOUR HAND. Read live off the
+# Hand's children rather than mirrored into a set here - a mirror desyncs the moment a card
+# leaves by a path nobody remembered (played, dragged, swept to discard), and every one of
+# those paths reparents the CardUI out of the Hand, so the node tree is already the truth.
+const IN_HAND_RED_AURA := "card_blood_oath"
+const IN_HAND_TALISMAN := "card_talisman"
+const IN_HAND_DEAD_WEIGHT := "card_dead_weight"
+
+# Dice types granted Ricochet's reroll by a card. "odd" (Ricochet) is native and always
+# allowed; this is the graft list on top of it.
+var reroll_types := {}
+
+# Red socket capacity. 1 normally; the Second Socket card raises it, and ONE red roll then
+# plays every socketed card in order.
+var red_socket_capacity := 1
+
+var loaded_amount := 0
+# The slice of loaded_amount that expires at the start of the next turn ("Loaded N this turn").
+# LoadedStatus.apply_status() subtracts it and zeroes this - see statuses/loaded.gd.
+var loaded_expiring := 0
+
 # Golem Dice (internal type "even"): unspent dice roll over into the next turn instead of
 # being lost. Captured from the leftover count on player_turn_ended and consumed by
 # dice_interface's refill on the next player_turn_started.
@@ -481,6 +584,18 @@ func reset_run_state() -> void:
     power_generated_this_turn = 0
     no_reset = false
     thrown_dice_bonus_fight = 0
+    loaded_amount = 0
+    loaded_expiring = 0
+    dice_types_rolled_this_turn = {}
+    sixes_rolled_this_fight = 0
+    face_overrides = {}
+    keep_power_on_type_change = false
+    reroll_types = {}
+    red_socket_capacity = 1
+    power_kept_on_reset = 0
+    socketless_red = false
+    keep_all_dice_next_turn = false
+    kept_dice = {}
     golem_dice_carryover = 0
 
     ink_active = false
@@ -489,6 +604,7 @@ func reset_run_state() -> void:
     dice_type = "blue"
     current_card = null
     charged_card_instance_id = 0
+    charged_card_instance_ids = []
     playing_red_card = false
     dragging_card = false
     fight_turn = 0

@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="Card" load_steps=4 format=3 uid="uid://bs4h7n9wqz2xm"]
+
+[ext_resource type="Texture2D" uid="uid://d3ea06dvejqj" path="res://javelin.png" id="1_icon"]
+[ext_resource type="Script" path="res://characters/warrior/cards/second_socket.gd" id="2_script"]
+[ext_resource type="AudioStream" uid="uid://df64e7qat73gs" path="res://art/block.ogg" id="3_sound"]
+
+[resource]
+script = ExtResource("2_script")
+id = "card_second_socket"
+name = "Second Socket"
+type = 2
+target = 0
+description = "Your Red Dice gains a second card socket. One roll plays both"
+rarity = 0
+rarity_tier = 2
+red_only = false
+can_play_without_dice = false
+requirement = 1
+requirement_number = 6
+exhausts = true
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Exhaust, Red Dice"
+upgraded = false
+icon = ExtResource("1_icon")
+tooltip_text = ""
+sound = ExtResource("3_sound")

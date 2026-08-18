@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RelicPool" load_steps=29 format=3 uid="uid://dxk3f8n2q1c7p"]
+[gd_resource type="Resource" script_class="RelicPool" load_steps=30 format=3 uid="uid://dxk3f8n2q1c7p"]
 
 [ext_resource type="Script" path="res://custom_resources/relic.gd" id="1_relicscript"]
 [ext_resource type="Resource" uid="uid://d1hg48cey4d5d" path="res://relics/arcane_hat.tres" id="2_fqptj"]
@@ -28,7 +28,8 @@
 [ext_resource type="Resource" uid="uid://c6w8ieibhvj21" path="res://relics/prayer_beads.tres" id="25_prayer"]
 [ext_resource type="Resource" uid="uid://bwxhu0g3r7mfy" path="res://relics/flywheel.tres" id="26_fly"]
 [ext_resource type="Resource" uid="uid://dmn8vwfuq8vmm" path="res://relics/trick_scale.tres" id="27_trick"]
+[ext_resource type="Resource" uid="uid://cpr15m4t1cl3" path="res://relics/prismatic_lens.tres" id="900_prism"]
 
 [resource]
 script = ExtResource("2_poolscript")
-pool = Array[ExtResource("1_relicscript")]([ExtResource("2_fqptj"), ExtResource("3_nr6f2"), ExtResource("4_yunvh"), ExtResource("6_wv4ds"), ExtResource("7_8op50"), ExtResource("8_53mm1"), ExtResource("9_plo4j"), ExtResource("10_pt110"), ExtResource("11_1ld04"), ExtResource("12_w00ns"), ExtResource("12_ckpsv"), ExtResource("13_si5dn"), ExtResource("14_0sw8d"), ExtResource("15_kefn7"), ExtResource("16_sytgm"), ExtResource("17_28okp"), ExtResource("18_quill"), ExtResource("19_snake"), ExtResource("20_house"), ExtResource("21_echo"), ExtResource("22_obsidian"), ExtResource("23_metro"), ExtResource("24_valve"), ExtResource("25_prayer"), ExtResource("26_fly"), ExtResource("27_trick")])
+pool = Array[ExtResource("1_relicscript")]([ExtResource("2_fqptj"), ExtResource("3_nr6f2"), ExtResource("4_yunvh"), ExtResource("6_wv4ds"), ExtResource("7_8op50"), ExtResource("8_53mm1"), ExtResource("9_plo4j"), ExtResource("10_pt110"), ExtResource("11_1ld04"), ExtResource("12_w00ns"), ExtResource("12_ckpsv"), ExtResource("13_si5dn"), ExtResource("14_0sw8d"), ExtResource("15_kefn7"), ExtResource("16_sytgm"), ExtResource("17_28okp"), ExtResource("18_quill"), ExtResource("19_snake"), ExtResource("20_house"), ExtResource("21_echo"), ExtResource("22_obsidian"), ExtResource("23_metro"), ExtResource("24_valve"), ExtResource("25_prayer"), ExtResource("26_fly"), ExtResource("27_trick"), ExtResource("900_prism")])

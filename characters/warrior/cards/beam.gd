@@ -23,7 +23,7 @@ func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
         support_effect.sound = sound
         support_effect.execute(targets)
         Events.dice_amount_changed.emit()
-        Events.charge_dice_animation.emit()
+        Events.dice_charged.emit(active_dice, 1)
     Events.dice_roll_reset.emit()
 
 func _on_dice_rolled():

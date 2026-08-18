@@ -20,7 +20,8 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
         var prop := chosen + "_dice_current_amount"
         Global.set(prop, int(Global.get(prop)) + 1)
         Events.temporary_dice_added.emit(chosen)
-    Events.charge_dice_animation.emit()
+        # One typed emit per die - each delivery flies in its own type's color (the reveal).
+        Events.dice_charged.emit(chosen, 1)
     Events.dice_amount_changed.emit()
 
     Events.dice_roll_reset.emit()

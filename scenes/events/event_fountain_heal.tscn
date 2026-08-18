@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3 uid="uid://sa5bvpw5im22"]
+[gd_scene load_steps=22 format=3 uid="uid://sa5bvpw5im22"]
 
 [ext_resource type="Script" path="res://scenes/events/event_fountain_heal.gd" id="1_22stp"]
 [ext_resource type="Texture2D" uid="uid://c17qq0sj25epy" path="res://assets/images/blue1.png" id="2_cakbb"]
@@ -12,6 +12,7 @@
 [ext_resource type="StyleBox" uid="uid://d33nvcmlyrn4o" path="res://scenes/shop/shop_button_normal.tres" id="btn_n"]
 [ext_resource type="StyleBox" uid="uid://btiy0p7cdp753" path="res://scenes/shop/shop_button_hover.tres" id="btn_h"]
 [ext_resource type="StyleBox" uid="uid://0f1dsnbsuyaw" path="res://scenes/shop/shop_button_pressed.tres" id="btn_p"]
+[ext_resource type="FontFile" uid="uid://bm3deysyi2y55" path="res://Belwe Bold/Belwe Bold.otf" id="belwe_lbl"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_kwaja"]
 bg_color = Color(0.117647, 0.196078, 0.176471, 1)
@@ -352,6 +353,7 @@ size_flags_vertical = 10
 theme_override_constants/separation = 12
 
 [node name="RollHealingDice" type="Button" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer"]
+texture_filter = 2
 custom_minimum_size = Vector2(300, 46)
 layout_mode = 2
 theme_override_styles/normal = ExtResource("btn_n")
@@ -370,14 +372,19 @@ offset_bottom = 30.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-theme_override_fonts/normal_font = ExtResource("4_tvxd5")
-theme_override_font_sizes/normal_font_size = 20
+theme_override_fonts/normal_font = ExtResource("belwe_lbl")
+theme_override_font_sizes/normal_font_size = 18
+theme_override_colors/default_color = Color(1, 0.964706, 0.886275, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.25)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 2
 bbcode_enabled = true
 text = "[center]I'm thirsty! [color=#5ad16b] Roll a healing Dice[/color]  [/center]
 "
 scroll_active = false
 
 [node name="Quit" type="Button" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer"]
+texture_filter = 2
 visible = false
 custom_minimum_size = Vector2(300, 46)
 layout_mode = 2
@@ -396,8 +403,12 @@ offset_top = -10.0
 offset_bottom = 30.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_fonts/normal_font = ExtResource("4_tvxd5")
-theme_override_font_sizes/normal_font_size = 20
+theme_override_fonts/normal_font = ExtResource("belwe_lbl")
+theme_override_font_sizes/normal_font_size = 18
+theme_override_colors/default_color = Color(1, 0.964706, 0.886275, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.25)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 2
 bbcode_enabled = true
 text = "[center]That sounds fishy.[color=gray] Leave...[/color][/center]
 "

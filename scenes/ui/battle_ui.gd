@@ -65,6 +65,12 @@ func _ready() -> void:
     # card being played away), which dice.gd's signal doesn't fire for on its own.
     Events.hover_playable_cards.connect(_update_end_turn_highlight)
     Events.card_played.connect(_on_card_played_for_highlight)
+    # Motion + timing kit (instant hover-in, slow drift out, press-down, focus/hover
+    # hygiene). See scenes/ui/button_feel.gd.
+    ButtonFeel.attach(end_turn_button)
+    # "Why would I NOT end my turn?" - hovering End Turn flashes whatever is still
+    # playable in hand, so the answer arrives before the click rather than after it.
+    end_turn_button.mouse_entered.connect(_on_end_turn_hovered)
 
 func initialize_card_pile_ui() -> void:
     draw_pile_button.card_pile = char_stats.draw_pile
@@ -175,21 +181,86 @@ func _update_end_turn_highlight() -> void:
         _stop_end_turn_highlight()
 
 
+func _on_end_turn_hovered() -> void:
+    if end_turn_button.disabled:
+        return
+    hand.flash_playable_cards()
+
+
+# The "shiny" state, upgraded (2026-08-15, STS2 audit 1.6). Our TRIGGER stays exactly as
+# it was - it accounts for banked Power and Celestial cards, which makes it strictly more
+# precise than the reference's "no playable cards" check. What changes is the
+# PRESENTATION: a colour pulse on a static rect is easy to miss, so it now also emits an
+# expanding, fading ring of light - a real "look here" shape rather than a brightness
+# change on something the player has stopped looking at.
+const END_TURN_RING_SIZE := 250.0
+const END_TURN_RING_PERIOD := 1.5
+var _end_turn_ring: TextureRect
+var _end_turn_ring_tween: Tween
+
+
+func _ensure_end_turn_ring() -> TextureRect:
+    if is_instance_valid(_end_turn_ring):
+        return _end_turn_ring
+    var ring := TextureRect.new()
+    ring.texture = DicePalette.glow_texture()
+    ring.material = DicePalette.additive_material()
+    # MUST be IGNORE: it is a child of the button and covers it entirely, so anything
+    # else would swallow the click that ends the turn.
+    ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    # Behind the button art, so it reads as light spilling out from under the plate
+    # rather than a wash sitting on top of the label.
+    ring.show_behind_parent = true
+    var ring_size := Vector2(END_TURN_RING_SIZE, END_TURN_RING_SIZE)
+    ring.size = ring_size
+    ring.pivot_offset = ring_size / 2.0
+    ring.position = end_turn_button.size / 2.0 - ring_size / 2.0
+    ring.modulate = Color(1, 1, 1, 0)
+    end_turn_button.add_child(ring)
+    _end_turn_ring = ring
+    return ring
+
+
 func _start_end_turn_highlight() -> void:
     _end_turn_highlight_active = true
-    _end_turn_highlight_tween = create_tween()
-    _end_turn_highlight_tween.set_loops()
-    _end_turn_highlight_tween.tween_property(end_turn_button, "modulate", Color(1.5, 1.3, 0.7, 1.0), 1.0) \
-        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-    _end_turn_highlight_tween.tween_property(end_turn_button, "modulate", Color(1.0, 1.0, 1.0, 1.0), 1.0) \
-        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+    # The nudge is carried ENTIRELY by the ring below, not by a modulate pulse on the
+    # button. Both used to animate `modulate`, and ButtonFeel now animates it too on hover -
+    # three writers on one property flicker against each other. The ring is a separate node,
+    # so it can pulse forever without ever contending with hover feedback. (It is also the
+    # louder signal: an expanding halo reads as "look here" far better than a brightness
+    # change on something the player has already stopped looking at.)
+    var ring := _ensure_end_turn_ring()
+    ring.visible = true
+    var gold := Color(1.0, 0.82, 0.35)
+    if _end_turn_ring_tween and _end_turn_ring_tween.is_valid():
+        _end_turn_ring_tween.kill()
+    _end_turn_ring_tween = create_tween()
+    _end_turn_ring_tween.set_loops()
+    # Expand + fade out: the ring grows away from the button and dies, then restarts.
+    _end_turn_ring_tween.tween_callback(func() -> void:
+        ring.scale = Vector2(0.5, 0.5)
+        ring.modulate = Color(gold.r, gold.g, gold.b, 0.55)
+    )
+    _end_turn_ring_tween.set_parallel(true)
+    _end_turn_ring_tween.tween_property(ring, "scale", Vector2(0.78, 0.78), END_TURN_RING_PERIOD) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+    _end_turn_ring_tween.tween_property(ring, "modulate:a", 0.0, END_TURN_RING_PERIOD) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+    _end_turn_ring_tween.set_parallel(false)
 
 
 func _stop_end_turn_highlight() -> void:
     _end_turn_highlight_active = false
     if _end_turn_highlight_tween and _end_turn_highlight_tween.is_valid():
         _end_turn_highlight_tween.kill()
-    end_turn_button.modulate = Color(1.0, 1.0, 1.0, 1.0)
+    # Deliberately NOT resetting end_turn_button.modulate here any more: the nudge no
+    # longer writes it, and forcing it to white would stomp ButtonFeel's hover state if
+    # the nudge switches off while the cursor is on the button.
+    if _end_turn_ring_tween and _end_turn_ring_tween.is_valid():
+        _end_turn_ring_tween.kill()
+    if is_instance_valid(_end_turn_ring):
+        _end_turn_ring.modulate = Color(1, 1, 1, 0)
+        _end_turn_ring.visible = false
 
 
 # tween_method target for the reshuffle arc below: quadratic bezier through an apex control

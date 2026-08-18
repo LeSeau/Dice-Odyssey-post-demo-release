@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://bgkue8tsbpylp"]
+[gd_scene load_steps=15 format=3 uid="uid://bgkue8tsbpylp"]
 
 [ext_resource type="Script" path="res://scenes/shop/card_shop.gd" id="1_sj8q3"]
 [ext_resource type="PackedScene" uid="uid://bel25lww6qcw4" path="res://scenes/shop/shop_card.tscn" id="3_h1sm7"]
@@ -12,6 +12,7 @@
 [ext_resource type="StyleBox" path="res://scenes/shop/shop_price_normal.tres" id="24_price_n"]
 [ext_resource type="StyleBox" path="res://scenes/shop/shop_price_hover.tres" id="25_price_h"]
 [ext_resource type="StyleBox" path="res://scenes/shop/shop_price_pressed.tres" id="26_price_p"]
+[ext_resource type="FontFile" uid="uid://bm3deysyi2y55" path="res://Belwe Bold/Belwe Bold.otf" id="belwe_lbl"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dealpanel"]
 bg_color = Color(0.05, 0.1, 0.1, 0.88)
@@ -61,6 +62,7 @@ mouse_filter = 2
 color = Color(0.00392157, 0, 0, 0.443137)
 
 [node name="Button" type="Button" parent="."]
+texture_filter = 2
 layout_mode = 0
 offset_left = 1024.0
 offset_top = 612.0
@@ -69,6 +71,11 @@ offset_bottom = 670.0
 theme_override_styles/hover = ExtResource("20_btn_h")
 theme_override_styles/pressed = ExtResource("21_btn_p")
 theme_override_styles/normal = ExtResource("19_btn_n")
+theme_override_fonts/font = ExtResource("belwe_lbl")
+theme_override_colors/font_color = Color(1, 0.964706, 0.886275, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.25)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 2
 text = "Leave"
 
 [node name="DealStall" type="Control" parent="."]

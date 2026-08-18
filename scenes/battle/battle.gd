@@ -149,6 +149,18 @@ func start_battle() -> void:
     Global.gargantua_debuff_attack_done = false
     Global.ink_active = false
     Global.thrown_dice_bonus_fight = 0
+    Global.loaded_amount = 0
+    Global.loaded_expiring = 0
+    Global.dice_types_rolled_this_turn = {}
+    Global.sixes_rolled_this_fight = 0
+    Global.face_overrides = {}
+    Global.keep_power_on_type_change = false
+    Global.reroll_types = {}
+    Global.red_socket_capacity = 1
+    Global.power_kept_on_reset = 0
+    Global.socketless_red = false
+    Global.keep_all_dice_next_turn = false
+    Global.kept_dice = {}
     # Golem carry-over is per-FIGHT: dice banked at the end of one combat must not show up
     # in the opening hand of the next one.
     Global.golem_dice_carryover = 0
@@ -491,7 +503,8 @@ func _on_scout_effect(amount: int) -> void:
     # Dice infusions that change the value/face set (Repented Evil -> only 6, Bulky Giant ->
     # 7-12) must show those same outcomes when scouted, or the preview would lie. Same override
     # dice.gd applies to the real roll.
-    var override_values: Array = DiceInfusions.roll_values_override(Global.dice_type)
+    var override_values: Array = Global.face_overrides.get(Global.dice_type,
+            DiceInfusions.roll_values_override(Global.dice_type))
     if not override_values.is_empty():
         faces = []
         for v in override_values:

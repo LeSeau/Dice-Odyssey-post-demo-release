@@ -180,7 +180,7 @@ const MAX_ENEMY_WIDTH := 256.0
 const MAX_ENEMY_HEIGHT := 256.0
 
 # Keep the status-icon row clear of the End Turn button (BattleUI, bottom-right:
-# x 1060..1254, y 592..635 in the 1280x720 design space). The row grows rightward/down
+# x 1022..1216, y 554..616 in the 1280x720 design space). The row grows rightward/down
 # from its start; on far-right, low enemies (Oculus, scaled multi-fights) it can reach
 # the button. We pull the row left by JUST enough to clear the button's left edge - never
 # to a fixed far-left x. The old fixed-970 yank detached right-side enemies' status far
@@ -190,8 +190,14 @@ const MAX_ENEMY_HEIGHT := 256.0
 # any status sitting above the button's y-band stay untouched. Screen-space constants:
 # the battle camera is identity on the 1280x720 design rect and enemy.gd has no clean
 # handle into the BattleUI CanvasLayer.
-const END_TURN_LEFT := 1060.0
-const END_TURN_TOP := 592.0
+# ⚠️ These MUST match EndTurnButton's rect in battle.tscn. They were 1060/592 and silently
+# went stale on 2026-08-15 when the button was made taller and inset further from the corner
+# (offsets -258/-166/-64/-104 -> rect x 1022..1216, y 554..616): the button moved 38px LEFT
+# and 38px UP, so the old numbers left a 38px band on each axis where a status row could
+# overlap it with the clamp believing everything was fine. Nothing errors when these drift -
+# the clamp just stops clamping. Re-check them whenever that button moves.
+const END_TURN_LEFT := 1022.0
+const END_TURN_TOP := 554.0
 const STATUS_ICON_EXTENT := 42.0  # 30px icon + the stack label hanging off its corner
 const STATUS_ROW_END_TURN_GAP := 8.0
 
@@ -580,12 +586,187 @@ func take_damage(damage: int, which_modifier: Modifier.Type) -> void:
                 sprite_2d.material = null
                 Global.run_stat_enemies_slain += 1
                 Events.enemy_died.emit(self)
-                var death_tween := create_tween()
-                death_tween.tween_property(self, "modulate:a", 0.0, 0.4)
-                death_tween.tween_callback(queue_free)
+                _play_death_sequence()
             else:
                 sprite_2d.material = _base_sprite_material
     )
+
+
+# ---------------------------------------------------------------------------
+# Death sequence (2026-08-15, STS2 audit 4.1 - "Dice Odyssey enemy death v1")
+#
+# Was: one tween fading modulate:a to 0 over 0.4s, then queue_free. No particles, no
+# sound, no wait for anything - the single most clippable beat in the game was also the
+# cheapest thing in it.
+#
+# The shape is taken from the reference and adapted to what we can build without Spine:
+#   - the body half-vanishes IMMEDIATELY (a ghost), it does not slowly dim
+#   - fragments peel off CONTINUOUSLY across the whole window rather than puffing once
+#   - fragments drift UP (negative gravity) and tumble, so it reads as dissolving away
+#     rather than as debris falling
+#   - the corpse is held long enough to be seen, but the hit reaction gets to play first
+#
+# Deliberately NOT included (that's audit stage 2, post-launch): the two-frequency-noise
+# dissolve shader on a SubViewport snapshot. Our flat cel art with hard outlines would
+# dissolve *better* than their painted art, but it needs a snapshot pipeline we don't have.
+# ---------------------------------------------------------------------------
+
+# Let the knockback/squash hit reaction read before the body starts ghosting. The
+# reference explicitly waits for the current animation to finish before dissolving;
+# ours used to start fading 0.06s after the hit, cutting its own reaction off.
+const DEATH_PRE_DELAY := 0.15
+# The body drops to a ghost almost instantly instead of dimming gradually - the reference
+# holds the corpse at alpha 0.467 for the entire dissolve. Reading "it's dead" has to be
+# instant; the rest of the sequence is the flourish, not the information.
+# 0.40 rather than the reference's 0.467: our cel art carries heavy near-black outlines,
+# which keep reading as solid at an alpha where their painted art already looks like a
+# ghost. Verified on rendered frames, not assumed.
+const DEATH_GHOST_ALPHA := 0.4
+const DEATH_GHOST_FADE := 0.1
+const DEATH_HOLD := 0.55
+const DEATH_FADE_OUT := 0.5
+# 60, not the 26 this shipped with first: at 26 the render showed about five chips over the
+# whole body, which reads as "a few sparks happened near a corpse" rather than "the body is
+# coming apart". Same lesson as the thrown-dice bash and the slash smear - MASS beats form;
+# the eye reads quantity long before it reads shape. (The reference uses 500 for a much
+# larger sprite.)
+const DEATH_FRAGMENT_COUNT := 60
+const DEATH_FRAGMENT_LIFETIME := 0.95
+# PLACEHOLDER, same convention as dice.gd's LAND_THUD_SOUND - a low, final body-drop.
+# Swap freely; nothing else uses it.
+const DEATH_SOUND := preload("res://sfx/186658__shmeepz__timpani-1.wav")
+
+static var _fragment_texture: ImageTexture
+static var _fragment_scale_curve: Curve
+
+
+func _play_death_sequence() -> void:
+    # Retire the body from every gameplay query the INSTANT it dies, before the animation
+    # is given any time at all. This is the load-bearing part of making the death longer:
+    # ~20 call sites (AoE cards, thrown-die retargeting, several relics) find their targets
+    # via get_nodes_in_group("enemies"), and the aim/hover path goes through this Area2D.
+    # A corpse that lingered 1.3s in the tree while still in the group would silently eat
+    # AoE damage, absorb retargeted dice, and stay hoverable. Leaving the group fixes every
+    # one of those sites at once; killing the Area2D fixes targeting and hover.
+    remove_from_group("enemies")
+    set_deferred("monitoring", false)
+    set_deferred("monitorable", false)
+    set_deferred("input_pickable", false)
+
+    # The reference clears the creature's UI before the dissolve, and it's right: a health
+    # bar and an intent floating over a corpse are stale information the player still reads.
+    _hide_combat_ui_on_death()
+
+    SFXPlayer.play(DEATH_SOUND, false, randf_range(0.72, 0.8), -2.0)
+
+    # Each dying enemy owns its own tween, so simultaneous deaths in a swarm OVERLAP rather
+    # than queueing - measured at 1.39s total for a 3-body wipe, not 3x1.3s. That is why
+    # this sequence needs no "fast animations" escape hatch.
+    var death_tween := create_tween()
+    death_tween.tween_interval(DEATH_PRE_DELAY)
+    death_tween.tween_callback(_spawn_death_fragments)
+    death_tween.tween_property(self, "modulate:a", DEATH_GHOST_ALPHA, DEATH_GHOST_FADE) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+    death_tween.tween_interval(DEATH_HOLD)
+    death_tween.tween_property(self, "modulate:a", 0.0, DEATH_FADE_OUT) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+    death_tween.tween_callback(queue_free)
+
+
+func _hide_combat_ui_on_death() -> void:
+    for ui: Node in [stats_ui, intent_ui, status_handler, name_label_layer, arrow]:
+        if is_instance_valid(ui):
+            ui.hide()
+
+
+# Little tumbling chips that peel off the body and drift upward. Our answer to the
+# reference's flakes: they're the shape of a die corner, and they're tinted by the ACTIVE
+# die type's accent - so a magma kill throws orange fragments and a blue kill throws
+# indigo, the same rule the directional hit smear already follows. The weapon that made
+# the kill is visible in the kill.
+func _spawn_death_fragments() -> void:
+    var particles := CPUParticles2D.new()
+    # Named so it can be told apart from the hit-smear's spark particles, which are also
+    # CPUParticles2D children of this same enemy.
+    particles.name = "DeathFragments"
+    particles.texture = _get_fragment_texture()
+    particles.position = sprite_2d.position
+    particles.z_index = 1
+    particles.amount = DEATH_FRAGMENT_COUNT
+    particles.one_shot = true
+    particles.lifetime = DEATH_FRAGMENT_LIFETIME
+    # Low explosiveness = near-continuous emission across the window, so fragments keep
+    # peeling off for the whole death rather than puffing out at t=0 and leaving the
+    # corpse to fade alone. This is the single most important number here.
+    particles.explosiveness = 0.08
+    # Wildly different expiry times, so they don't vanish as a group.
+    particles.lifetime_randomness = 0.75
+
+    particles.emission_shape = CPUParticles2D.EMISSION_SHAPE_SPHERE
+    var body_height := 96.0
+    if sprite_2d.texture:
+        body_height = sprite_2d.texture.get_height() * absf(sprite_2d.scale.y)
+    # 0.35 of the body height: at 0.25 the chips all came from a tight knot at the centre
+    # of mass, so the silhouette's edges never peeled.
+    particles.emission_sphere_radius = maxf(body_height * 0.35, 16.0)
+
+    # Up and slightly to the right, with NEGATIVE gravity so they rise the whole way.
+    particles.direction = Vector2(0.35, -1.0)
+    particles.spread = 30.0
+    particles.initial_velocity_min = 55.0
+    particles.initial_velocity_max = 110.0
+    particles.gravity = Vector2(0.0, -90.0)
+
+    # Every chip tumbles at its own rate from its own starting angle.
+    particles.angular_velocity_min = -110.0
+    particles.angular_velocity_max = 110.0
+    particles.angle_min = -180.0
+    particles.angle_max = 180.0
+
+    # Pop in, hold, shrink out (rather than a linear shrink, which reads as "fading").
+    # Sizes raised alongside the count for the same mass reason - a 12px chip at 0.5 scale
+    # is 6px on screen, below the ~4px floor where an effect stops existing at speed.
+    particles.scale_amount_min = 0.9
+    particles.scale_amount_max = 1.7
+    particles.scale_amount_curve = _get_fragment_scale_curve()
+
+    particles.color = DicePalette.accent(Global.dice_type)
+
+    add_child(particles)
+    particles.emitting = true
+
+
+static func _get_fragment_texture() -> ImageTexture:
+    if _fragment_texture:
+        return _fragment_texture
+    # A tiny chipped square - a die corner. Built in code so there's no asset to keep in
+    # sync, same approach as the hit-smear gradient above.
+    var size := 12
+    var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+    img.fill(Color(0, 0, 0, 0))
+    for y in size:
+        for x in size:
+            # Chamfer the corners so it reads as a chip rather than a pixel.
+            var edge_dist: int = mini(mini(x, size - 1 - x), mini(y, size - 1 - y))
+            if x + y < 2 or (size - 1 - x) + (size - 1 - y) < 2:
+                continue
+            # Bright core, slightly softer rim, so it still has a silhouette when tinted.
+            var v := 1.0 if edge_dist >= 1 else 0.75
+            img.set_pixel(x, y, Color(v, v, v, 1.0))
+    _fragment_texture = ImageTexture.create_from_image(img)
+    return _fragment_texture
+
+
+static func _get_fragment_scale_curve() -> Curve:
+    if _fragment_scale_curve:
+        return _fragment_scale_curve
+    var curve := Curve.new()
+    curve.add_point(Vector2(0.0, 0.15))
+    curve.add_point(Vector2(0.17, 1.0))
+    curve.add_point(Vector2(0.43, 1.0))
+    curve.add_point(Vector2(1.0, 0.2))
+    _fragment_scale_curve = curve
+    return _fragment_scale_curve
 
 
 # Damage-free hit flash + reaction, for thrown dice that carry no damage of their own

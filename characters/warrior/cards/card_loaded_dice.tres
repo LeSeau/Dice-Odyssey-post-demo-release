@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="Card" load_steps=4 format=3 uid="uid://cl0ad3ddic350"]
+
+[ext_resource type="Texture2D" uid="uid://bt26yj386gfj6" path="res://perpetual_motion.png" id="1_icon"]
+[ext_resource type="Script" path="res://characters/warrior/cards/loaded_dice.gd" id="2_script"]
+[ext_resource type="AudioStream" uid="uid://df64e7qat73gs" path="res://art/block.ogg" id="3_sound"]
+
+[resource]
+script = ExtResource("2_script")
+id = "card_loaded_dice"
+name = "Loaded Dice"
+type = 1
+target = 0
+description = "Gain Loaded 1 for the rest of combat"
+rarity = 0
+rarity_tier = 1
+red_only = false
+can_play_without_dice = false
+requirement = 1
+requirement_number = 5
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Loaded"
+upgraded = false
+icon = ExtResource("1_icon")
+tooltip_text = ""
+sound = ExtResource("3_sound")

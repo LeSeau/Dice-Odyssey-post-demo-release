@@ -7,10 +7,10 @@
 [node name="Tier0Satyrs3" type="Node2D"]
 
 [node name="S Satyr2" parent="." instance=ExtResource("1_3tpcr")]
-position = Vector2(743, 447)
+position = Vector2(743, 436.0)
 stats = ExtResource("2_l8s2u")
-width = 143
-height = 143
+width = 165
+height = 165
 
 [node name="B Satyr" parent="." instance=ExtResource("1_3tpcr")]
 position = Vector2(886, 435)
@@ -19,7 +19,7 @@ width = 172
 height = 172
 
 [node name="S Satyr" parent="." instance=ExtResource("1_3tpcr")]
-position = Vector2(1029, 449)
+position = Vector2(1029, 438.0)
 stats = ExtResource("2_l8s2u")
-width = 143
-height = 143
+width = 165
+height = 165

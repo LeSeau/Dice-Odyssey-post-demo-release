@@ -12,7 +12,7 @@ func _on_card_type_played(card_type: String, target: Node) -> void:
         if dice_amount_variable in Global:
             Global.set(dice_amount_variable, Global.get(dice_amount_variable) + 1)
             Events.dice_amount_changed.emit()
-            Events.charge_dice_animation.emit()
+            Events.dice_charged.emit(active_dice, 1)
 
 func apply_status(_target: Node) -> void:
     status_applied.emit(self)

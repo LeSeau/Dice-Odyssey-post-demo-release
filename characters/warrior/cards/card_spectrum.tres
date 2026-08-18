@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="Card" load_steps=4 format=3 uid="uid://c5p3ctrum4o3"]
+
+[ext_resource type="Texture2D" uid="uid://cq5283hbchist" path="res://gptrainbow.png" id="1_icon"]
+[ext_resource type="Script" path="res://characters/warrior/cards/spectrum.gd" id="2_script"]
+[ext_resource type="AudioStream" uid="uid://cvjv56ti6hkis" path="res://impact1.ogg" id="3_sound"]
+
+[resource]
+script = ExtResource("2_script")
+id = "card_spectrum"
+name = "Spectrum"
+type = 0
+target = 2
+description = "For each Dice type you have rolled this turn, deal 4 damage to ALL enemies"
+rarity = 0
+rarity_tier = 1
+red_only = false
+can_play_without_dice = false
+requirement = 0
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = ""
+upgraded = false
+icon = ExtResource("1_icon")
+tooltip_text = ""
+sound = ExtResource("3_sound")

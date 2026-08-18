@@ -13,7 +13,7 @@ func apply_effects(targets: Array[Node], _modifiers: ModifierHandler) -> void:
         var dice_amount_variable = chosen + "_dice_current_amount"
         Global.set(dice_amount_variable, Global.get(dice_amount_variable) + 1)
         Events.change_current_power.emit()
-        Events.charge_dice_animation.emit()
+        Events.dice_charged.emit(chosen, 1)
         Events.dice_amount_changed.emit()
         Events.temporary_dice_added.emit(chosen)
         Events.dice_roll_reset.emit()

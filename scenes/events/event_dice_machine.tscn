@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://d3y4rm2hvrl3n"]
+[gd_scene load_steps=15 format=3 uid="uid://d3y4rm2hvrl3n"]
 
 [ext_resource type="Script" path="res://scenes/events/event_dice_machine.gd" id="1_2crat"]
 [ext_resource type="Texture2D" uid="uid://bf63fh2oduj4q" path="res://events_dice_machine.png" id="2_d6dbk"]
@@ -7,6 +7,7 @@
 [ext_resource type="StyleBox" uid="uid://d33nvcmlyrn4o" path="res://scenes/shop/shop_button_normal.tres" id="btn_n"]
 [ext_resource type="StyleBox" uid="uid://btiy0p7cdp753" path="res://scenes/shop/shop_button_hover.tres" id="btn_h"]
 [ext_resource type="StyleBox" uid="uid://0f1dsnbsuyaw" path="res://scenes/shop/shop_button_pressed.tres" id="btn_p"]
+[ext_resource type="FontFile" uid="uid://bm3deysyi2y55" path="res://Belwe Bold/Belwe Bold.otf" id="belwe_lbl"]
 
 [sub_resource type="Gradient" id="Gradient_n2u7c"]
 colors = PackedColorArray(0.15, 0.14, 0.14, 1, 0.45, 0.32, 0.2, 1)
@@ -182,6 +183,7 @@ size_flags_vertical = 10
 theme_override_constants/separation = 12
 
 [node name="ConvertDice" type="Button" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer"]
+texture_filter = 2
 custom_minimum_size = Vector2(300, 46)
 layout_mode = 2
 theme_override_styles/normal = ExtResource("btn_n")
@@ -200,14 +202,19 @@ offset_bottom = 30.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-theme_override_fonts/normal_font = ExtResource("5_023v0")
-theme_override_font_sizes/normal_font_size = 20
+theme_override_fonts/normal_font = ExtResource("belwe_lbl")
+theme_override_font_sizes/normal_font_size = 18
+theme_override_colors/default_color = Color(1, 0.964706, 0.886275, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.25)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 2
 bbcode_enabled = true
 text = "[center]Put a Dice in. [color=#5ad16b] Gain a Giant Dice[/color]. [color=#e05a5a]Lose a Blue Dice. [/color] [/center]
 "
 scroll_active = false
 
 [node name="Quit" type="Button" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer"]
+texture_filter = 2
 custom_minimum_size = Vector2(300, 46)
 layout_mode = 2
 theme_override_styles/normal = ExtResource("btn_n")
@@ -226,8 +233,12 @@ offset_bottom = 30.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-theme_override_fonts/normal_font = ExtResource("5_023v0")
-theme_override_font_sizes/normal_font_size = 20
+theme_override_fonts/normal_font = ExtResource("belwe_lbl")
+theme_override_font_sizes/normal_font_size = 18
+theme_override_colors/default_color = Color(1, 0.964706, 0.886275, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.25)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 2
 bbcode_enabled = true
 text = "[center]To hell with that magic![color=gray] Leave...[/color][/center]
 

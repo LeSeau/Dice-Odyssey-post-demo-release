@@ -12,7 +12,7 @@ func apply_effects(targets: Array[Node], _modifiers: ModifierHandler) -> void:
     support_effect.execute(targets)
     var prop := "%s_dice_current_amount" % Global.dice_type
     Global.set(prop, int(Global.get(prop)) + 1)
-    Events.charge_dice_animation.emit()
+    Events.dice_charged.emit(Global.dice_type, 1)
     Events.dice_amount_changed.emit()
     Events.temporary_dice_added.emit(Global.dice_type)
     var scout_card = load("res://characters/warrior/cards/card_scout5.tres").duplicate()

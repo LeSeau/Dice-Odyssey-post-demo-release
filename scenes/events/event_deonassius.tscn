@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://ds7cye5xvb7si"]
+[gd_scene load_steps=16 format=3 uid="uid://ds7cye5xvb7si"]
 
 [ext_resource type="Texture2D" uid="uid://dcfx0mp1thd8a" path="res://assets/images/relicwizard.jpg" id="1_1m62g"]
 [ext_resource type="Script" path="res://scenes/events/event_deonassius.gd" id="1_7in58"]
@@ -8,6 +8,7 @@
 [ext_resource type="StyleBox" uid="uid://d33nvcmlyrn4o" path="res://scenes/shop/shop_button_normal.tres" id="btn_n"]
 [ext_resource type="StyleBox" uid="uid://btiy0p7cdp753" path="res://scenes/shop/shop_button_hover.tres" id="btn_h"]
 [ext_resource type="StyleBox" uid="uid://0f1dsnbsuyaw" path="res://scenes/shop/shop_button_pressed.tres" id="btn_p"]
+[ext_resource type="FontFile" uid="uid://bm3deysyi2y55" path="res://Belwe Bold/Belwe Bold.otf" id="belwe_lbl"]
 
 [sub_resource type="Gradient" id="Gradient_n2u7c"]
 colors = PackedColorArray(0.18, 0.06, 0.15, 1, 0.5, 0.15, 0.35, 1)
@@ -195,6 +196,7 @@ size_flags_vertical = 10
 theme_override_constants/separation = 12
 
 [node name="AcceptButton" type="Button" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer"]
+texture_filter = 2
 custom_minimum_size = Vector2(300, 46)
 layout_mode = 2
 theme_override_styles/normal = ExtResource("btn_n")
@@ -213,14 +215,19 @@ offset_bottom = 30.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-theme_override_fonts/normal_font = ExtResource("2_w7k0r")
-theme_override_font_sizes/normal_font_size = 20
+theme_override_fonts/normal_font = ExtResource("belwe_lbl")
+theme_override_font_sizes/normal_font_size = 18
+theme_override_colors/default_color = Color(1, 0.964706, 0.886275, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.25)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 2
 bbcode_enabled = true
 text = "[center] Sure thing, Deocrassus! [color=gold]Gain 60 Gold.[/color]   [color=#e05a5a]Lose 10 HP.[/color][/center]
 "
 scroll_active = false
 
 [node name="LeaveButton" type="Button" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer"]
+texture_filter = 2
 custom_minimum_size = Vector2(300, 46)
 layout_mode = 2
 theme_override_styles/normal = ExtResource("btn_n")
@@ -239,8 +246,12 @@ offset_bottom = 30.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-theme_override_fonts/normal_font = ExtResource("2_w7k0r")
-theme_override_font_sizes/normal_font_size = 20
+theme_override_fonts/normal_font = ExtResource("belwe_lbl")
+theme_override_font_sizes/normal_font_size = 18
+theme_override_colors/default_color = Color(1, 0.964706, 0.886275, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.25)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 2
 bbcode_enabled = true
 text = "[center]Who is this freak? [color=gray]Quietly leave...[/color][/center]
 "

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://cr35erv01r5t"]
+
+[ext_resource type="Script" path="res://statuses/status_emanation.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://dpby1w707p5n7" path="res://emanation_status_icon_v2.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = "reservoir"
+type = 0
+stack_type = 0
+can_expire = false
+duration = 1
+stacks = 1
+icon = ExtResource("2_icon")
+tooltip = "When a card resets your Power, you keep 5"
+hide_when_zero = false
+hide_counter_when_zero = false

@@ -11,7 +11,7 @@ func apply_effects(targets: Array[Node], _modifiers: ModifierHandler) -> void:
     Events.draw_card.emit(3)
     var prop := "%s_dice_current_amount" % Global.dice_type
     Global.set(prop, int(Global.get(prop)) + 3)
-    Events.charge_dice_animation.emit()
+    Events.dice_charged.emit(Global.dice_type, 3)
     Events.dice_amount_changed.emit()
     Events.temporary_dice_added.emit(Global.dice_type)
     Events.reset_charged_card.emit()

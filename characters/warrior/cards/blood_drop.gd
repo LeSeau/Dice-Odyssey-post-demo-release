@@ -9,6 +9,6 @@ func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
     support_effect.execute(targets)
 
     Events.dice_amount_changed.emit()
-    Events.charge_dice_animation.emit()
+    Events.dice_charged.emit("red", 1)
     Events.temporary_dice_added.emit("red")
     Events.reset_charged_card.emit()

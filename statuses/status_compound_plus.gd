@@ -11,8 +11,8 @@ const CHARGE_SOUND := preload("res://chargedicesound.mp3")
 func apply_status(_target: Node) -> void:
     Events.draw_card.emit(3 * stacks)
     Global.blue_dice_current_amount += 2 * stacks
-    SFXPlayer.play(CHARGE_SOUND)
-    Events.charge_dice_animation.emit()
+    # The launch sound lives with the delivery now (dice_interface), no manual play.
+    Events.dice_charged.emit("blue", 2 * stacks)
     Events.dice_amount_changed.emit()
     Events.temporary_dice_added.emit("blue")
     status_applied.emit(self)

@@ -28,6 +28,8 @@ const BOB_HALF_TIME := 0.9
 const ROW_HEIGHT := 60.0
 
 @onready var icon: TextureRect = $IconSlot/Icon
+@onready var icon2_slot: Control = $IconSlot2
+@onready var icon2: TextureRect = $IconSlot2/Icon2
 @onready var label: Label = $LabelSlot/Label
 @onready var label_slot: Control = $LabelSlot
 
@@ -65,6 +67,15 @@ func update_intent(intent: Intent) -> void:
     icon.visible = icon.texture != null
     label.text = str(intent.current_text)
     label.visible = intent.current_text.length() > 0
+    # STS2-style rider: a combo intent shows a second full-size icon instead of one merged
+    # artwork. Row order is NUMBER FIRST, then the icons ("8 [sword][skull]" - Julien,
+    # 2026-08-14): the amount anchors the left edge and every icon groups after it, so the
+    # number never gets sandwiched between two glyphs. Hiding the SLOT - not just the
+    # TextureRect - removes it from the HBox layout entirely, so single-icon intents keep
+    # their exact old footprint; the root grows symmetrically (grow_horizontal = both) so
+    # the telegraph stays centred above the head either way.
+    icon2.texture = intent.icon2
+    icon2_slot.visible = intent.icon2 != null
     show()
 
 
@@ -78,25 +89,41 @@ func _start_bob() -> void:
     var high := -BOB_DISTANCE * 0.5
     var low := BOB_DISTANCE * 0.5
     icon.position.y = low
+    icon2.position.y = low
     label.position.y = low
     # .from() on every leg: a Tween samples the live property when it first PROCESSES, not
     # when it's built, so without pinning the ends a tween created in the same frame another
     # was killed can capture a stale value and animate flat.
+    # icon2 rides the SAME tween as one more parallel step (even while hidden - harmless),
+    # so a combo intent's rider can never drift a frame apart from its siblings.
     _bob_tween = create_tween().set_loops()
     _bob_tween.tween_property(icon, "position:y", high, _bob_half) \
             .from(low).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
     _bob_tween.parallel().tween_property(label, "position:y", high, _bob_half) \
             .from(low).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+    _bob_tween.parallel().tween_property(icon2, "position:y", high, _bob_half) \
+            .from(low).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
     _bob_tween.tween_property(icon, "position:y", low, _bob_half) \
             .from(high).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
     _bob_tween.parallel().tween_property(label, "position:y", low, _bob_half) \
+            .from(high).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+    _bob_tween.parallel().tween_property(icon2, "position:y", low, _bob_half) \
             .from(high).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
 
 func _get_tooltip_text_for_icon() -> String:
     if not icon.texture:
         return ""
-    var icon_name = icon.texture.resource_path.get_file().get_basename().to_lower()
+    var text := _tooltip_text_for_texture(icon.texture)
+    if icon2_slot.visible and icon2.texture:
+        var rider := _rider_tooltip_text_for_texture(icon2.texture)
+        if rider != "":
+            text += " " + rider
+    return text
+
+
+func _tooltip_text_for_texture(texture: Texture2D) -> String:
+    var icon_name = texture.resource_path.get_file().get_basename().to_lower()
     match icon_name:
         "attack_icon_intent":
             return "This enemy will attack you."
@@ -116,6 +143,27 @@ func _get_tooltip_text_for_icon() -> String:
             return "This enemy will gain a positive effect and block damage next turn."
         _:
             return "This enemy is preparing something."
+
+
+# Second sentence for the rider icon of a combo intent, phrased as a follow-up so the pair
+# reads as one plan ("This enemy will attack you. It will also inflict a negative effect
+# on you."). Same basename-matching rule as above: any NEW icon filename needs a case here
+# too, or the rider silently contributes nothing to the tooltip.
+func _rider_tooltip_text_for_texture(texture: Texture2D) -> String:
+    var icon_name = texture.resource_path.get_file().get_basename().to_lower()
+    match icon_name:
+        "attack_icon_intent":
+            return "It will also attack you."
+        "shield", "block_icon_intent":
+            return "It will also block damage next turn."
+        "debuff_icon_3", "debuff_icon", "debuff_intent":
+            return "It will also inflict a negative effect on you."
+        "buff_icon_intent", "buff_icon":
+            return "It will also gain a positive effect."
+        "buff_block_intent":
+            return "It will also gain a positive effect and block damage next turn."
+        _:
+            return ""
 
 func _on_mouse_entered() -> void:
     # Free any tooltip still hanging around from a previous hover before making a new one -

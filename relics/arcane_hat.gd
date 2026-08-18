@@ -13,7 +13,7 @@ func _on_card_played(card: Card, owner: RelicUI) -> void:
     var dice_amount_variable = chosen + "_dice_current_amount"
     Global.set(dice_amount_variable, Global.get(dice_amount_variable) + 1)
     Events.dice_amount_changed.emit()
-    Events.charge_dice_animation.emit()
+    Events.dice_charged.emit(chosen, 1)
     Events.temporary_dice_added.emit(chosen)
 
 func deactivate_relic(owner: RelicUI) -> void:

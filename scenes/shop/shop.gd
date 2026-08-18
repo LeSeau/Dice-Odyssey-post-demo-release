@@ -211,7 +211,7 @@ func _on_buy_dice_1_pressed() -> void:
         Global.gold-= evil_dice_price
         Events.gold_changed.emit()
         print(Global.gold)
-        if Global.evil_dice_current_amount == 1:
+        if not Global.dice_inventory.has("evil"):
             Global.dice_inventory.append("evil")
         Events.update_dice_top_bar.emit()
         Global.purchased_dice_counts["evil"] += 1
@@ -229,7 +229,7 @@ func _on_buy_dice_2_pressed() -> void:
         AchievementManager.add_stat("dice_bought_from_shop", 1)
         Global.giant_dice_max_amount+=1
         Global.giant_dice_current_amount+=1
-        if Global.giant_dice_current_amount == 1:
+        if not Global.dice_inventory.has("giant"):
             Global.dice_inventory.append("giant")
         Events.update_dice_top_bar.emit()
         Global.purchased_dice_counts["giant"] += 1
@@ -245,7 +245,7 @@ func _on_buy_dice_3_pressed() -> void:
         AchievementManager.add_stat("dice_bought_from_shop", 1)
         Global.magma_dice_max_amount+=1
         Global.magma_dice_current_amount+=1
-        if Global.magma_dice_current_amount == 1:
+        if not Global.dice_inventory.has("magma"):
             Global.dice_inventory.append("magma")
         Events.update_dice_top_bar.emit()
         Global.purchased_dice_counts["magma"] += 1
@@ -261,7 +261,7 @@ func _on_buy_dice_4_pressed() -> void:
         AchievementManager.add_stat("dice_bought_from_shop", 1)
         Global.even_dice_max_amount+=1
         Global.even_dice_current_amount+=1
-        if Global.even_dice_current_amount == 1:
+        if not Global.dice_inventory.has("even"):
             Global.dice_inventory.append("even")
         Events.update_dice_top_bar.emit()
         Global.purchased_dice_counts["even"] += 1
@@ -277,7 +277,7 @@ func _on_buy_dice_5_pressed() -> void:
         AchievementManager.add_stat("dice_bought_from_shop", 1)
         Global.odd_dice_max_amount+=1
         Global.odd_dice_current_amount+=1
-        if Global.odd_dice_current_amount == 1:
+        if not Global.dice_inventory.has("odd"):
             Global.dice_inventory.append("odd")
         Events.update_dice_top_bar.emit()
         Global.purchased_dice_counts["odd"] += 1
@@ -325,7 +325,7 @@ func _on_buy_dice_6_pressed() -> void:
         AchievementManager.add_stat("dice_bought_from_shop", 1)
         Global.blue_dice_max_amount+=1
         Global.blue_dice_current_amount+=1
-        if Global.blue_dice_current_amount == 1:
+        if not Global.dice_inventory.has("blue"):
             Global.dice_inventory.append("blue")
         Events.update_dice_top_bar.emit()
         Global.purchased_dice_counts["blue"] += 1
@@ -342,7 +342,7 @@ func _on_buy_dice_7_pressed() -> void:
         AchievementManager.add_stat("dice_bought_from_shop", 1)
         Global.red_dice_max_amount+=1
         Global.red_dice_current_amount+=1
-        if Global.red_dice_current_amount == 1:
+        if not Global.dice_inventory.has("red"):
             Global.dice_inventory.append("red")
         Events.update_dice_top_bar.emit()
         Global.purchased_dice_counts["red"] += 1
@@ -358,7 +358,7 @@ func _on_buy_dice_8_pressed() -> void:
         AchievementManager.add_stat("dice_bought_from_shop", 1)
         Global.green_dice_max_amount+=1
         Global.green_dice_current_amount+=1
-        if Global.green_dice_current_amount == 1:
+        if not Global.dice_inventory.has("green"):
             Global.dice_inventory.append("green")
         Events.update_dice_top_bar.emit()
         Global.purchased_dice_counts["green"] += 1
@@ -374,7 +374,7 @@ func _on_buy_dice_9_pressed() -> void:
         AchievementManager.add_stat("dice_bought_from_shop", 1)
         Global.mech_dice_max_amount+=1
         Global.mech_dice_current_amount+=1
-        if Global.mech_dice_current_amount == 1:
+        if not Global.dice_inventory.has("mech"):
             Global.dice_inventory.append("mech")
         Events.update_dice_top_bar.emit()
         Global.purchased_dice_counts["mech"] += 1

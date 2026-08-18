@@ -12,7 +12,7 @@ func apply_effects(targets: Array[Node], _modifiers: ModifierHandler) -> void:
         var chosen = all_dice[randi() % all_dice.size()]
         Global.set(chosen + "_dice_current_amount", Global.get(chosen + "_dice_current_amount") + 1)
         Events.dice_amount_changed.emit()
-        Events.charge_dice_animation.emit()
+        Events.dice_charged.emit(chosen, 1)
         Events.temporary_dice_added.emit(chosen)
         
         Events.dice_roll_reset.emit()

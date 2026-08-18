@@ -54,19 +54,19 @@ func execute(targets: Array[Node]) -> void:
                 Global.run_stat_damage_taken += Global.damage_to_display
             var is_big_hit := final_amount >= BIG_HIT_THRESHOLD
 
+            # One ladder rung drives shake AND hit-stop together (2026-08-15, STS2 audit
+            # 4.2/4.3), replacing two independent hand-tuned clampf curves. Shake outlasts
+            # the freeze at every rung by construction, so you come out of the slow-motion
+            # while the screen is still moving - recoil, not a hitch.
+            var impact := Shaker.impact_for_damage(final_amount)
+
             var camera = target.get_tree().get_first_node_in_group("camera")
             if camera:
-                # Higher floor + steeper curve so bread-and-butter 6-8 dmg hits (previously
-                # only ~3-4px, imperceptible) actually register, while big hits still cap out.
-                camera.shake(clampf(final_amount * 0.7 + 2.5, 5.0, 18.0), 0.15)
+                camera.shake(Shaker.SHAKE_MAGNITUDE[impact], Shaker.SHAKE_DURATION[impact])
                 if is_big_hit:
                     camera.punch_zoom(BIG_HIT_ZOOM_PUNCH)
 
-            # Steepened + raised the ceiling (2026-07-04, was clampf(amount*0.008, 0.04, 0.16))
-            # so a genuinely big hit (~12+ damage early-run) reads as a noticeably bigger freeze
-            # than a routine one, rather than everything past ~20 damage feeling the same. Floor
-            # kept at 0.04 - small hits weren't the complaint.
-            Shaker.hit_stop(clampf(final_amount * 0.014, 0.04, 0.24))
+            Shaker.hit_stop_impact(impact)
 
             var damage_popup = DAMAGE_POPUP_SCENE.instantiate()
             target.get_parent().add_child(damage_popup)

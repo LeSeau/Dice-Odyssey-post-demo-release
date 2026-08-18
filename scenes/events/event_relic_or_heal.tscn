@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://spr2muqoh0jk"]
+[gd_scene load_steps=17 format=3 uid="uid://spr2muqoh0jk"]
 
 [ext_resource type="Script" path="res://scenes/events/event_relic_or_heal.gd" id="1_bhdq1"]
 [ext_resource type="Resource" uid="uid://2if2rhy1aktn" path="res://treasure_relic_pool.tres" id="2_6xrpw"]
@@ -9,6 +9,7 @@
 [ext_resource type="StyleBox" uid="uid://d33nvcmlyrn4o" path="res://scenes/shop/shop_button_normal.tres" id="btn_n"]
 [ext_resource type="StyleBox" uid="uid://btiy0p7cdp753" path="res://scenes/shop/shop_button_hover.tres" id="btn_h"]
 [ext_resource type="StyleBox" uid="uid://0f1dsnbsuyaw" path="res://scenes/shop/shop_button_pressed.tres" id="btn_p"]
+[ext_resource type="FontFile" uid="uid://bm3deysyi2y55" path="res://Belwe Bold/Belwe Bold.otf" id="belwe_lbl"]
 
 [sub_resource type="Gradient" id="Gradient_n2u7c"]
 colors = PackedColorArray(0.15, 0.08, 0.2, 1, 0.5, 0.25, 0.55, 1)
@@ -197,6 +198,7 @@ size_flags_vertical = 10
 theme_override_constants/separation = 12
 
 [node name="GetRelic" type="Button" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer"]
+texture_filter = 2
 custom_minimum_size = Vector2(300, 46)
 layout_mode = 2
 theme_override_styles/normal = ExtResource("btn_n")
@@ -215,14 +217,19 @@ offset_bottom = 30.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-theme_override_fonts/normal_font = ExtResource("6_wr10k")
-theme_override_font_sizes/normal_font_size = 20
+theme_override_fonts/normal_font = ExtResource("belwe_lbl")
+theme_override_font_sizes/normal_font_size = 18
+theme_override_colors/default_color = Color(1, 0.964706, 0.886275, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.25)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 2
 bbcode_enabled = true
 text = "[center]Dive deeper.[color=#5ad16b] Gain a Relic.[/color] [color=#e05a5a] Lose 8 HP[/color] [/center]
 "
 scroll_active = false
 
 [node name="GetHeal" type="Button" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer"]
+texture_filter = 2
 custom_minimum_size = Vector2(300, 46)
 layout_mode = 2
 theme_override_styles/normal = ExtResource("btn_n")
@@ -241,14 +248,19 @@ offset_bottom = 30.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-theme_override_fonts/normal_font = ExtResource("6_wr10k")
-theme_override_font_sizes/normal_font_size = 20
+theme_override_fonts/normal_font = ExtResource("belwe_lbl")
+theme_override_font_sizes/normal_font_size = 18
+theme_override_colors/default_color = Color(1, 0.964706, 0.886275, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.25)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 2
 bbcode_enabled = true
 text = "[center]Absorb the Energy. [color=#5ad16b]Heal 16 HP.[/color]  [/center]
 "
 scroll_active = false
 
 [node name="Quit" type="Button" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer"]
+texture_filter = 2
 visible = false
 custom_minimum_size = Vector2(300, 46)
 layout_mode = 2
@@ -268,8 +280,12 @@ offset_bottom = 30.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-theme_override_fonts/normal_font = ExtResource("6_wr10k")
-theme_override_font_sizes/normal_font_size = 20
+theme_override_fonts/normal_font = ExtResource("belwe_lbl")
+theme_override_font_sizes/normal_font_size = 18
+theme_override_colors/default_color = Color(1, 0.964706, 0.886275, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.25)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 2
 bbcode_enabled = true
 text = "[center]No thanks.[color=gray] Leave...[/color][/center]
 "

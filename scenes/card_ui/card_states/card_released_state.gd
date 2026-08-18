@@ -64,6 +64,11 @@ func enter() -> void:
         if Global.dice_type == "red":
             print("current dice is red")
             Global.charged_card_instance_id = card_ui.card.instance_id
+            # Append rather than replace: with a second socket open, BOTH socketed cards
+            # have to fire on the one Red roll. dice.gd prunes this list whenever a
+            # socket is emptied.
+            if not Global.charged_card_instance_ids.has(card_ui.card.instance_id):
+                Global.charged_card_instance_ids.append(card_ui.card.instance_id)
 
 
             

@@ -1,0 +1,11 @@
+[gd_resource type="StyleBoxTexture" load_steps=2 format=3 uid="uid://bendturnplate02"]
+
+[ext_resource type="Texture2D" path="res://assets/images/ui/ui_endturn_plate.png" id="1_etp"]
+
+[resource]
+content_margin_left = 22.0
+content_margin_top = 12.0
+content_margin_right = 22.0
+content_margin_bottom = 14.0
+texture = ExtResource("1_etp")
+modulate_color = Color(0.42, 0.4, 0.4, 0.85)

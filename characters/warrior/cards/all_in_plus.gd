@@ -10,7 +10,7 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     # roll to the bonus instead of surviving as a free die for next turn.
     Global.blue_dice_current_amount += 1
     Events.dice_amount_changed.emit()
-    Events.charge_dice_animation.emit()
+    Events.dice_charged.emit("blue", 1)
     Events.temporary_dice_added.emit("blue")
     # By the time this card resolves, the die that carried it is already spent -
     # "remaining" is every other die left in every pool, not just Red anymore.

@@ -18,7 +18,7 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
         var property_name := "%s_dice_current_amount" % Global.dice_type
         Global.set(property_name, Global.get(property_name) + 1)
         Events.dice_amount_changed.emit()
-        Events.charge_dice_animation.emit()
+        Events.dice_charged.emit(Global.dice_type, 1)
         Events.temporary_dice_added.emit(Global.dice_type)
     Events.dice_roll_reset.emit()
 

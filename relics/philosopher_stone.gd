@@ -18,4 +18,4 @@ func _on_card_played(card: Card):
             var current_amount = Global.get(dice_amount_variable)
             Global.set(dice_amount_variable, current_amount + 1)
             Events.dice_amount_changed.emit()
-            Events.charge_dice_animation.emit()
+            Events.dice_charged.emit(active_dice, 1)

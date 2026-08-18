@@ -1,0 +1,10 @@
+[gd_resource type="StyleBoxTexture" load_steps=2 format=3 uid="uid://buidicetray01"]
+
+[ext_resource type="Texture2D" path="res://assets/images/ui/ui_dice_tray.png" id="1_udt"]
+
+[resource]
+texture = ExtResource("1_udt")
+texture_margin_left = 15.0
+texture_margin_top = 15.0
+texture_margin_right = 15.0
+texture_margin_bottom = 15.0

@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="Card" load_steps=4 format=3 uid="uid://c4cardcounter"]
+
+[ext_resource type="Texture2D" uid="uid://cpb12px7xr3nt" path="res://resonance_good.png" id="1_icon"]
+[ext_resource type="Script" path="res://characters/warrior/cards/counterfeit.gd" id="2_script"]
+[ext_resource type="AudioStream" uid="uid://df64e7qat73gs" path="res://art/block.ogg" id="3_sound"]
+
+[resource]
+script = ExtResource("2_script")
+id = "card_counterfeit"
+name = "Counterfeit"
+type = 1
+target = 0
+description = "This combat, your active Dice's highest face replaces its lowest"
+rarity = 0
+rarity_tier = 1
+red_only = false
+can_play_without_dice = false
+requirement = 7
+requirement_number = 6
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = ""
+upgraded = false
+icon = ExtResource("1_icon")
+tooltip_text = ""
+sound = ExtResource("3_sound")

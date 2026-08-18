@@ -1,0 +1,17 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://c53c0nd50ck7"]
+
+[ext_resource type="Script" path="res://statuses/status_emanation.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://dlvsyk64xcjd" path="res://berserk_status_icon.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = "second_socket"
+type = 0
+stack_type = 0
+can_expire = false
+duration = 1
+stacks = 1
+icon = ExtResource("2_icon")
+tooltip = "Your Red Dice has a second card socket. One roll plays both"
+hide_when_zero = false
+hide_counter_when_zero = false

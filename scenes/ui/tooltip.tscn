@@ -1,18 +1,20 @@
-[gd_scene load_steps=6 format=3 uid="uid://chry0sgk7t0yf"]
+[gd_scene load_steps=7 format=3 uid="uid://chry0sgk7t0yf"]
 
 [ext_resource type="StyleBox" uid="uid://ce8r01r8snw2g" path="res://scenes/ui/tooltip.tres" id="2_4gfl8"]
 [ext_resource type="Script" path="res://scenes/ui/tooltip.gd" id="2_ifbwr"]
 [ext_resource type="FontFile" uid="uid://b2y60c4274gkj" path="res://fonts/Cinzel-Bold.otf" id="3_vvnhr"]
 [ext_resource type="FontFile" uid="uid://dq4bmvx1ogtey" path="res://Noto_Sans/static/NotoSans-Medium.ttf" id="6_6k2h1"]
+[ext_resource type="StyleBox" path="res://scenes/ui/ui_panel_plate.tres" id="ui_plate"]
 
 [node name="CanvasLayer" type="CanvasLayer"]
 layer = 100
 
 [node name="Tooltip" type="Panel" parent="."]
+texture_filter = 2
 z_index = 1000
 offset_right = 204.0
 offset_bottom = 108.0
-theme_override_styles/panel = ExtResource("2_4gfl8")
+theme_override_styles/panel = ExtResource("ui_plate")
 script = ExtResource("2_ifbwr")
 
 [node name="MarginContainer" type="MarginContainer" parent="Tooltip"]

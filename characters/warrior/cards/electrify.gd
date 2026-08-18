@@ -12,7 +12,7 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     support_effect.execute(targets)
     Events.dice_roll_reset.emit()
     Events.dice_amount_changed.emit()
-    Events.charge_dice_animation.emit()
+    Events.dice_charged.emit("odd", 3)
     Events.temporary_dice_added.emit("odd")
     var status_effect := StatusEffect.new()
     var depleted := DEPLETED_STATUS.duplicate()

@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://b8ydxsr6m3kpu"]
+[gd_scene load_steps=15 format=3 uid="uid://b8ydxsr6m3kpu"]
 
 [ext_resource type="Script" path="res://scenes/events/event_wandering_merchant.gd" id="1_merc1"]
 [ext_resource type="Texture2D" uid="uid://db5qvwxkoqthn" path="res://wandering_merchant.png" id="2_merc2"]
@@ -7,6 +7,7 @@
 [ext_resource type="StyleBox" uid="uid://d33nvcmlyrn4o" path="res://scenes/shop/shop_button_normal.tres" id="btn_n"]
 [ext_resource type="StyleBox" uid="uid://btiy0p7cdp753" path="res://scenes/shop/shop_button_hover.tres" id="btn_h"]
 [ext_resource type="StyleBox" uid="uid://0f1dsnbsuyaw" path="res://scenes/shop/shop_button_pressed.tres" id="btn_p"]
+[ext_resource type="FontFile" uid="uid://bm3deysyi2y55" path="res://Belwe Bold/Belwe Bold.otf" id="belwe_lbl"]
 
 [sub_resource type="Gradient" id="Gradient_merc1"]
 colors = PackedColorArray(0.3, 0.28, 0.18, 1, 0.55, 0.5, 0.32, 1)
@@ -181,6 +182,7 @@ size_flags_vertical = 10
 theme_override_constants/separation = 12
 
 [node name="Browse" type="Button" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer"]
+texture_filter = 2
 custom_minimum_size = Vector2(300, 46)
 layout_mode = 2
 theme_override_styles/normal = ExtResource("btn_n")
@@ -199,14 +201,19 @@ offset_bottom = 30.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-theme_override_fonts/normal_font = ExtResource("4_merc4")
-theme_override_font_sizes/normal_font_size = 20
+theme_override_fonts/normal_font = ExtResource("belwe_lbl")
+theme_override_font_sizes/normal_font_size = 18
+theme_override_colors/default_color = Color(1, 0.964706, 0.886275, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.25)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 2
 bbcode_enabled = true
 text = "[center][color=gold]Pay 25 Gold.[/color][color=#5ad16b] Choose 1 of 3 upgraded cards.[/color][/center]
 "
 scroll_active = false
 
 [node name="Flatter" type="Button" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer"]
+texture_filter = 2
 custom_minimum_size = Vector2(300, 46)
 layout_mode = 2
 theme_override_styles/normal = ExtResource("btn_n")
@@ -225,8 +232,12 @@ offset_bottom = 30.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-theme_override_fonts/normal_font = ExtResource("4_merc4")
-theme_override_font_sizes/normal_font_size = 20
+theme_override_fonts/normal_font = ExtResource("belwe_lbl")
+theme_override_font_sizes/normal_font_size = 18
+theme_override_colors/default_color = Color(1, 0.964706, 0.886275, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.25)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 2
 bbcode_enabled = true
 text = "[center]\"Wow, you are so powerful!\"[color=gold] Gain 50 Gold.[/color][/center]
 "

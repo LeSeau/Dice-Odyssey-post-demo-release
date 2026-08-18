@@ -19,7 +19,7 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
             
             Events.dice_roll_reset.emit()
             Events.dice_amount_changed.emit()
-            Events.charge_dice_animation.emit()
+            Events.dice_charged.emit(active_dice, 2)
     Events.reset_charged_card.emit()
 func _on_dice_rolled():
     print("adding dice to damage")

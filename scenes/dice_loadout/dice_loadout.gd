@@ -503,10 +503,18 @@ func _loadout_by_id(set_id: String) -> Dictionary:
 # every type's max_amount.
 func _apply_loadout(loadout: Dictionary) -> void:
     var dice: Dictionary = loadout["dice"]
+    # Rebuilt, not appended to: reset_run_state seeds it with ["blue", "red"] (the classic
+    # start), so a wish that drops either of them would otherwise leave the run claiming to
+    # own dice it doesn't. The list is saved with the run and read by the card shop's deal
+    # die, so a stale entry outlives this screen.
+    var inventory: Array = []
     for type: String in Global.DICE_TYPE_ORDER:
         var count := int(dice.get(type, 0))
         Global.set(type + "_dice_max_amount", count)
         Global.set(type + "_dice_current_amount", count)
+        if count > 0:
+            inventory.append(type)
+    Global.dice_inventory = inventory
     # Open on the wish's lead die rather than a Blue the player may not even own
     # (battle.gd re-derives this per fight via the same helper).
     Global.dice_type = Global.default_active_dice_type()

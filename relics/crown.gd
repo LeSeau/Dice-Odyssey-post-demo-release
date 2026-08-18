@@ -32,7 +32,7 @@ func _on_dice_rolled(dice_type: String, roll_value: int, owner: RelicUI) -> void
     if dice_amount_variable in Global:
         var current_amount = Global.get(dice_amount_variable)
         Global.set(dice_amount_variable, current_amount + 1)
-        Events.charge_dice_animation.emit()
+        Events.dice_charged.emit(active_dice, 1)
         Events.dice_amount_changed.emit()
 
 func _update_counter(owner: RelicUI) -> void:

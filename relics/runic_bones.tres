@@ -12,5 +12,5 @@ has_counter = false
 counter = 0
 starter_relic = false
 icon = ExtResource("1_y576x")
-tooltip = "Each turn, the first time you Charge a Dice from a card or a relic, gain 4 Block"
+tooltip = "Each turn, the first time you Charge a Dice from a card or a relic, draw 2 cards"
 tags = "Charge"

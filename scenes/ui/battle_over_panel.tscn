@@ -215,17 +215,21 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_menu_pressed")
 text = "Main Menu"
 
 [node name="TryAgainButton" type="Button" parent="LostPanel"]
+texture_filter = 2
 layout_mode = 0
 offset_left = 300.0
 offset_top = 490.0
 offset_right = 540.0
 offset_bottom = 548.0
-theme_override_colors/font_color = Color(0.933333, 0.709804, 0.164706, 1)
+theme_override_colors/font_color = Color(1, 0.964706, 0.886275, 1)
 theme_override_fonts/font = ExtResource("6_f3kgd")
 theme_override_font_sizes/font_size = 28
 theme_override_styles/normal = ExtResource("9_shbn")
 theme_override_styles/hover = ExtResource("10_shbh")
 theme_override_styles/pressed = ExtResource("11_shbp")
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.25)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 2
 text = "Try Again"
 
 [node name="JoinDiscordControl" type="Control" parent="LostPanel"]

@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=3 uid="uid://c7qk2actbnr4m"]
+[gd_scene load_steps=5 format=3 uid="uid://c7qk2actbnr4m"]
 
 [ext_resource type="Script" path="res://scenes/ui/act_banner.gd" id="1_script"]
 [ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="2_font"]
+[ext_resource type="Texture2D" path="res://assets/images/ui/ui_banner_ribbon.png" id="4_ribbon"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_act_banner"]
 font = ExtResource("2_font")
@@ -25,6 +26,24 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+
+[node name="Ribbon" type="TextureRect" parent="Control"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -470.0
+offset_top = -95.0
+offset_right = 470.0
+offset_bottom = 95.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("4_ribbon")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="Label" type="Label" parent="Control"]
 layout_mode = 1

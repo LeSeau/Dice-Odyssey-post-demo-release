@@ -14,6 +14,10 @@ const REWARD_TYPES := ["evil", "giant", "magma", "even", "odd", "green", "mech"]
 
 @onready var feed_button: Button = $TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/FeedButton
 
+# The idol is FED a Red Dice, and since the run-start loadout picker a run can own zero Red
+# (The Elf, and any Red traded away here already). The pool gate
+# (EventStats.required_dice_type = "red") keeps this event out of the draw in that case;
+# hiding the button here is the second layer, for when it is reached some other way.
 func setup(character: CharacterStats, stats: RunStats) -> void:
     character_stats = character
     run_stats = stats
@@ -30,12 +34,17 @@ func _on_feed_pressed() -> void:
         return
     Global.red_dice_max_amount -= 1
     Global.red_dice_current_amount = maxi(0, Global.red_dice_current_amount - 1)
+    # Giving up your LAST Red drops it out of the owned-types list too, so the inventory
+    # keeps matching the dice you actually have (it is saved with the run, and the card
+    # shop's deal die reads it).
+    if Global.red_dice_max_amount == 0:
+        Global.dice_inventory.erase("red")
 
     var target: String = REWARD_TYPES.pick_random()
     var new_max: int = Global.get(target + "_dice_max_amount") + 1
     Global.set(target + "_dice_max_amount", new_max)
     Global.set(target + "_dice_current_amount", Global.get(target + "_dice_current_amount") + 1)
-    if new_max == 1:
+    if not Global.dice_inventory.has(target):
         Global.dice_inventory.append(target)
     Events.dice_bought.emit(target)
     Events.update_dice_top_bar.emit()

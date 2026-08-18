@@ -17,8 +17,11 @@ func show_block(amount: int) -> void:
     var drift = randf_range(-15.0, 15.0)
     tween.tween_property(self, "position", position + Vector2(drift, -50), fade_duration).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
 
+    # Ease-IN fade, matching damage_popup (2026-08-15, STS2 audit 4.4): holds readable
+    # almost the whole way, then drops off at the end.
     var fade_tween := create_tween()
-    fade_tween.tween_interval(fade_duration * 0.5)
-    fade_tween.tween_property(self, "modulate:a", 0.0, fade_duration * 0.5)
+    fade_tween.tween_interval(fade_duration * 0.45)
+    fade_tween.tween_property(self, "modulate:a", 0.0, fade_duration * 0.55) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 
     tween.chain().tween_callback(queue_free)

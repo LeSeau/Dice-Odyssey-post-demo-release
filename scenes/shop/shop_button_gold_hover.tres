@@ -1,0 +1,15 @@
+[gd_resource type="StyleBoxTexture" load_steps=2 format=3 uid="uid://bgold0hover01"]
+
+[ext_resource type="Texture2D" path="res://assets/images/ui/ui_button_gold.png" id="1_t"]
+
+[resource]
+content_margin_left = 18.0
+content_margin_top = 10.0
+content_margin_right = 18.0
+content_margin_bottom = 12.0
+texture = ExtResource("1_t")
+texture_margin_left = 11.0
+texture_margin_top = 11.0
+texture_margin_right = 11.0
+texture_margin_bottom = 11.0
+modulate_color = Color(1.16, 1.16, 1.16, 1)

@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3 uid="uid://c2mvqx4n1p0a1"]
+[gd_scene load_steps=19 format=3 uid="uid://c2mvqx4n1p0a1"]
 
 [ext_resource type="Script" path="res://scenes/ui/pause_menu.gd" id="1_script"]
 [ext_resource type="FontFile" uid="uid://b1es4i7nr43mv" path="res://fonts/CinzelDecorative-Bold.otf" id="2_cinzel"]
@@ -7,6 +7,7 @@
 [ext_resource type="StyleBox" uid="uid://btiy0p7cdp753" path="res://scenes/shop/shop_button_hover.tres" id="5_btn_h"]
 [ext_resource type="StyleBox" uid="uid://0f1dsnbsuyaw" path="res://scenes/shop/shop_button_pressed.tres" id="6_btn_p"]
 [ext_resource type="Texture2D" path="res://assets/images/slider_knob.png" id="7_knob"]
+[ext_resource type="FontFile" uid="uid://bm3deysyi2y55" path="res://Belwe Bold/Belwe Bold.otf" id="belwe_lbl"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 bg_color = Color(0.101961, 0.227451, 0.235294, 1)
@@ -257,48 +258,60 @@ custom_minimum_size = Vector2(0, 4)
 layout_mode = 2
 
 [node name="FullscreenButton" type="Button" parent="Panel/Content"]
+texture_filter = 2
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 46)
 layout_mode = 2
 theme_override_colors/font_hover_color = Color(1, 0.843137, 0, 1)
-theme_override_colors/font_color = Color(0.92549, 0.890196, 0.815686, 1)
+theme_override_colors/font_color = Color(1, 0.964706, 0.886275, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 0.6)
-theme_override_constants/outline_size = 4
-theme_override_fonts/font = ExtResource("2_cinzel")
+theme_override_constants/outline_size = 0
+theme_override_fonts/font = ExtResource("belwe_lbl")
 theme_override_font_sizes/font_size = 19
 theme_override_styles/hover = ExtResource("5_btn_h")
 theme_override_styles/pressed = ExtResource("6_btn_p")
 theme_override_styles/normal = ExtResource("4_btn_n")
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.25)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 2
 text = "Fullscreen: Off"
 
 [node name="DiscordButton" type="Button" parent="Panel/Content"]
+texture_filter = 2
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 46)
 layout_mode = 2
 theme_override_colors/font_hover_color = Color(1, 0.843137, 0, 1)
-theme_override_colors/font_color = Color(0.92549, 0.890196, 0.815686, 1)
+theme_override_colors/font_color = Color(1, 0.964706, 0.886275, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 0.6)
-theme_override_constants/outline_size = 4
-theme_override_fonts/font = ExtResource("2_cinzel")
+theme_override_constants/outline_size = 0
+theme_override_fonts/font = ExtResource("belwe_lbl")
 theme_override_font_sizes/font_size = 19
 theme_override_styles/hover = ExtResource("5_btn_h")
 theme_override_styles/pressed = ExtResource("6_btn_p")
 theme_override_styles/normal = ExtResource("4_btn_n")
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.25)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 2
 text = "Join Discord"
 
 [node name="AchievementsButton" type="Button" parent="Panel/Content"]
+texture_filter = 2
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 46)
 layout_mode = 2
 theme_override_colors/font_hover_color = Color(1, 0.843137, 0, 1)
-theme_override_colors/font_color = Color(0.92549, 0.890196, 0.815686, 1)
+theme_override_colors/font_color = Color(1, 0.964706, 0.886275, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 0.6)
-theme_override_constants/outline_size = 4
-theme_override_fonts/font = ExtResource("2_cinzel")
+theme_override_constants/outline_size = 0
+theme_override_fonts/font = ExtResource("belwe_lbl")
 theme_override_font_sizes/font_size = 19
 theme_override_styles/hover = ExtResource("5_btn_h")
 theme_override_styles/pressed = ExtResource("6_btn_p")
 theme_override_styles/normal = ExtResource("4_btn_n")
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.25)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 2
 text = "Achievements"
 
 [node name="Spacer2" type="Control" parent="Panel/Content"]
@@ -306,33 +319,41 @@ layout_mode = 2
 size_flags_vertical = 3
 
 [node name="ResumeButton" type="Button" parent="Panel/Content"]
+texture_filter = 2
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
 theme_override_colors/font_hover_color = Color(1, 0.843137, 0, 1)
-theme_override_colors/font_color = Color(0.92549, 0.890196, 0.815686, 1)
+theme_override_colors/font_color = Color(1, 0.964706, 0.886275, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 0.6)
-theme_override_constants/outline_size = 4
-theme_override_fonts/font = ExtResource("2_cinzel")
+theme_override_constants/outline_size = 0
+theme_override_fonts/font = ExtResource("belwe_lbl")
 theme_override_font_sizes/font_size = 24
 theme_override_styles/hover = ExtResource("5_btn_h")
 theme_override_styles/pressed = ExtResource("6_btn_p")
 theme_override_styles/normal = ExtResource("4_btn_n")
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.25)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 2
 text = "Resume"
 
 [node name="MainMenuButton" type="Button" parent="Panel/Content"]
+texture_filter = 2
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 theme_override_colors/font_hover_color = Color(1, 0.843137, 0, 1)
-theme_override_colors/font_color = Color(0.92549, 0.890196, 0.815686, 1)
+theme_override_colors/font_color = Color(1, 0.964706, 0.886275, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 0.6)
-theme_override_constants/outline_size = 4
-theme_override_fonts/font = ExtResource("2_cinzel")
+theme_override_constants/outline_size = 0
+theme_override_fonts/font = ExtResource("belwe_lbl")
 theme_override_font_sizes/font_size = 19
 theme_override_styles/hover = ExtResource("5_btn_h")
 theme_override_styles/pressed = ExtResource("6_btn_p")
 theme_override_styles/normal = ExtResource("4_btn_n")
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.25)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 2
 text = "Quit to Main Menu"
 
 [node name="Note" type="Label" parent="Panel/Content"]
@@ -399,33 +420,41 @@ grow_vertical = 0
 theme_override_constants/separation = 20
 
 [node name="ConfirmQuitButton" type="Button" parent="ConfirmQuitPanel/ConfirmButtons"]
+texture_filter = 2
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_hover_color = Color(1, 0.843137, 0, 1)
-theme_override_colors/font_color = Color(0.92549, 0.890196, 0.815686, 1)
+theme_override_colors/font_color = Color(1, 0.964706, 0.886275, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 0.6)
-theme_override_constants/outline_size = 4
-theme_override_fonts/font = ExtResource("2_cinzel")
+theme_override_constants/outline_size = 0
+theme_override_fonts/font = ExtResource("belwe_lbl")
 theme_override_font_sizes/font_size = 19
 theme_override_styles/hover = ExtResource("5_btn_h")
 theme_override_styles/pressed = ExtResource("6_btn_p")
 theme_override_styles/normal = ExtResource("4_btn_n")
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.25)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 2
 text = "Yes, quit"
 
 [node name="CancelQuitButton" type="Button" parent="ConfirmQuitPanel/ConfirmButtons"]
+texture_filter = 2
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_hover_color = Color(1, 0.843137, 0, 1)
-theme_override_colors/font_color = Color(0.92549, 0.890196, 0.815686, 1)
+theme_override_colors/font_color = Color(1, 0.964706, 0.886275, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 0.6)
-theme_override_constants/outline_size = 4
-theme_override_fonts/font = ExtResource("2_cinzel")
+theme_override_constants/outline_size = 0
+theme_override_fonts/font = ExtResource("belwe_lbl")
 theme_override_font_sizes/font_size = 19
 theme_override_styles/hover = ExtResource("5_btn_h")
 theme_override_styles/pressed = ExtResource("6_btn_p")
 theme_override_styles/normal = ExtResource("4_btn_n")
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.25)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 2
 text = "Cancel"
 
 [node name="AchievementsPanel" type="Panel" parent="."]
@@ -474,6 +503,7 @@ size_flags_horizontal = 3
 theme_override_constants/separation = 8
 
 [node name="AchBackButton" type="Button" parent="AchievementsPanel"]
+texture_filter = 2
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 7
@@ -488,12 +518,15 @@ offset_bottom = -16.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_colors/font_hover_color = Color(1, 0.843137, 0, 1)
-theme_override_colors/font_color = Color(0.92549, 0.890196, 0.815686, 1)
+theme_override_colors/font_color = Color(1, 0.964706, 0.886275, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 0.6)
-theme_override_constants/outline_size = 4
-theme_override_fonts/font = ExtResource("2_cinzel")
+theme_override_constants/outline_size = 0
+theme_override_fonts/font = ExtResource("belwe_lbl")
 theme_override_font_sizes/font_size = 19
 theme_override_styles/hover = ExtResource("5_btn_h")
 theme_override_styles/pressed = ExtResource("6_btn_p")
 theme_override_styles/normal = ExtResource("4_btn_n")
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.25)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 2
 text = "Back"

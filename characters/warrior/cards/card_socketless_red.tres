@@ -1,0 +1,28 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c4cardsocketl"]
+
+[ext_resource type="Texture2D" uid="uid://b4majvf6t61f0" path="res://gptdynamite.png" id="1_icon"]
+[ext_resource type="Script" path="res://characters/warrior/cards/socketless_red.gd" id="2_script"]
+[ext_resource type="AudioStream" uid="uid://df64e7qat73gs" path="res://art/block.ogg" id="3_sound"]
+
+[resource]
+script = ExtResource("2_script")
+id = "card_socketless_red"
+name = "Socketless Red"
+type = 2
+target = 0
+description = "You may roll the Red Dice with an empty socket. It deals X damage to ALL enemies"
+rarity = 0
+rarity_tier = 1
+red_only = false
+can_play_without_dice = false
+requirement = 1
+requirement_number = 6
+exhausts = true
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Exhaust"
+upgraded = false
+icon = ExtResource("1_icon")
+tooltip_text = ""
+sound = ExtResource("3_sound")

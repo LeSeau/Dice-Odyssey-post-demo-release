@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="LoadedStatus" load_steps=3 format=3 uid="uid://cl0aded5tatu5"]
+
+[ext_resource type="Script" path="res://statuses/loaded.gd" id="1_loaded"]
+[ext_resource type="Texture2D" uid="uid://bvb66opsumnuj" path="res://gpt_blessed_status.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_loaded")
+id = "loaded"
+type = 0
+stack_type = 1
+can_expire = false
+duration = 1
+stacks = 0
+icon = ExtResource("2_icon")
+tooltip = "Your Dice rolls gain that much bonus Power"
+hide_when_zero = true
+hide_counter_when_zero = false

@@ -116,7 +116,16 @@ signal check_if_losing_strength
 signal dice_bought(dice_type)
 signal resize_dice_interface
 signal dice_price_changed
+# DEPRECATED (2026-08-14): argless predecessor of dice_charged below. Kept DECLARED so a
+# stray unmigrated emitter no-ops instead of crashing, but nothing listens to it anymore -
+# emit dice_charged with the real type/count instead.
 signal charge_dice_animation
+# Every "gain N dice of TYPE mid-fight" source (Charge cards, relics, statuses, Sigil/Gnome
+# triggers) emits this. Drives the card->slot delivery flight (dice_interface.gd) and the
+# active-die absorb ceremony (dice.gd, only when the charged type IS the active type).
+# Multi-type sources (Experiment, War Ritual...) emit once PER die so each delivery flies in
+# its own type's color - that's what makes a random charge readable.
+signal dice_charged(dice_type: String, count: int)
 signal enemy_strength_changed
 signal display_next_roll_modifier
 signal card_removed(card)

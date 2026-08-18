@@ -10,7 +10,7 @@ func _on_dice_rolled(_dice_type: String, _roll_value: int, owner: RelicUI) -> vo
     owner.flash()
     Global.blue_dice_current_amount += 1
     Events.dice_amount_changed.emit()
-    Events.charge_dice_animation.emit()
+    Events.dice_charged.emit("blue", 1)
     Events.temporary_dice_added.emit("blue")
 
 func deactivate_relic(owner: RelicUI) -> void:

@@ -1,32 +1,39 @@
 extends Card
 
-const EXPOSED_STATUS = preload("res://statuses/exposed.tres")
-const WEAK_STATUS = preload("res://statuses/weak.tres")
+# Reworked 2026-08-16 (Julien): was "Deal X damage. Apply Exposed 2", which was too close to
+# Smash. Now it inverts the game's sequencing - every other card wants to be played AFTER you
+# have banked, this one wants to be played at 0 Power and then rolled INTO.
+#
+# The per-roll bleed lives in RupturedStatus (statuses/ruptured.gd) because it has to survive
+# this card leaving play and listen to three separate roll signals.
 
-var base_damage := 4
-var exposed_duration := 2
-var weak_duration := 2
+const RUPTURED_STATUS = preload("res://statuses/ruptured.tres")
+
 
 func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
-    if meets_requirement():
-        var damage_effect := DamageEffect.new()
-        var base_damage = Global.roll_value
-        damage_effect.amount = modifiers.get_modified_value(base_damage, Modifier.Type.DMG_DEALT)
-        damage_effect.sound = sound
-        damage_effect.execute(targets)
-        Events.dice_roll_reset.emit()
-        #
-        var status_effect := StatusEffect.new()
-        var exposed := EXPOSED_STATUS.duplicate()
-        exposed.duration = exposed_duration
-        status_effect.status = exposed
-        status_effect.execute(targets)
     Events.reset_charged_card.emit()
+    if targets.is_empty():
+        Events.dice_roll_reset.emit()
+        return
+    var damage_effect := DamageEffect.new()
+    damage_effect.amount = modifiers.get_modified_value(Global.roll_value, Modifier.Type.DMG_DEALT)
+    damage_effect.sound = sound
+    damage_effect.execute(targets)
+    var status_effect := StatusEffect.new()
+    var ruptured := RUPTURED_STATUS.duplicate()
+    ruptured.duration = 1
+    status_effect.status = ruptured
+    status_effect.execute(targets)
+    Events.dice_roll_reset.emit()
+
 
 func get_dynamic_description(modifiers: ModifierHandler, target: Node = null) -> String:
+    var tail := ". The enemy takes %d damage each time you roll a Dice this turn" \
+        % RupturedStatus.DAMAGE_PER_ROLL
     if is_inked():
-        return "Deal ? damage. Apply Exposed 2"
-    if not has_active_roll() or not meets_requirement():
-        return "Deal X damage. Apply Exposed 2"
-    var total := apply_target_modifier(modifiers.get_modified_value(Global.roll_value, Modifier.Type.DMG_DEALT), target)
-    return "Deal X damage (%d). Apply Exposed 2" % total
+        return "Deal ? damage" + tail
+    if not has_active_roll():
+        return "Deal X damage" + tail
+    var total := apply_target_modifier(
+        modifiers.get_modified_value(Global.roll_value, Modifier.Type.DMG_DEALT), target)
+    return "Deal X damage (%d)%s" % [total, tail]

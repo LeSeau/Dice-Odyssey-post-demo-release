@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://4an2yp5ysxg3"]
+[gd_scene load_steps=18 format=3 uid="uid://4an2yp5ysxg3"]
 
 [ext_resource type="Script" path="res://scenes/enemy/enemy_action_picker.gd" id="1_l11im"]
 [ext_resource type="Script" path="res://enemies/leviathan/1.gd" id="2_m1cal"]
@@ -7,7 +7,9 @@
 [ext_resource type="AudioStream" uid="uid://de2ryat1pxq6" path="res://art/enemy_attack.ogg" id="5_cidr0"]
 [ext_resource type="Script" path="res://enemies/leviathan/2.gd" id="5_vii1k"]
 [ext_resource type="Script" path="res://enemies/leviathan/weak_debuff_attack.gd" id="5_yomxc"]
-[ext_resource type="Texture2D" uid="uid://cqpfpmrf2sc8" path="res://buff_block_intent.png" id="6_l5rrt"]
+[ext_resource type="Texture2D" uid="uid://cm56j6ual41dr" path="res://attack_icon_intent.png" id="6_atkic"]
+[ext_resource type="Texture2D" path="res://block_icon_intent.png" id="6_blkic"]
+[ext_resource type="Texture2D" uid="uid://binq5gkgr3pre" path="res://buff_icon_intent.png" id="6_bufic"]
 [ext_resource type="Texture2D" uid="uid://ckf4qt26na5g7" path="res://debuff_intent.png" id="6_y6hbq"]
 [ext_resource type="AudioStream" uid="uid://k8m4o3hlwm7l" path="res://art/enemy_block.ogg" id="10_ymuyf"]
 [ext_resource type="Script" path="res://enemies/leviathan/dicelord_dice_theft.gd" id="11_theft"]
@@ -15,22 +17,26 @@
 [sub_resource type="Resource" id="Resource_233wy"]
 script = ExtResource("4_fnptv")
 base_text = "%s"
-icon = ExtResource("3_206ql")
+icon = ExtResource("6_atkic")
+icon2 = ExtResource("3_206ql")
 
 [sub_resource type="Resource" id="Resource_e7v8n"]
 script = ExtResource("4_fnptv")
 base_text = "%s"
-icon = ExtResource("6_y6hbq")
+icon = ExtResource("6_atkic")
+icon2 = ExtResource("6_y6hbq")
 
 [sub_resource type="Resource" id="Resource_wjyov"]
 script = ExtResource("4_fnptv")
 base_text = "8"
-icon = ExtResource("6_l5rrt")
+icon = ExtResource("6_blkic")
+icon2 = ExtResource("6_bufic")
 
 [sub_resource type="Resource" id="Resource_theft"]
 script = ExtResource("4_fnptv")
 base_text = "%s"
-icon = ExtResource("6_y6hbq")
+icon = ExtResource("6_atkic")
+icon2 = ExtResource("6_y6hbq")
 
 [node name="LeviathanEnemyAi" type="Node"]
 script = ExtResource("1_l11im")

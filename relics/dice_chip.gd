@@ -7,5 +7,5 @@ func activate_relic(owner: RelicUI) -> void:
         Global.set(chosen + "_dice_bonus_amount", Global.get(chosen + "_dice_bonus_amount") + 1)
         print("random dice bonus: " + chosen)
         Events.dice_amount_changed.emit()
-        Events.charge_dice_animation.emit()
+        Events.dice_charged.emit(chosen, 1)
         Events.temporary_dice_added.emit(chosen)

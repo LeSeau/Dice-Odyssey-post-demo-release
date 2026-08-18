@@ -1,31 +1,34 @@
 extends Card
 
+# The sixes CONCLUDER - the rare a sixes run becomes about. Counts natural 6s only (see
+# dice.gd, where Global.sixes_rolled_this_fight is incremented next to has_rolled_6_this_turn),
+# so it can't be inflated by Boost or Loaded.
+#
+# The cross-link that makes it exciting: the Evil die is 75% sixes, so buying Evil stops being
+# a gamble stat and becomes fuel for this card.
+
+const DAMAGE_PER_SIX := 6
+
+
 func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     Events.reset_charged_card.emit()
-    var base := Global.roll_value
-    var final_damage := base * 5 if _has_triple() else base
-    var damage_effect := DamageEffect.new()
-    damage_effect.amount = modifiers.get_modified_value(final_damage, Modifier.Type.DMG_DEALT)
-    damage_effect.sound = sound
-    damage_effect.execute(targets)
+    var damage := modifiers.get_modified_value(_damage(), Modifier.Type.DMG_DEALT)
+    if damage > 0 and not targets.is_empty():
+        var damage_effect := DamageEffect.new()
+        damage_effect.amount = damage
+        damage_effect.sound = sound
+        damage_effect.execute(targets)
     Events.dice_roll_reset.emit()
 
-func _has_triple() -> bool:
-    var counts: Dictionary = {}
-    for v in Global.roll_history:
-        counts[v] = counts.get(v, 0) + 1
-        if counts[v] >= 3:
-            return true
-    return false
+
+func _damage() -> int:
+    return Global.sixes_rolled_this_fight * DAMAGE_PER_SIX
+
 
 func get_dynamic_description(modifiers: ModifierHandler, target: Node = null) -> String:
+    var base := "Deal %d damage for every 6 you rolled this fight. Exhaust" % DAMAGE_PER_SIX
     if is_inked():
-        return "Deal ? damage. If you have three identical rolls in your current Power, deal ?x5 damage instead"
-    if not has_active_roll():
-        return "Deal X damage. If you have three identical rolls in your current Power, deal X5 damage instead"
-    var base := Global.roll_value
-    if _has_triple():
-        var total := apply_target_modifier(modifiers.get_modified_value(base * 5, Modifier.Type.DMG_DEALT), target)
-        return "Deal X damage (%d). If you have three identical rolls in your current Power, deal X5 damage instead" % total
-    var total := apply_target_modifier(modifiers.get_modified_value(base, Modifier.Type.DMG_DEALT), target)
-    return "Deal X damage (%d). If you have three identical rolls in your current Power, deal X5 damage instead" % total
+        return base
+    var total := apply_target_modifier(
+        modifiers.get_modified_value(_damage(), Modifier.Type.DMG_DEALT), target)
+    return "Deal %d damage for every 6 you rolled this fight (%d). Exhaust" % [DAMAGE_PER_SIX, total]

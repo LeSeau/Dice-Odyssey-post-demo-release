@@ -18,6 +18,6 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     support_effect.sound = sound
     support_effect.execute(targets)
     Events.dice_amount_changed.emit()
-    Events.charge_dice_animation.emit()
+    Events.dice_charged.emit(active, total_moved)
     Events.temporary_dice_added.emit(active)
     Events.reset_charged_card.emit()

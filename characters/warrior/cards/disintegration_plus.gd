@@ -5,7 +5,7 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     var active_dice = Global.dice_type
     var dice_amount_variable = active_dice + "_dice_current_amount"
     Global.set(dice_amount_variable, Global.get(dice_amount_variable) + 1)
-    Events.charge_dice_animation.emit()
+    Events.dice_charged.emit(active_dice, 1)
     Events.temporary_dice_added.emit(active_dice)
     var damage_effect := DamageEffect.new()
     var base_damage = Global.roll_value

@@ -158,6 +158,7 @@ func _update_fullscreen_text() -> void:
     fullscreen_button.text = "Fullscreen: On" if on else "Fullscreen: Off"
 
 
+
 func _on_discord_button_pressed() -> void:
     SFXPlayer.play(CLICK_SFX)
     OS.shell_open(DISCORD_URL)

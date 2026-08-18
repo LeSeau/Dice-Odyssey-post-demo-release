@@ -11,7 +11,7 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     if dice_amount_variable in Global:
         var current_amount = Global.get(dice_amount_variable)
         Global.set(dice_amount_variable, current_amount + 1)
-        Events.charge_dice_animation.emit()
+        Events.dice_charged.emit(active_dice, 1)
 
     Events.change_current_power.emit()
 

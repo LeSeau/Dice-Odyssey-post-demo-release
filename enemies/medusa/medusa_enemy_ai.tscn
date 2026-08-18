@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://d3m8xv3lpd3t7"]
+[gd_scene load_steps=15 format=3 uid="uid://d3m8xv3lpd3t7"]
 
 [ext_resource type="Script" path="res://scenes/enemy/enemy_action_picker.gd" id="1_ml0uu"]
 [ext_resource type="Script" path="res://enemies/medusa/medusa_attack_weak.gd" id="2_23nwg"]
@@ -8,13 +8,15 @@
 [ext_resource type="Script" path="res://custom_resources/intent.gd" id="4_6lvhs"]
 [ext_resource type="Script" path="res://enemies/medusa/medusa_block_action.gd" id="4_p5663"]
 [ext_resource type="AudioStream" uid="uid://de2ryat1pxq6" path="res://art/enemy_attack.ogg" id="5_317b0"]
-[ext_resource type="Texture2D" uid="uid://cqpfpmrf2sc8" path="res://buff_block_intent.png" id="8_in3ia"]
+[ext_resource type="Texture2D" path="res://block_icon_intent.png" id="8_blkic"]
+[ext_resource type="Texture2D" uid="uid://binq5gkgr3pre" path="res://buff_icon_intent.png" id="8_bufic"]
 [ext_resource type="AudioStream" uid="uid://k8m4o3hlwm7l" path="res://art/enemy_block.ogg" id="10_ixvgu"]
 
 [sub_resource type="Resource" id="Resource_f0b2u"]
 script = ExtResource("4_6lvhs")
 base_text = "%s"
-icon = ExtResource("3_1p0h0")
+icon = ExtResource("3_yjgsv")
+icon2 = ExtResource("3_1p0h0")
 
 [sub_resource type="Resource" id="Resource_b5tb2"]
 script = ExtResource("4_6lvhs")
@@ -24,7 +26,8 @@ icon = ExtResource("3_yjgsv")
 [sub_resource type="Resource" id="Resource_e64n5"]
 script = ExtResource("4_6lvhs")
 base_text = "9"
-icon = ExtResource("8_in3ia")
+icon = ExtResource("8_blkic")
+icon2 = ExtResource("8_bufic")
 
 [node name="MedusaEnemyAI" type="Node"]
 script = ExtResource("1_ml0uu")

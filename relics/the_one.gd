@@ -33,7 +33,7 @@ func _grant_bonus_die(owner: RelicUI) -> void:
         var current_amount = Global.get(dice_amount_variable)
         Global.set(dice_amount_variable, current_amount + 1)
         Events.change_current_power.emit()
-        Events.charge_dice_animation.emit()
+        Events.dice_charged.emit(active_dice, 1)
         Events.dice_amount_changed.emit()
         Global.has_rolled_1_this_fight = true
 

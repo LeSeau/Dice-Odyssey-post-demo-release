@@ -593,6 +593,13 @@ var dice_roll_sounds = [
 ]
 
 var socketed_card_ui: CardUI = null
+# Second Red socket (the Second Socket card). Null and unused at capacity 1, which keeps
+# every existing single-socket path bit-identical.
+var socketed_card_ui_2: CardUI = null
+var _socket_2: Control = null
+# Where the duplicated socket sits relative to socket 1. Socket 1 is 140 wide at scale
+# 0.857 (~120 on screen), so this clears it with a small gap. Verified by render.
+const SOCKET_2_OFFSET := Vector2(-126.0, 0.0)
 var _flying_charged_card_to_discard := false
 # _on_card_charged awaits mid-function while auto-canceling a previous socketed card. Without
 # this guard, socketing a second card during that 0.1s window could race: the interleaved call
@@ -708,7 +715,7 @@ func _ready():
     Events.reset_charged_card.connect(_on_reset_charged_card)
     Events.change_current_power.connect(_on_change_current_power)
     Events.next_roll_determined.connect(_on_next_roll_determined)
-    Events.charge_dice_animation.connect(_on_charge_dice_animation)
+    Events.dice_charged.connect(_on_dice_charged)
     Events.put_ink_on_dice.connect(_on_put_ink_on_dice)
     Events.remove_ink_from_dice.connect(_on_remove_ink_from_dice)
     Events.display_next_roll_modifier.connect(_on_display_next_roll_modifier)
@@ -789,6 +796,12 @@ func roll_dice():
                 if charged_card_texture.texture != null:
                     can_roll = true
                     Global.playing_red_card = true
+                elif Global.socketless_red:
+                    # Socketless Red blessing: an empty socket is legal, and the roll becomes
+                    # board damage instead of a card play (see _fire_socketless_red).
+                    # playing_red_card stays FALSE - nothing is being played, and the flag
+                    # gates Berserker's socketed-card boost.
+                    can_roll = true
                 else:
                     print("Trying to roll red before selecting a card")
                     play_error_sound()
@@ -828,7 +841,7 @@ func roll_dice():
     # restored to this same state, and re-capturing would overwrite the original with itself.
     # Taken here, before _apply_roll_result banks anything and before next_roll_modifier is
     # consumed, so the captured modifier is the un-spent one.
-    if dice_type == "odd" and not is_ricochet_reroll:
+    if _type_can_reroll(dice_type) and not is_ricochet_reroll:
         _ricochet_snapshot = {
             "roll_value": Global.roll_value,
             "power_generated_this_turn": Global.power_generated_this_turn,
@@ -887,6 +900,20 @@ func roll_dice():
         values = override_values
         faces = []
         for v: int in override_values:
+            faces.append(load("res://assets/images/%s%d.png" % [dice_type, v]))
+
+    # Fight-scoped face edits from cards (Red trim, Counterfeit). Applied AFTER the infusion
+    # override because the card computed its list from the effective faces at play time -
+    # re-deriving here would undo that. Same "<type><value>.png" convention.
+    if Global.face_overrides.has(dice_type):
+        # Explicitly typed: a Dictionary subscript returns Variant, and assigning Variant into
+        # `values` degrades what the compiler statically knows about it from Array to Variant -
+        # which breaks the `var forced_index := values.find(...)` inference further down and
+        # makes the WHOLE FILE fail to parse. Typing it here keeps `values` an Array.
+        var card_faces: Array = Global.face_overrides[dice_type]
+        values = card_faces
+        faces = []
+        for v: int in values:
             faces.append(load("res://assets/images/%s%d.png" % [dice_type, v]))
 
     # Determine the roll result index
@@ -1992,6 +2019,12 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
     # not the per-die max, so don't fold it into the check above.
     if Global.last_roll == 6:
         Global.has_rolled_6_this_turn = true
+        # Fight-long tally for Jackpot/Effigy. Keyed on the NATURAL face like the flag above,
+        # so a Boosted or Loaded 5->6 never counts.
+        Global.sixes_rolled_this_fight += 1
+
+    # Rainbow archetype: which TYPES were rolled this turn (Spectrum, Prismatic Lens).
+    Global.dice_types_rolled_this_turn[dice_type] = true
 
     # Arcane infusion (Blue act-2 infusion): a NATURAL 6 on the Blue die deals ARCANE_AOE_DAMAGE
     # to all enemies. Checked on last_roll (the rolled face itself), BEFORE next_roll_modifier
@@ -2012,7 +2045,6 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
 
     # Status checks
     Events.check_canalize_status.emit()
-    Events.check_infused_status.emit()
 
     Events.weak_effect_consumed.emit()
     Events.check_chaos_status.emit()
@@ -2028,6 +2060,21 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
         Global.next_roll_modifier = 0
         animation_player_power.play("power_change")
         next_roll_bonus_panel.hide()
+
+    # Loaded: flat Power on EVERY roll. Boost above is consumed by a single roll; this is not,
+    # which is the whole point - it's the per-ROLL scaling axis (Strength being the per-HIT one).
+    # Deliberately applied HERE, after every natural-face trigger above: Arcane's 6, Gnome's 1,
+    # Octet's 8 and Critical Edge's max face all read Global.last_roll, so a Loaded roll can
+    # never fake a natural face. Same ruling Boost already follows (Julien, 2026-07-14).
+    if Global.loaded_amount > 0:
+        Global.roll_value += Global.loaded_amount
+
+    # Cards that buff rolls purely by being HELD (Blood Oath on Red, Dead Weight's Loaded 1).
+    # Same placement rule as Loaded: after every natural-face trigger, so a held card can never
+    # fake a natural 6/1/8.
+    var held_bonus: int = Global.in_hand_roll_bonus(dice_type)
+    if held_bonus > 0:
+        Global.roll_value += held_bonus
 
     _set_power_text(Global.roll_value)
     current_power.modulate.a = 0.4 if Global.roll_value == 0 else 1.0
@@ -2047,6 +2094,7 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
         Events.dice_rolled.emit(Global.dice_type, Global.roll_value)
     else:
         Events.red_dice_rolled.emit()
+        _fire_socketless_red()
     _check_sigil_trigger()
     Events.hover_playable_cards.emit()
     mech_adjustments_used = 0
@@ -2079,7 +2127,7 @@ func _apply_infusion_roll_effects() -> void:
     if dice_type == "green" and Global.last_roll == 1 and Global.is_dice_infused("green"):
         Global.blue_dice_current_amount += 1
         Events.dice_amount_changed.emit()
-        Events.charge_dice_animation.emit()
+        Events.dice_charged.emit("blue", 1)
 
     # Bulwark (Odd): every roll ALSO grants Block equal to its value (Julien: on top of Power).
     if dice_type == "odd" and Global.last_roll > 0 and Global.is_dice_infused("odd"):
@@ -2183,9 +2231,12 @@ func _on_active_dice_changed(new_dice_type):
     # The switch zeroes power itself, so a pending delayed red reset has nothing left to do
     # here - and letting it fire later would blank whatever the player rolls on the new die.
     _power_reset_generation += 1
-    Global.roll_value = 0
-    Global.roll_history = []
-    _set_power_text("0")
+    # Kaleidoscope: for this turn, hopping between types does NOT break the chain - the one
+    # rule change that makes a rainbow turn (Spectrum, Prismatic Lens) affordable.
+    if not Global.keep_power_on_type_change:
+        Global.roll_value = 0
+        Global.roll_history = []
+        _set_power_text("0")
     current_power.modulate.a = 0.4
     current_power.scale = Vector2.ONE
     _update_power_float()
@@ -2338,6 +2389,19 @@ func _on_dice_roll_reset() -> void:
     if Global.no_reset:
         Global.no_reset = false
         return
+    # Reservoir: keep a floor of Power through a card's reset instead of wiping to zero. Only
+    # meaningful when there was more than that to begin with - it must never ADD Power.
+    var keep: int = Global.power_kept_on_reset
+    if keep > 0 and Global.roll_value > keep:
+        _power_reset_generation += 1
+        Global.roll_value = keep
+        Global.roll_history = []
+        _set_power_text(str(keep))
+        current_power.modulate.a = 1.0
+        update_roll_history_ui()
+        _update_dice_aura_charge()
+        Events.hover_playable_cards.emit()
+        return
     _power_reset_generation += 1
     if Global.dice_type == "red":
         var generation := _power_reset_generation
@@ -2391,6 +2455,14 @@ func _on_card_charged(card_ui):
     if _socketing_in_progress:
         return
     _socketing_in_progress = true
+
+    # Second socket: when it exists and socket 1 is taken, fill socket 2 instead of
+    # evicting socket 1. Returns early - the rest of this function styles socket 1.
+    if socketed_card_ui != null and Global.red_socket_capacity >= 2 \
+            and socketed_card_ui_2 == null and socketed_card_ui != card_ui:
+        _fill_socket_2(card_ui)
+        _socketing_in_progress = false
+        return
 
     # CRITICAL FIX: If a card is already socketed, auto-cancel it first
     if socketed_card_ui != null:
@@ -2500,6 +2572,8 @@ func _on_reset_charged_card():
         # fly's end-callback null out a NEWLY socketed card dropped in mid-animation.
         socketed_card_ui = null
         Global.charged_card_instance_id = 0
+        Global.charged_card_instance_ids.clear()
+        _clear_socket_2()
         _fly_charged_card_to_discard()
         return
 
@@ -2647,7 +2721,7 @@ var _infused_aura_materials := {}
 
 # Infused dice get a recolored COPY of their type's aura material. NEVER mutate the
 # preloaded shared .tres directly - that's the exact bug the old "charge" animation had
-# (see _on_charge_dice_animation): the 9 per-type ShaderMaterials are shared preloaded
+# (see _on_dice_charged): the 9 per-type ShaderMaterials are shared preloaded
 # resources, so writing colors into one repaints it for the rest of the app session.
 func _resolve_aura_material(type: String, base_material: ShaderMaterial) -> ShaderMaterial:
     if not Global.is_dice_infused(type):
@@ -2663,16 +2737,30 @@ func _resolve_aura_material(type: String, base_material: ShaderMaterial) -> Shad
     return _infused_aura_materials[type]
 
 
-func _on_charge_dice_animation():
-    animation_player.play("charge")  # aura scale pulse (color is driven in code below)
-    dice_roll_player.stream = load("res://chargedicesound.mp3")
-    dice_roll_player.volume_db = 6
-    dice_roll_player.play()
-    # Ring of energy spawns and rushes inward (~0.3s to converge), tinted toward the active
-    # dice's color so "charging a die" visibly feeds it ITS energy.
+func _on_dice_charged(charged_type: String, count: int) -> void:
+    if count <= 0:
+        return
+    # Two DIFFERENT claims, deliberately split (Julien, 2026-08-14) - conflating them is
+    # what made the old argless signal lie:
+    #   "energy just erupted"      -> ALWAYS true of a charge. The big die is the screen's
+    #                                 centre of gravity, so it has to carry this or the
+    #                                 whole event hides inside the little slot row.
+    #   "THIS die absorbed dice"   -> only true when the charged type IS the active type.
+    # So everything below up to the early-return is universal, tinted by the CHARGED type
+    # (never by dice_type) - it says "orange energy just went somewhere", and the delivery
+    # flying to the orange slot answers where. charge_heat is a type-neutral warm gold, so
+    # surging it claims energy without claiming a type.
+    #
+    # This universal half is deliberately just the ORIGINAL charge beat (aura pulse +
+    # inward-converging particle ring) promoted to fire on every charge and tinted by the
+    # charged type. A bespoke expanding wavefront was tried here and rejected: "too much
+    # intensity & too fast ... the animation I had before you touched it was more similar
+    # to what I have in mind" (Julien, 2026-08-14). Do not re-add a big screen-crossing
+    # shockwave - the ask is a contained pulse at the die, in the charged type's colour.
+    animation_player.play("charge")  # aura scale/opacity pulse
     var burst_material := gpu_particles_2d.process_material as ParticleProcessMaterial
     if burst_material:
-        burst_material.color = DicePalette.burst(Global.dice_type, 0.35)
+        burst_material.color = DicePalette.burst(charged_type, 0.35)
     gpu_particles_2d.emitting = true
 
     # Charge flash on the aura itself: pulse charge_heat to full, then settle back to the
@@ -2709,6 +2797,10 @@ func _on_charge_dice_animation():
             emanation_material, "shader_parameter/surge", 0.0, EMANATION_SURGE_DECAY_TIME) \
             .set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
+    # ---- Everything past here is the OWNERSHIP claim: this die really did gain dice. ----
+    if charged_type != dice_type:
+        return
+
     # Beats are timed so the die "absorbs" the energy exactly when the inward-converging
     # particles reach its center: anticipation squash + hold while the ring collapses,
     # then a punch + flash + power pulse on impact, then settle. Tighter overall than the
@@ -2716,11 +2808,14 @@ func _on_charge_dice_animation():
     var converge_time := 0.30
 
     # --- Scale: anticipation squash -> hold while energy converges -> absorb-punch -> settle ---
+    # The absorb punch scales with HOW MANY dice landed in the active pool (Charge 1 vs
+    # Charge 3+ should not be pixel-identical - same ladder rule as the roll feel pass).
+    var punch := 1.16 + 0.04 * float(clampi(count, 1, 4))
     var scale_tween := create_tween()
     scale_tween.tween_property(dice_display, "scale", Vector2(0.9, 0.9), 0.08) \
         .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
     scale_tween.tween_interval(converge_time - 0.08)
-    scale_tween.tween_property(dice_display, "scale", Vector2(1.22, 1.22), 0.07) \
+    scale_tween.tween_property(dice_display, "scale", Vector2(punch, punch), 0.07) \
         .set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
     scale_tween.tween_property(dice_display, "scale", Vector2(1.0, 1.0), 0.22) \
         .set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
@@ -2783,6 +2878,8 @@ func _on_cancel_red_card_pressed() -> void:
     # CRITICAL: Reset the global flags so new cards can be socketed
     Global.playing_red_card = false
     Global.charged_card_instance_id = 0
+    Global.charged_card_instance_ids.clear()
+    _clear_socket_2()
     
     # Clear our reference
     socketed_card_ui = null
@@ -2833,7 +2930,7 @@ func _check_sigil_trigger() -> void:
             if Global.roll_value == sigil.stacks:
                 Global.blue_dice_current_amount += 1
                 Events.dice_amount_changed.emit()
-                Events.charge_dice_animation.emit()
+                Events.dice_charged.emit("blue", 1)
 
 
 func _on_mech_increase_pressed() -> void:
@@ -2879,8 +2976,14 @@ func _on_ricochet_reroll_pressed() -> void:
     roll_dice()
 
 
+# "odd" (Ricochet) rerolls natively; a graft card (the Blue reroll blessing) adds its type
+# to Global.reroll_types.
+func _type_can_reroll(type: String) -> bool:
+    return type == "odd" or Global.reroll_types.has(type)
+
+
 func _can_ricochet_reroll() -> bool:
-    return dice_type == "odd" \
+    return _type_can_reroll(dice_type) \
             and not _roll_in_progress \
             and ricochet_rerolls_used < _ricochet_rerolls_allowed() \
             and not _ricochet_snapshot.is_empty() \
@@ -2930,7 +3033,7 @@ func _ricochet_restore_snapshot() -> void:
 func _update_ricochet_button() -> void:
     if not is_instance_valid(ricochet_section):
         return
-    ricochet_section.visible = dice_type == "odd"
+    ricochet_section.visible = _type_can_reroll(dice_type)
     var usable := _can_ricochet_reroll()
     ricochet_section.modulate.a = 1.0 if usable else 0.3
     ricochet_button.disabled = not usable
@@ -3918,3 +4021,110 @@ func _set_socket_filled() -> void:
     tween.tween_property(card_drop_area, "scale", Vector2(0.857, 0.857), 0.12)\
         .from(Vector2(0.728, 0.728))\
         .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
+# Socketless Red blessing: rolling the Red die with an EMPTY socket turns that roll into board
+# damage instead of a card play. Nothing here runs unless the blessing is up AND the socket is
+# genuinely empty, so a normal socketed red roll is completely unaffected.
+func _fire_socketless_red() -> void:
+    if not Global.socketless_red:
+        return
+    if charged_card_texture.texture != null or is_instance_valid(socketed_card_ui):
+        return
+    var amount: int = Global.roll_value
+    if amount <= 0:
+        return
+    var enemies := get_tree().get_nodes_in_group("enemies")
+    if enemies.is_empty():
+        return
+    # Routed through the PLAYER's DMG_DEALT modifiers rather than dealt flat, because that is
+    # exactly how Berserk doubles it: "You deal double damage with Red Dice" is a PERCENT_BASED
+    # modifier that switches itself on while Red is the active die (status_berserk.gd), so
+    # going through the stack is the only way to honour it without re-implementing it here.
+    # Julien confirmed Berserk should apply.
+    # NOTE this also lets Strength through, unlike magma's flat per-roll burn - a deliberate
+    # consequence of using the modifier stack, and a tuning dial rather than an oversight.
+    var player := get_tree().get_first_node_in_group("player")
+    if player != null and player.get("modifier_handler") != null:
+        amount = player.modifier_handler.get_modified_value(amount, Modifier.Type.DMG_DEALT)
+    var damage_effect := DamageEffect.new()
+    damage_effect.amount = amount
+    damage_effect.execute(enemies)
+    # The Red die is decremented by dice_interface._on_dice_rolled, which listens to
+    # dice_rolled - and dice.gd never emits that for Red. The ONLY thing that normally does is
+    # card_ui.gd:909, right after a socketed card plays. With an empty socket that never runs,
+    # so without this emit the die is rolled for free forever (Julien, 2026-08-16: "doesn't use
+    # the red dice"). Emitting it here also feeds the per-roll relics (Crown, Metronome) that a
+    # socketless roll should count towards, exactly like the socketed path already does.
+    Events.dice_rolled.emit("red", Global.roll_value)
+    # The roll was spent on the board instead of on a card, so it still ends the chain.
+    Events.dice_roll_reset.emit()
+
+
+# --- Second Red socket -----------------------------------------------------------------------
+# Built by DUPLICATING the CardDropArea subtree at runtime rather than hand-authoring a second
+# copy in dice.tscn: the subtree is ~220 lines of scene and the two must stay visually identical
+# forever. Only the handful of nodes whose CONTENT changes are resolved.
+#
+# Socket 2 deliberately has no Cancel button of its own - cancelling socket 1 clears both, which
+# keeps a single, already-tested teardown path instead of two that can disagree.
+func _ensure_socket_2() -> Control:
+    if is_instance_valid(_socket_2):
+        return _socket_2
+    _socket_2 = card_drop_area.duplicate() as Control
+    _socket_2.name = "CardDropArea2"
+    add_child(_socket_2)
+    _socket_2.position = card_drop_area.position + SOCKET_2_OFFSET
+    var cancel := _socket_2.get_node_or_null("CancelRedCardPanel")
+    if cancel:
+        cancel.hide()
+    _socket_2.hide()
+    return _socket_2
+
+
+func _fill_socket_2(card_ui: CardUI) -> void:
+    var socket := _ensure_socket_2()
+    socketed_card_ui_2 = card_ui
+    if not Global.charged_card_instance_ids.has(card_ui.card.instance_id):
+        Global.charged_card_instance_ids.append(card_ui.card.instance_id)
+    var texture := socket.get_node_or_null(
+            "CardBackground/CardFrame/Panel/ChargedCardTexture") as TextureRect
+    if texture:
+        texture.texture = card_ui.card.icon
+        texture.show()
+    var socket_title := socket.get_node_or_null(
+            "CardBackground/CardFrame/CardBanner/Title") as Label
+    if socket_title:
+        socket_title.text = card_ui.card.name
+        socket_title.modulate.a = 1.0
+    var desc := socket.get_node_or_null(
+            "CardBackground/CardFrame/DescriptionPanel/ChargedCardDescriptionCenter/ChargedCardDescription") as RichTextLabel
+    if desc:
+        desc.text = "[center]%s[/center]" % card_ui.card.get_colorized_description(
+                card_ui.card.description)
+    var req := socket.get_node_or_null(
+            "CardBackground/CardFrame/RequirementPanel/RequirementLabel") as Label
+    if req:
+        req.text = _requirement_text(card_ui.card)
+    socket.show()
+    card_ui.hide()
+
+
+func _clear_socket_2() -> void:
+    socketed_card_ui_2 = null
+    if is_instance_valid(_socket_2):
+        _socket_2.hide()
+
+
+# Same wording the socket 1 badge uses (card_ui.gd is the source for the real card face).
+func _requirement_text(card: Card) -> String:
+    match card.requirement:
+        Card.Requirement.NONE: return "Any"
+        Card.Requirement.MIN: return "Min %d" % card.requirement_number
+        Card.Requirement.MAX: return "Max %d" % card.requirement_number
+        Card.Requirement.EVEN: return "Even"
+        Card.Requirement.ODD: return "Odd"
+        Card.Requirement.RED: return "Red"
+        Card.Requirement.EXACT: return "Exact %d" % card.requirement_number
+        Card.Requirement.MULTIPLE: return "Mult %d" % card.requirement_number
+        _: return "Any"

@@ -52,5 +52,5 @@ func _on_enemy_died(enemy: Enemy) -> void:
         Global.set(dice_amount_variable, current_amount + 1)
         
         Events.change_current_power.emit()
-        Events.charge_dice_animation.emit()
+        Events.dice_charged.emit(active_dice, 1)
         Events.dice_amount_changed.emit()

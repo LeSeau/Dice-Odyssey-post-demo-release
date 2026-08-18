@@ -24,19 +24,6 @@ theme_override_constants/separation = -6
 alignment = 1
 script = ExtResource("1_aarbb")
 
-[node name="IconSlot" type="Control" parent="."]
-custom_minimum_size = Vector2(60, 60)
-layout_mode = 2
-mouse_filter = 2
-
-[node name="Icon" type="TextureRect" parent="IconSlot"]
-offset_right = 60.0
-offset_bottom = 60.0
-mouse_filter = 2
-texture = ExtResource("2_o32yy")
-expand_mode = 3
-stretch_mode = 6
-
 [node name="LabelSlot" type="Control" parent="."]
 custom_minimum_size = Vector2(26, 60)
 layout_mode = 2
@@ -51,6 +38,32 @@ text = "7"
 label_settings = SubResource("LabelSettings_ftoyl")
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="IconSlot" type="Control" parent="."]
+custom_minimum_size = Vector2(60, 60)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Icon" type="TextureRect" parent="IconSlot"]
+offset_right = 60.0
+offset_bottom = 60.0
+mouse_filter = 2
+texture = ExtResource("2_o32yy")
+expand_mode = 3
+stretch_mode = 6
+
+[node name="IconSlot2" type="Control" parent="."]
+visible = false
+custom_minimum_size = Vector2(60, 60)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Icon2" type="TextureRect" parent="IconSlot2"]
+offset_right = 60.0
+offset_bottom = 60.0
+mouse_filter = 2
+expand_mode = 3
+stretch_mode = 6
 
 [connection signal="mouse_entered" from="." to="." method="_on_mouse_entered"]
 [connection signal="mouse_exited" from="." to="." method="_on_mouse_exited"]

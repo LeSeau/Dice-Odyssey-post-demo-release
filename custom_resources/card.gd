@@ -188,8 +188,7 @@ func apply_target_modifier(amount: int, target: Node) -> int:
     # construction: this helper is never called from any apply_effects() (verified across
     # all 80 dynamic-description cards, 2026-07-10) - the REAL boost stays in
     # damage_effect.gd, so there is no double-count.
-    if Global.charged_card_instance_id != 0 \
-            and instance_id == Global.charged_card_instance_id \
+    if Global.charged_card_instance_ids.has(instance_id) \
             and Global.is_dice_infused("red"):
         amount = ceili(amount * 1.5)
     if target and is_instance_valid(target) and target.get("modifier_handler"):
@@ -303,10 +302,7 @@ const DICE_FACE_VALUES := {
 # faces the real die already displays, so every value has its face texture. Infusion ROLL
 # effects (Gnome/Octet/Bulwark/Arcane) deliberately do NOT fire on thrown dice for now.
 static func thrown_faces_for(dice_type: String) -> Array:
-    var override_values := DiceInfusions.roll_values_override(dice_type)
-    if not override_values.is_empty():
-        return override_values
-    return DICE_FACE_VALUES.get(dice_type, [1, 2, 3, 4, 5, 6])
+    return Global.current_face_values(dice_type)
 
 
 # Where a thrown die visually smashes into this target - the torso center, NOT the enemy

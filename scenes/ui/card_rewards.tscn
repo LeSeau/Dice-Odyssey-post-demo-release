@@ -150,15 +150,19 @@ layout_mode = 2
 layout_mode = 2
 
 [node name="SkipCardReward" type="Button" parent="VBoxContainer"]
+texture_filter = 2
 custom_minimum_size = Vector2(170, 48)
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_colors/font_color = Color(0.933333, 0.709804, 0.164706, 1)
+theme_override_colors/font_color = Color(1, 0.964706, 0.886275, 1)
 theme_override_fonts/font = ExtResource("14_skpf")
 theme_override_font_sizes/font_size = 22
 theme_override_styles/normal = ExtResource("11_skpn")
 theme_override_styles/hover = ExtResource("12_skph")
 theme_override_styles/pressed = ExtResource("13_skpp")
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.25)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 2
 text = "Skip"
 
 [node name="CanvasLayer" type="CanvasLayer" parent="VBoxContainer"]

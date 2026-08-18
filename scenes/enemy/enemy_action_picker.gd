@@ -14,7 +14,6 @@ func _ready() -> void:
 
 
 func get_action() -> EnemyAction:
-    print(Global.fight_turn)
     var action := get_first_conditional_action()
     if action:
         return action

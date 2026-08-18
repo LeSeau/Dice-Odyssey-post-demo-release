@@ -12,7 +12,7 @@ func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
         support_effect.execute(targets)
         Events.dice_roll_reset.emit()
         Events.dice_amount_changed.emit()
-        Events.charge_dice_animation.emit()
+        Events.dice_charged.emit("giant", 1)
         Events.temporary_dice_added.emit("giant")
         var status_effect := StatusEffect.new()
         var lucky := LUCKY_STATUS.duplicate()

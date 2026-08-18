@@ -101,6 +101,8 @@ func start_turn() -> void:
     if Global.tutorial_on:
         _force_tutorial_hand()
     Global.dice_amount_rolled_this_turn = 0
+    Global.dice_types_rolled_this_turn = {}
+    Global.keep_power_on_type_change = false
     Events.player_turn_started.emit()
 
 

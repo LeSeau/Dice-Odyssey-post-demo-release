@@ -14,6 +14,6 @@ func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
     Events.add_card_to_hand_requested.emit(scout_card)
 
     Events.dice_amount_changed.emit()
-    Events.charge_dice_animation.emit()
+    Events.dice_charged.emit("blue", 1)
     Events.temporary_dice_added.emit("blue")
     Events.reset_charged_card.emit()

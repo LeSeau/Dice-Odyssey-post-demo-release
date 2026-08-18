@@ -18,8 +18,6 @@ func add_new_value(value: ModifierValue) -> void:
     var modifier_value := get_value(value.source)
     if not modifier_value:
         add_child(value)
-        print("Added modifier value:", value.source, "flat:", value.flat_value)
-
     else:
         modifier_value.flat_value = value.flat_value
         modifier_value.percent_value = value.percent_value

@@ -12,7 +12,7 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     support_effect.execute(targets)
     Events.dice_roll_reset.emit()
     Events.dice_amount_changed.emit()
-    Events.charge_dice_animation.emit()
+    Events.dice_charged.emit("odd", 4)
     Events.temporary_dice_added.emit("odd")
     # The upgrade keeps the base card's Depleted downside (Julien, 2026-07-16 - the earlier
     # "+" pass had dropped it by mistake); only the Charge amount improves (3 -> 4).

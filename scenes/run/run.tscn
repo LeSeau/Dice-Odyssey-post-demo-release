@@ -1,4 +1,4 @@
-[gd_scene load_steps=45 format=3 uid="uid://b56wvanf6u6h7"]
+[gd_scene load_steps=44 format=3 uid="uid://b56wvanf6u6h7"]
 
 [ext_resource type="Script" path="res://scenes/run/run.gd" id="1_sgoer"]
 [ext_resource type="PackedScene" uid="uid://deprxl041o8nn" path="res://scenes/map/map.tscn" id="2_1mcea"]
@@ -28,21 +28,11 @@
 [ext_resource type="Texture2D" uid="uid://nowr3vqyi4ax" path="res://assets/images/map_button_icon.png" id="50_mapicon"]
 [ext_resource type="Texture2D" uid="uid://bbhk8pdh4refe" path="res://assets/images/pause_menu_icon.png" id="51_pauseicon"]
 [ext_resource type="PackedScene" uid="uid://c2mvqx4n1p0a1" path="res://scenes/ui/pause_menu.tscn" id="52_pausemenu"]
+[ext_resource type="Texture2D" uid="uid://dyuyks0rcm8ea" path="res://assets/images/ui/ui_top_bar_edge.png" id="53_baredge"]
+[ext_resource type="Texture2D" path="res://assets/images/ui/ui_top_bar_slab.png" id="54_barslab"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_topbar_bg"]
-bg_color = Color(0.101961, 0.227451, 0.235294, 1)
-border_width_bottom = 3
-border_color = Color(0.784314, 0.658824, 0.294118, 1)
-shadow_color = Color(0, 0, 0, 0.35)
-shadow_size = 6
-shadow_offset = Vector2(0, 3)
-
-[sub_resource type="Gradient" id="Gradient_ajfrf"]
-colors = PackedColorArray(0.101961, 0.227451, 0.235294, 1, 0.0588235, 0.133333, 0.141176, 1)
-
-[sub_resource type="GradientTexture2D" id="GradientTexture2D_l7gh7"]
-gradient = SubResource("Gradient_ajfrf")
-fill_to = Vector2(0, 1)
+[sub_resource type="StyleBoxTexture" id="StyleBoxFlat_topbar_bg"]
+texture = ExtResource("54_barslab")
 
 [sub_resource type="StyleBoxLine" id="StyleBoxLine_6aa02"]
 color = Color(0.784314, 0.662745, 0.431373, 1)
@@ -58,7 +48,7 @@ content_margin_top = 8.0
 font = ExtResource("20_hicqd")
 font_size = 14
 font_color = Color(0.92549, 0.890196, 0.815686, 1)
-outline_size = 1
+outline_size = 3
 outline_color = Color(0, 0, 0, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_map_icon_hover_glow"]
@@ -234,18 +224,24 @@ anchor_right = 1.0
 grow_horizontal = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_topbar_bg")
 
-[node name="TextureRect" type="TextureRect" parent="TopBar/Background"]
+[node name="BottomEdge" type="TextureRect" parent="TopBar"]
 visible = false
-custom_minimum_size = Vector2(1280, 80)
-layout_mode = 0
-offset_right = 1280.0
-offset_bottom = 80.0
-texture = SubResource("GradientTexture2D_l7gh7")
+texture_filter = 2
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 78.0
+offset_bottom = 96.0
+grow_horizontal = 2
+mouse_filter = 2
+texture = ExtResource("53_baredge")
+expand_mode = 1
+stretch_mode = 1
 
 [node name="BarItems" type="HBoxContainer" parent="TopBar"]
 custom_minimum_size = Vector2(0, 80)
 anchors_preset = 10
 anchor_right = 1.0
+offset_left = 16.0
 offset_bottom = 80.0
 grow_horizontal = 2
 theme_override_constants/separation = 12
@@ -274,7 +270,7 @@ label_settings = ExtResource("21_topbarlbl")
 vertical_alignment = 1
 
 [node name="VSeparator" type="VSeparator" parent="TopBar/BarItems"]
-modulate = Color(0.784314, 0.662745, 0.431373, 1)
+modulate = Color(0.784314, 0.662745, 0.431373, 0)
 layout_mode = 2
 theme_override_constants/separation = 20
 theme_override_styles/separator = SubResource("StyleBoxLine_6aa02")
@@ -334,7 +330,7 @@ label_settings = SubResource("LabelSettings_cbb1u")
 horizontal_alignment = 1
 
 [node name="VSeparator3" type="VSeparator" parent="TopBar/BarItems"]
-modulate = Color(0.784314, 0.662745, 0.431373, 1)
+modulate = Color(0.784314, 0.662745, 0.431373, 0)
 layout_mode = 2
 theme_override_constants/separation = 20
 theme_override_styles/separator = SubResource("StyleBoxLine_6aa02")
@@ -352,7 +348,7 @@ size_flags_horizontal = 3
 [node name="ConsultMapButton" type="TextureButton" parent="TopBar/BarItems"]
 unique_name_in_owner = true
 process_mode = 3
-custom_minimum_size = Vector2(90, 70)
+custom_minimum_size = Vector2(78, 60)
 layout_mode = 2
 size_flags_vertical = 4
 texture_normal = ExtResource("50_mapicon")
@@ -381,7 +377,7 @@ custom_minimum_size = Vector2(8, 0)
 layout_mode = 2
 
 [node name="DiceShop" type="TextureButton" parent="TopBar/BarItems"]
-custom_minimum_size = Vector2(80, 80)
+custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
 texture_normal = ExtResource("10_wacie")
 ignore_texture_size = true
@@ -410,7 +406,7 @@ layout_mode = 2
 
 [node name="DeckButton" parent="TopBar/BarItems" node_paths=PackedStringArray("counter") instance=ExtResource("3_bglvk")]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(80, 80)
+custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
 texture_normal = ExtResource("13_pm2lc")
 counter = NodePath("Counter")
@@ -471,9 +467,9 @@ layout_mode = 2
 layout_mode = 3
 anchors_preset = 0
 offset_left = 20.0
-offset_top = 82.0
+offset_top = 98.0
 offset_right = 1194.0
-offset_bottom = 128.0
+offset_bottom = 144.0
 mouse_filter = 2
 
 [node name="RelicHandler" parent="TopBar/RelicBar" instance=ExtResource("9_4670w")]
