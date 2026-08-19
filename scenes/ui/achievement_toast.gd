@@ -38,7 +38,7 @@ const TEXT_WIDTH := 272.0
 const PAD_BOTTOM := 13.0
 
 const TITLE_FONT := preload("res://fonts/CinzelDecorative-Bold.otf")
-const BODY_FONT := preload("res://assets/static/Roboto_Condensed-SemiBold.ttf")
+const BODY_FONT := preload("res://Belwe Bold/Belwe Bold.otf")
 const TROPHY_TEXTURE := preload("res://assets/images/achievement_trophy.png")
 
 # Same palette as the pause menu panel.

@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="Card" load_steps=4 format=3 uid="uid://c4cardgreed"]
 
-[ext_resource type="Texture2D" uid="uid://bhqtxybmbfujk" path="res://high_roller.png" id="1_icon"]
+[ext_resource type="Texture2D" path="res://greed.png" id="1_icon"]
 [ext_resource type="Script" path="res://characters/warrior/cards/greed.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://cvjv56ti6hkis" path="res://impact1.ogg" id="3_sound"]
 

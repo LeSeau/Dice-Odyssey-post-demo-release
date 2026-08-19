@@ -2,8 +2,15 @@ extends Node2D
 @onready var label: Label = $Label
 var fade_duration: float = 0.6
 
-func show_block(amount: int) -> void:
+# tint defaults to the authored icy blue so any existing caller is unaffected; the
+# player's own block is tinted by the active dice type (see BlockEffect).
+func show_block(amount: int, tint := Color(0.4, 0.75, 1.0)) -> void:
     label.text = "+" + str(amount)
+    # LabelSettings is a SHARED sub-resource - duplicate before touching font_color or
+    # every block popup in the scene changes colour with it.
+    if label.label_settings:
+        label.label_settings = label.label_settings.duplicate()
+        label.label_settings.font_color = tint
 
     var punch_scale = 1.0 + (amount / 50.0)
     punch_scale = clamp(punch_scale, 1.0, 1.6)

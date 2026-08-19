@@ -18,8 +18,8 @@
 extends PanelContainer
 
 const CINZEL_BOLD := preload("res://fonts/Cinzel-Bold.otf")
-const NOTO_SANS := preload("res://fonts/NotoSans-Regular.ttf")
-const LUCKIEST_GUY := preload("res://fonts/LuckiestGuy-Regular.ttf")
+const BELWE := preload("res://Belwe Bold/Belwe Bold.otf")
+const LUCKIEST_GUY := preload("res://fonts/luckiest_guy_numbers.tres")
 const GEM_TEXTURE := preload("res://assets/images/rarity_gem_rare.png")
 
 const GOLD := Color(0.941176, 0.752941, 0.25098)
@@ -217,7 +217,7 @@ func _build_row(def: Dictionary, index: int) -> PanelContainer:
 
 	var name_label := Label.new()
 	name_label.text = def.label
-	name_label.add_theme_font_override("font", NOTO_SANS)
+	name_label.add_theme_font_override("font", BELWE)
 	name_label.add_theme_font_size_override("font_size", 15)
 	name_label.add_theme_color_override("font_color", CREAM)
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL

@@ -52,7 +52,10 @@ func get_tooltip_content(status: Status) -> void:
         "unlucky":
             text = "Your next roll lands on the lowest possible face. One roll per stack."
         "flux":
-            text = "This enemy prevents you from rolling the same Dice type twice in a row."
+            # Honest wording (2026-08-18). The old text said "the same Dice type twice in a
+            # row", which the code never checks: dice.gd refuses EVERY roll while
+            # roll_history is non-empty, of any type, until Power resets.
+            text = "You can only roll once per Power chain. Reset your Power to roll again."
         "berserk":
             text = "You deal double damage with Red Dice."
         # NOTE: no "marionette" case on purpose. Its .tres tooltip is already correct AND the

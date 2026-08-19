@@ -1,4 +1,4 @@
-[gd_scene load_steps=67 format=3 uid="uid://cahno8aso5net"]
+[gd_scene load_steps=64 format=3 uid="uid://cahno8aso5net"]
 
 [ext_resource type="Script" path="res://scenes/battle/battle.gd" id="1_4s751"]
 [ext_resource type="StyleBox" path="res://scenes/ui/ui_panel_plate.tres" id="ui_plate"]
@@ -36,12 +36,10 @@
 [ext_resource type="StyleBox" path="res://scenes/battle/end_turn_texture_disabled.tres" id="21_jsnvk"]
 [ext_resource type="AudioStream" uid="uid://cgusw3wyairdh" path="res://drawcardsound.wav" id="22_vh17h"]
 [ext_resource type="Script" path="res://scenes/battle/scout.gd" id="23_2rbv5"]
-[ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="23_a6w84"]
 [ext_resource type="Texture2D" uid="uid://c17qq0sj25epy" path="res://assets/images/blue1.png" id="24_bxf3j"]
 [ext_resource type="PackedScene" uid="uid://chry0sgk7t0yf" path="res://scenes/ui/tooltip.tscn" id="26_orwrd"]
-[ext_resource type="FontFile" uid="uid://dujsng7qdioan" path="res://assets/static/Roboto_Condensed-SemiBold.ttf" id="28_gfxxc"]
+[ext_resource type="FontVariation" uid="uid://clgnumfontvar1" path="res://fonts/luckiest_guy_numbers.tres" id="30_lgnum"]
 [ext_resource type="Texture2D" uid="uid://b1my7ua56jx7t" path="res://tutorial_arrow.png" id="29_0band"]
-[ext_resource type="FontFile" uid="uid://t1kjnid0fq8h" path="res://assets/static/Roboto-Black.ttf" id="29_kb8h2"]
 [ext_resource type="Texture2D" uid="uid://babawuw4jquuw" path="res://tutorial_arrow_down.png" id="30_rkd0t"]
 [ext_resource type="Texture2D" uid="uid://bsod70jcw5ate" path="res://power_reset_image.png" id="31_tnut7"]
 [ext_resource type="Script" path="res://scenes/battle/camera_2d.gd" id="36_g4ffy"]
@@ -204,10 +202,8 @@ shadow_size = 2
 
 [sub_resource type="Theme" id="Theme_l8oq4"]
 
-[sub_resource type="Theme" id="Theme_t77qr"]
-default_font_size = 11
-
 [sub_resource type="LabelSettings" id="LabelSettings_pile_counter"]
+font = ExtResource("30_lgnum")
 font_size = 22
 font_color = Color(1, 1, 1, 1)
 outline_size = 5
@@ -459,6 +455,7 @@ offset_left = 39.0
 offset_top = 32.0
 offset_right = 72.0
 offset_bottom = 64.0
+label_settings = SubResource("LabelSettings_pile_counter")
 text = "99
 "
 horizontal_alignment = 1
@@ -645,7 +642,7 @@ offset_bottom = 42.0
 grow_horizontal = 0
 theme_override_colors/font_color = Color(0.144787, 0.273985, 0.277578, 1)
 theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
-theme_override_fonts/font = ExtResource("29_kb8h2")
+theme_override_fonts/font = ExtResource("12_e36uc")
 theme_override_font_sizes/font_size = 20
 theme_override_styles/hover = SubResource("StyleBoxFlat_scout_exit_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_afe52")
@@ -753,6 +750,7 @@ anchor_right = 1.0
 offset_top = 5.0
 offset_bottom = 37.0
 grow_horizontal = 2
+theme_override_fonts/normal_font = ExtResource("12_e36uc")
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
 text = "[center][color=yellow]This will reset your Power"
@@ -770,7 +768,7 @@ offset_right = -217.0
 offset_bottom = 67.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_fonts/normal_font = ExtResource("28_gfxxc")
+theme_override_fonts/normal_font = ExtResource("12_e36uc")
 theme_override_font_sizes/normal_font_size = 16
 bbcode_enabled = true
 text = "[center]Changing your Dice type sets your Power to 0, and you still have some Power left. Are you sure you want to do that? 
@@ -808,6 +806,7 @@ offset_bottom = -9.0
 grow_horizontal = 2
 grow_vertical = 0
 theme = SubResource("Theme_l8oq4")
+theme_override_fonts/font = ExtResource("12_e36uc")
 theme_override_font_sizes/font_size = 16
 text = "Got it!"
 

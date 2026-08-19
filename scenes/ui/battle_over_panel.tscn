@@ -1,10 +1,9 @@
-[gd_scene load_steps=23 format=3 uid="uid://dfig8d63ggof1"]
+[gd_scene load_steps=22 format=3 uid="uid://dfig8d63ggof1"]
 
 [ext_resource type="Script" path="res://scenes/ui/battle_over_panel.gd" id="1_msgmm"]
 [ext_resource type="FontFile" uid="uid://b1es4i7nr43mv" path="res://fonts/CinzelDecorative-Bold.otf" id="2_0nyfr"]
 [ext_resource type="AudioStream" uid="uid://bu8uvjhi41uik" path="res://success.mp3" id="3_4jgu0"]
 [ext_resource type="Texture2D" uid="uid://bsyxep800b5tf" path="res://gameover.png" id="4_nwuo5"]
-[ext_resource type="FontFile" uid="uid://bfgwr7o37ol1j" path="res://Noto_Sans/static/NotoSans-Regular.ttf" id="5_pe1oi"]
 [ext_resource type="FontFile" uid="uid://bm3deysyi2y55" path="res://Belwe Bold/Belwe Bold.otf" id="6_f3kgd"]
 [ext_resource type="Texture2D" uid="uid://c6w3p47gbm7w4" path="res://discordlogo.png" id="7_fgrpp"]
 [ext_resource type="Script" path="res://scenes/ui/run_stats_panel.gd" id="8_rstat"]
@@ -160,7 +159,7 @@ offset_top = 82.0
 offset_right = 765.0
 offset_bottom = 168.0
 theme_override_colors/default_color = Color(0.92549, 0.890196, 0.815686, 1)
-theme_override_fonts/normal_font = ExtResource("5_pe1oi")
+theme_override_fonts/normal_font = ExtResource("6_f3kgd")
 theme_override_font_sizes/normal_font_size = 16
 bbcode_enabled = true
 scroll_active = false
@@ -207,7 +206,7 @@ offset_right = 196.0
 offset_bottom = 542.0
 theme_override_colors/font_color = Color(0.85, 0.81, 0.72, 1)
 theme_override_colors/font_hover_color = Color(0.988235, 0.933333, 0.843137, 1)
-theme_override_fonts/font = ExtResource("5_pe1oi")
+theme_override_fonts/font = ExtResource("6_f3kgd")
 theme_override_font_sizes/font_size = 16
 theme_override_styles/normal = SubResource("StyleBoxFlat_menu_normal")
 theme_override_styles/hover = SubResource("StyleBoxFlat_menu_hover")

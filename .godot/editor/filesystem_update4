@@ -39,8 +39,6 @@ res://scenes/card_ui/card_banner.tres
 res://scenes/card_ui/card_panel.tres
 res://scenes/card_ui/card_ui_description_panel.tres
 res://scenes/card_ui/card_ui_bonus_requirement_label.tres
-res://scenes/card_ui/card_menu_ui_hover_test.tres
-res://scenes/card_ui/card_ui_hover_celestial.tres
 res://characters/warrior/cards/bullseye_plus.tres
 res://characters/warrior/cards/bullseye.tres
 res://characters/warrior/cards/card_gang_up.tres
@@ -149,6 +147,8 @@ res://relics/coupons.tres
 res://characters/warrior/warrior.tres
 res://enemies/crab/crab_attack_action.gd
 res://enemies/crab/crab_enemy.tres
+res://scenes/card_ui/card_menu_ui_hover_test.tres
+res://scenes/card_ui/card_ui_hover_celestial.tres
 res://scenes/dices/red_dice_shader.tres
 res://scenes/dices/giant_dice_shader.tres
 res://scenes/dices/evil_dice_shader.tres

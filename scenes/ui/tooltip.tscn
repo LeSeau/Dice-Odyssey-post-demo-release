@@ -2,7 +2,7 @@
 
 [ext_resource type="StyleBox" uid="uid://ce8r01r8snw2g" path="res://scenes/ui/tooltip.tres" id="2_4gfl8"]
 [ext_resource type="Script" path="res://scenes/ui/tooltip.gd" id="2_ifbwr"]
-[ext_resource type="FontFile" uid="uid://b2y60c4274gkj" path="res://fonts/Cinzel-Bold.otf" id="3_vvnhr"]
+[ext_resource type="FontFile" uid="uid://bm3deysyi2y55" path="res://Belwe Bold/Belwe Bold.otf" id="3_vvnhr"]
 [ext_resource type="FontFile" uid="uid://dq4bmvx1ogtey" path="res://Noto_Sans/static/NotoSans-Medium.ttf" id="6_6k2h1"]
 [ext_resource type="StyleBox" path="res://scenes/ui/ui_panel_plate.tres" id="ui_plate"]
 
@@ -57,6 +57,7 @@ layout_mode = 2
 size_flags_vertical = 4
 theme_override_constants/line_separation = 3
 theme_override_fonts/normal_font = ExtResource("6_6k2h1")
+theme_override_fonts/bold_font = ExtResource("6_6k2h1")
 theme_override_font_sizes/normal_font_size = 11
 theme_override_font_sizes/bold_font_size = 12
 bbcode_enabled = true

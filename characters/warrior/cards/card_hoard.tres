@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="Card" load_steps=4 format=3 uid="uid://c4cardhoard"]
 
-[ext_resource type="Texture2D" uid="uid://cupqwontxtnxc" path="res://stockpile.png" id="1_icon"]
+[ext_resource type="Texture2D" path="res://hoard.png" id="1_icon"]
 [ext_resource type="Script" path="res://characters/warrior/cards/hoard.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://df64e7qat73gs" path="res://art/block.ogg" id="3_sound"]
 

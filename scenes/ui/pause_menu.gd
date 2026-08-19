@@ -15,9 +15,9 @@ const MAIN_MENU_SCENE_PATH := "res://scenes/ui/main_menu.tscn"
 const DISCORD_URL := "https://discord.gg/fah8A2qQx2"
 
 # Achievements list styling (rows are built in code in _populate_achievements - the
-# global Cinzel theme is unreadable at body sizes, same reasoning as the toast).
+# global Cinzel theme is unreadable at body sizes; Belwe is the game's body/button voice).
 const TROPHY_TEXTURE := preload("res://assets/images/achievement_trophy.png")
-const ROW_BODY_FONT := preload("res://assets/static/Roboto_Condensed-SemiBold.ttf")
+const ROW_BODY_FONT := preload("res://Belwe Bold/Belwe Bold.otf")
 const ROW_BG_COLOR := Color(0.0509804, 0.113725, 0.121569)  # slider-track dark teal
 const GOLD_COLOR := Color(1, 0.843137, 0)
 const CREAM_COLOR := Color(0.92549, 0.890196, 0.815686)

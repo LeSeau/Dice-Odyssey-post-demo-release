@@ -1,8 +1,14 @@
 extends EnemyAction
 
-
+const MUSCLE_STATUS = preload("res://statuses/muscle.tres")
 
 @export var damage := 6
+# Ramp rider (2026-08-18 audit Wave A): this beat also grants the Satyr +1 Strength, so the
+# fight has a clock instead of a flat floor. Rides an EXISTING beat rather than adding a new
+# action - one rule per fight. The AI scene is shared by all three tier .tres files, so this
+# single edit covers every Bigger Satyr fight. Declared here (not hardcoded below) so the
+# rider is tunable from the inspector like the damage is.
+@export var muscle_rider := 1
 
 var base_damage = damage
 
@@ -23,6 +29,9 @@ func perform_action() -> void:
 
     tween.tween_property(enemy, "global_position", end, 0.4)
     tween.tween_callback(damage_effect.execute.bind(target_array))
+    # Strength lands with the hit, not before it - the number the player read on the intent
+    # is what this swing deals; the rider only raises the NEXT one.
+    tween.tween_callback(_apply_muscle_rider)
     tween.tween_interval(0.25)
     tween.tween_property(enemy, "global_position", start, 0.4)
     
@@ -30,6 +39,16 @@ func perform_action() -> void:
         func():
             Events.enemy_action_completed.emit(enemy)
     )
+
+func _apply_muscle_rider() -> void:
+    if muscle_rider <= 0 or not is_instance_valid(enemy):
+        return
+    var status_effect := StatusEffect.new()
+    var muscle := MUSCLE_STATUS.duplicate()
+    muscle.stacks = muscle_rider
+    status_effect.status = muscle
+    status_effect.execute([enemy])
+
 
 func update_intent_text() -> void:
     var player := target as Player

@@ -7,6 +7,16 @@ extends EnemyAction
 
 var base_damage = damage
 
+
+# Explicit (2026-08-18 honesty pass). EnemyAction.is_performable() returns FALSE by default,
+# so this steady attack was only ever reached through the picker's anti-freeze
+# `get_child(0)` fallback. Behaviour is unchanged - this IS child 0 - but the Lich's main
+# attack no longer depends on a safety net, and reordering the AI's children can no longer
+# silently change what it does.
+func is_performable() -> bool:
+    return true
+
+
 func perform_action() -> void:
     if not enemy or not target:
         return

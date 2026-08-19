@@ -101,6 +101,32 @@ static func glow_texture() -> Texture2D:
     return _glow_texture
 
 
+# Annulus (hollow ring) counterpart to glow_texture(). glow_texture() is a filled disc,
+# which reads as a FLASH; a ring reads as a WARD snapping up around a body - the shape the
+# block VFX needs. Same cached-static pattern as the others.
+static var _ring_texture: Texture2D
+
+
+static func ring_texture() -> Texture2D:
+    if _ring_texture == null:
+        var gradient := Gradient.new()
+        # hollow centre -> bright rim -> soft outer falloff
+        gradient.set_color(0, Color(1, 1, 1, 0))
+        gradient.set_color(1, Color(1, 1, 1, 0))
+        gradient.add_point(0.62, Color(1, 1, 1, 0.10))
+        gradient.add_point(0.80, Color(1, 1, 1, 1.0))
+        gradient.add_point(0.93, Color(1, 1, 1, 0.18))
+        var tex := GradientTexture2D.new()
+        tex.gradient = gradient
+        tex.fill = GradientTexture2D.FILL_RADIAL
+        tex.fill_from = Vector2(0.5, 0.5)
+        tex.fill_to = Vector2(0.5, 0.0)
+        tex.width = 256
+        tex.height = 256
+        _ring_texture = tex
+    return _ring_texture
+
+
 static func additive_material() -> CanvasItemMaterial:
     if _additive_material == null:
         var mat := CanvasItemMaterial.new()

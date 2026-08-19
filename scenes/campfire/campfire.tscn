@@ -6,7 +6,10 @@
 [ext_resource type="Texture2D" uid="uid://n3ljacp8hi1i" path="res://campfire_rest_icon.png" id="3_s87pa"]
 [ext_resource type="Texture2D" uid="uid://dq54nh2pk5h26" path="res://campfire_upgrade_icon.png" id="4_sevll"]
 [ext_resource type="Theme" uid="uid://c8cqncsqlplyu" path="res://main_theme.tres" id="5_2wawc"]
-[ext_resource type="FontFile" uid="uid://dq4bmvx1ogtey" path="res://Noto_Sans/static/NotoSans-Medium.ttf" id="7_vmtd8"]
+[ext_resource type="StyleBox" uid="uid://d33nvcmlyrn4o" path="res://scenes/shop/shop_button_normal.tres" id="8_btnnorm"]
+[ext_resource type="StyleBox" path="res://scenes/shop/shop_button_hover.tres" id="9_btnhover"]
+[ext_resource type="StyleBox" path="res://scenes/shop/shop_button_pressed.tres" id="10_btnpress"]
+[ext_resource type="FontFile" uid="uid://bm3deysyi2y55" path="res://Belwe Bold/Belwe Bold.otf" id="11_belwe"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_2svc2"]
 font = ExtResource("2_eiajw")
@@ -16,48 +19,6 @@ outline_size = 3
 outline_color = Color(0, 0, 0, 1)
 shadow_size = 2
 shadow_color = Color(0, 0, 0, 0.6)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rest_hover"]
-bg_color = Color(0.219608, 0.34902, 0.313726, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(1, 0.843137, 0, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-shadow_color = Color(0, 0, 0, 0.5)
-shadow_size = 3
-shadow_offset = Vector2(0, 2)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rest_pressed"]
-bg_color = Color(0.117647, 0.196078, 0.176471, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.752941, 0.501961, 0.0627451, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rest_normal"]
-bg_color = Color(0.164706, 0.262745, 0.235294, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.752941, 0.501961, 0.0627451, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-shadow_color = Color(0, 0, 0, 0.4)
-shadow_size = 3
-shadow_offset = Vector2(0, 2)
 
 [node name="Campfire" type="Control"]
 layout_mode = 3
@@ -130,9 +91,9 @@ grow_vertical = 0
 mouse_filter = 1
 theme = ExtResource("5_2wawc")
 theme_override_font_sizes/font_size = 1
-theme_override_styles/hover = SubResource("StyleBoxFlat_rest_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_rest_pressed")
-theme_override_styles/normal = SubResource("StyleBoxFlat_rest_normal")
+theme_override_styles/hover = ExtResource("9_btnhover")
+theme_override_styles/pressed = ExtResource("10_btnpress")
+theme_override_styles/normal = ExtResource("8_btnnorm")
 
 [node name="LabelCenter" type="CenterContainer" parent="HealTextureButton/HealButton"]
 layout_mode = 1
@@ -147,8 +108,12 @@ mouse_filter = 2
 custom_minimum_size = Vector2(120, 30)
 layout_mode = 2
 mouse_filter = 2
-theme_override_fonts/normal_font = ExtResource("7_vmtd8")
-theme_override_font_sizes/normal_font_size = 24
+theme_override_fonts/normal_font = ExtResource("11_belwe")
+theme_override_font_sizes/normal_font_size = 22
+theme_override_colors/default_color = Color(1, 0.964706, 0.886275, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.25)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 2
 bbcode_enabled = true
 text = "[center]REST[/center]"
 fit_content = true
@@ -179,9 +144,9 @@ grow_vertical = 0
 mouse_filter = 1
 theme = ExtResource("5_2wawc")
 theme_override_font_sizes/font_size = 1
-theme_override_styles/hover = SubResource("StyleBoxFlat_rest_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_rest_pressed")
-theme_override_styles/normal = SubResource("StyleBoxFlat_rest_normal")
+theme_override_styles/hover = ExtResource("9_btnhover")
+theme_override_styles/pressed = ExtResource("10_btnpress")
+theme_override_styles/normal = ExtResource("8_btnnorm")
 
 [node name="LabelCenter" type="CenterContainer" parent="UpgradeTextureButton/UpgradeButton"]
 layout_mode = 1
@@ -196,8 +161,12 @@ mouse_filter = 2
 custom_minimum_size = Vector2(120, 30)
 layout_mode = 2
 mouse_filter = 2
-theme_override_fonts/normal_font = ExtResource("7_vmtd8")
-theme_override_font_sizes/normal_font_size = 24
+theme_override_fonts/normal_font = ExtResource("11_belwe")
+theme_override_font_sizes/normal_font_size = 22
+theme_override_colors/default_color = Color(1, 0.964706, 0.886275, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.25)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 2
 bbcode_enabled = true
 text = "[center]UPGRADE[/center]"
 fit_content = true

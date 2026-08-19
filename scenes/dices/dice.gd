@@ -160,6 +160,25 @@ enum RollStyle { HOP, TOSS, SPIN, DROP, CALM }
 const ROLL_STYLE_DEFAULT := RollStyle.CALM
 var roll_style: RollStyle = ROLL_STYLE_DEFAULT
 
+# ---- Rare surprise flight -------------------------------------------------------------
+# A roll that already MATTERS occasionally arrives in a different presentation. Tuning
+# knobs, all in one place:
+#   CHANCE          how often an eligible roll gets one (Julien asked for ~2%)
+#   MIN_VAL_FRAC    "big roll" gate - fraction of the die's own top face, so a 3 on a d3
+#                   qualifies exactly like a 12 on a d12 (same ladder rule as the roll feel)
+#   MIN_POWER       "big power" gate - an alternative way in, for a modest roll landing on
+#                   an already-huge bank
+#   MAX_PER_FIGHT   hard cap: the beat has to stay a surprise, not a mechanic
+const SURPRISE_ROLL_CHANCE := 0.02
+const SURPRISE_ROLL_MIN_VAL_FRAC := 0.8
+const SURPRISE_ROLL_MIN_POWER := 18
+const SURPRISE_ROLL_MAX_PER_FIGHT := 2
+# Every style EXCEPT the default: the point is that it doesn't look like the usual roll.
+const SURPRISE_ROLL_STYLES: Array[RollStyle] = [
+    RollStyle.HOP, RollStyle.TOSS, RollStyle.SPIN, RollStyle.DROP,
+]
+var _surprise_rolls_this_fight := 0
+
 # CALM tuning. Lower and slower than HOP - without the tumble to carry the eye, a big
 # fast arc reads as twitchy. TILT is a gentle one-way rock (radians) instead of a spin:
 # 0.0 is dead upright (what "hop without spin" literally means); ~0.10 adds a little
@@ -196,7 +215,14 @@ const LAND_SHAKE_MIN := 2.0
 # impact on top. Both streams are PLACEHOLDERS (documented convention) - swap the files
 # freely, the pitch/volume structure is the point.
 const LAND_THUD_SOUND := preload("res://sounds/dicerollsound3.mp3")
-const LAND_SMASH_SOUND := preload("res://impact1.ogg")
+# PLACEHOLDER landing audio, auditionable live in debug builds: drop candidates into
+# res://debug_sfx_candidates/crush/ (big-roll smash) and /riser/ (swell at the max-roll
+# hang, leading INTO the smash), then press F9 / F10 during any fight to cycle them -
+# each press swaps the stream, previews it once and prints the filename. The debug_*
+# folder name rides the web export's exclude_filter, so candidates never ship.
+const DEFAULT_LAND_SMASH_SOUND := preload("res://impact1.ogg")
+var land_smash_sound: AudioStream = DEFAULT_LAND_SMASH_SOUND
+var land_riser_sound: AudioStream = null  # none by default - F10 auditions candidates
 const LAND_THUD_BASE_PITCH := 0.72
 const LAND_THUD_CHAIN_PITCH_STEP := 0.07
 const LAND_THUD_CHAIN_PITCH_CAP := 6
@@ -526,6 +552,9 @@ const EMANATION_BASE_SPEED_DEFAULT := 1.0
 const EMANATION_SURGE_DECAY_TIME := 0.55  # landing flare fade-out
 
 var _emanation_surge_tween: Tween
+# The aura's charge flash (brightness+reach flare on every dice_charged) - tracked so a
+# rapid multi-type volley restarts the flare instead of stacking writers on the uniforms.
+var _charge_flash_tween: Tween
 
 var evil_faces = [
                 load("res://assets/images/evil0.png"),
@@ -994,7 +1023,19 @@ func roll_dice():
     # orbs, hit-stop and dust stay identical no matter which flight played.
     var land := _on_roll_landed.bind(roll_index, values, faces)
 
-    match roll_style:
+    # Rare surprise flight (Julien, 2026-08-18: "only on big rolls & big powers, rare enough
+    # like 2%. Spinning is okay cause it'll be rare"). The four non-default presets already
+    # exist and all hand off to the same landing beat, so this only picks a different flight
+    # - nothing about the result, the celebration or the face swap changes. The vertigo
+    # objection that killed the rotating styles as a DEFAULT doesn't apply at this rarity:
+    # roughly once every few fights, never twice in the same fight.
+    var flight_style := roll_style
+    var top_face_ahead: int = values.max()
+    if _surprise_roll_allowed(roll_val_ahead, is_max_ahead, top_face_ahead):
+        _surprise_rolls_this_fight += 1
+        flight_style = SURPRISE_ROLL_STYLES[randi() % SURPRISE_ROLL_STYLES.size()]
+
+    match flight_style:
         RollStyle.TOSS:
             _build_roll_toss(tween, faces, start_position, is_max_ahead, land)
         RollStyle.SPIN:
@@ -1012,6 +1053,92 @@ func roll_dice():
 # as HOP, but the die never rotates - it stays upright the whole way and swaps faces
 # slowly, so a turn full of rolls doesn't spin anything in the centre of the screen.
 # Timing is value-aware: high rolls hang at the apex, max rolls hold-then-SMASH.
+# Gate for the rare surprise flight. Deliberately reads the roll that is ABOUT to land
+# (already decided at this point) plus the power banked so far, so the surprise always
+# decorates a moment that was going to feel good anyway - never a dud.
+# top_face comes from the live `values` array rather than a face table, so dice infusions
+# that change the face set (Repented 6/6/6, Bulky 7-12) are handled for free.
+# Magma's AoE had no visual at all - just damage numbers appearing on every enemy at once,
+# which read as "something happened somewhere". The burn is placed AT EACH BODY rather than
+# as one screen-crossing wave: contained beats at the target are what worked for the block
+# ward, and a wave that sweeps the whole screen is the direction already rejected on the
+# charge effect. A small per-enemy stagger turns a 4-body wipe into bam-bam-bam.
+const MAGMA_BURN_STAGGER := 0.05
+const MAGMA_EMBERS := 7
+
+
+func _spawn_magma_burn(enemies: Array) -> void:
+    var accent := DicePalette.accent("magma")
+    for i in enemies.size():
+        var enemy = enemies[i]
+        if not is_instance_valid(enemy):
+            continue
+        var parent: Node = enemy.get_parent()
+        if parent == null:
+            continue
+        # Body centre, not the enemy root: the root sits far left of its own art.
+        var centre: Vector2 = Card.thrown_impact_pos(enemy)
+        var delay := MAGMA_BURN_STAGGER * float(i)
+
+        var bloom := Sprite2D.new()
+        bloom.texture = DicePalette.glow_texture()
+        bloom.material = DicePalette.additive_material()
+        bloom.z_index = 8
+        bloom.modulate = Color(accent.r, accent.g, accent.b, 0.0)
+        parent.add_child(bloom)
+        bloom.global_position = centre
+        bloom.scale = Vector2.ONE * (90.0 / float(bloom.texture.get_width()))
+
+        var bt := bloom.create_tween()
+        bt.tween_interval(delay)
+        bt.set_parallel(true)
+        bt.tween_property(bloom, "scale", Vector2.ONE * (215.0 / float(bloom.texture.get_width())), 0.30)             .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+        # Alpha on its own leg so the peak is a flash, not a held wash (additive trap).
+        var at := bloom.create_tween()
+        at.tween_interval(delay)
+        at.tween_property(bloom, "modulate:a", 2.1, 0.06)             .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+        at.tween_property(bloom, "modulate:a", 0.0, 0.26)             .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+        at.tween_callback(bloom.queue_free)
+
+        # Embers rising off the body - the mass that sells "it is burning" after the flash.
+        for e in MAGMA_EMBERS:
+            var ember := Sprite2D.new()
+            ember.texture = DicePalette.glow_texture()
+            ember.material = DicePalette.additive_material()
+            ember.z_index = 8
+            var px := randf_range(10.0, 20.0)
+            ember.scale = Vector2.ONE * (px / float(ember.texture.get_width()))
+            ember.modulate = Color(accent.r, accent.g, accent.b, 0.0)
+            parent.add_child(ember)
+            var from := centre + Vector2(randf_range(-42.0, 42.0), randf_range(-6.0, 26.0))
+            ember.global_position = from
+            var rise := randf_range(46.0, 92.0)
+            var life := randf_range(0.34, 0.58)
+            var et := ember.create_tween()
+            et.tween_interval(delay + randf_range(0.0, 0.10))
+            et.set_parallel(true)
+            et.tween_property(ember, "global_position",
+                    from + Vector2(randf_range(-14.0, 14.0), -rise), life)                 .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+            et.tween_property(ember, "modulate:a", randf_range(1.3, 1.9), life * 0.3)
+            var ef := ember.create_tween()
+            ef.tween_interval(delay + life * 0.45)
+            ef.tween_property(ember, "modulate:a", 0.0, life * 0.55)                 .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+            ef.tween_callback(ember.queue_free)
+
+
+func _surprise_roll_allowed(roll_val: int, is_max: bool, top_face: int) -> bool:
+    if _surprise_rolls_this_fight >= SURPRISE_ROLL_MAX_PER_FIGHT:
+        return false
+    if Global.tutorial_on:
+        return false  # the tutorial scripts exact rolls; never surprise a first-time player
+    var val_frac := float(roll_val) / float(maxi(top_face, 1))
+    var big_enough := is_max or val_frac >= SURPRISE_ROLL_MIN_VAL_FRAC \
+            or Global.roll_value >= SURPRISE_ROLL_MIN_POWER
+    if not big_enough:
+        return false
+    return randf() < SURPRISE_ROLL_CHANCE
+
+
 func _build_roll_calm(tween: Tween, faces: Array, start_position: Vector2,
         roll_val: int, val_frac: float, is_max: bool, land: Callable) -> void:
     var hop_height := CALM_HOP_HEIGHT \
@@ -1064,6 +1191,9 @@ func _build_roll_calm(tween: Tween, faces: Array, start_position: Vector2,
 
     if hang_time > 0.0:
         if is_max:
+            # Pre-crush riser slot: fires as the max-roll hang begins, leading into the
+            # landing smash. Silent unless a riser candidate is selected (F10 audition).
+            tween.tween_callback(_play_land_riser)
             # The held beat before the smash, with a tiny shiver - the die vibrating
             # with potential rather than parking mid-air.
             var shiver_steps := 3
@@ -1349,7 +1479,7 @@ func _on_roll_landed(roll_index: int, values: Array, faces: Array) -> void:
     if is_max_roll:
         # The heavier smash rides on top of (not instead of) the thud, so the max landing
         # keeps its place at the top of the same ladder rather than sounding unrelated.
-        SFXPlayer.play(LAND_SMASH_SOUND, false, randf_range(0.92, 1.0), -2.0)
+        SFXPlayer.play(land_smash_sound, false, randf_range(0.92, 1.0), -2.0)
 
     # Landing rattle, every roll, value^2 so the low end stays quiet (a d6 1-3 computes
     # under LAND_SHAKE_MIN and doesn't shake at all). Skipped when the builder's double
@@ -1915,6 +2045,72 @@ func _tween_emanation_shader_param(t: Tween, param_name: String, value, duration
         tweener.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
 
+# ---------------------------------------------------------------------------------------
+# Debug-build SFX audition (2026-08-18): cycle landing-sound candidates live in any fight.
+# F9 = crush (the big-roll smash), F10 = riser (the max-roll hang swell). Files: .ogg/.wav/
+# .mp3 dropped in res://debug_sfx_candidates/crush|riser. Cycle order: file 1..N, then back
+# to the default (crush = shipped impact1, riser = none). Debug builds only; the folder
+# rides the debug_* export exclusion so candidates never ship.
+var _sfx_audition_index := {"crush": -1, "riser": -1}
+
+
+func _unhandled_input(event: InputEvent) -> void:
+    if not OS.is_debug_build():
+        return
+    var key := event as InputEventKey
+    if key == null or not key.pressed or key.echo:
+        return
+    if key.keycode == KEY_F9:
+        _cycle_sfx_candidate("crush")
+    elif key.keycode == KEY_F10:
+        _cycle_sfx_candidate("riser")
+
+
+func _cycle_sfx_candidate(kind: String) -> void:
+    var dir_path := "res://debug_sfx_candidates/" + kind
+    var files: Array[String] = []
+    var dir := DirAccess.open(dir_path)
+    if dir:
+        for f: String in dir.get_files():
+            var lower := f.to_lower()
+            if lower.ends_with(".ogg") or lower.ends_with(".wav") or lower.ends_with(".mp3"):
+                files.append(f)
+        files.sort()
+    if files.is_empty():
+        print("[sfx-audition] no candidates in %s - drop .ogg/.wav/.mp3 there first" % dir_path)
+        return
+    var idx: int = _sfx_audition_index[kind] + 1
+    if idx >= files.size():
+        idx = -1  # wrap through the default before cycling the files again
+    _sfx_audition_index[kind] = idx
+    if idx == -1:
+        if kind == "crush":
+            land_smash_sound = DEFAULT_LAND_SMASH_SOUND
+            print("[sfx-audition] crush -> shipped default (impact1.ogg)")
+            SFXPlayer.play(land_smash_sound, false, 1.0, -2.0)
+        else:
+            land_riser_sound = null
+            print("[sfx-audition] riser -> none (default)")
+        return
+    var stream := load(dir_path + "/" + files[idx]) as AudioStream
+    if stream == null:
+        print("[sfx-audition] could not load %s (not imported yet? refocus the editor once)" % files[idx])
+        return
+    if kind == "crush":
+        land_smash_sound = stream
+    else:
+        land_riser_sound = stream
+    print("[sfx-audition] %s -> %s (%d of %d)" % [kind, files[idx], idx + 1, files.size()])
+    SFXPlayer.play(stream, false, 1.0, -2.0)
+
+
+# Silent unless a riser candidate is selected via F10. Fired by the CALM builder as the
+# max-roll hang begins, so the swell leads into the landing smash.
+func _play_land_riser() -> void:
+    if land_riser_sound:
+        SFXPlayer.play(land_riser_sound, false, randf_range(0.96, 1.04), -4.0)
+
+
 # Helper function to apply the roll result (unified logic)
 func _apply_roll_result(roll_index: int, values: Array, faces: Array):
     Global.last_roll = values[roll_index]
@@ -1979,12 +2175,12 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
 
     # Magma dice special effect
     if dice_type == "magma":
-        print("magma dice on")
         var enemies = get_tree().get_nodes_in_group("enemies")
         var base_damage = Global.last_roll
         var damage_effect := DamageEffect.new()
         damage_effect.amount = base_damage
         damage_effect.execute(enemies)
+        _spawn_magma_burn(enemies)
         AchievementManager.report_magma_hit(enemies.size())
         # Inferno infusion: the FIRST magma roll each turn burns a second time (double AoE
         # on that roll). _magma_burned_this_turn is reset in _on_player_turn_started.
@@ -2001,6 +2197,7 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
                 var second_burn := DamageEffect.new()
                 second_burn.amount = base_damage
                 second_burn.execute(burn_targets)
+                _spawn_magma_burn(burn_targets)
             )
         _magma_burned_this_turn = true
 
@@ -2682,6 +2879,7 @@ func _on_battle_started():
     Global.fight_dice_rolled = 0
     Global.blue_dice_bonus_amount_fight = 0
     Global.mech_dice_bonus_amount_fight = 0
+    _surprise_rolls_this_fight = 0  # the surprise budget is per fight, not per run
     set_shader_from_global_type()
 
 func set_shader_from_global_type(type: String = Global.dice_type) -> void:
@@ -2761,22 +2959,41 @@ func _on_dice_charged(charged_type: String, count: int) -> void:
     var burst_material := gpu_particles_2d.process_material as ParticleProcessMaterial
     if burst_material:
         burst_material.color = DicePalette.burst(charged_type, 0.35)
-    gpu_particles_2d.emitting = true
+    # restart(), not `emitting = true`: on a one_shot emitter that assignment is a no-op
+    # while the previous burst is still alive (0.45s lifetime), so rapid multi-die
+    # volleys were rendering ONE converging ring for the whole volley.
+    gpu_particles_2d.restart()
 
-    # Charge flash on the aura itself: pulse charge_heat to full, then settle back to the
-    # banked-power level via _update_dice_aura_charge(). This replaces the old "charge"
-    # animation tracks that wrote the BLUE shader's authored accent_color into whatever
-    # material happened to be active - the per-type ShaderMaterials are shared preloaded
-    # resources, so charging while e.g. magma was active permanently (until restart)
-    # repainted magma's aura accent blue-purple.
+    # Charge flash on the aura itself. charge_heat ALONE is invisible: the shader blends
+    # it into rgb at 22% weight only (dice_glow.gdshader), never into alpha or reach, so
+    # the "pulse" was a slight hue shift ("we don't even see the pulse anymore", Julien
+    # 2026-08-18). The old animation tracks were visible because they swung accent_color's
+    # luminance AND alpha - but they were removed for a real reason (they wrote the BLUE
+    # shader's authored accent into whatever shared per-type ShaderMaterial was active,
+    # corrupting it until restart). So the flare is carried by power_intensity + glow_reach
+    # instead: real brightness and spread, zero color writes, and both params are already
+    # re-derived from banked power by _update_dice_aura_charge() on every event, so a
+    # transient overshoot is structurally self-healing where accent_color was not.
     var aura_material := aura.material as ShaderMaterial
     if aura_material:
-        var heat_tween := create_tween()
-        var heat_rise := heat_tween.tween_property(aura_material, "shader_parameter/charge_heat", 1.0, 0.12)
+        if _charge_flash_tween and _charge_flash_tween.is_valid():
+            _charge_flash_tween.kill()
+        _charge_flash_tween = create_tween()
+        var heat_rise := _charge_flash_tween.tween_property(
+            aura_material, "shader_parameter/charge_heat", 1.0, 0.12)
         if heat_rise:
             heat_rise.set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
-        heat_tween.tween_interval(0.3)
-        heat_tween.tween_callback(_update_dice_aura_charge)
+        var intensity_rise := _charge_flash_tween.parallel().tween_property(
+            aura_material, "shader_parameter/power_intensity", AURA_INTENSITY_MAX, 0.12)
+        if intensity_rise:
+            intensity_rise.set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+        var reach_rise := _charge_flash_tween.parallel().tween_property(
+            aura_material, "shader_parameter/glow_reach", AURA_REACH_MAX, 0.12)
+        if reach_rise:
+            reach_rise.set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+        _charge_flash_tween.tween_interval(0.3)
+        # Settles heat/intensity/reach back to the banked-power level in one place.
+        _charge_flash_tween.tween_callback(_update_dice_aura_charge)
     # The emanation tongues share the same absorb beat: heat + a surge flare that decays
     # after the hold. charge_heat is settled back by the _update_dice_aura_charge callback
     # above; surge lives on the SAME tracked tween the roll-landing flare uses, so the two
@@ -3124,6 +3341,7 @@ func _spawn_roll_popup(value: int) -> void:
     # Size scales a bit with the roll value, so a big roll's "+X" actually reads as bigger
     var font_size := clampi(28 + value, 28, 44)
     popup.modulate = color
+    popup.add_theme_font_override("font", preload("res://fonts/LuckiestGuy-Regular.ttf"))
     popup.add_theme_font_size_override("font_size", font_size)
     popup.add_theme_constant_override("outline_size", 4)
     popup.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))

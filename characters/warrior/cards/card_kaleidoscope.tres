@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="Card" load_steps=4 format=3 uid="uid://c4cardkaleido"]
 
-[ext_resource type="Texture2D" uid="uid://bfr3tr5jin75e" path="res://gptmindfulness.png" id="1_icon"]
+[ext_resource type="Texture2D" path="res://kaleidoscope.png" id="1_icon"]
 [ext_resource type="Script" path="res://characters/warrior/cards/kaleidoscope.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://df64e7qat73gs" path="res://art/block.ogg" id="3_sound"]
 
@@ -10,18 +10,18 @@ id = "card_kaleidoscope"
 name = "Kaleidoscope"
 type = 1
 target = 0
-description = "This turn, switching Dice types does not reset your Power"
-rarity = 0
-rarity_tier = 1
+description = "This turn, switching Dice types does not reset your Power. Exhaust"
+rarity = 1
+rarity_tier = 2
 red_only = false
 can_play_without_dice = false
 requirement = 0
 requirement_number = 0
-exhausts = false
+exhausts = true
 bonus_requirement = 0
 bonus_requirement_number = 0
 bonus_description_text = ""
-tags = ""
+tags = "Exhaust"
 upgraded = false
 icon = ExtResource("1_icon")
 tooltip_text = ""

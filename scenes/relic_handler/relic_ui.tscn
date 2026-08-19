@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scenes/relic_handler/relic_ui.gd" id="1_88a14"]
 [ext_resource type="Texture2D" uid="uid://cjjvnifpm1fb" path="res://assets/images/frenzyfigurine.jpg" id="1_kgfs5"]
 [ext_resource type="Material" uid="uid://d30aqi80c1nrc" path="res://art/white_sprite_material.tres" id="2_36xc6"]
-[ext_resource type="FontFile" uid="uid://t1kjnid0fq8h" path="res://assets/static/Roboto-Black.ttf" id="5_yxl41"]
+[ext_resource type="FontVariation" uid="uid://clgnumfontvar1" path="res://fonts/luckiest_guy_numbers.tres" id="5_yxl41"]
 
 [sub_resource type="Animation" id="Animation_7soui"]
 length = 0.001
@@ -68,7 +68,9 @@ _data = {
 
 [sub_resource type="LabelSettings" id="LabelSettings_udwlh"]
 font = ExtResource("5_yxl41")
-font_size = 22
+font_size = 17
+outline_size = 3
+outline_color = Color(0, 0, 0, 1)
 shadow_color = Color(0, 0, 0, 0.619608)
 
 [node name="RelicUI" type="Control"]

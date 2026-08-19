@@ -1,7 +1,9 @@
 extends EnemyAction
 
-@export var damage := 6
-var base_damage =  6
+@export var damage := 7
+# 6 -> 7 per hit (2x6=12 -> 2x7=14), 2026-08-18 audit. NOTE: this hardcoded value is what
+# actually runs - the @export above is never read by perform_action().
+var base_damage =  7
 
 func is_performable() -> bool:
     if enemy.last_action == "hound_double_attack":

@@ -1,4 +1,4 @@
-[gd_scene load_steps=25 format=3 uid="uid://d2vlobkkv27hu"]
+[gd_scene load_steps=24 format=3 uid="uid://d2vlobkkv27hu"]
 
 [ext_resource type="Script" path="res://scenes/ui/card_menu_ui.gd" id="1_t1hae"]
 [ext_resource type="StyleBox" uid="uid://belt0xy3pi11o" path="res://scenes/card_ui/card_background.tres" id="2_j3nj0"]
@@ -13,7 +13,6 @@
 [ext_resource type="Texture2D" uid="uid://dxm470owuxqc1" path="res://assets/images/swordicon.png" id="13_4njsp"]
 [ext_resource type="AudioStream" uid="uid://d01ekpfb76q8k" path="res://sounds/removecardsound.mp3" id="13_752k8"]
 [ext_resource type="LabelSettings" uid="uid://bhrpkq50bp811" path="res://scenes/card_ui/card_ui_bonus_requirement_label.tres" id="13_dr0ka"]
-[ext_resource type="LabelSettings" uid="uid://cu35utjlrjheh" path="res://scenes/card_ui/card_ui_bonus_effect_label.tres" id="14_6kgs7"]
 [ext_resource type="FontFile" uid="uid://c4mfyi0ta8qeq" path="res://fonts/MinionPro-Semibold.otf" id="15_desc_font"]
 
 [sub_resource type="Theme" id="Theme_fesrv"]
@@ -261,6 +260,7 @@ theme_override_constants/shadow_offset_y = 1
 theme_override_constants/outline_size = 3
 theme_override_constants/line_separation = -1
 theme_override_fonts/normal_font = ExtResource("15_desc_font")
+theme_override_fonts/bold_font = ExtResource("15_desc_font")
 theme_override_font_sizes/normal_font_size = 12
 bbcode_enabled = true
 text = "Deals X damage"
@@ -343,6 +343,7 @@ theme_override_constants/shadow_offset_y = 1
 theme_override_constants/outline_size = 3
 theme_override_constants/line_separation = -1
 theme_override_fonts/normal_font = ExtResource("15_desc_font")
+theme_override_fonts/bold_font = ExtResource("15_desc_font")
 theme_override_font_sizes/normal_font_size = 10
 bbcode_enabled = true
 text = "Draw 2 "

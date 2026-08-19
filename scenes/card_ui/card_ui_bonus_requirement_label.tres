@@ -1,4 +1,14 @@
-[gd_resource type="LabelSettings" format=3 uid="uid://bhrpkq50bp811"]
+[gd_resource type="LabelSettings" load_steps=3 format=3 uid="uid://bhrpkq50bp811"]
+
+[ext_resource type="FontFile" uid="uid://b2y60c4274gkj" path="res://fonts/Cinzel-Bold.otf" id="1_bonusreq"]
+
+[sub_resource type="FontVariation" id="FontVariation_bonusreq"]
+base_font = ExtResource("1_bonusreq")
+variation_embolden = 0.2
+spacing_glyph = 1
 
 [resource]
+line_spacing = 0.0
+font = SubResource("FontVariation_bonusreq")
 font_size = 8
+font_color = Color(1, 0.933333, 0.745098, 1)

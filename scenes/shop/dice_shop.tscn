@@ -9,7 +9,7 @@
 [ext_resource type="Texture2D" uid="uid://br8qll0nj8dy6" path="res://assets/images/odd7.png" id="7_tsadf"]
 [ext_resource type="Texture2D" uid="uid://sxiw6df36trq" path="res://assets/images/blue6.png" id="8_mw01n"]
 [ext_resource type="Texture2D" uid="uid://bfc443rfo1g08" path="res://assets/images/red6.png" id="9_oasbf"]
-[ext_resource type="FontFile" uid="uid://t1kjnid0fq8h" path="res://assets/static/Roboto-Black.ttf" id="10_p37ri"]
+[ext_resource type="FontFile" uid="uid://bm3deysyi2y55" path="res://Belwe Bold/Belwe Bold.otf" id="10_p37ri"]
 [ext_resource type="Texture2D" uid="uid://ffjm2ac2wjyh" path="res://assets/images/green1.png" id="10_qav0k"]
 [ext_resource type="Texture2D" uid="uid://7v2b0w4yru8e" path="res://assets/images/mech6.png" id="11_81ont"]
 
@@ -311,6 +311,7 @@ theme_override_colors/font_outline_color = Color(0.235294, 0.039216, 0.266667, 1
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
 theme_override_constants/outline_size = 2
+theme_override_fonts/font = ExtResource("10_p37ri")
 theme_override_font_sizes/font_size = 19
 text = "Evil Dice"
 horizontal_alignment = 1
@@ -383,6 +384,7 @@ theme_override_colors/font_outline_color = Color(0.172549, 0.227451, 0.05098, 1)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
 theme_override_constants/outline_size = 2
+theme_override_fonts/font = ExtResource("10_p37ri")
 theme_override_font_sizes/font_size = 19
 text = "Giant Dice"
 horizontal_alignment = 1
@@ -455,6 +457,7 @@ theme_override_colors/font_outline_color = Color(0.305882, 0.062745, 0, 1)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
 theme_override_constants/outline_size = 2
+theme_override_fonts/font = ExtResource("10_p37ri")
 theme_override_font_sizes/font_size = 19
 text = "Magma Dice"
 horizontal_alignment = 1
@@ -527,6 +530,7 @@ theme_override_colors/font_outline_color = Color(0.278431, 0.211765, 0.039216, 1
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
 theme_override_constants/outline_size = 2
+theme_override_fonts/font = ExtResource("10_p37ri")
 theme_override_font_sizes/font_size = 19
 text = "Golem Dice"
 horizontal_alignment = 1
@@ -599,6 +603,7 @@ theme_override_colors/font_outline_color = Color(0.34902, 0.156863, 0, 1)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
 theme_override_constants/outline_size = 2
+theme_override_fonts/font = ExtResource("10_p37ri")
 theme_override_font_sizes/font_size = 19
 text = "Ricochet Dice"
 horizontal_alignment = 1
@@ -671,6 +676,7 @@ theme_override_colors/font_outline_color = Color(0.027451, 0.121569, 0.321569, 1
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
 theme_override_constants/outline_size = 2
+theme_override_fonts/font = ExtResource("10_p37ri")
 theme_override_font_sizes/font_size = 19
 text = "Blue Dice"
 horizontal_alignment = 1
@@ -743,6 +749,7 @@ theme_override_colors/font_outline_color = Color(0.301961, 0, 0.035294, 1)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
 theme_override_constants/outline_size = 2
+theme_override_fonts/font = ExtResource("10_p37ri")
 theme_override_font_sizes/font_size = 19
 text = "Red Dice"
 horizontal_alignment = 1
@@ -815,6 +822,7 @@ theme_override_colors/font_outline_color = Color(0.047059, 0.227451, 0.062745, 1
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
 theme_override_constants/outline_size = 2
+theme_override_fonts/font = ExtResource("10_p37ri")
 theme_override_font_sizes/font_size = 19
 text = "Pixie Dice"
 horizontal_alignment = 1
@@ -887,6 +895,7 @@ theme_override_colors/font_outline_color = Color(0.121569, 0.141176, 0.160784, 1
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
 theme_override_constants/outline_size = 2
+theme_override_fonts/font = ExtResource("10_p37ri")
 theme_override_font_sizes/font_size = 19
 text = "Mech Dice"
 horizontal_alignment = 1

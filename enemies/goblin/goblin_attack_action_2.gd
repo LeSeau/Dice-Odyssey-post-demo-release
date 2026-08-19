@@ -1,7 +1,14 @@
 extends EnemyAction
 
-@export var damage := 7
-var base_damage =  7
+const MUSCLE_STATUS = preload("res://statuses/muscle.tres")
+
+@export var damage := 9
+# 7 -> 9 (2026-08-18 audit): the second beat is the spike of the Goblin loop.
+# NOTE: this hardcoded value is what actually runs - the @export above is never read.
+# Ramp rider (2026-08-18 audit Wave A): the spike beat also grants +1 Strength.
+@export var muscle_rider := 1
+
+var base_damage =  9
 
 func is_performable() -> bool:
     return enemy.last_action == "goblin_attack"
@@ -24,6 +31,8 @@ func perform_action() -> void:
     
     tween.tween_property(enemy, "global_position", end, 0.4)
     tween.tween_callback(damage_effect.execute.bind(target_array))
+    # Strength lands with the hit so the displayed intent stays true for THIS swing.
+    tween.tween_callback(_apply_muscle_rider)
     tween.tween_interval(0.25)
     tween.tween_property(enemy, "global_position", start, 0.4)
     
@@ -31,6 +40,16 @@ func perform_action() -> void:
         func():
             Events.enemy_action_completed.emit(enemy)
     )
+
+func _apply_muscle_rider() -> void:
+    if muscle_rider <= 0 or not is_instance_valid(enemy):
+        return
+    var status_effect := StatusEffect.new()
+    var muscle := MUSCLE_STATUS.duplicate()
+    muscle.stacks = muscle_rider
+    status_effect.status = muscle
+    status_effect.execute([enemy])
+
 
 func update_intent_text() -> void:
     var player := target as Player

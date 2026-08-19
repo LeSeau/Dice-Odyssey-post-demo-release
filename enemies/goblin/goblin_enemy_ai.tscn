@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://bhrtpevndvae0"]
+[gd_scene load_steps=13 format=3 uid="uid://bhrtpevndvae0"]
 
 [ext_resource type="Script" path="res://scenes/enemy/enemy_action_picker.gd" id="1_t58td"]
 [ext_resource type="Script" path="res://enemies/goblin/goblin_attack_action.gd" id="2_k8day"]
@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://custom_resources/intent.gd" id="4_yylpi"]
 [ext_resource type="AudioStream" uid="uid://de2ryat1pxq6" path="res://art/enemy_attack.ogg" id="5_4f5xi"]
 [ext_resource type="Texture2D" uid="uid://ckf4qt26na5g7" path="res://debuff_intent.png" id="8_lqtc2"]
+[ext_resource type="Texture2D" uid="uid://binq5gkgr3pre" path="res://buff_icon_intent.png" id="90_buffic"]
 
 [sub_resource type="Resource" id="Resource_1ftwn"]
 script = ExtResource("4_yylpi")
@@ -18,6 +19,7 @@ icon = ExtResource("3_7522w")
 script = ExtResource("4_yylpi")
 base_text = "%s"
 icon = ExtResource("3_7522w")
+icon2 = ExtResource("90_buffic")
 
 [sub_resource type="Resource" id="Resource_e2kur"]
 script = ExtResource("4_yylpi")

@@ -53,6 +53,11 @@ const ACT2_GOLD_MULT := 1.5
 
 
 @onready var map: Map = $Map
+const DiceBarTooltipScene := preload("res://scenes/ui/dice_tooltip.tscn")
+# Hover tooltip for the top-bar dice counters (same dice_tooltip the combat interface and
+# dice shop use - type name in its color + faces + infusion line). One at a time.
+var _dice_bar_tooltip: Node = null
+
 @onready var dice_shop: TextureButton = $TopBar/BarItems/DiceShop
 @onready var audio_player: AudioStreamPlayer2D = $AudioPlayer
 @onready var blue_dice: VBoxContainer = $TopBar/BarItems/DiceTopBar/BlueDice
@@ -134,7 +139,12 @@ func _late_init() -> void:
     Events.stop_map_music.connect(_on_stop_map_music)
     Events.start_map_music.connect(_on_start_map_music)
     Events.check_if_can_purchase_dice.connect(_on_check_if_can_purchase_dice)
+    Events.dice_price_changed.connect(_on_dice_price_changed)
     Events.end_screen_hud_visibility.connect(_on_end_screen_hud_visibility)
+    # Blue/Red live in the .tscn; every other type is attached where it's duplicated
+    # (runtime connects are non-persistent, so duplicate() does NOT copy these).
+    _attach_dice_bar_tooltip(blue_dice, "blue")
+    _attach_dice_bar_tooltip(red_dice, "red")
 
     if Global.load_run_requested:
         Global.load_run_requested = false
@@ -195,7 +205,8 @@ func _initialize_dice_display() -> void:
         # Add to scene and store reference
         dice_top_bar.add_child(new_dice)
         dice_displays[dice_type] = new_dice
-        
+        _attach_dice_bar_tooltip(new_dice, dice_type)
+
         # Adjust position
         new_dice.show()
 
@@ -213,10 +224,37 @@ func get_dice_max_amount(dice_type: String) -> int:
         "mech": return Global.mech_dice_max_amount
         _: return 0
 
+
+# Top-bar dice counters are passive displays: the VBox takes the hover, its children are
+# silenced so the TextureRect can't steal mouse_entered from it.
+func _attach_dice_bar_tooltip(container: Control, dice_type: String) -> void:
+    container.mouse_filter = Control.MOUSE_FILTER_STOP
+    for child in container.get_children():
+        if child is Control:
+            child.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    container.mouse_entered.connect(_show_dice_bar_tooltip.bind(container, dice_type))
+    container.mouse_exited.connect(_hide_dice_bar_tooltip)
+
+
+func _show_dice_bar_tooltip(container: Control, dice_type: String) -> void:
+    _hide_dice_bar_tooltip()  # kill-before-spawn: one tooltip at a time
+    _dice_bar_tooltip = DiceBarTooltipScene.instantiate()
+    Global.add_tooltip(_dice_bar_tooltip, self)
+    var panel = _dice_bar_tooltip.get_node("DiceTooltip")
+    panel.get_tooltip_content(dice_type)
+    # Below the hovered counter, clamped so the 204px panel never leaves the screen.
+    var rect := container.get_global_rect()
+    panel.show_tooltip(Vector2(clampf(rect.get_center().x - 102.0, 8.0, 1068.0), rect.end.y + 10.0))
+
+
+func _hide_dice_bar_tooltip() -> void:
+    if _dice_bar_tooltip and is_instance_valid(_dice_bar_tooltip):
+        _dice_bar_tooltip.queue_free()
+    _dice_bar_tooltip = null
+
 # Updated function to handle all dice types
 func _on_update_dice_top_bar() -> void:
-    print("updating dice top bar")
-    
+
     # Always update blue and red dice (starting dice)
     blue_dice_amount.text = "x" + str(Global.blue_dice_max_amount)
     red_dice_amount.text = "x" + str(Global.red_dice_max_amount)
@@ -255,7 +293,8 @@ func _on_update_dice_top_bar() -> void:
                 # Add to scene and store reference
                 dice_top_bar.add_child(new_dice)
                 dice_displays[dice_type] = new_dice
-                
+                _attach_dice_bar_tooltip(new_dice, dice_type)
+
                 # Adjust position
                 new_dice.show()
             
@@ -647,6 +686,10 @@ func _enter_act_2() -> void:
     Global.current_act = 2
     character.health = character.max_health
     Events.hp_changed.emit()
+    # Defensive re-derive before the fresh map paints its badges (unlock_floor below
+    # refreshes them) - the price listener should keep this fresh, but act transition is
+    # exactly where a stale value gets painted onto every room at once.
+    Global.refresh_cheapest_dice_price()
     used_battles.clear()
     map.generate_new_map()
     map.unlock_floor(0)
@@ -1013,14 +1056,24 @@ func _on_start_map_music() -> void:
     map_music.play()
 
 func _on_check_if_can_purchase_dice() -> void:
-    if Global.cheapest_dice_price!=null:
-        if Global.gold >= Global.cheapest_dice_price:
-            affordable_indicator.show()
-            dice_shop.set_blinking(true)
-        elif Global.gold < Global.cheapest_dice_price:
-            affordable_indicator.hide()
-            dice_shop.set_blinking(false)
+    # null (no shop visited yet / empty selection) must read as "not affordable" - before,
+    # the null case left the indicator and blink in whatever state they were last in.
+    if Global.cheapest_dice_price != null and Global.gold >= Global.cheapest_dice_price:
+        affordable_indicator.show()
+        dice_shop.set_blinking(true)
+    else:
+        affordable_indicator.hide()
+        dice_shop.set_blinking(false)
     map.refresh_affordable_badges()
+
+
+# Run outlives every shop panel, so this is the listener that keeps the cached cheapest
+# price honest when prices change while the dice-shop panel is CLOSED (the card-shop deal
+# die escalates every price and emits this - that was the "badge says affordable at act 2
+# start when it isn't" bug: the only other listener lived on the dead panel).
+func _on_dice_price_changed() -> void:
+    Global.refresh_cheapest_dice_price()
+    _on_check_if_can_purchase_dice()
 
 # New function to handle relic rewards from events
 func _on_show_reward_with_relic(relic: Relic) -> void:
@@ -1188,7 +1241,10 @@ func _load_run() -> void:
     # .get with defaults: saves written before the shop rework (2026-07-23) lack these keys.
     Global.shop_dice_deal_index = data.get("shop_dice_deal_index", -1)
     Global.card_removals_bought = data.get("card_removals_bought", 0)
-    Global.cheapest_dice_price = data["cheapest_dice_price"]
+    # Re-derive instead of trusting the saved cache: selection + purchase counts are
+    # already restored above, the save's value can be stale (pre-fix saves), and saves
+    # written before this key existed would hard-fail a direct index here.
+    Global.refresh_cheapest_dice_price()
     # .get with default: saves written before the achievement system lack the key.
     Global.blue_dice_rolled_this_run = data.get("blue_rolls_this_run", 0)
 

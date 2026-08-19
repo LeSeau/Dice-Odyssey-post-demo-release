@@ -141,6 +141,7 @@ func _ready():
     word.text = "Reroll"
     word.size_flags_vertical = Control.SIZE_SHRINK_CENTER
     word.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+    word.add_theme_font_override("font", preload("res://Belwe Bold/Belwe Bold.otf"))
     word.add_theme_font_size_override("font_size", 26)
     word.add_theme_color_override("font_outline_color", Color(0.08, 0.05, 0.01))
     word.add_theme_constant_override("outline_size", 5)
@@ -210,7 +211,6 @@ func _on_buy_dice_1_pressed() -> void:
         Global.evil_dice_current_amount+=1
         Global.gold-= evil_dice_price
         Events.gold_changed.emit()
-        print(Global.gold)
         if not Global.dice_inventory.has("evil"):
             Global.dice_inventory.append("evil")
         Events.update_dice_top_bar.emit()
@@ -673,7 +673,6 @@ func _on_dice_9_mouse_exited() -> void:
 
 
 func _on_exit_shop_button_pressed() -> void:
-    print("exiting shop")
     Events.check_if_can_purchase_dice.emit()
     Events.dice_shop_closed.emit()
 
@@ -821,21 +820,9 @@ func _on_reroll_button_pressed() -> void:
         Events.gold_changed.emit()
 
 func get_cheapest_available_dice_price() -> int:
-    var dice_price_map = {
-        0: evil_dice_price,
-        1: giant_dice_price,
-        2: magma_dice_price,
-        3: even_dice_price,
-        4: odd_dice_price,
-        5: blue_dice_price,
-        6: red_dice_price,
-        7: green_dice_price,
-        8: mech_dice_price
-    }
-    
-    var prices = []
-    for index in Global.shop_dice_selection:
-        prices.append(dice_price_map[index])
-    Global.cheapest_dice_price = prices.min()
-    print(Global.cheapest_dice_price)
-    return prices.min()
+    # One formula only: Global owns the derivation (refresh_cheapest_dice_price), so the
+    # value stays correct even when this panel doesn't exist (card-shop deal die etc.).
+    Global.refresh_cheapest_dice_price()
+    if Global.cheapest_dice_price == null:
+        return 0
+    return int(Global.cheapest_dice_price)

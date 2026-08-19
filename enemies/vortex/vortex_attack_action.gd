@@ -2,7 +2,8 @@ extends EnemyAction
 
 
 
-@export var damage := 12
+# 12 -> 13 (2026-08-18 audit): tier-2 solo DPT was measured under the target curve.
+@export var damage := 13
 var base_damage = damage
 
 func is_performable() -> bool:

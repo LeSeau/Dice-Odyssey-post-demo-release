@@ -1,8 +1,7 @@
-[gd_scene load_steps=19 format=3 uid="uid://c2mvqx4n1p0a1"]
+[gd_scene load_steps=18 format=3 uid="uid://c2mvqx4n1p0a1"]
 
 [ext_resource type="Script" path="res://scenes/ui/pause_menu.gd" id="1_script"]
 [ext_resource type="FontFile" uid="uid://b1es4i7nr43mv" path="res://fonts/CinzelDecorative-Bold.otf" id="2_cinzel"]
-[ext_resource type="FontFile" uid="uid://dujsng7qdioan" path="res://assets/static/Roboto_Condensed-SemiBold.ttf" id="3_roboto"]
 [ext_resource type="StyleBox" uid="uid://d33nvcmlyrn4o" path="res://scenes/shop/shop_button_normal.tres" id="4_btn_n"]
 [ext_resource type="StyleBox" uid="uid://btiy0p7cdp753" path="res://scenes/shop/shop_button_hover.tres" id="5_btn_h"]
 [ext_resource type="StyleBox" uid="uid://0f1dsnbsuyaw" path="res://scenes/shop/shop_button_pressed.tres" id="6_btn_p"]
@@ -34,21 +33,21 @@ shadow_size = 2
 shadow_color = Color(0, 0, 0, 0.6)
 
 [sub_resource type="LabelSettings" id="LabelSettings_row"]
-font = ExtResource("3_roboto")
+font = ExtResource("belwe_lbl")
 font_size = 19
 font_color = Color(0.92549, 0.890196, 0.815686, 1)
 outline_size = 2
 outline_color = Color(0, 0, 0, 0.5)
 
 [sub_resource type="LabelSettings" id="LabelSettings_pct"]
-font = ExtResource("3_roboto")
+font = ExtResource("belwe_lbl")
 font_size = 17
 font_color = Color(0.784314, 0.658824, 0.294118, 1)
 outline_size = 2
 outline_color = Color(0, 0, 0, 0.5)
 
 [sub_resource type="LabelSettings" id="LabelSettings_note"]
-font = ExtResource("3_roboto")
+font = ExtResource("belwe_lbl")
 font_size = 13
 font_color = Color(0.72, 0.68, 0.56, 1)
 
@@ -62,7 +61,7 @@ shadow_size = 2
 shadow_color = Color(0, 0, 0, 0.6)
 
 [sub_resource type="LabelSettings" id="LabelSettings_confirm_body"]
-font = ExtResource("3_roboto")
+font = ExtResource("belwe_lbl")
 font_size = 16
 font_color = Color(0.92549, 0.890196, 0.815686, 1)
 outline_size = 2

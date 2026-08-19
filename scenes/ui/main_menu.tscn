@@ -1,4 +1,4 @@
-[gd_scene load_steps=36 format=3 uid="uid://btktlydklchb4"]
+[gd_scene load_steps=35 format=3 uid="uid://btktlydklchb4"]
 
 [ext_resource type="Script" path="res://main_menu.gd" id="1_vi5tj"]
 [ext_resource type="Texture2D" uid="uid://crd5hg4i57lek" path="res://main_menu_v4.png" id="2_2uw4g"]
@@ -6,7 +6,6 @@
 [ext_resource type="Texture2D" uid="uid://bbhk8pdh4refe" path="res://assets/images/pause_menu_icon.png" id="4_gearicon"]
 [ext_resource type="PackedScene" uid="uid://c2mvqx4n1p0a1" path="res://scenes/ui/pause_menu.tscn" id="5_pausemenu"]
 [ext_resource type="FontFile" uid="uid://b1es4i7nr43mv" path="res://fonts/CinzelDecorative-Bold.otf" id="6_cinzd"]
-[ext_resource type="FontFile" uid="uid://bfgwr7o37ol1j" path="res://Noto_Sans/static/NotoSans-Regular.ttf" id="7_notos"]
 [ext_resource type="FontFile" uid="uid://bm3deysyi2y55" path="res://Belwe Bold/Belwe Bold.otf" id="8_belwe"]
 [ext_resource type="Script" path="res://scenes/ui/run_stats_panel.gd" id="9_rstat"]
 [ext_resource type="StyleBox" uid="uid://d33nvcmlyrn4o" path="res://scenes/shop/shop_button_normal.tres" id="10_shbn"]
@@ -131,8 +130,8 @@ outline_size = 2
 outline_color = Color(0, 0, 0, 1)
 
 [sub_resource type="LabelSettings" id="LabelSettings_ud1vm"]
-font = ExtResource("3_lj8do")
-font_size = 22
+font = ExtResource("8_belwe")
+font_size = 19
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_enable_hover"]
 bg_color = Color(0.144787, 0.273985, 0.277578, 1)
@@ -461,6 +460,7 @@ offset_right = 313.0
 offset_bottom = 222.0
 theme_override_colors/font_hover_color = Color(0.7, 1, 0.75, 1)
 theme_override_colors/font_color = Color(0, 0.854902, 0, 1)
+theme_override_fonts/font = ExtResource("8_belwe")
 theme_override_styles/hover = SubResource("StyleBoxFlat_enable_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_enable_normal")
 text = "Enable tutorial"
@@ -473,6 +473,7 @@ offset_right = 574.0
 offset_bottom = 222.0
 theme_override_colors/font_hover_color = Color(1, 0.7, 0.7, 1)
 theme_override_colors/font_color = Color(0.856481, 0.000105334, 5.87195e-05, 0.941176)
+theme_override_fonts/font = ExtResource("8_belwe")
 theme_override_styles/hover = SubResource("StyleBoxFlat_skip_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_skip_normal")
 text = "Skip tutorial"
@@ -490,6 +491,7 @@ offset_bottom = 40.0
 grow_horizontal = 0
 theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
 theme_override_colors/font_color = Color(0.752941, 0.501961, 0.0627451, 1)
+theme_override_fonts/font = ExtResource("8_belwe")
 theme_override_font_sizes/font_size = 20
 theme_override_styles/hover = SubResource("StyleBoxFlat_cancel_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_cancel_normal")
@@ -532,7 +534,7 @@ grow_horizontal = 2
 theme_override_colors/font_color = Color(0.941176, 0.752941, 0.25098, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 0.85)
 theme_override_constants/outline_size = 4
-theme_override_fonts/font = ExtResource("7_notos")
+theme_override_fonts/font = ExtResource("8_belwe")
 theme_override_font_sizes/font_size = 17
 text = "Act 1  ·  Floor 1"
 horizontal_alignment = 1
@@ -568,7 +570,7 @@ offset_right = 570.0
 offset_bottom = 386.0
 theme_override_colors/font_hover_color = Color(0.988235, 0.933333, 0.843137, 1)
 theme_override_colors/font_color = Color(0.85, 0.81, 0.72, 1)
-theme_override_fonts/font = ExtResource("7_notos")
+theme_override_fonts/font = ExtResource("8_belwe")
 theme_override_font_sizes/font_size = 16
 theme_override_styles/hover = SubResource("StyleBoxFlat_loadmenu_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_loadmenu_pressed")
@@ -588,6 +590,7 @@ offset_bottom = 40.0
 grow_horizontal = 0
 theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
 theme_override_colors/font_color = Color(0.752941, 0.501961, 0.0627451, 1)
+theme_override_fonts/font = ExtResource("8_belwe")
 theme_override_font_sizes/font_size = 20
 theme_override_styles/hover = SubResource("StyleBoxFlat_cancel_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_cancel_normal")

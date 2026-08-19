@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3 uid="uid://d2f4gl88lkokw"]
+[gd_scene load_steps=21 format=3 uid="uid://d2f4gl88lkokw"]
 
 [ext_resource type="Theme" path="res://daiso_theme.tres" id="1_8u3o8"]
 [ext_resource type="Script" path="res://scenes/dices/dice_interface.gd" id="1_hbfrn"]
@@ -6,8 +6,7 @@
 [ext_resource type="Theme" uid="uid://c8cqncsqlplyu" path="res://main_theme.tres" id="4_vgytt"]
 [ext_resource type="Script" path="res://scenes/dices/dice_1_texture.gd" id="5_cju5n"]
 [ext_resource type="Texture2D" uid="uid://cdpcpjn0arvjp" path="res://assets/images/red1.png" id="5_qecou"]
-[ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="6_w42le"]
-[ext_resource type="FontFile" uid="uid://dltntsanjiykq" path="res://fonts/LuckiestGuy-Regular.ttf" id="6_luckycnt"]
+[ext_resource type="FontVariation" uid="uid://clgnumfontvar1" path="res://fonts/luckiest_guy_numbers.tres" id="6_luckycnt"]
 [ext_resource type="Texture2D" uid="uid://bq8i15ehnrypf" path="res://assets/images/evil6.png" id="8_fm7rw"]
 [ext_resource type="Texture2D" uid="uid://q3ok1r0215cq" path="res://giant12.png" id="9_j57h4"]
 [ext_resource type="Texture2D" uid="uid://bm4ljubtmf3vd" path="res://assets/images/magma6.png" id="10_5yi0r"]

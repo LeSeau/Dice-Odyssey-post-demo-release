@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="RupturedStatus" load_steps=3 format=3 uid="uid://cruptur3d5t8"]
 
 [ext_resource type="Script" path="res://statuses/ruptured.gd" id="1_script"]
-[ext_resource type="Texture2D" uid="uid://m2xbjt5ccsrg" path="res://exposed_icon_v2.png" id="2_icon"]
+[ext_resource type="Texture2D" path="res://status_ruptured.png" id="2_icon"]
 
 [resource]
 script = ExtResource("1_script")

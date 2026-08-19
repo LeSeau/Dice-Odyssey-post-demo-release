@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="EffigyStatus" load_steps=3 format=3 uid="uid://c3ff1gy5t8u5"]
 
 [ext_resource type="Script" path="res://statuses/effigy.gd" id="1_script"]
-[ext_resource type="Texture2D" uid="uid://la13ogwo12er" path="res://executioner.png" id="2_icon"]
+[ext_resource type="Texture2D" path="res://status_effigy.png" id="2_icon"]
 
 [resource]
 script = ExtResource("1_script")

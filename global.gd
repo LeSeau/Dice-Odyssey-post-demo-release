@@ -314,6 +314,22 @@ func current_dice_price(type: String) -> int:
     return int(DICE_BASE_PRICES[type] * pow(DICE_PRICE_ESCALATION, float(total_purchased)))
 
 
+# Re-derives cheapest_dice_price from the CURRENT selection + escalation. The dice-shop
+# panel used to be the only writer, so any price change while it was closed (e.g. the
+# card-shop deal die escalating all prices) left the map badge comparing gold against a
+# stale snapshot. Anything that changes prices must end up here (via dice_price_changed).
+func refresh_cheapest_dice_price() -> void:
+    if shop_dice_selection.is_empty():
+        cheapest_dice_price = null
+        return
+    var cheapest = null
+    for index in shop_dice_selection:
+        var price := current_dice_price(DICE_TYPE_ORDER[index])
+        if cheapest == null or price < cheapest:
+            cheapest = price
+    cheapest_dice_price = cheapest
+
+
 # First-visit init of the dice-shop state - called by BOTH shops, since either room can be
 # the first one the player sees (the deal die needs the selection to exclude).
 func ensure_dice_shop_state() -> void:
@@ -326,6 +342,7 @@ func ensure_dice_shop_state() -> void:
             chosen_indexes.append(rand_index)
     shop_dice_selection = chosen_indexes
     shop_dice_deal_index = pick_dice_deal_index()
+    refresh_cheapest_dice_price()
     shop_initialized = true
 
 

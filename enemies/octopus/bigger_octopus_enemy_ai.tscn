@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://cnfxhrgwhksbi"]
+[gd_scene load_steps=14 format=3 uid="uid://cnfxhrgwhksbi"]
 
 [ext_resource type="Script" path="res://scenes/enemy/enemy_action_picker.gd" id="1_ujufx"]
 [ext_resource type="Script" path="res://enemies/octopus/bigger_octopus_attack_debuff.gd" id="2_1nnci"]
@@ -9,6 +9,7 @@
 [ext_resource type="Script" path="res://enemies/octopus/bigger_octopus_attack.gd" id="6_ymya2"]
 [ext_resource type="Texture2D" uid="uid://cm56j6ual41dr" path="res://attack_icon_intent.png" id="8_yyreq"]
 [ext_resource type="AudioStream" uid="uid://de2ryat1pxq6" path="res://art/enemy_attack.ogg" id="9_5qfxd"]
+[ext_resource type="Texture2D" uid="uid://binq5gkgr3pre" path="res://buff_icon_intent.png" id="90_buffic"]
 
 [sub_resource type="Resource" id="Resource_wcil7"]
 script = ExtResource("4_hs5ts")
@@ -19,6 +20,7 @@ icon = ExtResource("3_aquo6")
 script = ExtResource("4_hs5ts")
 base_text = "%s"
 icon = ExtResource("8_yyreq")
+icon2 = ExtResource("90_buffic")
 
 [sub_resource type="Resource" id="Resource_h318u"]
 script = ExtResource("4_hs5ts")

@@ -1,4 +1,4 @@
-[gd_scene load_steps=44 format=3 uid="uid://b56wvanf6u6h7"]
+[gd_scene load_steps=43 format=3 uid="uid://b56wvanf6u6h7"]
 
 [ext_resource type="Script" path="res://scenes/run/run.gd" id="1_sgoer"]
 [ext_resource type="PackedScene" uid="uid://deprxl041o8nn" path="res://scenes/map/map.tscn" id="2_1mcea"]
@@ -16,11 +16,10 @@
 [ext_resource type="AudioStream" uid="uid://6p70t2f0sp0v" path="res://victory_daiso.mp3" id="10_8bgi1"]
 [ext_resource type="Texture2D" uid="uid://bgwa4qau0i542" path="res://dice shop clean outline.png" id="10_wacie"]
 [ext_resource type="Texture2D" uid="uid://ye2g85fpdt1y" path="res://deck.png" id="13_pm2lc"]
-[ext_resource type="FontFile" uid="uid://dltntsanjiykq" path="res://fonts/LuckiestGuy-Regular.ttf" id="20_hicqd"]
+[ext_resource type="FontVariation" uid="uid://clgnumfontvar1" path="res://fonts/luckiest_guy_numbers.tres" id="20_hicqd"]
 [ext_resource type="LabelSettings" uid="uid://dko24yqmrk8ye" path="res://scenes/ui/topbar_label_settings.tres" id="21_topbarlbl"]
 [ext_resource type="Texture2D" uid="uid://des7u80d2851r" path="res://discord_logo_test.png" id="25_5yr4f"]
 [ext_resource type="Texture2D" uid="uid://debpwfe3e4476" path="res://assets/images/shop.jpg" id="30_a4wio"]
-[ext_resource type="FontFile" uid="uid://dujsng7qdioan" path="res://assets/static/Roboto_Condensed-SemiBold.ttf" id="32_hr3b7"]
 [ext_resource type="AudioStream" uid="uid://lw8o2xuyd2fr" path="res://map_music.ogg" id="32_xlp2w"]
 [ext_resource type="FontFile" uid="uid://bm3deysyi2y55" path="res://Belwe Bold/Belwe Bold.otf" id="33_q6s60"]
 [ext_resource type="Texture2D" uid="uid://b1my7ua56jx7t" path="res://tutorial_arrow.png" id="33_ys7td"]
@@ -427,7 +426,7 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_mcnqj")
 text = "11"
 label_settings = SubResource("LabelSettings_8eny0")
 horizontal_alignment = 1
-vertical_alignment = 2
+vertical_alignment = 1
 
 [node name="SpacerPause" type="Control" parent="TopBar/BarItems"]
 custom_minimum_size = Vector2(8, 0)
@@ -507,7 +506,7 @@ offset_top = 11.0
 offset_bottom = 11.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_fonts/normal_font = ExtResource("32_hr3b7")
+theme_override_fonts/normal_font = ExtResource("33_q6s60")
 theme_override_font_sizes/normal_font_size = 14
 bbcode_enabled = true
 text = "[center]Make sure to visit the [color=gold]Dice Shop[/color] to buy [color=red]powerful new Dice[/color] with unique effects!"
@@ -522,9 +521,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -60.0
-offset_top = -52.5
+offset_top = -32.5
 offset_right = 60.0
-offset_bottom = 67.5
+offset_bottom = 87.5
 grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("30_a4wio")
@@ -551,7 +550,7 @@ anchor_bottom = 1.0
 offset_top = -16.0
 grow_horizontal = 2
 grow_vertical = 0
-theme_override_fonts/font = ExtResource("32_hr3b7")
+theme_override_fonts/font = ExtResource("33_q6s60")
 theme_override_font_sizes/font_size = 16
 text = "A nice addition!"
 

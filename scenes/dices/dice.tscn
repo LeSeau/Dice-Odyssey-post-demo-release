@@ -1,4 +1,4 @@
-[gd_scene load_steps=64 format=3 uid="uid://drwjp5bi8wmx6"]
+[gd_scene load_steps=62 format=3 uid="uid://drwjp5bi8wmx6"]
 
 [ext_resource type="Texture2D" uid="uid://c17qq0sj25epy" path="res://assets/images/blue1.png" id="1_hxyyb"]
 [ext_resource type="Script" path="res://scenes/dices/dice.gd" id="1_xhb7n"]
@@ -15,8 +15,6 @@
 [ext_resource type="StyleBox" uid="uid://ba5f3gvin2wmm" path="res://scenes/card_ui/card_panel.tres" id="7_23bka"]
 [ext_resource type="FontFile" uid="uid://b1es4i7nr43mv" path="res://fonts/CinzelDecorative-Bold.otf" id="7_vre42"]
 [ext_resource type="FontFile" uid="uid://v7ibmopcuf0s" path="res://fonts/Cinzel-Black.otf" id="font_cinzel_black"]
-[ext_resource type="FontFile" uid="uid://cn5cvioavhfx1" path="res://Metamorphous-Regular.ttf" id="font_metamorphous"]
-[ext_resource type="FontFile" uid="uid://7xp641so2k1u" path="res://PirataOne-Regular.ttf" id="font_pirata_one"]
 [ext_resource type="StyleBox" uid="uid://cjypcaytp7ubr" path="res://scenes/card_ui/card_ui_normal.tres" id="9_3a5it"]
 [ext_resource type="StyleBox" uid="uid://bxyflqo45i4i4" path="res://scenes/card_ui/card_requirement_multiple.tres" id="12_dwjae"]
 [ext_resource type="StyleBox" path="res://scenes/dices/roll_button_texture.tres" id="13_6hovg"]

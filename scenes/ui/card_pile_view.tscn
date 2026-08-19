@@ -1,8 +1,12 @@
-[gd_scene load_steps=12 format=3 uid="uid://jg7s3ul6gyqj"]
+[gd_scene load_steps=11 format=3 uid="uid://jg7s3ul6gyqj"]
 
 [ext_resource type="Script" path="res://scenes/ui/card_pile_view.gd" id="1_byypi"]
+[ext_resource type="FontFile" uid="uid://bm3deysyi2y55" path="res://Belwe Bold/Belwe Bold.otf" id="1_belwe"]
 [ext_resource type="PackedScene" uid="uid://d2vlobkkv27hu" path="res://scenes/ui/card_menu_ui.tscn" id="1_gt0jo"]
 [ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="2_arrowfont"]
+[ext_resource type="StyleBox" uid="uid://d33nvcmlyrn4o" path="res://scenes/shop/shop_button_normal.tres" id="90_btnnorm"]
+[ext_resource type="StyleBox" path="res://scenes/shop/shop_button_hover.tres" id="91_btnhover"]
+[ext_resource type="StyleBox" path="res://scenes/shop/shop_button_pressed.tres" id="92_btnpress"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_6m3id"]
 font_size = 36
@@ -16,79 +20,6 @@ shadow_offset = Vector2(0, 2)
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_fat5r"]
 content_margin_left = 14.0
 content_margin_top = 20.0
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_back_normal"]
-bg_color = Color(0.144787, 0.273985, 0.277578, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.752941, 0.501961, 0.0627451, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-shadow_color = Color(0, 0, 0, 0.4)
-shadow_size = 4
-shadow_offset = Vector2(0, 2)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_back_hover"]
-bg_color = Color(0.144787, 0.273985, 0.277578, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.941176, 0.752941, 0.188235, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-shadow_color = Color(0.941176, 0.752941, 0.188235, 0.5)
-shadow_size = 5
-shadow_offset = Vector2(0, 2)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_confirm_normal"]
-bg_color = Color(0.164706, 0.262745, 0.235294, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.752941, 0.501961, 0.0627451, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-shadow_color = Color(0, 0, 0, 0.4)
-shadow_size = 3
-shadow_offset = Vector2(0, 2)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_confirm_hover"]
-bg_color = Color(0.219608, 0.34902, 0.313726, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(1, 0.843137, 0, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-shadow_color = Color(0, 0, 0, 0.5)
-shadow_size = 3
-shadow_offset = Vector2(0, 2)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_confirm_pressed"]
-bg_color = Color(0.117647, 0.196078, 0.176471, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.752941, 0.501961, 0.0627451, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-shadow_size = 0
 
 [sub_resource type="LabelSettings" id="LabelSettings_arrow"]
 font = ExtResource("2_arrowfont")
@@ -254,10 +185,11 @@ offset_bottom = 178.0
 grow_horizontal = 0
 theme_override_colors/font_color = Color(0.941176, 0.752941, 0.188235, 1)
 theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("1_belwe")
 theme_override_font_sizes/font_size = 22
-theme_override_styles/normal = SubResource("StyleBoxFlat_back_normal")
-theme_override_styles/hover = SubResource("StyleBoxFlat_back_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_back_hover")
+theme_override_styles/normal = ExtResource("90_btnnorm")
+theme_override_styles/hover = ExtResource("91_btnhover")
+theme_override_styles/pressed = ExtResource("92_btnpress")
 text = "Back"
 
 [node name="UpgradeConfirmPanel" type="Control" parent="."]
@@ -327,10 +259,11 @@ custom_minimum_size = Vector2(140, 48)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.941176, 0.752941, 0.188235, 1)
 theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("1_belwe")
 theme_override_font_sizes/font_size = 22
-theme_override_styles/normal = SubResource("StyleBoxFlat_confirm_normal")
-theme_override_styles/hover = SubResource("StyleBoxFlat_confirm_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_confirm_pressed")
+theme_override_styles/normal = ExtResource("90_btnnorm")
+theme_override_styles/hover = ExtResource("91_btnhover")
+theme_override_styles/pressed = ExtResource("92_btnpress")
 text = "Upgrade"
 
 [node name="CancelUpgradeButton" type="Button" parent="UpgradeConfirmPanel/CenterContainer/VBoxContainer/ButtonsRow"]
@@ -339,10 +272,11 @@ custom_minimum_size = Vector2(140, 48)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.941176, 0.752941, 0.188235, 1)
 theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("1_belwe")
 theme_override_font_sizes/font_size = 22
-theme_override_styles/normal = SubResource("StyleBoxFlat_back_normal")
-theme_override_styles/hover = SubResource("StyleBoxFlat_back_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_back_hover")
+theme_override_styles/normal = ExtResource("90_btnnorm")
+theme_override_styles/hover = ExtResource("91_btnhover")
+theme_override_styles/pressed = ExtResource("92_btnpress")
 text = "Cancel"
 
 [connection signal="pressed" from="BackButton" to="." method="_on_back_button_pressed"]

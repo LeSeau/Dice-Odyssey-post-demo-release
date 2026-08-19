@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="Card" load_steps=4 format=3 uid="uid://bq7x2v4nmk3ea"]
 
-[ext_resource type="Texture2D" uid="uid://5p68feocthsu" path="res://siphon.png" id="1_icon"]
+[ext_resource type="Texture2D" path="res://blood_oath.png" id="1_icon"]
 [ext_resource type="Script" path="res://characters/warrior/cards/blood_oath.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://df64e7qat73gs" path="res://art/block.ogg" id="3_sound"]
 
