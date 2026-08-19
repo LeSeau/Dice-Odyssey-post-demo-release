@@ -1,8 +1,7 @@
-[gd_scene load_steps=64 format=3 uid="uid://cahno8aso5net"]
+[gd_scene load_steps=63 format=3 uid="uid://cahno8aso5net"]
 
 [ext_resource type="Script" path="res://scenes/battle/battle.gd" id="1_4s751"]
 [ext_resource type="StyleBox" path="res://scenes/ui/ui_panel_plate.tres" id="ui_plate"]
-[ext_resource type="PackedScene" uid="uid://c0ywt0g0r1n8h" path="res://scenes/ui/turn_banner.tscn" id="turn_banner_scene"]
 [ext_resource type="PackedScene" uid="uid://d0efyathkfg74" path="res://scenes/enemy/enemy.tscn" id="2_02s5s"]
 [ext_resource type="Script" path="res://scenes/ui/hand.gd" id="2_uaw60"]
 [ext_resource type="AudioStream" uid="uid://bk71e7uje8mca" path="res://fight_music.ogg" id="3_7d1uf"]
@@ -248,8 +247,6 @@ player = NodePath("../Player")
 
 [node name="BattleUI" type="CanvasLayer" parent="." groups=["ui_layer"]]
 script = ExtResource("7_18vit")
-
-[node name="TurnBanner" parent="BattleUI" instance=ExtResource("turn_banner_scene")]
 
 [node name="DiceAnimationControl" type="Control" parent="BattleUI"]
 visible = false

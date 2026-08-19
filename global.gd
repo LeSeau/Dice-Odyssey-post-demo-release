@@ -276,6 +276,11 @@ var blocked_to_display = 0
 var final_enemy_damage = 0
 var dice_inventory = ["blue", "red"]
 var roll_history = []
+# The dice TYPE of the most recent roll in the current chain. roll_history holds the values;
+# this holds whose they were. Only ever read while roll_history is non-empty (the Flux gate in
+# dice.gd), and any roll that makes it non-empty writes this first - so it needs no clearing of
+# its own beyond the resets below.
+var last_rolled_type: String = ""
 var last_played_card_position: Vector2 = Vector2.ZERO  # global center of the most recently played card; used as the origin for the refuel "dice fly back" effect
 var shop_initialized = false  # Whether the shop has been initialized
 var shop_dice_selection = []  # Stores which dice are shown
@@ -594,6 +599,7 @@ func reset_run_state() -> void:
     roll_value = 0
     last_roll = 0
     roll_history = []
+    last_rolled_type = ""
     next_roll_value = 0
     next_roll_modifier = 0
     next_guaranteed_roll = -1

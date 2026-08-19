@@ -1,0 +1,17 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://cr3d3dg35t8b"]
+
+[ext_resource type="Script" path="res://statuses/status_red_edge.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://red_edge.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = "red_edge"
+type = 2
+stack_type = 0
+can_expire = false
+duration = 0
+stacks = 0
+icon = ExtResource("2_icon")
+tooltip = "Your Red Dice can no longer roll its lowest faces this combat."
+hide_when_zero = false
+hide_counter_when_zero = false

@@ -792,6 +792,34 @@ func _set_power_text(value) -> void:
 # specifically also scales WITH how much power is banked (barely perceptible at 2-3, full
 # "about to go BOOM" intensity by ~12+) rather than snapping straight to full at any power -
 # reuses the same smoothstep-to-12 curve and cap as the die's aura charge for consistency.
+
+# Flux (Lurker): "you cannot roll the SAME Dice type twice in a row".
+#
+# The chain (roll_history) is cleared by a Power reset AND by a dice-type change, so
+# hopping type is normally a legal escape already - at the cost of your banked Power.
+# The last_rolled_type test is what makes the rule per-TYPE rather than "no second roll":
+# under Kaleidoscope the chain SURVIVES a type change, and without it Flux would lock the
+# player out for the whole turn instead of being countered. That is the Kaleidoscope play
+# against a Flux enemy (Julien, 2026-08-19): keep banking Power for as long as you keep
+# alternating dice types. Verified end to end by debug_flux_rule.gd - do NOT collapse this
+# back into a blanket "roll_history is not empty" check.
+#
+# A Ricochet reroll is exempt: a reroll is not a second roll - it replaces the one roll you
+# already legally made, spends no extra die and leaves the chain the same length. (Side
+# effect, and a good one: Ricochet is a soft counter to Flux too. Flagged rather than
+# assumed - if it should instead be locked out under Flux, drop the parameter below.)
+func _flux_blocks_roll(is_ricochet_reroll: bool) -> bool:
+    if is_ricochet_reroll:
+        return false
+    if Global.roll_history.is_empty():
+        return false
+    if Global.last_rolled_type != dice_type:
+        return false
+    for enemy in get_tree().get_nodes_in_group("enemies"):
+        if enemy.status_handler._has_status("flux"):
+            return true
+    return false
+
 func _update_power_float() -> void:
     if current_power.material:
         current_power.material.set_shader_parameter("float_intensity", 0.0 if Global.roll_value == 0 else 1.0)
@@ -804,18 +832,10 @@ func roll_dice():
     var can_roll = false
     var is_ricochet_reroll: bool = Global.ricochet_reroll_active
     dice_type = Global.dice_type
-    # Flux check.
-    # A Ricochet reroll is exempt: Flux's rule is "no SECOND roll until your Power resets", and
-    # a reroll is not a second roll - it replaces the one roll you already legally made, spends
-    # no extra die and leaves the chain the same length. (Side effect, and a good one: Ricochet
-    # is a soft counter to Flux. Flagged for Julien rather than assumed - if it should instead
-    # be locked out under Flux, delete the `not is_ricochet_reroll and` below.)
-    if not is_ricochet_reroll and not Global.roll_history.is_empty():
-        for enemy in get_tree().get_nodes_in_group("enemies"):
-            if enemy.status_handler._has_status("flux"):
-                release_die_coil()
-                play_error_sound()
-                return
+    if _flux_blocks_roll(is_ricochet_reroll):
+        release_die_coil()
+        play_error_sound()
+        return
     # Check if we can roll this type
     match dice_type:
         "blue":
@@ -2279,7 +2299,7 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
     _update_dice_aura_charge()
     # Update roll history
     Global.roll_history.append(Global.last_roll)
-    print(Global.roll_history)
+    Global.last_rolled_type = dice_type
     update_roll_history_ui()
     # The chain rack punches in sync with the landing (this whole function runs on the
     # landing frame) - the new mini-face ARRIVES instead of just appearing, which is what

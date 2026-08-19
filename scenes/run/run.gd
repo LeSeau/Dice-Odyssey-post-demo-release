@@ -326,9 +326,9 @@ func _start_run() -> void:
     if offer_loadout:
         _show_dice_loadout()
         return
-    # Act 1 gets the same announcement beat act 2 always had (_enter_act_2) - the map is
-    # the first thing a player ever sees, and it opened with zero framing before this.
-    act_banner.announce("ACT 1: THE RUINS")
+    # No act announcement on the map (Julien, 2026-08-19): the banner reads as noise over
+    # a screen that already says where you are. ActBanner itself stays wired - battle.gd
+    # still uses it for the boss intro - so re-enabling this is one line.
     # First checkpoint right away - starting a new run is also what "abandons" any previous
     # save (single slot, roguelike convention).
     _save_checkpoint()
@@ -677,7 +677,6 @@ func _on_dice_loadout_completed() -> void:
     # whose _show_map() writes the run's first checkpoint, which is the moment the
     # previous run's save is finally replaced.
     _on_update_dice_top_bar()
-    act_banner.announce("ACT 1: THE RUINS")
     _show_map()
 
 
@@ -694,7 +693,6 @@ func _enter_act_2() -> void:
     map.generate_new_map()
     map.unlock_floor(0)
     _update_floor_label()
-    act_banner.announce("ACT 2: THE CATACOMBS")
 
 
 func _on_map_exited(room: Room) -> void:

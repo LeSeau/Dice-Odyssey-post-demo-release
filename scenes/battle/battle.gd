@@ -155,6 +155,7 @@ func start_battle() -> void:
     Global.sixes_rolled_this_fight = 0
     Global.face_overrides = {}
     Global.keep_power_on_type_change = false
+    Global.last_rolled_type = ""
     Global.reroll_types = {}
     Global.red_socket_capacity = 1
     Global.power_kept_on_reset = 0
