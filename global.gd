@@ -67,12 +67,39 @@ func in_hand(card_id: String) -> bool:
 # Extra Power a roll gets purely from cards being HELD (never from playing them).
 func in_hand_roll_bonus(dice_type: String) -> int:
     var bonus := 0
-    if dice_type == "red" and in_hand(IN_HAND_RED_AURA):
-        bonus += 3
-    # Dead Weight is Loaded 1 while held, and Loaded applies to every type.
-    if in_hand(IN_HAND_DEAD_WEIGHT):
+    # Blood Oath: 2 (Julien, 2026-08-20 - same figure as the Blood Sword relic; they stack).
+    # Both versions can be held at once, so these add rather than pick the larger.
+    if dice_type == "red":
+        if in_hand(IN_HAND_RED_AURA):
+            bonus += 2
+        if in_hand(IN_HAND_RED_AURA_PLUS):
+            bonus += 3
+    # Dead Weight is Loaded 1 while held, and Loaded applies to every type. The + keeps the
+    # same Loaded 1 and adds its Strength through in_hand_damage_bonus() instead.
+    if in_hand(IN_HAND_DEAD_WEIGHT) or in_hand(IN_HAND_DEAD_WEIGHT_PLUS):
         bonus += 1
     return bonus
+
+
+# Flat damage a card gets purely from cards being HELD - the damage-side twin of
+# in_hand_roll_bonus(). Applied once, inside ModifierHandler.get_modified_value() for the
+# player's DMG_DEALT, so it behaves exactly like a Strength stack: every card's real damage
+# AND its dynamic-description preview pick it up without either knowing this exists.
+func in_hand_damage_bonus() -> int:
+    var bonus := 0
+    if in_hand(IN_HAND_DEAD_WEIGHT_PLUS):
+        bonus += 1
+    return bonus
+
+
+# Block granted per natural 6 by Talisman being held. 0 when neither version is in hand.
+func in_hand_six_block() -> int:
+    var block := 0
+    if in_hand(IN_HAND_TALISMAN):
+        block += TALISMAN_SIX_BLOCK
+    if in_hand(IN_HAND_TALISMAN_PLUS):
+        block += TALISMAN_PLUS_SIX_BLOCK
+    return block
 
 
 # What faces `dice_type` can land on RIGHT NOW: a card's fight-scoped edit wins over the
@@ -85,12 +112,9 @@ func current_face_values(dice_type: String) -> Array:
     var values: Array = Card.DICE_FACE_VALUES.get(dice_type, [1, 2, 3, 4, 5, 6])
     if not infused.is_empty():
         values = infused
-    # Talisman, held in hand: this die cannot roll its lowest face. Applied here so the roll,
-    # the Scout preview and thrown dice all agree without any of them knowing about the card.
-    if in_hand(IN_HAND_TALISMAN) and values.size() > 1:
-        values = values.duplicate()
-        values.sort()
-        values = values.slice(1)
+    # Talisman used to trim the lowest face here. Its identity moved to "every natural 6
+    # grants Block" (Julien, 2026-08-20), which lives at the last_roll == 6 check in dice.gd,
+    # so this function is back to being purely about card/infusion face edits.
     return values
 
 
@@ -501,6 +525,8 @@ var keep_power_on_type_change := false
 var power_kept_on_reset := 0
 # Socketless Red blessing: the Red die may be rolled with an empty socket, hitting everything.
 var socketless_red := false
+# Socketless Red+ only: Strength granted by EACH empty-socket Red roll (0 = base card).
+var socketless_red_strength := 0
 # "Keep your Dice": set when the card ends the turn, consumed by dice_interface's turn-end
 # capture, which stashes every type's leftovers in kept_dice for the next refill to add back.
 var keep_all_dice_next_turn := false
@@ -511,8 +537,17 @@ var kept_dice := {}
 # leaves by a path nobody remembered (played, dragged, swept to discard), and every one of
 # those paths reparents the CardUI out of the Hand, so the node tree is already the truth.
 const IN_HAND_RED_AURA := "card_blood_oath"
+const IN_HAND_RED_AURA_PLUS := "card_blood_oath_plus"
 const IN_HAND_TALISMAN := "card_talisman"
+const IN_HAND_TALISMAN_PLUS := "card_talisman_plus"
 const IN_HAND_DEAD_WEIGHT := "card_dead_weight"
+const IN_HAND_DEAD_WEIGHT_PLUS := "card_dead_weight_plus"
+
+# Talisman, held: every NATURAL 6 you roll grants this much Block. Read by dice.gd at the
+# same `last_roll == 6` check Jackpot and Effigy already key off, so all three agree on what
+# a "6" is (a rolled face, never a Boosted or Loaded 5->6).
+const TALISMAN_SIX_BLOCK := 3
+const TALISMAN_PLUS_SIX_BLOCK := 5
 
 # Dice types granted Ricochet's reroll by a card. "odd" (Ricochet) is native and always
 # allowed; this is the graft list on top of it.
@@ -617,6 +652,7 @@ func reset_run_state() -> void:
     red_socket_capacity = 1
     power_kept_on_reset = 0
     socketless_red = false
+    socketless_red_strength = 0
     keep_all_dice_next_turn = false
     kept_dice = {}
     golem_dice_carryover = 0

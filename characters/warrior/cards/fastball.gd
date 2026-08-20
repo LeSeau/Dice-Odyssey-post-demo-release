@@ -5,7 +5,7 @@ extends Card
 # dice remaining it whiffs - still discards, like any failed-requirement play.
 
 
-func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
+func apply_effects(targets: Array[Node], _modifiers: ModifierHandler) -> void:
     if targets.is_empty():
         Events.reset_charged_card.emit()
         return
@@ -22,7 +22,11 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     Events.dice_thrown.emit([{"type": thrown_type, "value": value, "target": target}], Global.last_played_card_position)
     # Strength applies to thrown-die damage (Julien, 2026-07-21), consistent with the other
     # throw cards - the die is a real hit, not raw.
-    var die_damage := modifiers.get_modified_value(value * 2, Modifier.Type.DMG_DEALT)
+    # Thrown dice deal their RAW face value: no Strength, no player DMG_DEALT modifier
+    # (Julien, 2026-08-20 - a 9-die Avalanche multiplied Strength nine times). Trebuchet's
+    # Global.thrown_dice_bonus_fight, applied in card.gd::_on_thrown_die_landed, is now the
+    # ONLY way to scale a thrown die. The target's own Exposed still applies on the target.
+    var die_damage: int = value * 2
     _land_thrown_die(target.get_tree(), target, die_damage, Global.DICE_THROW_FLIGHT_TIME, sound, thrown_type, value)
     Events.reset_charged_card.emit()
 

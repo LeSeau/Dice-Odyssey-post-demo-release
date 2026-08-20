@@ -1,16 +1,17 @@
-[gd_resource type="Resource" script_class="Card" load_steps=4 format=3 uid="uid://bq7x2v4nmk3ea"]
+[gd_resource type="Resource" script_class="Card" load_steps=5 format=3 uid="uid://bq7x2v4nmk3ea"]
 
 [ext_resource type="Texture2D" path="res://blood_oath.png" id="1_icon"]
 [ext_resource type="Script" path="res://characters/warrior/cards/blood_oath.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://df64e7qat73gs" path="res://art/block.ogg" id="3_sound"]
 
+[ext_resource type="Resource" uid="uid://cb100d0athp1u5" path="res://characters/warrior/cards/card_blood_oath_plus.tres" id="blood_oath_plu_up"]
 [resource]
 script = ExtResource("2_script")
 id = "card_blood_oath"
 name = "Blood Oath"
 type = 1
 target = 0
-description = "While this is in your hand, your Red Dice rolls gain 3 bonus Power. Play: Charge 2 Red Dice"
+description = "While this is in your hand, your Red Dice rolls gain 2 bonus Power. This card cannot be played"
 rarity = 0
 rarity_tier = 1
 red_only = false
@@ -21,8 +22,9 @@ exhausts = false
 bonus_requirement = 0
 bonus_requirement_number = 0
 bonus_description_text = ""
-tags = "Charge, Red Dice"
+tags = "Red Dice"
 upgraded = false
+upgraded_version = ExtResource("blood_oath_plu_up")
 icon = ExtResource("1_icon")
 tooltip_text = ""
 sound = ExtResource("3_sound")

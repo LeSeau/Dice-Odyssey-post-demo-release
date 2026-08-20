@@ -1,0 +1,28 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c50ck3tl355p1"]
+
+[ext_resource type="Texture2D" uid="uid://drd4e4u7tdggw" path="res://socketless_red.png" id="1_icon"]
+[ext_resource type="Script" path="res://characters/warrior/cards/socketless_red_plus.gd" id="2_script"]
+[ext_resource type="AudioStream" uid="uid://df64e7qat73gs" path="res://art/block.ogg" id="3_sound"]
+
+[resource]
+script = ExtResource("2_script")
+id = "card_socketless_red_plus"
+name = "Socketless Red+"
+type = 2
+target = 0
+description = "You may roll the Red Dice with an empty socket. It deals X damage to ALL enemies and gives 1 Strength"
+rarity = 0
+rarity_tier = 1
+red_only = false
+can_play_without_dice = false
+requirement = 1
+requirement_number = 6
+exhausts = true
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Exhaust, Strength"
+upgraded = true
+icon = ExtResource("1_icon")
+tooltip_text = ""
+sound = ExtResource("3_sound")

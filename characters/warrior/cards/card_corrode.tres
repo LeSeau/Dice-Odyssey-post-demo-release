@@ -9,9 +9,9 @@
 script = ExtResource("2_script")
 id = "card_corrode"
 name = "Corrode"
-type = 0
+type = 1
 target = 2
-description = "Deal X damage and apply Exposed 2 to ALL enemies"
+description = "Apply Exposed 5 to ALL enemies"
 rarity = 0
 rarity_tier = 1
 red_only = false

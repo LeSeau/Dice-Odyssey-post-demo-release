@@ -1,16 +1,17 @@
-[gd_resource type="Resource" script_class="Card" load_steps=4 format=3 uid="uid://cn5w8t2yhj4pd"]
+[gd_resource type="Resource" script_class="Card" load_steps=5 format=3 uid="uid://cn5w8t2yhj4pd"]
 
 [ext_resource type="Texture2D" path="res://talisman.png" id="1_icon"]
 [ext_resource type="Script" path="res://characters/warrior/cards/talisman.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://df64e7qat73gs" path="res://art/block.ogg" id="3_sound"]
 
+[ext_resource type="Resource" uid="uid://ct4l15manp1u5a" path="res://characters/warrior/cards/card_talisman_plus.tres" id="talisman_plus_up"]
 [resource]
 script = ExtResource("2_script")
 id = "card_talisman"
 name = "Talisman"
 type = 1
 target = 0
-description = "While this is in your hand, your Dice cannot roll their lowest face. Play: gain Lucky 1"
+description = "While this is in your hand, rolling a 6 gives you 3 Block. This card cannot be played"
 rarity = 0
 rarity_tier = 1
 red_only = false
@@ -21,8 +22,9 @@ exhausts = false
 bonus_requirement = 0
 bonus_requirement_number = 0
 bonus_description_text = ""
-tags = "Lucky"
+tags = ""
 upgraded = false
+upgraded_version = ExtResource("talisman_plus_up")
 icon = ExtResource("1_icon")
 tooltip_text = ""
 sound = ExtResource("3_sound")

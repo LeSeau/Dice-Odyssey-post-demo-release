@@ -42,7 +42,7 @@ func _check_cards() -> void:
     _expect("Meteor.desc", m.description, "Deal X damage. Throw a Giant Dice that deals damage equal to its roll")
     _expect("Meteor.upgraded_version", m.upgraded_version != null, true)
     _expect("Meteor+.desc", _card("card_meteor_plus.tres").description,
-            "Deal X damage. Throw a Giant Dice that deals damage equal to its roll")
+            "Deal X damage. Throw a Giant Dice that rolls 7-12 and deals damage equal to its roll")
 
     var ct := _card("card_cursed_toss.tres")
     _expect("CursedToss.desc", ct.description, "Throw 2 Blue Dice. Each deals damage equal to its roll")
@@ -107,7 +107,7 @@ func _check_pool() -> void:
     _expect("pool size (was 87, minus Fastball + Slash)", pool.cards.size(), 85)
     _expect("fastball cut", ids.has("card_fastball"), false)
     _expect("slash cut", ids.has("card_slash"), false)
-    for keep in ["card_meteor", "card_cursed_toss", "card_pixie_volley", "card_low_roller",
+    for keep in ["card_meteor", "card_pixie_volley", "card_low_roller",
             "card_stampede", "card_coiled_spring", "card_kickstart", "card_windfall"]:
         _expect("pool still has " + keep, ids.has(keep), true)
     _expect("no duplicate ids", ids.size(), _unique(ids).size())

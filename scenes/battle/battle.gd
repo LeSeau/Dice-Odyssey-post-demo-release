@@ -160,6 +160,7 @@ func start_battle() -> void:
     Global.red_socket_capacity = 1
     Global.power_kept_on_reset = 0
     Global.socketless_red = false
+    Global.socketless_red_strength = 0
     Global.keep_all_dice_next_turn = false
     Global.kept_dice = {}
     # Golem carry-over is per-FIGHT: dice banked at the end of one combat must not show up

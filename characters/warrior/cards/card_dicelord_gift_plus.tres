@@ -1,7 +1,7 @@
 [gd_resource type="Resource" load_steps=4 format=3 uid="uid://bd1cel0rdplus"]
 
 [ext_resource type="Texture2D" uid="uid://devj14i0yw8lk" path="res://dicelord_gift.png" id="1_icon"]
-[ext_resource type="Script" path="res://characters/warrior/cards/dicelord_gift.gd" id="2_script"]
+[ext_resource type="Script" path="res://characters/warrior/cards/dicelord_gift_plus.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://d66mkrcpmfir" path="res://chargedicesound.mp3" id="3_sound"]
 
 [resource]
@@ -10,13 +10,13 @@ id = "card_dicelord_gift_plus"
 name = "Dicelord's Gift+"
 type = 2
 target = 0
-description = "Charge a random Dice each turn"
+description = "Charge 2 random Dice each turn"
 rarity = 0
 rarity_tier = 2
 red_only = false
 can_play_without_dice = false
-requirement = 0
-requirement_number = 0
+requirement = 7
+requirement_number = 7
 exhausts = true
 bonus_requirement = 0
 bonus_requirement_number = 0

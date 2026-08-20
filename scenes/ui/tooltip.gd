@@ -69,6 +69,10 @@ func get_tooltip_content(requirement):
         text += "Adds that much Power to your next roll."
     elif requirement == "Throw":
         text += "Rolls a bonus Dice without using any of your own."
+    elif requirement == "Reroll":
+        # Ricochet's native ability, which Quicksilver grafts onto another type. Worded from
+        # the player's side ("you may") because the choice is theirs and it is optional.
+        text += "Once per roll, you may roll that Dice again and keep the new result."
     elif requirement == "Support":
         text += "Cards that don't attack or block but instead manipulate Power."
     elif requirement == "Power":

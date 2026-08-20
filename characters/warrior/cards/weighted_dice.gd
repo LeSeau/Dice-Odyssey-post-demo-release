@@ -1,5 +1,9 @@
 extends Card
 
+# Gated Min 6 (Julien, 2026-08-20) - a whole turn at Loaded 2 is a big enough amplifier
+# that it should cost you a real roll first. Weighted Dice+ reuses this script with
+# requirement NONE, where meets_requirement() passes trivially.
+
 # "Gain Loaded 2 this turn" - the cheap, ungated entry to the Loaded ladder.
 #
 # Both halves matter: loaded_amount is what dice.gd actually reads on every roll, and
@@ -15,6 +19,8 @@ const LOADED_AMOUNT := 2
 
 
 func apply_effects(targets: Array[Node], _modifiers: ModifierHandler) -> void:
+    if not meets_requirement():
+        return
     Global.loaded_amount += LOADED_AMOUNT
     Global.loaded_expiring += LOADED_AMOUNT
     var support_effect := SupportEffect.new()

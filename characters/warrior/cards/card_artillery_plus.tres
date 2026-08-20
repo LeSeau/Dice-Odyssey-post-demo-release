@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="Card" load_steps=4 format=3 uid="uid://c4rt1ll3ryp1u"]
+
+[ext_resource type="Texture2D" path="res://artillery.png" id="1_icon"]
+[ext_resource type="Script" path="res://characters/warrior/cards/artillery.gd" id="2_script"]
+[ext_resource type="AudioStream" uid="uid://df64e7qat73gs" path="res://art/block.ogg" id="3_sound"]
+
+[resource]
+script = ExtResource("2_script")
+id = "card_artillery_plus"
+name = "Artillery+"
+type = 2
+target = 0
+description = "At the start of each turn, throw a Dice of a random type at a random enemy"
+rarity = 0
+rarity_tier = 1
+red_only = false
+can_play_without_dice = false
+requirement = 1
+requirement_number = 4
+exhausts = true
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Throw, Exhaust"
+upgraded = true
+icon = ExtResource("1_icon")
+tooltip_text = ""
+sound = ExtResource("3_sound")

@@ -2240,6 +2240,13 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
         # so a Boosted or Loaded 5->6 never counts.
         Global.sixes_rolled_this_fight += 1
 
+        # Talisman, held in hand: every natural 6 grants Block (Julien, 2026-08-20). Sits
+        # here rather than in the card so it shares Jackpot's and Effigy's definition of a
+        # "6" - three cards, one rule, and the sixes archetype can never disagree with itself.
+        var talisman_block := Global.in_hand_six_block()
+        if talisman_block > 0:
+            Events.add_block.emit(talisman_block)
+
     # Rainbow archetype: which TYPES were rolled this turn (Spectrum, Prismatic Lens).
     Global.dice_types_rolled_this_turn[dice_type] = true
 
@@ -4261,6 +4268,11 @@ func _set_socket_filled() -> void:
         .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
+# Same resource as OCTET_MUSCLE_STATUS above; named separately so the socketless path reads
+# as what it is rather than borrowing the Octet infusion's name. preload() dedupes.
+const MUSCLE_STATUS := preload("res://statuses/muscle.tres")
+
+
 # Socketless Red blessing: rolling the Red die with an EMPTY socket turns that roll into board
 # damage instead of a card play. Nothing here runs unless the blessing is up AND the socket is
 # genuinely empty, so a normal socketed red roll is completely unaffected.
@@ -4288,6 +4300,16 @@ func _fire_socketless_red() -> void:
     var damage_effect := DamageEffect.new()
     damage_effect.amount = amount
     damage_effect.execute(enemies)
+    # Socketless Red+ (Julien, 2026-08-20): EVERY empty-socket Red roll also grants Strength,
+    # so the blessing compounds across the fight instead of paying out once. Granted here
+    # rather than in the card because this is the only place that knows a socketless roll
+    # actually happened - the card just flips the flag and exhausts.
+    if Global.socketless_red_strength > 0 and player != null:
+        var muscle: Status = MUSCLE_STATUS.duplicate()
+        muscle.stacks = Global.socketless_red_strength
+        var status_effect := StatusEffect.new()
+        status_effect.status = muscle
+        status_effect.execute([player])
     # The Red die is decremented by dice_interface._on_dice_rolled, which listens to
     # dice_rolled - and dice.gd never emits that for Red. The ONLY thing that normally does is
     # card_ui.gd:909, right after a socketed card plays. With an empty socket that never runs,

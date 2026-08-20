@@ -6,7 +6,7 @@ extends Card
 # dice_avalanche.gd for the full rationale (Julien, 2026-07-21 Occultism/Charge bug).
 
 
-func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
+func apply_effects(targets: Array[Node], _modifiers: ModifierHandler) -> void:
     if targets.is_empty():
         Events.reset_charged_card.emit()
         return
@@ -25,7 +25,11 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     for i in throws.size():
         var entry: Dictionary = throws[i]
         var value: int = entry["value"]
-        var die_damage := modifiers.get_modified_value(value, Modifier.Type.DMG_DEALT)
+        # Thrown dice deal their RAW face value: no Strength, no player DMG_DEALT modifier
+        # (Julien, 2026-08-20 - a 9-die Avalanche multiplied Strength nine times). Trebuchet's
+        # Global.thrown_dice_bonus_fight, applied in card.gd::_on_thrown_die_landed, is now the
+        # ONLY way to scale a thrown die. The target's own Exposed still applies on the target.
+        var die_damage: int = value
         _land_thrown_die(tree, target, die_damage, Global.DICE_THROW_FLIGHT_TIME + stagger * i, sound, entry["type"], value)
     Events.dice_thrown.emit(throws, Global.last_played_card_position)
     Events.reset_charged_card.emit()

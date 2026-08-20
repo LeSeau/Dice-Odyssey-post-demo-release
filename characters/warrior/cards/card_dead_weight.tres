@@ -1,9 +1,10 @@
-[gd_resource type="Resource" script_class="Card" load_steps=4 format=3 uid="uid://bd3v9k1xrm7qs"]
+[gd_resource type="Resource" script_class="Card" load_steps=5 format=3 uid="uid://bd3v9k1xrm7qs"]
 
 [ext_resource type="Texture2D" path="res://dead_weight.png" id="1_icon"]
 [ext_resource type="Script" path="res://characters/warrior/cards/dead_weight.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://df64e7qat73gs" path="res://art/block.ogg" id="3_sound"]
 
+[ext_resource type="Resource" uid="uid://cd3adw8p1u5aa" path="res://characters/warrior/cards/card_dead_weight_plus.tres" id="dead_weight_pl_up"]
 [resource]
 script = ExtResource("2_script")
 id = "card_dead_weight"
@@ -23,6 +24,7 @@ bonus_requirement_number = 0
 bonus_description_text = ""
 tags = "Loaded"
 upgraded = false
+upgraded_version = ExtResource("dead_weight_pl_up")
 icon = ExtResource("1_icon")
 tooltip_text = ""
 sound = ExtResource("3_sound")
