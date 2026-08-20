@@ -1,7 +1,7 @@
 [gd_resource type="Resource" load_steps=3 format=3 uid="uid://cnt3rf31t5ta"]
 
 [ext_resource type="Script" path="res://statuses/status_counterfeit.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://counterfeit.png" id="2_icon"]
+[ext_resource type="Texture2D" uid="uid://d3hw3wgfwg6aw" path="res://status_counterfeit.png" id="2_icon"]
 
 [resource]
 script = ExtResource("1_script")
