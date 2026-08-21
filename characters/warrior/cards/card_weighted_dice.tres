@@ -1,13 +1,13 @@
-[gd_resource type="Resource" script_class="Card" load_steps=4 format=3 uid="uid://cw3ight3ddic3"]
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://cw3ight3ddic3"]
 
-[ext_resource type="Texture2D" path="res://weighted_dice.png" id="1_icon"]
+[ext_resource type="Texture2D" uid="uid://dlmbradt3riq1" path="res://weighted_dice.png" id="1_icon"]
 [ext_resource type="Script" path="res://characters/warrior/cards/weighted_dice.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://df64e7qat73gs" path="res://art/block.ogg" id="3_sound"]
 
 [resource]
 script = ExtResource("2_script")
 id = "card_weighted_dice"
-name = "Weighted Dice"
+name = "Sleight"
 type = 1
 target = 0
 description = "Gain Loaded 2 this turn"

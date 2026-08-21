@@ -1,13 +1,13 @@
-[gd_resource type="Resource" script_class="Card" load_steps=4 format=3 uid="uid://bs4h7n9wqz2xm"]
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://bs4h7oawq02xm"]
 
-[ext_resource type="Texture2D" path="res://second_socket.png" id="1_icon"]
+[ext_resource type="Texture2D" uid="uid://dcdt1x3y3d2u" path="res://second_socket.png" id="1_icon"]
 [ext_resource type="Script" path="res://characters/warrior/cards/second_socket.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://df64e7qat73gs" path="res://art/block.ogg" id="3_sound"]
 
 [resource]
 script = ExtResource("2_script")
 id = "card_second_socket"
-name = "Second Socket"
+name = "Dual Cannon"
 type = 2
 target = 0
 description = "Your Red Dice gains a second card socket. One roll plays both"

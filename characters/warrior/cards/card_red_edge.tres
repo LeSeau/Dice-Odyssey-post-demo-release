@@ -1,13 +1,13 @@
-[gd_resource type="Resource" script_class="Card" load_steps=4 format=3 uid="uid://c4cardrededge"]
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c4cardrededge"]
 
-[ext_resource type="Texture2D" path="res://red_edge.png" id="1_icon"]
+[ext_resource type="Texture2D" uid="uid://c75csvpq1hxts" path="res://red_edge.png" id="1_icon"]
 [ext_resource type="Script" path="res://characters/warrior/cards/red_edge.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://df64e7qat73gs" path="res://art/block.ogg" id="3_sound"]
 
 [resource]
 script = ExtResource("2_script")
 id = "card_red_edge"
-name = "Red Edge"
+name = "Grindstone"
 type = 2
 target = 0
 description = "Remove the 2 lowest faces from Red Dice this combat"

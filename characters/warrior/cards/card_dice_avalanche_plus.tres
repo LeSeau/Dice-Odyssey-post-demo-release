@@ -1,13 +1,13 @@
 [gd_resource type="Resource" load_steps=4 format=3 uid="uid://cd1ceav4lplus"]
 
-[ext_resource type="Texture2D" uid="uid://dcg2pw0u0ir2p" path="res://nova.png" id="1_icon"]
+[ext_resource type="Texture2D" path="res://avalanche.png" id="1_icon"]
 [ext_resource type="Script" path="res://characters/warrior/cards/dice_avalanche_plus.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://cvjv56ti6hkis" path="res://impact1.ogg" id="3_sound"]
 
 [resource]
 script = ExtResource("2_script")
 id = "card_dice_avalanche_plus"
-name = "Dice Avalanche+"
+name = "Avalanche+"
 type = 0
 target = 1
 description = "Throw one Dice of each type you own. Each deals damage equal to its roll"

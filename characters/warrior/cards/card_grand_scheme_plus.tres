@@ -1,6 +1,6 @@
 [gd_resource type="Resource" load_steps=4 format=3 uid="uid://cgr4ndschplus"]
 
-[ext_resource type="Texture2D" uid="uid://6w3q7ds4pba7" path="res://sigil.png" id="1_icon"]
+[ext_resource type="Texture2D" path="res://grand_scheme.png" id="1_icon"]
 [ext_resource type="Script" path="res://characters/warrior/cards/grand_scheme.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://d66mkrcpmfir" path="res://chargedicesound.mp3" id="3_sound"]
 

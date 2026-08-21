@@ -1,6 +1,6 @@
 [gd_resource type="Resource" load_steps=5 format=3 uid="uid://b0vercl0ck49r"]
 
-[ext_resource type="Texture2D" uid="uid://cpb12px7xr3nt" path="res://resonance_good.png" id="1_icon"]
+[ext_resource type="Texture2D" path="res://overclock.png" id="1_icon"]
 [ext_resource type="Script" path="res://characters/warrior/cards/overclock.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://d66mkrcpmfir" path="res://chargedicesound.mp3" id="3_sound"]
 [ext_resource type="Resource" uid="uid://b0vercl0plus1" path="res://characters/warrior/cards/card_overclock_plus.tres" id="4_plus"]
