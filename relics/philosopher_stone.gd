@@ -6,9 +6,7 @@ func initialize_relic(owner: RelicUI) -> void:
 
 
 func _on_card_played(card: Card):
-    print(Global.cards_played_this_turn)
     if Global.cards_played_this_turn == 3:
-        print("Triggering philosopher's stone relic")
         var active_dice = Global.dice_type
         var dice_amount_variable = active_dice + "_dice_current_amount"
         

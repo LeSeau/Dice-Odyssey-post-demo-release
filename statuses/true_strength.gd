@@ -9,7 +9,6 @@ const STRENGTH_PER_TURN := 2
 
 
 func apply_status(target: Node) -> void:
-    print("applied true strength form")
     
     var status_effect := StatusEffect.new()
     var muscle := MUSCLE_STATUS.duplicate()

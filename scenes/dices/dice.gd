@@ -2410,7 +2410,6 @@ func _on_active_dice_changed(new_dice_type):
     SFXPlayer.play(Global.sfx_click)
     dice_type = new_dice_type
     Global.dice_type = new_dice_type  # Make sure to update the global variable
-    print("Active dice changed to: " + dice_type)
     if dice_type == "red" and new_dice_type != "red" and socketed_card_ui != null:
         _on_cancel_red_card_pressed()
     Global.next_guaranteed_roll = -1
@@ -2517,8 +2516,9 @@ func _update_emanation_colors() -> void:
     mat.set_shader_parameter("base_speed", speed)
 
 func _on_dice_rolled(rolled_dice_type, roll_value):
-    print("Dice rolled: ", roll_value)
-    print("Dice type: ", rolled_dice_type)
+    # Connected to Events.dice_rolled (see _ready). Body intentionally empty -
+    # it only ever printed. Kept as a hook so the connect() above stays valid.
+    pass
 
 func play_error_sound():
     var sound = AudioStreamPlayer.new()
@@ -2877,7 +2877,6 @@ func _on_next_roll_determined():
     next_roll_panel.show()
     var path := "res://assets/images/%s%d.png" % [Global.dice_type, Global.next_guaranteed_roll]
     next_roll_texture.texture = load(path)
-    print(path)
     # Landing pop: battle.gd flies the picked scout die here and emits this signal on
     # touchdown, so the slot visibly RECEIVES it (scale punch + overbright flash - the
     # panel's modulate propagates to the face texture inside) instead of silently appearing.

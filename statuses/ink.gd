@@ -9,7 +9,6 @@ func initialize_status(_target: Node) -> void:
         Events.check_ink_status.connect(consume_stack)
 
 func consume_stack() -> void:
-    print(duration)
     duration-=1
     if duration < 1:
         #Global.remove_ink_next_card = true

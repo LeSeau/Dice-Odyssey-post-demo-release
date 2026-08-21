@@ -12,11 +12,9 @@ func initialize_relic(owner: RelicUI) -> void:
     print("BowRelic: Connected to dice_rolled signal")
     print("initialize_relic called for ", relic_name)
 func _on_dice_rolled(dice_type: String, roll_value: int, owner: RelicUI) -> void:
-    print("BowRelic: Dice rolled! Type: ", dice_type, " Roll value: ", roll_value, " Last roll: ", Global.last_roll)
 
     # Check the last individual roll, not the cumulative value
     if Global.last_roll != 6:
-        print("BowRelic: Not a 6, skipping (rolled ", Global.last_roll, ")")
         return  # Only trigger on a roll of 6
 
     _fire_arrow(owner)
@@ -27,27 +25,23 @@ func _on_dice_thrown_landed(_dice_type: String, value: int, owner: RelicUI) -> v
     _fire_arrow(owner)
 
 func _fire_arrow(owner: RelicUI) -> void:
-    print("BowRelic: Rolled a 6! Dealing damage...")
 
     # Flash the relic UI for feedback
     owner.flash()
 
     # Get all enemies in the scene using the owner's tree
     var enemies = owner.get_tree().get_nodes_in_group("enemies")
-    print("BowRelic: Found ", enemies.size(), " enemies")
 
     if enemies.size() == 0:
         return  # No enemies to hit
 
     # Pick a random enemy
     var random_enemy = enemies[randi() % enemies.size()]
-    print("BowRelic: Targeting enemy: ", random_enemy.name)
 
     # Create and execute the damage effect
     var dmg = DamageEffect.new()
     dmg.amount = 5
     dmg.execute([random_enemy])
-    print("BowRelic: Damage dealt!")
 
 func deactivate_relic(owner: RelicUI) -> void:
     # Disconnect the event when the relic is removed

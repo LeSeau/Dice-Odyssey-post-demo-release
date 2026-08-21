@@ -34,7 +34,6 @@ func consume_stack() -> void:
             muscle.stacks = CANALIZE_STRENGTH
             status_effect.status = muscle
             status_effect.execute([target])
-            print("consuming stack of canalize!")
             status_applied.emit(self)
             status_changed.emit()
             Events.enemy_strength_changed.emit()

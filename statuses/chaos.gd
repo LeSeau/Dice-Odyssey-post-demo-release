@@ -10,7 +10,6 @@ func initialize_status(target: Node) -> void:
 
 func consume_stack() -> void:
     if duration > 0:
-        print("consuming stack")
         Events.discard_random_card.emit()
         
         # Create a callback for the delayed draw card event

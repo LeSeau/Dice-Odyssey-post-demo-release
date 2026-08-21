@@ -14,7 +14,6 @@ func _on_red_dice_rolled() -> void:
 
     Events.change_current_power.emit()
 
-    print("Red dice boosted by 2!")
 
 func deactivate_relic(owner: RelicUI) -> void:
     if Events.red_dice_rolled.is_connected(_on_red_dice_rolled):

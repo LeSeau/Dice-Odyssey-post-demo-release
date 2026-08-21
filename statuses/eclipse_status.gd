@@ -15,17 +15,14 @@ func consume_eclipse() -> void:
     if duration > 0:
         duration -= 1
     
-    print("Eclipse status consumed, remaining duration: ", duration)
     
     # The status_changed signal will trigger status_ui to update or remove itself
     status_changed.emit()
 
 func apply_status(target: Node) -> void:
-    print("Eclipse status applied")
     
     # Your current eclipse logic here
     if type == Status.Type.START_OF_TURN and target is Player:
-        print("Eclipse: Drawing extra card")
         Events.draw_card.emit(1)
     
     status_applied.emit(self)

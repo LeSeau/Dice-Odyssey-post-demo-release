@@ -39,7 +39,6 @@ func _on_dice_rolled(_dice_type: String, _roll_value: int) -> void:
         status_effect.status = muscle
         status_effect.execute([target])
         Events.enemy_strength_changed.emit()
-        print("Greedy: gained 2 Strength at fight roll #", total)
 
     # Update stacks to show progress toward next threshold: e.g. 4/6 shows as 4
     stacks = total % 6

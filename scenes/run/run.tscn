@@ -1,4 +1,4 @@
-[gd_scene load_steps=43 format=3 uid="uid://b56wvanf6u6h7"]
+[gd_scene load_steps=44 format=3 uid="uid://b56wvanf6u6h7"]
 
 [ext_resource type="Script" path="res://scenes/run/run.gd" id="1_sgoer"]
 [ext_resource type="PackedScene" uid="uid://deprxl041o8nn" path="res://scenes/map/map.tscn" id="2_1mcea"]
@@ -16,7 +16,7 @@
 [ext_resource type="AudioStream" uid="uid://6p70t2f0sp0v" path="res://victory_daiso.mp3" id="10_8bgi1"]
 [ext_resource type="Texture2D" uid="uid://bgwa4qau0i542" path="res://dice shop clean outline.png" id="10_wacie"]
 [ext_resource type="Texture2D" uid="uid://ye2g85fpdt1y" path="res://deck.png" id="13_pm2lc"]
-[ext_resource type="FontVariation" uid="uid://clgnumfontvar1" path="res://fonts/luckiest_guy_numbers.tres" id="20_hicqd"]
+[ext_resource type="FontVariation" path="res://fonts/luckiest_guy_numbers.tres" id="20_hicqd"]
 [ext_resource type="LabelSettings" uid="uid://dko24yqmrk8ye" path="res://scenes/ui/topbar_label_settings.tres" id="21_topbarlbl"]
 [ext_resource type="Texture2D" uid="uid://des7u80d2851r" path="res://discord_logo_test.png" id="25_5yr4f"]
 [ext_resource type="Texture2D" uid="uid://debpwfe3e4476" path="res://assets/images/shop.jpg" id="30_a4wio"]
@@ -28,7 +28,7 @@
 [ext_resource type="Texture2D" uid="uid://bbhk8pdh4refe" path="res://assets/images/pause_menu_icon.png" id="51_pauseicon"]
 [ext_resource type="PackedScene" uid="uid://c2mvqx4n1p0a1" path="res://scenes/ui/pause_menu.tscn" id="52_pausemenu"]
 [ext_resource type="Texture2D" uid="uid://dyuyks0rcm8ea" path="res://assets/images/ui/ui_top_bar_edge.png" id="53_baredge"]
-[ext_resource type="Texture2D" path="res://assets/images/ui/ui_top_bar_slab.png" id="54_barslab"]
+[ext_resource type="Texture2D" uid="uid://b8iryhnwbs870" path="res://assets/images/ui/ui_top_bar_slab.png" id="54_barslab"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxFlat_topbar_bg"]
 texture = ExtResource("54_barslab")

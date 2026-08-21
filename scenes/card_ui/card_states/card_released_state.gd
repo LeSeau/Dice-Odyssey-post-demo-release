@@ -3,7 +3,6 @@ var played: bool
 
 func enter() -> void:
     Global.dragging_card = false
-    print("entering released state")
     Events.fan_hand_requested.emit()
     played = false
     
@@ -11,7 +10,6 @@ func enter() -> void:
         # We're PLAYING a socketed card (rolling dice with it)
         if card_ui.card.target == Card.Target.SINGLE_ENEMY:
             if card_ui.targets.is_empty():
-                print("No target for single enemy card, returning to AIMING")
                 transition_requested.emit(self, CardState.State.AIMING)
                 return
 
@@ -45,7 +43,6 @@ func enter() -> void:
                 if card_ui.card.is_single_targeted() and card_ui.targets.is_empty():
                     transition_requested.emit(self, CardState.State.AIMING)
                     return
-                print("Card can be played without dice, playing directly")
                 played = true
                 card_ui.play()
                 queue_free()
@@ -62,7 +59,6 @@ func enter() -> void:
                 # It should only be set when actually rolling dice with the card
 
         if Global.dice_type == "red":
-            print("current dice is red")
             Global.charged_card_instance_id = card_ui.card.instance_id
             # Append rather than replace: with a second socket open, BOTH socketed cards
             # have to fire on the one Red roll. dice.gd prunes this list whenever a
