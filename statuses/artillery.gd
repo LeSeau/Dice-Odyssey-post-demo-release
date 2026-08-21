@@ -1,6 +1,6 @@
 extends Status
 
-# Artillery blessing: each turn, hurl one die of a random OWNED type at a random enemy.
+# Artillery blessing: each turn, hurl one die of a random type at a random enemy.
 # START_OF_TURN, so StatusHandler drives it - no signal wiring and nothing to disconnect.
 #
 # Uses the same Events.dice_thrown -> Card._land_thrown_die plumbing every throw card uses, so
@@ -20,13 +20,13 @@ func apply_status(target: Node) -> void:
     var enemies := tree.get_nodes_in_group("enemies")
     if enemies.is_empty():
         return
-    var owned: Array = []
-    for type in Global.DICE_TYPE_ORDER:
-        if Global.get(type + "_dice_max_amount") > 0:
-            owned.append(type)
-    if owned.is_empty():
+    # ANY of the nine types, owned or not (Julien, 2026-08-20). The blessing is a bombardment
+    # from somewhere else, not a second draw from your own bag - which is also what makes it
+    # worth a card in a two-type starter deck, where "one you own" meant Blue or Red.
+    var pool: Array = Global.DICE_TYPE_ORDER
+    if pool.is_empty():
         return
-    var dice_type: String = owned[randi() % owned.size()]
+    var dice_type: String = pool[randi() % pool.size()]
     var faces: Array = Card.thrown_faces_for(dice_type)
     var value: int = faces[randi() % faces.size()]
     var enemy: Node = enemies[randi() % enemies.size()]

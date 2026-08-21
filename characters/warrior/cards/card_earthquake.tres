@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=5 format=3 uid="uid://be4rthqu4ke29"]
+[gd_resource type="Resource" load_steps=5 format=3 uid="uid://be4rthqu4ke3a"]
 
 [ext_resource type="Texture2D" uid="uid://p0muugvhymx0" path="res://earthquake.png" id="1_icon"]
 [ext_resource type="Script" path="res://characters/warrior/cards/earthquake.gd" id="2_script"]

@@ -17,7 +17,11 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     var value: int = faces[randi() % faces.size()]
     var target: Node = targets[0]
     Events.dice_thrown.emit([{"type": "giant", "value": value, "target": target}], Global.last_played_card_position)
-    var die_damage := modifiers.get_modified_value(value, Modifier.Type.DMG_DEALT)
+    # Thrown dice deal their RAW face value: no Strength, no player DMG_DEALT modifier
+    # (Julien, 2026-08-20 - a 9-die Avalanche multiplied Strength nine times). Trebuchet's
+    # Global.thrown_dice_bonus_fight, applied in card.gd::_on_thrown_die_landed, is now the
+    # ONLY way to scale a thrown die. The target's own Exposed still applies on the target.
+    var die_damage: int = value
     _land_thrown_die(target.get_tree(), target, die_damage, Global.DICE_THROW_FLIGHT_TIME, sound, "giant", value)
     Events.dice_roll_reset.emit()
     Events.reset_charged_card.emit()

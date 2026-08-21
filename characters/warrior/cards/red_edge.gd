@@ -7,7 +7,7 @@ extends Card
 # printed ones, so it stacks correctly with an infusion or a previous trim; the result is
 # stored as the new fight-scoped override.
 
-const TRIM_COUNT := 2
+const TRIM_COUNT := 1
 const DICE_TYPE := "red"
 const RED_EDGE_STATUS = preload("res://statuses/status_red_edge.tres")
 

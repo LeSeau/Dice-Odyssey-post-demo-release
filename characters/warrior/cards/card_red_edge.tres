@@ -1,16 +1,17 @@
-[gd_resource type="Resource" load_steps=4 format=3 uid="uid://c4cardrededge"]
+[gd_resource type="Resource" script_class="Card" load_steps=5 format=3 uid="uid://c4cardrededge"]
 
 [ext_resource type="Texture2D" uid="uid://c75csvpq1hxts" path="res://red_edge.png" id="1_icon"]
 [ext_resource type="Script" path="res://characters/warrior/cards/red_edge.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://df64e7qat73gs" path="res://art/block.ogg" id="3_sound"]
 
+[ext_resource type="Resource" uid="uid://cr3d3dg3p1u5aa" path="res://characters/warrior/cards/card_red_edge_plus.tres" id="red_edge_plus_up"]
 [resource]
 script = ExtResource("2_script")
 id = "card_red_edge"
 name = "Grindstone"
 type = 2
 target = 0
-description = "Remove the 2 lowest faces from Red Dice this combat"
+description = "Remove the lowest face from Red Dice this combat"
 rarity = 0
 rarity_tier = 1
 red_only = false
@@ -23,6 +24,7 @@ bonus_requirement_number = 0
 bonus_description_text = ""
 tags = "Exhaust, Red Dice"
 upgraded = false
+upgraded_version = ExtResource("red_edge_plus_up")
 icon = ExtResource("1_icon")
 tooltip_text = ""
 sound = ExtResource("3_sound")

@@ -1,15 +1,14 @@
 extends Card
 
-# Compound+ : next turn, draw 3 cards and Charge 2 Blue Dice (base draws 2). Draw and charge
-# decouple here (base status couples them 2/2), so this uses its own CompoundPlusStatus.
+# Same Celestial carry-over as the base card, larger promise. See compound.gd for why this
+# must not emit dice_roll_reset.
 
-const COMPOUND_PLUS_STATUS = preload("res://statuses/status_compound_plus.tres")
+const POWER := 8
 
 
 func apply_effects(targets: Array[Node], _modifiers: ModifierHandler) -> void:
-    var status_effect := StatusEffect.new()
-    status_effect.status = COMPOUND_PLUS_STATUS.duplicate()
-    status_effect.sound = sound
-    status_effect.execute(targets)
-    Events.dice_roll_reset.emit()
+    Global.starting_power_next_turn = maxi(Global.starting_power_next_turn, POWER)
+    var support_effect := SupportEffect.new()
+    support_effect.sound = sound
+    support_effect.execute(targets)
     Events.reset_charged_card.emit()

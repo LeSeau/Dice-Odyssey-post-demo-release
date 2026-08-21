@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="EffigyStatus" load_steps=3 format=3 uid="uid://c3ff1gy5t8u8"]
+
+[ext_resource type="Script" path="res://statuses/effigy.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://status_effigy.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+id = "effigy_plus"
+type = 2
+stack_type = 0
+can_expire = false
+duration = 1
+stacks = 8
+icon = ExtResource("2_icon")
+tooltip = "Takes 8 damage every time you roll a 6 this combat"
+hide_when_zero = false
+hide_counter_when_zero = false

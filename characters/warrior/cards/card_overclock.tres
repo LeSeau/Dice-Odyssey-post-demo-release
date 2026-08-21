@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=5 format=3 uid="uid://b0vercl0ck49r"]
+[gd_resource type="Resource" load_steps=5 format=3 uid="uid://b0vercl0ck5ar"]
 
 [ext_resource type="Texture2D" path="res://overclock.png" id="1_icon"]
 [ext_resource type="Script" path="res://characters/warrior/cards/overclock.gd" id="2_script"]

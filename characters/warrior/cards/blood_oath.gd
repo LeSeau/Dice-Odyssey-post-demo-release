@@ -1,21 +1,17 @@
 extends Card
 
-# IN-HAND PASSIVE: while this sits in your hand, every Red roll gains 3 Power.
-# Julien's idea, and it opens a whole new card class - a card that does something WITHOUT
-# being played. The tension only exists because it also has a real play effect: hold it as an
-# aura, or spend it for the dice. Global.in_hand_roll_bonus() reads the live hand.
+# IN-HAND PASSIVE: while this sits in your hand, every Red roll gains bonus Power. It can
+# never be played (Julien, 2026-08-20) - the aura is the whole card, and the old "spend it
+# for 2 Red Dice" mode was a way to delete your own buff.
+#
+# The bonus itself lives in Global.in_hand_roll_bonus(), which reads the live Hand, so the
+# aura switches off the instant the card is played, discarded or swept - no sync needed.
+# Same figure as the Blood Sword relic, and the two stack.
 
-const CHARGE_COUNT := 2
+
+func would_no_op_now() -> bool:
+    return true
 
 
-func apply_effects(targets: Array[Node], _modifiers: ModifierHandler) -> void:
-    Global.red_dice_current_amount += CHARGE_COUNT
-    Events.change_current_power.emit()
-    var support_effect := SupportEffect.new()
-    support_effect.sound = sound
-    support_effect.execute(targets)
-    Events.dice_roll_reset.emit()
-    Events.dice_amount_changed.emit()
-    Events.dice_charged.emit("red", CHARGE_COUNT)
-    Events.temporary_dice_added.emit("red")
+func apply_effects(_targets: Array[Node], _modifiers: ModifierHandler) -> void:
     Events.reset_charged_card.emit()

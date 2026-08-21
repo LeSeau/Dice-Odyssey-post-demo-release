@@ -1,22 +1,22 @@
 extends Card
 
-# IN-HAND PASSIVE: while held, your dice cannot roll their lowest face. Applied inside
-# Global.current_face_values(), so the roll, the Scout preview and thrown dice all agree.
+# IN-HAND PASSIVE, and now a member of the sixes family alongside Jackpot and Effigy: while
+# it sits in your hand, every natural 6 you roll grants Block. It can never be played
+# (Julien, 2026-08-20) - holding it IS the effect, so there is no second mode to spend.
 #
-# Play effect is Lucky 1 rather than Julien's specced "reroll your last roll": the reroll
-# machinery is Ricochet-specific (it restores a snapshot only captured for reroll-capable
-# types), and driving it from a card would have meant reaching into dice.gd's internals.
-# Lucky keeps the talisman-of-fortune read and is a mechanic that already exists. Flagged as a
-# deviation - say the word and it can become a real reroll.
+# The Block itself is granted by dice.gd at the same `last_roll == 6` check Jackpot and
+# Effigy already key off, so all three agree on what a "6" is: the face actually rolled,
+# never a Boosted or Loaded 5->6. The amount lives in Global.TALISMAN_SIX_BLOCK.
+#
+# would_no_op_now() is what the pick-up refusal in card_clicked_state.gd checks, so dragging
+# this gives the standard shake + message instead of silently doing nothing.
 
-const LUCKY_STATUS = preload("res://statuses/lucky.tres")
+
+func would_no_op_now() -> bool:
+    return true
 
 
-func apply_effects(targets: Array[Node], _modifiers: ModifierHandler) -> void:
-    var status_effect := StatusEffect.new()
-    var lucky := LUCKY_STATUS.duplicate()
-    lucky.stacks = 1
-    status_effect.status = lucky
-    status_effect.sound = sound
-    status_effect.execute(targets)
+func apply_effects(_targets: Array[Node], _modifiers: ModifierHandler) -> void:
+    # Unreachable in normal play (would_no_op_now blocks the drag); a no-op rather than an
+    # error if some future path plays it anyway.
     Events.reset_charged_card.emit()

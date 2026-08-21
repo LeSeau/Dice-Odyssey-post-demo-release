@@ -1,7 +1,7 @@
 [gd_resource type="Resource" load_steps=4 format=3 uid="uid://bmet30rgd1pl1"]
 
 [ext_resource type="Texture2D" uid="uid://dv4qi7bg3v7f1" path="res://meteor.png" id="1_icon"]
-[ext_resource type="Script" path="res://characters/warrior/cards/meteor.gd" id="2_script"]
+[ext_resource type="Script" path="res://characters/warrior/cards/meteor_plus.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://cvjv56ti6hkis" path="res://impact1.ogg" id="3_sound"]
 
 [resource]
@@ -10,13 +10,13 @@ id = "card_meteor_plus"
 name = "Meteor+"
 type = 0
 target = 1
-description = "Deal X damage. Throw a Giant Dice that deals damage equal to its roll"
+description = "Deal X damage. Throw a Giant Dice that rolls 7-12 and deals damage equal to its roll"
 rarity = 0
 rarity_tier = 0
 red_only = false
 can_play_without_dice = false
-requirement = 0
-requirement_number = 0
+requirement = 1
+requirement_number = 5
 exhausts = false
 bonus_requirement = 0
 bonus_requirement_number = 0

@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="Card" load_steps=4 format=3 uid="uid://cb100d0athp1u5"]
+
+[ext_resource type="Texture2D" path="res://blood_oath.png" id="1_icon"]
+[ext_resource type="Script" path="res://characters/warrior/cards/blood_oath_plus.gd" id="2_script"]
+[ext_resource type="AudioStream" uid="uid://df64e7qat73gs" path="res://art/block.ogg" id="3_sound"]
+
+[resource]
+script = ExtResource("2_script")
+id = "card_blood_oath_plus"
+name = "Blood Oath+"
+type = 1
+target = 0
+description = "While this is in your hand, your Red Dice rolls gain 3 bonus Power. This card cannot be played"
+rarity = 0
+rarity_tier = 1
+red_only = false
+can_play_without_dice = false
+requirement = 0
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Red Dice"
+upgraded = true
+icon = ExtResource("1_icon")
+tooltip_text = ""
+sound = ExtResource("3_sound")

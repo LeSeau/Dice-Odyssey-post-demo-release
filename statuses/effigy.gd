@@ -2,14 +2,18 @@ class_name EffigyStatus
 extends Status
 
 # Effigy's curse: for the rest of the FIGHT, every natural 6 the player rolls hits this enemy
-# for DAMAGE_PER_SIX. The sixes payoff aimed at a single target (Jackpot is the whole-fight
+# for its per-six damage. The sixes payoff aimed at a single target (Jackpot is the whole-fight
 # lump); buying an Evil die - 75% sixes - is what turns this into a machine gun.
 #
 # Keyed on Global.last_roll, the face actually rolled, so a Boosted or Loaded 5->6 never
 # counts - the same ruling Arcane and Critical Edge already follow. dice_rolled carries the
 # ACCUMULATED power, not the face, which is exactly why it can't be used for the check.
 
-const DAMAGE_PER_SIX := 8
+# Damage per six rides on `stacks` rather than a const so the base status (5) and
+# effigy_plus.tres (8) can share this script - the same trick Trebuchet+ uses. stack_type is
+# NONE on both resources, so the number is a payload, not a badge. DEFAULT_DAMAGE is only a
+# floor for a resource that somehow arrives with stacks unset.
+const DEFAULT_DAMAGE := 5
 
 var target: Node
 var _last_roll_token := -1
@@ -53,7 +57,7 @@ func _strike() -> void:
     if not _consume_roll_token():
         return
     var damage_effect := DamageEffect.new()
-    damage_effect.amount = DAMAGE_PER_SIX
+    damage_effect.amount = maxi(stacks, DEFAULT_DAMAGE)
     damage_effect.execute([target])
 
 

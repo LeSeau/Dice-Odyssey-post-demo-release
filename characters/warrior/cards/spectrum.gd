@@ -1,11 +1,15 @@
 extends Card
 
+# Celestial (Julien, 2026-08-20): the rainbow turn already pays for itself by resetting your
+# Power on every type switch, so the payoff must not charge you a third time. Celestial also
+# means no dice_roll_reset here - the last type's bank survives for a second card.
+
 # The rainbow payoff (Julien's idea, 2026-08-16): nothing else in the pool reads dice-type
 # DIVERSITY. Self-balancing by the core rules - switching type resets your Power, so going
 # rainbow costs you the chain, and the cost is already paid by the mechanic that exists.
 # It also makes the dice SHOP part of the build: every extra type you own raises the ceiling.
 
-const DAMAGE_PER_TYPE := 4
+const DAMAGE_PER_TYPE := 2
 
 
 func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
@@ -16,7 +20,6 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
         damage_effect.amount = damage
         damage_effect.sound = sound
         damage_effect.execute(targets)
-    Events.dice_roll_reset.emit()
 
 
 func _damage() -> int:

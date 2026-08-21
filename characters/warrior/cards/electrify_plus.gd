@@ -1,29 +1,25 @@
 extends Card
 
-const DEPLETED_STATUS = preload("res://statuses/depleted.tres")
+# Same trade as the base card, one more die. See electrify.gd.
+# A burst of Ricochet dice - and Ricochet's whole identity is the reroll, so this is really
+# "buy N extra chances at a good face".
+#
+# The Depleted downside was dropped (Julien, 2026-08-20): Depleted has no mechanical effect
+# yet, so it was showing the player a badge that cost them nothing - a fake price. Charge
+# count came down 3 -> 2 at the same time, and the card moved to Uncommon.
+
+const CHARGE_COUNT := 3
+const DICE_TYPE := "odd"
 
 
-func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
-
-    Global.odd_dice_current_amount+=4
+func apply_effects(targets: Array[Node], _modifiers: ModifierHandler) -> void:
+    Global.odd_dice_current_amount += CHARGE_COUNT
     Events.change_current_power.emit()
     var support_effect := SupportEffect.new()
     support_effect.sound = sound
     support_effect.execute(targets)
     Events.dice_roll_reset.emit()
     Events.dice_amount_changed.emit()
-    Events.dice_charged.emit("odd", 4)
-    Events.temporary_dice_added.emit("odd")
-    # The upgrade keeps the base card's Depleted downside (Julien, 2026-07-16 - the earlier
-    # "+" pass had dropped it by mistake); only the Charge amount improves (3 -> 4).
-    var status_effect := StatusEffect.new()
-    var depleted := DEPLETED_STATUS.duplicate()
-    depleted.duration = 1
-    status_effect.status = depleted
-    var player_targets = targets[0].get_tree().get_nodes_in_group("player")
-    status_effect.execute(player_targets)
-    # Blue, not Ricochet - see electrify.gd for why the cost is deliberately cross-type.
-    Global.blue_dice_bonus_amount -= 1
+    Events.dice_charged.emit(DICE_TYPE, CHARGE_COUNT)
+    Events.temporary_dice_added.emit(DICE_TYPE)
     Events.reset_charged_card.emit()
-func _on_dice_rolled():
-    print("adding dice to damage")

@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="Card" load_steps=4 format=3 uid="uid://cd3adw8p1u5aa"]
+
+[ext_resource type="Texture2D" path="res://dead_weight.png" id="1_icon"]
+[ext_resource type="Script" path="res://characters/warrior/cards/dead_weight.gd" id="2_script"]
+[ext_resource type="AudioStream" uid="uid://df64e7qat73gs" path="res://art/block.ogg" id="3_sound"]
+
+[resource]
+script = ExtResource("2_script")
+id = "card_dead_weight_plus"
+name = "Dead Weight+"
+type = 1
+target = 0
+description = "While this is in your hand, gain Loaded 1 and 1 Strength. This card cannot be played"
+rarity = 0
+rarity_tier = 0
+red_only = false
+can_play_without_dice = false
+requirement = 0
+requirement_number = 0
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = "Loaded, Strength"
+upgraded = true
+icon = ExtResource("1_icon")
+tooltip_text = ""
+sound = ExtResource("3_sound")
