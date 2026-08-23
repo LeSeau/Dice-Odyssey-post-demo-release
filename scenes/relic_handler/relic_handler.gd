@@ -65,8 +65,37 @@ func add_relic(relic: Relic) -> void:
     _resize_for_top_bar(new_relic_ui)
     relics.add_child(new_relic_ui)
     new_relic_ui.relic = relic  # set_relic handles initialize_relic already
+    _make_inspectable(new_relic_ui, relic)
     print("ADDED: ", relic.id)
     AchievementManager.report_relic_count(relics.get_child_count())
+
+
+const RELIC_INSPECT := preload("res://scenes/ui/relic_inspect.gd")
+
+# Click-to-inspect, Slay the Spire 2 style. Wired HERE and not in relic_ui.gd because that
+# scene is shared with shop_relic.tscn, where a click means BUY - the same scoping reason
+# _resize_for_top_bar exists. Only the instances this handler builds get the behaviour.
+func _make_inspectable(relic_ui: RelicUI, relic: Relic) -> void:
+    # Icon and Counter fill the RelicUI and default to mouse_filter STOP, so they would eat
+    # the click before RelicUI's gui_input ever saw it (exactly what shop_relic.gd works
+    # around). Instance-local, so combat/shop relics are untouched.
+    relic_ui.mouse_filter = Control.MOUSE_FILTER_STOP
+    var icon := relic_ui.get_node_or_null("Icon") as Control
+    if icon:
+        icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    var counter := relic_ui.get_node_or_null("Counter") as Control
+    if counter:
+        counter.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    relic_ui.gui_input.connect(func(event: InputEvent) -> void:
+        if not (event is InputEventMouseButton):
+            return
+        if event.button_index != MOUSE_BUTTON_LEFT or not event.pressed:
+            return
+        # Drop the hover tooltip first, or it sits on top of the popup for its full 8s
+        # safety timeout with nothing left to dismiss it.
+        relic_ui._cleanup_tooltips()
+        RELIC_INSPECT.open(relic, self)
+    )
 
 func _resize_for_top_bar(relic_ui: RelicUI) -> void:
     relic_ui.custom_minimum_size = Vector2(TOP_BAR_ICON_SIZE, TOP_BAR_ICON_SIZE)
