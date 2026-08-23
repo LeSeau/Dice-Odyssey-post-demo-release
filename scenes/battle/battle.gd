@@ -166,6 +166,12 @@ func start_battle() -> void:
     # Golem carry-over is per-FIGHT: dice banked at the end of one combat must not show up
     # in the opening hand of the next one.
     Global.golem_dice_carryover = 0
+    # Same reasoning for the carried-Power promise (Compound/Compound+, the unpooled
+    # Tension, the Stockpile statuses): it is written during a turn and consumed by the
+    # NEXT turn's start, so a promise made on the turn a fight ENDS has no turn left to
+    # pay it out - it used to survive into the opening turn of the next combat as free
+    # Power (Julien, 2026-08-23). Only reset_run_state() cleared it before this.
+    Global.starting_power_next_turn = 0
     # battle_started MUST fire before the START_OF_COMBAT relic cascade below: that cascade
     # synchronously calls player_handler.start_battle() -> start_turn() -> emits
     # player_turn_started, which recomputes each dice type's current_amount from its

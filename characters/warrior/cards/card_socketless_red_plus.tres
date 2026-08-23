@@ -7,7 +7,7 @@
 [resource]
 script = ExtResource("2_script")
 id = "card_socketless_red_plus"
-name = "Socketless Red+"
+name = "Armageddon+"
 type = 2
 target = 0
 description = "You may roll the Red Dice with an empty socket. It deals X damage to ALL enemies and gives 1 Strength"

@@ -21,6 +21,7 @@ var _hit_rest_position: Vector2
 var _hit_rest_sprite_scale: Vector2
 var _hit_reaction_active := false
 var _sway_material: ShaderMaterial
+var _ground_shadow: Sprite2D
 
 
 func _ready() -> void:
@@ -60,6 +61,7 @@ func _ready() -> void:
     status_handler.sort_children.connect(_update_status_row_x)
     stats_ui.sort_children.connect(_update_status_row_x)
     _update_status_row_x()
+    _update_ground_shadow()
 
 
 func _update_status_row_x() -> void:
@@ -69,6 +71,36 @@ func _update_status_row_x() -> void:
     if health_bar == null or health_bar.size.x <= 0.0:
         return
     status_handler.position.x = to_local(health_bar.global_position).x
+
+
+# Ground shadow, mirroring Enemy's (enemy.gd::update_enemy). Every enemy builds one and the
+# player never did. With the old chibi - a dark, wide, bottom-heavy silhouette - the omission
+# was invisible; the 2026-08 hero art has a narrower stance and pale legs, so he read as
+# hovering next to enemies that are visibly planted.
+#
+# Child of the ROOT and moved to index 0 so it draws under SpriteRoot. Note the deliberate
+# difference from Enemy: the player's knockback tweens the root (_play_hit_reaction), so the
+# shadow travels with the recoil - correct, since the body is genuinely shoved backwards. The
+# squash tweens sprite_2d.scale and the idle is a shader deformation, so neither drags it.
+# Texture and content-rect come from Enemy's cached statics, so both stay in sync by
+# construction if those are ever retuned.
+func _update_ground_shadow() -> void:
+    if sprite_2d == null or sprite_2d.texture == null:
+        return
+    if _ground_shadow == null:
+        _ground_shadow = Sprite2D.new()
+        _ground_shadow.texture = Enemy._get_shadow_texture()
+        add_child(_ground_shadow)
+        move_child(_ground_shadow, 0)
+    var tex_size: Vector2 = sprite_2d.texture.get_size()
+    var content: Rect2 = Enemy._get_content_rect(sprite_2d.texture)
+    # Feet are the bottom-centre of the INK, not of the canvas - the art is padded.
+    var feet := Vector2(
+            content.get_center().x - tex_size.x / 2.0,
+            content.end.y - tex_size.y / 2.0)
+    _ground_shadow.position = to_local(sprite_2d.to_global(feet)) + Vector2(0.0, 5.0)
+    var shadow_width: float = content.size.x * sprite_2d.scale.x * 0.82
+    _ground_shadow.scale = Vector2(shadow_width / 256.0, shadow_width * 0.24 / 256.0)
 
 
 
@@ -88,6 +120,7 @@ func update_player() -> void:
         await ready
 
     sprite_2d.texture = stats.art
+    _update_ground_shadow()
     update_stats()
 
 

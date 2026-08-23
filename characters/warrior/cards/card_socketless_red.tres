@@ -3,8 +3,8 @@
 [ext_resource type="Texture2D" uid="uid://drd4e4u7tdggw" path="res://socketless_red.png" id="1_icon"]
 [ext_resource type="Script" path="res://characters/warrior/cards/socketless_red.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://df64e7qat73gs" path="res://art/block.ogg" id="3_sound"]
-
 [ext_resource type="Resource" uid="uid://c50ck3tl355p1" path="res://characters/warrior/cards/card_socketless_red_plus.tres" id="socketless_red_up"]
+
 [resource]
 script = ExtResource("2_script")
 id = "card_socketless_red"

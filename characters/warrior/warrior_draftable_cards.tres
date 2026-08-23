@@ -69,7 +69,7 @@
 [ext_resource type="Resource" uid="uid://bd1cel0rdbl53" path="res://characters/warrior/cards/card_dicelord_gift.tres" id="126_dicelordgift"]
 [ext_resource type="Resource" uid="uid://cr4mp4rtbl0ck" path="res://characters/warrior/cards/card_rampart.tres" id="128_rampart"]
 [ext_resource type="Resource" uid="uid://ck1ckst4rt0dd" path="res://characters/warrior/cards/card_kickstart.tres" id="129_kickstart"]
-[ext_resource type="Resource" path="res://characters/warrior/cards/card_corrode.tres" id="130_corrode"]
+[ext_resource type="Resource" uid="uid://c0rr0de4ll3nm" path="res://characters/warrior/cards/card_corrode.tres" id="130_corrode"]
 [ext_resource type="Resource" uid="uid://b316acidnpxbg" path="res://characters/warrior/cards/card_bulletproof.tres" id="200_bltprf"]
 [ext_resource type="Resource" uid="uid://c85xium2g1ifp" path="res://characters/warrior/cards/card_trebuchet.tres" id="201_trbct"]
 [ext_resource type="Resource" uid="uid://cw3ight3ddic3" path="res://characters/warrior/cards/card_weighted_dice.tres" id="300_weighted"]
