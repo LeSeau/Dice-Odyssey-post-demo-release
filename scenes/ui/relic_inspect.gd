@@ -31,6 +31,19 @@ const PANEL_BG := Color(0.129412, 0.164706, 0.243137)
 const PANEL_BORDER := Color(0.752941, 0.501961, 0.0627451)
 const ICON_PLATE_BG := Color(0.09, 0.114, 0.169)
 const GOLD := Color(0.933, 0.710, 0.165)
+# Rarity label colours, matching the gems on card banners: stone for Common, a saturated blue
+# for Uncommon, gold for Rare. Lightened from the gem art where needed so they stay legible as
+# TEXT on the navy panel - a gem only has to be distinguishable, a word has to be readable.
+const RARITY_COLORS := {
+	Relic.RarityTier.COMMON: Color(0.62, 0.66, 0.72),
+	Relic.RarityTier.UNCOMMON: Color(0.43, 0.62, 0.91),
+	Relic.RarityTier.RARE: Color(0.933, 0.710, 0.165),
+}
+const RARITY_NAMES := {
+	Relic.RarityTier.COMMON: "Common",
+	Relic.RarityTier.UNCOMMON: "Uncommon",
+	Relic.RarityTier.RARE: "Rare",
+}
 const CREAM := Color(1.0, 0.965, 0.886)
 const DIM_TEXT := Color(0.60, 0.64, 0.72)
 const OUTLINE := Color(0.09, 0.06, 0.02)
@@ -149,7 +162,14 @@ func _build_panel() -> void:
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	plate.add_child(icon)
 
-	# --- name ---
+	# --- name + rarity, kept tight together as one block so the rarity reads as a subtitle
+	# of the name rather than as a third, equally-weighted line ---
+	var name_block := VBoxContainer.new()
+	name_block.add_theme_constant_override("separation", 1)
+	name_block.custom_minimum_size.x = TEXT_WIDTH
+	name_block.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_column.add_child(name_block)
+
 	var title := Label.new()
 	title.text = _relic.relic_name
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -161,7 +181,27 @@ func _build_panel() -> void:
 	title.add_theme_constant_override("outline_size", 6)
 	title.add_theme_color_override("font_outline_color", OUTLINE)
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_column.add_child(title)
+	name_block.add_child(title)
+
+	# Uppercase and letter-spaced so it reads as a LABEL next to the name rather than as more
+	# prose - the same move the rarity chips use elsewhere. Godot's Label has no letter-spacing
+	# property, so it comes from a FontVariation.
+	var rarity_font := FontVariation.new()
+	rarity_font.base_font = TITLE_FONT
+	rarity_font.spacing_glyph = 2
+
+	var rarity := Label.new()
+	rarity.text = String(RARITY_NAMES.get(_relic.rarity_tier, "Common")).to_upper()
+	rarity.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	rarity.custom_minimum_size.x = TEXT_WIDTH
+	rarity.add_theme_font_override("font", rarity_font)
+	rarity.add_theme_font_size_override("font_size", 12)
+	rarity.add_theme_color_override("font_color",
+			RARITY_COLORS.get(_relic.rarity_tier, RARITY_COLORS[Relic.RarityTier.COMMON]))
+	rarity.add_theme_constant_override("outline_size", 4)
+	rarity.add_theme_color_override("font_outline_color", OUTLINE)
+	rarity.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	name_block.add_child(rarity)
 
 	# --- description ---
 	var body := RichTextLabel.new()

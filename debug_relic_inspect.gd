@@ -8,7 +8,7 @@ extends Node
 #   Godot_v4.3-stable_win64_console.exe --path . res://debug_relic_inspect.tscn \
 #       --rendering-driver opengl3 --position 2000,2000
 
-const SHOTS := ["golem_heart", "cartographers_quill", "prismatic_lens", "overflow_valve"]
+const SHOTS := ["golem_heart", "worms_eye_lens", "underdog_ring", "prismatic_lens"]  # rare / uncommon / common / rare-wrapped
 const INSPECT := preload("res://scenes/ui/relic_inspect.gd")
 
 
