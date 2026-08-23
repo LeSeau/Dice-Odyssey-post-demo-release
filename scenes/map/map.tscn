@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scenes/map/map.gd" id="1_bw6fj"]
 [ext_resource type="Script" path="res://scenes/map/map_generator.gd" id="2_biuuq"]
 [ext_resource type="Resource" uid="uid://byiwraochqvw" path="res://battles/battle_stats_pool.tres" id="3_joenb"]
-[ext_resource type="Texture2D" uid="uid://cixhe0hba0c1" path="res://assets/images/scroll.jpg" id="3_rcyey"]
+[ext_resource type="Texture2D" path="res://assets/images/map_parchment_v2.png" id="3_rcyey"]
 [ext_resource type="Resource" uid="uid://dih15xjxqnjvm" path="res://scenes/events/events_stats_pool.tres" id="4_gbdbf"]
 [ext_resource type="Texture2D" uid="uid://gqo2hov6cjwt" path="res://fight_icon_v3.png" id="6_fwmwk"]
 [ext_resource type="FontFile" uid="uid://bm3deysyi2y55" path="res://Belwe Bold/Belwe Bold.otf" id="7_0tp22"]
