@@ -7,7 +7,14 @@ extends Status
 # it inherits the flight visual, the volley timing, Trebuchet's bonus and the "a thrown die
 # counts as rolled" reporting for free.
 
-const CARD := preload("res://characters/warrior/cards/card_artillery.tres")
+# ⚠️ load() at call time, NOT preload(). This status and its card preload each other:
+#   statuses/artillery.gd -> card_artillery.tres -> cards/artillery.gd -> statuses/artillery.tres
+#   -> statuses/artillery.gd
+# Godot breaks that cycle by dropping one side, and the side it dropped was the card's script -
+# so card_artillery.tres loaded as a bare Resource and the CARD.sound below crashed the first
+# time this blessing ticked. Resolving the card lazily removes the parse-time edge entirely;
+# by the time a turn starts everything is long since loaded, so this costs nothing.
+const CARD_PATH := "res://characters/warrior/cards/card_artillery.tres"
 
 
 func apply_status(target: Node) -> void:
@@ -34,4 +41,8 @@ func apply_status(target: Node) -> void:
             enemy.global_position)
     # Reuses the shared landing helper so the damage lands with the flight visual and picks up
     # Trebuchet's per-throw bonus, exactly like a thrown die from a card.
-    CARD._land_thrown_die(tree, enemy, value, Global.DICE_THROW_FLIGHT_TIME, CARD.sound, dice_type, value)
+    var card: Card = load(CARD_PATH)
+    if card == null:
+        return
+    card._land_thrown_die(tree, enemy, value, Global.DICE_THROW_FLIGHT_TIME, card.sound,
+            dice_type, value)
