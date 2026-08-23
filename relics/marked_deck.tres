@@ -5,7 +5,7 @@
 
 [resource]
 script = ExtResource("1_markedd")
-relic_name = "Marked Deck"
+relic_name = "Marked Die"
 id = "marked_deck"
 type = 4
 rarity_tier = 1

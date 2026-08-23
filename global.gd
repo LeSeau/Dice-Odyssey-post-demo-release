@@ -612,7 +612,8 @@ var playing_card_requirement := -1
 # Events.card_played only carries the Card, and "apply Exposed to the enemy you just hit"
 # needs the target - falling back to "all enemies" would quietly be a much stronger relic.
 var last_played_card_targets: Array[Node] = []
-# Marked Deck: armed at the start of each fight, consumed by the first RED roll (dice.gd).
+# Marked Die (internal id stays `marked_deck`): armed at the start of each fight, consumed
+# by the first RED roll (dice.gd).
 var marked_deck_armed := false
 # Mortar Trowel: Block kept when the turn rolls over (0 = vanilla "block resets to 0").
 var block_carryover_cap := 0

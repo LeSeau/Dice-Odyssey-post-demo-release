@@ -975,7 +975,8 @@ func roll_dice():
     Events.check_unlucky_status.emit()
     Events.check_lucky_status.emit()
 
-    # Marked Deck relic: the first Red roll of a fight lands on its best face. Skipped when a
+    # Marked Die relic (id `marked_deck`): the first Red roll of a fight lands on its best
+    # face. Skipped when a
     # guarantee is already pending (Scout/Lucky/Focus) so the relic can never overwrite a
     # face the player deliberately chose - and it stays armed for the next Red roll instead
     # of being silently burned. values.max() rather than a hardcoded 6 so a future Red
