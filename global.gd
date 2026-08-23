@@ -340,7 +340,13 @@ func current_dice_price(type: String) -> int:
     var total_purchased := 0
     for count in purchased_dice_counts.values():
         total_purchased += count
-    return int(DICE_BASE_PRICES[type] * pow(DICE_PRICE_ESCALATION, float(total_purchased)))
+    # Haggler's Loupe applies AFTER escalation, so the discount stays a flat percentage of
+    # what the die actually costs right now rather than a shrinking one-off rebate.
+    # Explicit float: DICE_BASE_PRICES[type] is a Dictionary subscript, so it is a Variant
+    # and `:=` cannot infer from it - which makes the WHOLE of global.gd fail to parse, and
+    # every script that touches Global fail with it. gdtoolkit does not catch this.
+    var price: float = DICE_BASE_PRICES[type] * pow(DICE_PRICE_ESCALATION, float(total_purchased))
+    return int(price * (1.0 - dice_price_discount))
 
 
 # Re-derives cheapest_dice_price from the CURRENT selection + escalation. The dice-shop
@@ -587,6 +593,42 @@ var golem_dice_carryover := 0
 # damage already dealt and Block already granted.
 var ricochet_reroll_active := false
 
+# --- Relic-owned switches (2026-08-23 relic batch) ------------------------------------
+# All of these are written by a relic's initialize_relic() and cleared by its
+# deactivate_relic(). Relics are initialised ONCE when added and only deactivated when the
+# relic itself leaves the RelicHandler (which lives in run.tscn, so it survives every scene
+# change), which is why a shop-facing one like the price discount can be read outside combat.
+# They are still reset below so a NEW run in the same session cannot inherit a stale value.
+
+# Worm's Eye Lens: flat damage added to cards whose requirement is Max. Applied inside
+# ModifierHandler.get_modified_value so the real damage AND the dynamic description both
+# pick it up, exactly like Dead Weight+'s in-hand bonus.
+var max_card_damage_bonus := 0
+# The requirement of the card currently resolving, or -1 outside a play. Scoped around
+# apply_effects() by Card.play() - same trick as berserker_boost_active, so damage from
+# anything OTHER than the card itself (a relic reacting to the same roll) stays out.
+var playing_card_requirement := -1
+# Blood Chalice: what the resolving card was aimed at. Captured by Card.play() because
+# Events.card_played only carries the Card, and "apply Exposed to the enemy you just hit"
+# needs the target - falling back to "all enemies" would quietly be a much stronger relic.
+var last_played_card_targets: Array[Node] = []
+# Marked Deck: armed at the start of each fight, consumed by the first RED roll (dice.gd).
+var marked_deck_armed := false
+# Mortar Trowel: Block kept when the turn rolls over (0 = vanilla "block resets to 0").
+var block_carryover_cap := 0
+# Haggler's Loupe: fraction taken off every dice price, applied in current_dice_price().
+var dice_price_discount := 0.0
+# Golem Heart: makes the "keep your dice" stash permanent instead of a one-shot.
+var keep_all_dice_always := false
+# Wayfinder Compass / Diplomat's Seal: Power the player was holding when they last switched
+# dice type. Captured by dice_interface BEFORE it emits active_dice_changed, because the
+# handler that zeroes the bank also listens to that signal - reading roll_value from inside
+# a listener would be a race decided by connection order.
+var power_at_last_switch := 0
+# Thorned Plate: the enemy currently taking its turn (enemy.gd::do_turn), so a reflected hit
+# can find who threw the punch. Null outside the enemy turn.
+var acting_enemy: Node = null
+
 var pending_card_rewards = 1
 var hound_debuff_attack_done = false
 var gargantua_debuff_attack_done = false
@@ -661,6 +703,18 @@ func reset_run_state() -> void:
     keep_all_dice_next_turn = false
     kept_dice = {}
     golem_dice_carryover = 0
+
+    # Relic-owned switches: cleared here so a fresh run never inherits the previous run's
+    # relics. Each is re-established by its relic's initialize_relic() as it is re-added.
+    max_card_damage_bonus = 0
+    playing_card_requirement = -1
+    last_played_card_targets = []
+    marked_deck_armed = false
+    block_carryover_cap = 0
+    dice_price_discount = 0.0
+    keep_all_dice_always = false
+    power_at_last_switch = 0
+    acting_enemy = null
 
     ink_active = false
     charged_dice_this_turn = false

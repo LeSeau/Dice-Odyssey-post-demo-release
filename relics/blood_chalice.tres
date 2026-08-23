@@ -1,0 +1,17 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://rblo10qlice"]
+
+[ext_resource type="Script" path="res://relics/blood_chalice.gd" id="1_bloodch"]
+[ext_resource type="Texture2D" uid="uid://bsdfifo22napj" path="res://blood_chalice.png" id="2_bloodch"]
+
+[resource]
+script = ExtResource("1_bloodch")
+relic_name = "Blood Chalice"
+id = "blood_chalice"
+type = 4
+rarity_tier = 1
+has_counter = false
+counter = 0
+starter_relic = false
+icon = ExtResource("2_bloodch")
+tooltip = "Cards played from your Red Dice apply Exposed 1"
+tags = "Red Dice, Exposed"

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://rgia05qgnet"]
+
+[ext_resource type="Script" path="res://relics/giants_signet.gd" id="1_giantss"]
+[ext_resource type="Texture2D" uid="uid://dedmfv37n147y" path="res://giants_signet.png" id="2_giantss"]
+
+[resource]
+script = ExtResource("1_giantss")
+relic_name = "Giant's Signet"
+id = "giants_signet"
+type = 4
+shop_only = true
+rarity_tier = 1
+has_counter = false
+counter = 0
+starter_relic = false
+icon = ExtResource("2_giantss")
+tooltip = "Whenever a Giant Dice rolls 10 or more, gain 1 Strength"
+tags = "Giant Dice, Strength"

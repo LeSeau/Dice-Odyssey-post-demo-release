@@ -224,6 +224,13 @@ func play(targets: Array[Node], char_stats: CharacterStats, modifiers: ModifierH
 
     Global.cards_played_this_turn+=1
     Global.run_stat_cards_played += 1
+    # Resolved BEFORE card_played is emitted: Blood Chalice reads this from inside that
+    # signal, and a listener that fired first would otherwise be looking at the PREVIOUS
+    # card's targets. Events.card_played only carries the Card itself, and a relic guessing
+    # "all enemies" instead of the real target would be a materially stronger relic than the
+    # one that was designed.
+    var resolved_targets := targets if is_single_targeted() else _get_targets(targets)
+    Global.last_played_card_targets = resolved_targets
     Events.card_played.emit(self)
     Events.check_ink_status.emit()
 
@@ -255,10 +262,16 @@ func play(targets: Array[Node], char_stats: CharacterStats, modifiers: ModifierH
     # and AoE cards count as a single total).
     AchievementManager.begin_card_damage_window()
 
-    if is_single_targeted():
-        apply_effects(targets, modifiers)
-    else:
-        apply_effects(_get_targets(targets), modifiers)
+    # Requirement scope for relics that boost one GATE rather than one card (Worm's Eye Lens
+    # -> Max cards). Read in ModifierHandler.get_modified_value; scoped exactly like
+    # berserker_boost_active above so damage from a relic or status reacting to the same roll
+    # never picks it up. The two description call sites open the same scope, so preview and
+    # damage always agree.
+    Global.playing_card_requirement = requirement
+
+    apply_effects(resolved_targets, modifiers)
+
+    Global.playing_card_requirement = -1
 
     AchievementManager.end_card_damage_window()
 

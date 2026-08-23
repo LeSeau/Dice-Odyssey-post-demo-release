@@ -89,8 +89,14 @@ func start_turn() -> void:
     # gain would keep getting silently drained by a stale value every subsequent turn.
     Events.check_if_losing_strength.emit()
     Global.lose_strength_next_turn = 0
-    character.block = 0
-    Global.player.stats.block = 0
+    # Mortar Trowel keeps a slice of last turn's Block instead of losing all of it. Captured
+    # BEFORE the wipe - relics activate further down this function (and via a tween, so a
+    # frame later still), by which point the old value is long gone. Cap is 0 unless the
+    # relic is owned, so this is exactly the old "block resets to 0" for everyone else.
+    # Explicit int: Global's counters are untyped, so mini() can't infer from them.
+    var carried_block: int = mini(character.block, Global.block_carryover_cap)
+    character.block = carried_block
+    Global.player.stats.block = carried_block
     Global.has_rolled_6_this_turn = false
     Global.cards_played_this_turn = 0
 

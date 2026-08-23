@@ -1,0 +1,17 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://rway15qpass"]
+
+[ext_resource type="Script" path="res://relics/wayfinder_compass.gd" id="1_wayfind"]
+[ext_resource type="Texture2D" uid="uid://cu6jmoytchol6" path="res://wayfinder_compass.png" id="2_wayfind"]
+
+[resource]
+script = ExtResource("1_wayfind")
+relic_name = "Wayfinder Compass"
+id = "wayfinder_compass"
+type = 4
+rarity_tier = 1
+has_counter = false
+counter = 0
+starter_relic = false
+icon = ExtResource("2_wayfind")
+tooltip = "The first time each turn you switch Dice with Power left, your next roll gains 2"
+tags = ""

@@ -8,10 +8,19 @@ const RELIC_UI = preload("res://scenes/relic_handler/relic_ui.tscn")
 @onready var relic_container: CenterContainer = $RelicVisual/RelicContainer
 @onready var price: HBoxContainer = %Price
 @onready var price_label: Label = %PriceLabel
-# 85-120 (was 120-170): at the old band a relic sat right next to a 150-270 die while
-# being a much smaller power spike, so the relic slots were dead inventory at the moment
-# of decision. Now a relic ~ a rare card, clearly below any die.
-@onready var gold_cost := randi_range(85, 120)
+# Priced by rarity since 2026-08-23. The old flat 85-120 band replaced an even older 120-170
+# one, because at that price a relic sat next to a 150-270 die while being a much smaller
+# power spike, leaving the relic slots as dead inventory at the moment of decision. The bands
+# below keep that ceiling intact - the top of Rare (160) is still clearly under any die - and
+# straddle the old band rather than inflating past it.
+const PRICE_BY_RARITY := {
+	Relic.RarityTier.COMMON: [70, 95],
+	Relic.RarityTier.UNCOMMON: [95, 125],
+	Relic.RarityTier.RARE: [125, 160],
+}
+
+# Assigned in set_relic once the rarity is known - an @onready would run before the relic is.
+var gold_cost := 95
 var _sold := false
 
 # The relic icon is the click target now (STS-style). Kept so update() can dim it.
@@ -33,6 +42,13 @@ func set_relic(new_relic: Relic) -> void:
         await ready
 
     relic = new_relic
+
+    if relic != null:
+        # Explicit Array: a Dictionary subscript is a Variant, and `:=` on it degrades what
+        # the compiler knows well enough to break inference further down the file.
+        var band: Array = PRICE_BY_RARITY.get(relic.rarity_tier,
+                PRICE_BY_RARITY[Relic.RarityTier.COMMON])
+        gold_cost = randi_range(band[0], band[1])
 
     for relic_ui: RelicUI in relic_container.get_children():
         relic_ui.queue_free()

@@ -8,6 +8,7 @@ script = ExtResource("1_enpgh")
 relic_name = "Dice Chip"
 id = "dice_chip"
 type = 1
+rarity_tier = 1
 has_counter = false
 counter = 0
 starter_relic = false

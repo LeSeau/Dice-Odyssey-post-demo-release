@@ -1,0 +1,17 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://rpil06qight"]
+
+[ext_resource type="Script" path="res://relics/pilot_light.gd" id="1_pilotli"]
+[ext_resource type="Texture2D" uid="uid://ruuf60yod1el" path="res://pilot_light.png" id="2_pilotli"]
+
+[resource]
+script = ExtResource("1_pilotli")
+relic_name = "Pilot Light"
+id = "pilot_light"
+type = 4
+rarity_tier = 1
+has_counter = false
+counter = 0
+starter_relic = false
+icon = ExtResource("2_pilotli")
+tooltip = "Start each turn with 2 Power"
+tags = ""
