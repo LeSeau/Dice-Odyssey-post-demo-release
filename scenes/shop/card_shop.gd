@@ -156,16 +156,15 @@ func _generate_shop_cards() -> void:
 
 
 func _generate_shop_relics() -> void:
+    # Rarity-weighted, and the ONLY draw that can surface shop-exclusive relics. Drawn one at
+    # a time with the running list as the exclude set, so the three slots can't duplicate.
     var shop_relics_array: Array[Relic] = []
-    var available_relics := shop_relic_pool.pool.filter(
-        func(relic: Relic):
-            var can_appear := relic.can_appear_as_reward(char_stats)
-            var already_had_it := relic_handler.has_relic(relic.id)
-            return can_appear and not already_had_it
-    )
-
-    available_relics.shuffle()
-    shop_relics_array = available_relics.slice(0, 3)
+    for _slot in 3:
+        var relic := shop_relic_pool.get_random_shop_relic(
+                char_stats, relic_handler, shop_relics_array)
+        if relic == null:
+            break  # pool exhausted (tiny pool, or the player owns nearly everything)
+        shop_relics_array.append(relic)
 
     for relic: Relic in shop_relics_array:
         var new_shop_relic := SHOP_RELIC.instantiate() as ShopRelic

@@ -25,7 +25,15 @@ func get_modified_value(base: int, type: Modifier.Type) -> int:
     # Player only: an enemy's handler must never see the player's hand.
     if type == Modifier.Type.DMG_DEALT and _is_player_handler():
         value += Global.in_hand_damage_bonus()
-    
+        # Worm's Eye Lens: flat bonus for cards gated on a MAX roll. Folded into `base` for
+        # the same reason as the line above - it lands before the percent modifiers and the
+        # dynamic descriptions get it for free, so the preview can never disagree with the
+        # damage actually dealt. Global.playing_card_requirement is only set for the window
+        # Card.play() opens, so relic/status damage reacting to the same roll is excluded.
+        if Global.max_card_damage_bonus != 0 \
+                and Global.playing_card_requirement == Card.Requirement.MAX:
+            value += Global.max_card_damage_bonus
+
     var modifier := get_modifier(type)
     
     if not modifier:

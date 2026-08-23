@@ -1,0 +1,16 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://rnee01qxdie"]
+
+[ext_resource type="Script" path="res://relics/needle_die.gd" id="1_needled"]
+[ext_resource type="Texture2D" uid="uid://b7j1j34kkhmkc" path="res://needle_die.png" id="2_needled"]
+
+[resource]
+script = ExtResource("1_needled")
+relic_name = "Needle Die"
+id = "needle_die"
+type = 4
+has_counter = false
+counter = 0
+starter_relic = false
+icon = ExtResource("2_needled")
+tooltip = "Whenever you roll a 1, deal 3 damage to a random enemy"
+tags = ""

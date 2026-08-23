@@ -8,6 +8,7 @@ script = ExtResource("1_valve")
 relic_name = "Overflow Valve"
 id = "overflow_valve"
 type = 2
+rarity_tier = 2
 has_counter = false
 counter = 0
 starter_relic = false

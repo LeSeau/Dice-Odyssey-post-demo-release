@@ -54,6 +54,10 @@ signal player_hand_discarded
 signal player_turn_started
 signal player_turn_ended
 signal player_hit
+# An incoming hit was absorbed ENTIRELY by Block - no HP lost. Distinct from player_hit,
+# which only fires when health actually drops, so neither can stand in for the other.
+# `attacker` is the enemy taking its turn, or null if the damage had no enemy source.
+signal player_fully_blocked(attacker)
 signal player_died
 signal gold_changed
 signal hp_changed

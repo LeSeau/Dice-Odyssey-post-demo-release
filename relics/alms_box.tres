@@ -1,0 +1,16 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://ralm18qxbox"]
+
+[ext_resource type="Script" path="res://relics/alms_box.gd" id="1_almsbox"]
+[ext_resource type="Texture2D" uid="uid://bmr1vtmx17365" path="res://alms_box.png" id="2_almsbox"]
+
+[resource]
+script = ExtResource("1_almsbox")
+relic_name = "Alms Box"
+id = "alms_box"
+type = 4
+has_counter = false
+counter = 0
+starter_relic = false
+icon = ExtResource("2_almsbox")
+tooltip = "Whenever you play a Blessing, gain 5 Block"
+tags = ""

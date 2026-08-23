@@ -52,6 +52,11 @@ func execute(targets: Array[Node]) -> void:
             elif target is Player:
                 AchievementManager.report_player_hit(Global.damage_to_display, target.stats.health > 0)
                 Global.run_stat_damage_taken += Global.damage_to_display
+                # Thorns-style relics (Thorned Plate) key off a PERFECT block. Same test the
+                # popup below uses to show "Blocked" instead of a red number, so the relic
+                # can never disagree with what the player was just shown.
+                if Global.damage_to_display <= 0 and Global.blocked_to_display > 0:
+                    Events.player_fully_blocked.emit(Global.acting_enemy)
             var is_big_hit := final_amount >= BIG_HIT_THRESHOLD
 
             # One ladder rung drives shake AND hit-stop together (2026-08-15, STS2 audit

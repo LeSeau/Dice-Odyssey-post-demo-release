@@ -1,0 +1,16 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://rund00qring"]
+
+[ext_resource type="Script" path="res://relics/underdog_ring.gd" id="1_underdo"]
+[ext_resource type="Texture2D" uid="uid://b203h2rnftux5" path="res://underdog_ring.png" id="2_underdo"]
+
+[resource]
+script = ExtResource("1_underdo")
+relic_name = "Underdog Ring"
+id = "underdog_ring"
+type = 4
+has_counter = false
+counter = 0
+starter_relic = false
+icon = ExtResource("2_underdo")
+tooltip = "Whenever you roll a 1 or 2, gain 2 Block"
+tags = ""

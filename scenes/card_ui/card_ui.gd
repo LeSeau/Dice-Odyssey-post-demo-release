@@ -1147,7 +1147,13 @@ func _on_dice_rolled_update_description(_a = null, _b = null) -> void:
     if card and card.has_method("get_dynamic_description"):
         _prune_stale_targets()
         var aimed_target: Node = targets[0] if not targets.is_empty() else null
+        # Same requirement scope Card.play() opens around apply_effects(): a relic that
+        # boosts one gate's cards (Worm's Eye Lens -> Max) is read inside
+        # ModifierHandler.get_modified_value, so without this the PREVIEW would quietly
+        # print a smaller number than the card goes on to deal.
+        Global.playing_card_requirement = card.requirement
         _apply_description(card.get_dynamic_description(player_modifiers, aimed_target))
+        Global.playing_card_requirement = -1
 
 
 # Single chokepoint for writing to the Description RichTextLabel: applies keyword coloring

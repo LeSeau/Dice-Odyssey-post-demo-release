@@ -1,0 +1,16 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://rcon08qchip"]
+
+[ext_resource type="Script" path="res://relics/consolation_chip.gd" id="1_consola"]
+[ext_resource type="Texture2D" uid="uid://cnvc832he8k6k" path="res://consolation_chip.png" id="2_consola"]
+
+[resource]
+script = ExtResource("1_consola")
+relic_name = "Consolation Chip"
+id = "consolation_chip"
+type = 4
+has_counter = false
+counter = 0
+starter_relic = false
+icon = ExtResource("2_consola")
+tooltip = "Whenever a Red Dice rolls 2 or less, Charge 1 Red Dice"
+tags = "Red Dice, Charge"

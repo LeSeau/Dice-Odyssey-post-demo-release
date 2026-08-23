@@ -1,0 +1,17 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://rstr17qxdie"]
+
+[ext_resource type="Script" path="res://relics/stray_die.gd" id="1_straydi"]
+[ext_resource type="Texture2D" uid="uid://cfx0h4uavo415" path="res://stray_die.png" id="2_straydi"]
+
+[resource]
+script = ExtResource("1_straydi")
+relic_name = "Stray Die"
+id = "stray_die"
+type = 1
+rarity_tier = 1
+has_counter = false
+counter = 0
+starter_relic = false
+icon = ExtResource("2_straydi")
+tooltip = "Start each fight with 1 bonus Dice of a type you do not own"
+tags = ""

@@ -648,8 +648,13 @@ func _update_charged_card_description() -> void:
         return
     var card = socketed_card_ui.card
     if card and card.has_method("get_dynamic_description"):
+        # See card_ui.gd::_on_dice_rolled_update_description - the socketed panel is a hand
+        # -built copy of the card's description slot, so it needs the same requirement scope
+        # or a gate-boosting relic would show here but not on the card, or vice versa.
+        Global.playing_card_requirement = card.requirement
         _set_charged_description(card, card.get_dynamic_description(
             socketed_card_ui.player_modifiers, _socketed_aimed_target()))
+        Global.playing_card_requirement = -1
 
 
 # Mirrors card_ui.gd::_apply_description(): this panel is a hand-built copy of the card's
@@ -969,6 +974,16 @@ func roll_dice():
     var roll_index = randi() % values.size()
     Events.check_unlucky_status.emit()
     Events.check_lucky_status.emit()
+
+    # Marked Deck relic: the first Red roll of a fight lands on its best face. Skipped when a
+    # guarantee is already pending (Scout/Lucky/Focus) so the relic can never overwrite a
+    # face the player deliberately chose - and it stays armed for the next Red roll instead
+    # of being silently burned. values.max() rather than a hardcoded 6 so a future Red
+    # infusion that edits the face set is respected for free.
+    if Global.marked_deck_armed and dice_type == "red" and Global.next_guaranteed_roll == -1:
+        Global.marked_deck_armed = false
+        var best_face: int = values.max()
+        roll_index = values.find(best_face)
 
     # Handle guaranteed rolls. Sentinel is -1, NOT 0 - the Evil dice's crack face IS 0, a
     # legal guaranteed value (see Global.next_guaranteed_roll's declaration for the bug this

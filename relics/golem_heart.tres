@@ -1,0 +1,17 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://rgol20qeart"]
+
+[ext_resource type="Script" path="res://relics/golem_heart.gd" id="1_golemhe"]
+[ext_resource type="Texture2D" uid="uid://d0w5rxls5hk2n" path="res://golem_heart.png" id="2_golemhe"]
+
+[resource]
+script = ExtResource("1_golemhe")
+relic_name = "Golem Heart"
+id = "golem_heart"
+type = 4
+rarity_tier = 2
+has_counter = false
+counter = 0
+starter_relic = false
+icon = ExtResource("2_golemhe")
+tooltip = "Your unspent Dice carry over to your next turn"
+tags = ""

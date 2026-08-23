@@ -1,0 +1,16 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://rwhe11qdant"]
+
+[ext_resource type="Script" path="res://relics/whetstone_pendant.gd" id="1_whetsto"]
+[ext_resource type="Texture2D" uid="uid://p3qha6i330o8" path="res://whetstone_pendant.png" id="2_whetsto"]
+
+[resource]
+script = ExtResource("1_whetsto")
+relic_name = "Whetstone Pendant"
+id = "whetstone_pendant"
+type = 1
+has_counter = false
+counter = 0
+starter_relic = false
+icon = ExtResource("2_whetsto")
+tooltip = "Start each fight with 2 Strength"
+tags = "Strength"

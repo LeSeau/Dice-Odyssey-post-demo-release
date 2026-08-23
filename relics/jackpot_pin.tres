@@ -1,0 +1,17 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://rjac09qxpin"]
+
+[ext_resource type="Script" path="res://relics/jackpot_pin.gd" id="1_jackpot"]
+[ext_resource type="Texture2D" uid="uid://c1p5hrl47fc6j" path="res://jackpot_pin.png" id="2_jackpot"]
+
+[resource]
+script = ExtResource("1_jackpot")
+relic_name = "Jackpot Pin"
+id = "jackpot_pin"
+type = 4
+rarity_tier = 1
+has_counter = false
+counter = 0
+starter_relic = false
+icon = ExtResource("2_jackpot")
+tooltip = "Whenever a Red Dice rolls a 6, gain 2 Strength"
+tags = "Red Dice, Strength"

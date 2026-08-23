@@ -1,0 +1,17 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://rmar07qdeck"]
+
+[ext_resource type="Script" path="res://relics/marked_deck.gd" id="1_markedd"]
+[ext_resource type="Texture2D" uid="uid://bydvc6b06mun3" path="res://marked_deck.png" id="2_markedd"]
+
+[resource]
+script = ExtResource("1_markedd")
+relic_name = "Marked Deck"
+id = "marked_deck"
+type = 4
+rarity_tier = 1
+has_counter = false
+counter = 0
+starter_relic = false
+icon = ExtResource("2_markedd")
+tooltip = "The first Red Dice you roll each fight lands on its highest face"
+tags = "Red Dice"

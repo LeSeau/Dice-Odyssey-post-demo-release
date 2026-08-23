@@ -545,7 +545,12 @@ func do_turn() -> void:
     if not current_action:
         return
 
+    # Thorned Plate needs to know who threw the punch: the damage pipeline only carries an
+    # amount, never a source. Set around the action and cleared after, so anything happening
+    # outside an enemy's turn (a card backfiring on the player) leaves it null.
+    Global.acting_enemy = self
     current_action.perform_action()
+    Global.acting_enemy = null
 
     # Track last action
     if last_action == current_action.action_id:

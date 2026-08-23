@@ -1,0 +1,16 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://rdip16qseal"]
+
+[ext_resource type="Script" path="res://relics/diplomats_seal.gd" id="1_diploma"]
+[ext_resource type="Texture2D" uid="uid://cb8jyjekthhax" path="res://diplomats_seal.png" id="2_diploma"]
+
+[resource]
+script = ExtResource("1_diploma")
+relic_name = "Diplomat's Seal"
+id = "diplomats_seal"
+type = 4
+has_counter = false
+counter = 0
+starter_relic = false
+icon = ExtResource("2_diploma")
+tooltip = "The first time each turn you switch Dice with Power left, gain 3 Block"
+tags = ""

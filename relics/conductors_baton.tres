@@ -1,0 +1,17 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://rcon04qaton"]
+
+[ext_resource type="Script" path="res://relics/conductors_baton.gd" id="1_conduct"]
+[ext_resource type="Texture2D" uid="uid://cdvjava2ngp5w" path="res://conductors_baton.png" id="2_conduct"]
+
+[resource]
+script = ExtResource("1_conduct")
+relic_name = "Conductor's Baton"
+id = "conductors_baton"
+type = 4
+rarity_tier = 1
+has_counter = false
+counter = 0
+starter_relic = false
+icon = ExtResource("2_conduct")
+tooltip = "Once per turn, rolling the same Dice 4 times in a row Charges 1"
+tags = "Charge"

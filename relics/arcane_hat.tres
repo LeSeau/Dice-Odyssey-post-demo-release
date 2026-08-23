@@ -8,6 +8,7 @@ script = ExtResource("1_q51o4")
 relic_name = "Arcane Hat"
 id = "arcane_hat"
 type = 4
+rarity_tier = 1
 has_counter = false
 counter = 0
 starter_relic = false

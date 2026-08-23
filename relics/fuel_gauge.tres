@@ -1,0 +1,16 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://rfue14qauge"]
+
+[ext_resource type="Script" path="res://relics/fuel_gauge.gd" id="1_fuelgau"]
+[ext_resource type="Texture2D" uid="uid://bvpb3kh44gc15" path="res://fuel_gauge.png" id="2_fuelgau"]
+
+[resource]
+script = ExtResource("1_fuelgau")
+relic_name = "Fuel Gauge"
+id = "fuel_gauge"
+type = 4
+has_counter = false
+counter = 0
+starter_relic = false
+icon = ExtResource("2_fuelgau")
+tooltip = "Whenever you Refuel, gain 2 Block"
+tags = "Refuel"

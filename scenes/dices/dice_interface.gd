@@ -200,6 +200,7 @@ func _on_dice_1_gui_input(event: InputEvent) -> void:
             Events.show_warning_message.emit()
             Global.tutorial_reset_power_warning = false 
             return
+        Global.power_at_last_switch = Global.roll_value
         Events.active_dice_changed.emit("blue")
         Events.update_roll_history_ui.emit()
         
@@ -212,6 +213,7 @@ func _on_dice_2_gui_input(event: InputEvent) -> void:
             Events.show_warning_message.emit()
             Global.tutorial_reset_power_warning = false 
             return
+        Global.power_at_last_switch = Global.roll_value
         Events.active_dice_changed.emit("red")
         Global.dice_type = "red"
         Events.reset_charged_card.emit()
@@ -224,6 +226,7 @@ func _on_dice_3_gui_input(event: InputEvent) -> void:
             Events.show_warning_message.emit()
             Global.tutorial_reset_power_warning = false 
             return
+        Global.power_at_last_switch = Global.roll_value
         Events.active_dice_changed.emit("evil")
         Global.dice_type = "evil"
         Events.update_roll_history_ui.emit()
@@ -235,6 +238,7 @@ func _on_dice_4_gui_input(event: InputEvent) -> void:
             Events.show_warning_message.emit()
             Global.tutorial_reset_power_warning = false 
             return
+        Global.power_at_last_switch = Global.roll_value
         Events.active_dice_changed.emit("giant")
         Global.dice_type = "giant"
         Events.update_roll_history_ui.emit()
@@ -246,6 +250,7 @@ func _on_dice_5_gui_input(event: InputEvent) -> void:
             Events.show_warning_message.emit()
             Global.tutorial_reset_power_warning = false 
             return
+        Global.power_at_last_switch = Global.roll_value
         Events.active_dice_changed.emit("magma")
         Global.dice_type = "magma"
         Events.update_roll_history_ui.emit()      
@@ -257,6 +262,7 @@ func _on_dice_6_gui_input(event: InputEvent) -> void:
             Events.show_warning_message.emit()
             Global.tutorial_reset_power_warning = false 
             return
+        Global.power_at_last_switch = Global.roll_value
         Events.active_dice_changed.emit("even")
         Global.dice_type = "even"
         Events.update_roll_history_ui.emit()
@@ -268,6 +274,7 @@ func _on_dice_7_gui_input(event: InputEvent) -> void:
             Events.show_warning_message.emit()
             Global.tutorial_reset_power_warning = false 
             return
+        Global.power_at_last_switch = Global.roll_value
         Events.active_dice_changed.emit("odd")
         Global.dice_type = "odd"
         Events.update_roll_history_ui.emit()  
@@ -279,6 +286,7 @@ func _on_dice_8_gui_input(event: InputEvent) -> void:
             Events.show_warning_message.emit()
             Global.tutorial_reset_power_warning = false 
             return
+        Global.power_at_last_switch = Global.roll_value
         Events.active_dice_changed.emit("green")
         Global.dice_type = "green"
         Events.update_roll_history_ui.emit()
@@ -290,6 +298,7 @@ func _on_dice_9_gui_input(event: InputEvent) -> void:
             Events.show_warning_message.emit()
             Global.tutorial_reset_power_warning = false 
             return
+        Global.power_at_last_switch = Global.roll_value
         Events.active_dice_changed.emit("mech")
         Global.dice_type = "mech"
         Events.update_roll_history_ui.emit()
@@ -309,7 +318,10 @@ func _on_player_turn_ended() -> void:
     # "Keep your Dice" card: same idea as Golem's carryover but for EVERY type, for one turn.
     # Golem is excluded - it already carries, and stacking both would double its leftovers.
     Global.kept_dice = {}
-    if Global.keep_all_dice_next_turn:
+    # keep_all_dice_always is the Golem Heart relic: same stash, but permanent instead of the
+    # card's one-shot. Checked with OR so owning the relic and playing the card in the same
+    # turn can't double-bank (the stash is a snapshot of what's left, not an increment).
+    if Global.keep_all_dice_next_turn or Global.keep_all_dice_always:
         Global.keep_all_dice_next_turn = false
         for type in Global.DICE_TYPE_ORDER:
             if type == "even":

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://rtho13qlate"]
+
+[ext_resource type="Script" path="res://relics/thorned_plate.gd" id="1_thorned"]
+[ext_resource type="Texture2D" uid="uid://b2qdsoyeoob8s" path="res://thorned_plate.png" id="2_thorned"]
+
+[resource]
+script = ExtResource("1_thorned")
+relic_name = "Thorned Plate"
+id = "thorned_plate"
+type = 4
+rarity_tier = 1
+has_counter = false
+counter = 0
+starter_relic = false
+icon = ExtResource("2_thorned")
+tooltip = "When you block ALL of an attack's damage, deal 4 damage back"
+tags = ""

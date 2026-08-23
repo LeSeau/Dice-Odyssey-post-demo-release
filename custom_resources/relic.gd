@@ -3,9 +3,23 @@ extends Resource
 
 enum Type {START_OF_TURN, START_OF_COMBAT, END_OF_TURN, END_OF_COMBAT, EVENT_BASED}
 
+# How often a relic is offered. Deliberately SEPARATE from `type` (which is a lifecycle hook)
+# and from `shop_only` (which is availability): a shop-exclusive relic still needs a power
+# level and a price, so folding "Shop" in here as a fourth rarity - the way Slay the Spire
+# does - would conflate two independent questions.
+# COMMON is the enum default, so only Uncommon/Rare relics need a line in their .tres.
+enum RarityTier {COMMON, UNCOMMON, RARE}
+
 @export var relic_name: String
 @export var id: String
 @export var type: Type
+@export var rarity_tier: RarityTier = RarityTier.COMMON
+# Never offered by treasure, elites or events - only sold in the shop. For relics that are
+# DEAD without a specific die you own (Giant's Signet needs Giant dice), a chest would be a
+# wasted reward, whereas a shelf you only buy from if it fits the dice you already have.
+# Note this is about the PAYOFF needing the type: relics that GRANT an exotic die (Volcanic
+# Rock, Trick Scale, Obsidian Scale) work for everyone and stay in the normal pool.
+@export var shop_only: bool = false
 @export var has_counter: bool = false
 @export var counter: int
 @export var starter_relic: bool = false
