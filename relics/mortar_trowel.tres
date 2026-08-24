@@ -8,7 +8,6 @@ script = ExtResource("1_mortart")
 relic_name = "Mortar Trowel"
 id = "mortar_trowel"
 type = 4
-rarity_tier = 1
 has_counter = false
 counter = 0
 starter_relic = false

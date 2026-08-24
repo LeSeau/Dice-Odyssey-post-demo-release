@@ -8,7 +8,6 @@ script = ExtResource("1_thorned")
 relic_name = "Thorned Plate"
 id = "thorned_plate"
 type = 4
-rarity_tier = 1
 has_counter = false
 counter = 0
 starter_relic = false

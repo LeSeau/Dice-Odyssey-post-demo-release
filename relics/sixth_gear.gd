@@ -5,7 +5,7 @@ extends Relic
 # deck that spreads its rolls across several smaller turns. Counting across the fight makes
 # it pay the same total either way, and it keeps paying in long fights.
 
-const POWER_BONUS := 6
+const POWER_BONUS := 4
 const EVERY := 6
 
 

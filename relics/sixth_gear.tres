@@ -13,5 +13,5 @@ has_counter = true
 counter = 0
 starter_relic = false
 icon = ExtResource("2_sixthge")
-tooltip = "Every 6th Dice you roll in a fight grants 6 Power"
+tooltip = "Every 6th Dice you roll in a fight grants 4 Power"
 tags = ""

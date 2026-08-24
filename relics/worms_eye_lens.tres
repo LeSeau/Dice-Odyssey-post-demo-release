@@ -8,7 +8,6 @@ script = ExtResource("1_wormsey")
 relic_name = "Worm's Eye Lens"
 id = "worms_eye_lens"
 type = 4
-rarity_tier = 1
 has_counter = false
 counter = 0
 starter_relic = false

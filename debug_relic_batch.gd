@@ -415,7 +415,8 @@ func _scenario_chain_and_count() -> void:
 	_fake_roll("blue", 3)  # 5th of the fight
 	check("Sixth Gear: 5th die grants nothing", Global.roll_value == 0)
 	_fake_roll("blue", 3)  # 6th of the fight
-	check("Sixth Gear: 6th die grants 6 Power", Global.roll_value == 6, str(Global.roll_value))
+	check("Sixth Gear: 6th die grants 4 Power (nerfed 2026-08-24, was 6)",
+			Global.roll_value == 4, str(Global.roll_value))
 	Global.roll_value = 0
 	_fake_roll("blue", 3)  # 7th
 	check("Sixth Gear: 7th die grants nothing", Global.roll_value == 0)
