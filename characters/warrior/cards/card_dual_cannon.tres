@@ -1,10 +1,10 @@
 [gd_resource type="Resource" script_class="Card" load_steps=5 format=3 uid="uid://bs4h7oawq02xm"]
 
 [ext_resource type="Texture2D" uid="uid://dcdt1x3y3d2u" path="res://second_socket.png" id="1_icon"]
-[ext_resource type="Script" path="res://characters/warrior/cards/second_socket.gd" id="2_script"]
+[ext_resource type="Script" path="res://characters/warrior/cards/dual_cannon.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://df64e7qat73gs" path="res://art/block.ogg" id="3_sound"]
 
-[ext_resource type="Resource" uid="uid://c53c0nd50ck3p" path="res://characters/warrior/cards/card_second_socket_plus.tres" id="second_socket__up"]
+[ext_resource type="Resource" uid="uid://c53c0nd50ck3p" path="res://characters/warrior/cards/card_dual_cannon_plus.tres" id="second_socket__up"]
 [resource]
 script = ExtResource("2_script")
 id = "card_second_socket"

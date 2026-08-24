@@ -1,8 +1,9 @@
 extends Card
 
-# Upgrade of necromancy.gd: same Max 3 gate, one more Evil Dice, keeps the card draw.
+# Upgrade of necromancy.gd: same Charge 2, but the gate loosens Max 3 -> Max 5 (Julien) and
+# the card draw is gone - the upgrade widens the window instead of stacking more value on it.
 
-const CHARGE_COUNT := 3
+const CHARGE_COUNT := 2
 
 
 func apply_effects(targets: Array[Node], _modifiers: ModifierHandler) -> void:
@@ -13,7 +14,6 @@ func apply_effects(targets: Array[Node], _modifiers: ModifierHandler) -> void:
     var support_effect := SupportEffect.new()
     support_effect.sound = sound
     support_effect.execute(targets)
-    Events.draw_card.emit(1)
     Events.dice_roll_reset.emit()
     Events.dice_amount_changed.emit()
     Events.dice_charged.emit("evil", CHARGE_COUNT)

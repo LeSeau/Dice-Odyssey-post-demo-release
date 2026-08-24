@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="Card" load_steps=4 format=3 uid="uid://cr3d3dg3p1u5aa"]
 
 [ext_resource type="Texture2D" path="res://red_edge.png" id="1_icon"]
-[ext_resource type="Script" path="res://characters/warrior/cards/red_edge_plus.gd" id="2_script"]
+[ext_resource type="Script" path="res://characters/warrior/cards/grindstone_plus.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://df64e7qat73gs" path="res://art/block.ogg" id="3_sound"]
 
 [resource]

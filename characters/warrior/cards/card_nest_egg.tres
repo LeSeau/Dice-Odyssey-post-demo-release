@@ -1,10 +1,10 @@
 [gd_resource type="Resource" script_class="Card" load_steps=5 format=3 uid="uid://c4cardhoard"]
 
 [ext_resource type="Texture2D" uid="uid://bwlbqwawyg7xx" path="res://hoard.png" id="1_icon"]
-[ext_resource type="Script" path="res://characters/warrior/cards/hoard.gd" id="2_script"]
+[ext_resource type="Script" path="res://characters/warrior/cards/nest_egg.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://df64e7qat73gs" path="res://art/block.ogg" id="3_sound"]
 
-[ext_resource type="Resource" uid="uid://ch0ardp1u5aa" path="res://characters/warrior/cards/card_hoard_plus.tres" id="hoard_plus_up"]
+[ext_resource type="Resource" uid="uid://ch0ardp1u5aa" path="res://characters/warrior/cards/card_nest_egg_plus.tres" id="hoard_plus_up"]
 [resource]
 script = ExtResource("2_script")
 id = "card_hoard"

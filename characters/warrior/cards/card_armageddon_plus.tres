@@ -1,7 +1,7 @@
 [gd_resource type="Resource" load_steps=4 format=3 uid="uid://c50ck3tl355p1"]
 
 [ext_resource type="Texture2D" uid="uid://drd4e4u7tdggw" path="res://socketless_red.png" id="1_icon"]
-[ext_resource type="Script" path="res://characters/warrior/cards/socketless_red_plus.gd" id="2_script"]
+[ext_resource type="Script" path="res://characters/warrior/cards/armageddon_plus.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://df64e7qat73gs" path="res://art/block.ogg" id="3_sound"]
 
 [resource]

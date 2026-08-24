@@ -1,8 +1,7 @@
 extends Card
 
-# Gated Min 6 (Julien, 2026-08-20) - a whole turn at Loaded 2 is a big enough amplifier
-# that it should cost you a real roll first. Weighted Dice+ reuses this script with
-# requirement NONE, where meets_requirement() passes trivially.
+# Ungated (Julien, 2026-08-24) - base and Sleight+ both carry requirement NONE, so
+# meets_requirement() passes trivially on either. They share this one script.
 
 # "Gain Loaded 2 this turn" - the cheap, ungated entry to the Loaded ladder.
 #

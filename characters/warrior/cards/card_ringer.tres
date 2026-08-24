@@ -1,10 +1,10 @@
 [gd_resource type="Resource" script_class="Card" load_steps=5 format=3 uid="uid://cl0ad3ddic350"]
 
 [ext_resource type="Texture2D" uid="uid://dev7wyusyn4nr" path="res://loaded_dice.png" id="1_icon"]
-[ext_resource type="Script" path="res://characters/warrior/cards/loaded_dice.gd" id="2_script"]
+[ext_resource type="Script" path="res://characters/warrior/cards/ringer.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://df64e7qat73gs" path="res://art/block.ogg" id="3_sound"]
 
-[ext_resource type="Resource" uid="uid://cl04d3dd1c3p1" path="res://characters/warrior/cards/card_loaded_dice_plus.tres" id="loaded_dice_pl_up"]
+[ext_resource type="Resource" uid="uid://cl04d3dd1c3p1" path="res://characters/warrior/cards/card_ringer_plus.tres" id="loaded_dice_pl_up"]
 [resource]
 script = ExtResource("2_script")
 id = "card_loaded_dice"

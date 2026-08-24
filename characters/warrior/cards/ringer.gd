@@ -2,7 +2,7 @@ extends Card
 
 # "Min 5: Gain Loaded 1 for the rest of combat" - the permanent half of the Loaded ladder.
 # No loaded_expiring here, so LoadedStatus never takes it back; it just accumulates.
-# See weighted_dice.gd for the turn-scoped sibling and statuses/loaded.gd for the split.
+# See sleight.gd for the turn-scoped sibling and statuses/loaded.gd for the split.
 
 const LOADED_STATUS = preload("res://statuses/loaded.tres")
 const LOADED_AMOUNT := 1

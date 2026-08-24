@@ -1,27 +1,27 @@
-[gd_resource type="Resource" script_class="Card" load_steps=4 format=3 uid="uid://cw3ight3dp1u5"]
+[gd_resource type="Resource" script_class="Card" load_steps=4 format=3 uid="uid://ch0ardp1u5aa"]
 
-[ext_resource type="Texture2D" path="res://weighted_dice.png" id="1_icon"]
-[ext_resource type="Script" path="res://characters/warrior/cards/weighted_dice.gd" id="2_script"]
+[ext_resource type="Texture2D" path="res://hoard.png" id="1_icon"]
+[ext_resource type="Script" path="res://characters/warrior/cards/nest_egg.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://df64e7qat73gs" path="res://art/block.ogg" id="3_sound"]
 
 [resource]
 script = ExtResource("2_script")
-id = "card_weighted_dice_plus"
-name = "Sleight+"
+id = "card_hoard_plus"
+name = "Nest Egg+"
 type = 1
 target = 0
-description = "Gain Loaded 2 this turn"
+description = "End your turn. Keep your Dice for next turn"
 rarity = 0
 rarity_tier = 1
 red_only = false
-can_play_without_dice = false
+can_play_without_dice = true
 requirement = 0
 requirement_number = 0
 exhausts = false
 bonus_requirement = 0
 bonus_requirement_number = 0
 bonus_description_text = ""
-tags = "Loaded"
+tags = ""
 upgraded = true
 icon = ExtResource("1_icon")
 tooltip_text = ""
