@@ -1,8 +1,11 @@
 extends Card
 
-# Ungated (Julien, 2026-08-24) - base and Sleight+ both carry requirement NONE, so
-# meets_requirement() passes trivially on either. They share this one script; the whole
-# upgrade lives in the .tres, where Sleight+ is Celestial (playable with no dice left).
+# Ungated (Julien, 2026-08-24) - requirement NONE, so meets_requirement() passes trivially.
+#
+# Sleight+ is a separate script (sleight_plus.gd): it is Celestial and does NOT reset Power.
+# This base version DOES reset, like a normal Skill - that reset is the whole cost of the
+# card, and dropping it is the upgrade. ⚠️ The Loaded bookkeeping below is mirrored there;
+# change both together.
 
 # "Gain Loaded 2 this turn" - the cheap, ungated entry to the Loaded ladder.
 #
