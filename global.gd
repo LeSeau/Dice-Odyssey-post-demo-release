@@ -197,22 +197,9 @@ func add_tooltip(tooltip: Node, tooltip_owner: Node) -> void:
 # --- Tooltip placement -------------------------------------------------------
 # Same distance from the edge IconTooltip already uses, so both tooltip families sit alike.
 const TOOLTIP_SCREEN_MARGIN := 8.0
-# tooltip.tscn / status_tooltip.tscn are authored at this size; dice_tooltip grows its height
-# at runtime and passes its real size instead.
+# tooltip.tscn / status_tooltip.tscn are authored at this size. The per-panel edge clamp is
+# deliberately NOT here - see _clamped_to_screen() in tooltip.gd for why it can't call Global.
 const TOOLTIP_PANEL_SIZE := Vector2(204.0, 108.0)
-
-
-# Last-resort guard, applied inside every show_tooltip(): keep the panel fully on screen.
-# Positions are computed from whatever the player is hovering, and near an edge that used to
-# run straight off the viewport (the rightmost enemy's intent, a relic reward row). A tooltip
-# already on screen is never moved, so this only ever rescues the broken cases.
-func clamp_tooltip_position(pos: Vector2, panel_size: Vector2) -> Vector2:
-    var view: Vector2 = get_tree().root.get_visible_rect().size
-    return Vector2(
-        clampf(pos.x, TOOLTIP_SCREEN_MARGIN,
-            maxf(TOOLTIP_SCREEN_MARGIN, view.x - panel_size.x - TOOLTIP_SCREEN_MARGIN)),
-        clampf(pos.y, TOOLTIP_SCREEN_MARGIN,
-            maxf(TOOLTIP_SCREEN_MARGIN, view.y - panel_size.y - TOOLTIP_SCREEN_MARGIN)))
 
 
 # X where a tooltip group placed beside the hovered thing should START. A "group" is

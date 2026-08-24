@@ -6,7 +6,10 @@ extends Panel
 
 
 func show_tooltip(global_pos: Vector2) -> void:
-    global_position = global_pos
+    # Callers position off whatever is being hovered, which near a screen edge used to put
+    # the panel partly outside the viewport (it just gets clipped - nothing scrolls it back).
+    # Clamping here covers every spawn site at once, including the fixed-position ones.
+    global_position = _clamped_to_screen(global_pos)
     show()
 
 
@@ -127,3 +130,15 @@ func get_tooltip_content(requirement):
     tooltip_label.text = KeywordColorizer.colorize_tooltip(text, 13)
     tooltip_title.text = title_text
     
+
+
+# Inlined rather than calling Global: these panel scripts are reached through `const ... =
+# preload(...)` chains (intent_ui.gd), and resolving the Global autoload from here fails at
+# that point - the script then binds as a plain Panel and every show_tooltip() call errors
+# with "Nonexistent function 'show_tooltip' in base 'Panel'". Keep this self-contained.
+func _clamped_to_screen(pos: Vector2) -> Vector2:
+    const MARGIN := 8.0
+    var view: Vector2 = get_viewport_rect().size
+    return Vector2(
+        clampf(pos.x, MARGIN, maxf(MARGIN, view.x - size.x - MARGIN)),
+        clampf(pos.y, MARGIN, maxf(MARGIN, view.y - size.y - MARGIN)))

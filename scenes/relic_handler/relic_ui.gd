@@ -85,7 +85,21 @@ func _on_mouse_entered() -> void:
     tooltip_panel.tooltip_title.text = "[color=gold][b]%s[/b][/color]" % relic.relic_name
     _fit_tooltip_title(tooltip_panel.tooltip_title, relic.relic_name)
     tooltip_panel.tooltip_label.text = relic.get_colorized_description(relic.tooltip)
-    var pos = get_global_mouse_position() + Vector2(24, 24)
+    # Same shared ordering the card hover uses, so a relic's sub-tooltips read in the order its
+    # own text mentions them (tags used to come out in authored order, dice types in dict
+    # order). Dice types and Power need no explicit tag - Dice Bag's `tags` is empty outright,
+    # and Blood Sword / Metronome / Overflow Valve render the Power glyph while tagging nothing,
+    # so before this they showed the icon with nothing to explain it.
+    # Resolved here rather than after the panel is placed: this panel and its keyword column
+    # are positioned as ONE group so a relic hovered near the right of the bar can't push its
+    # column off screen - see Global.tooltip_group_x.
+    var tags_to_show := KeywordColorizer.ordered_description_keywords(relic.tooltip, relic.tags)
+    var group_width := Global.TOOLTIP_PANEL_SIZE.x
+    if not tags_to_show.is_empty():
+        group_width += TOOLTIP_OFFSET_X + Global.TOOLTIP_PANEL_SIZE.x
+    var mouse_pos := get_global_mouse_position()
+    var pos := Vector2(
+        Global.tooltip_group_x(mouse_pos.x, 0.0, group_width, 24.0), mouse_pos.y + 24.0)
     tooltip_panel.show_tooltip(pos)
 
     # Safety net (unlike the tag tooltips below, which already have their own 6s
@@ -105,13 +119,6 @@ func _on_mouse_entered() -> void:
         this_main_tooltip.queue_free()
     )
 
-    # Same shared ordering the card hover uses, so a relic's sub-tooltips read in the order its
-    # own text mentions them (tags used to come out in authored order, dice types in dict
-    # order). Dice types and Power need no explicit tag - Dice Bag's `tags` is empty outright,
-    # and Blood Sword / Metronome / Overflow Valve render the Power glyph while tagging nothing,
-    # so before this they showed the icon with nothing to explain it.
-    var tags_to_show := KeywordColorizer.ordered_description_keywords(relic.tooltip, relic.tags)
-
     if tags_to_show.is_empty():
         return
 
@@ -120,18 +127,11 @@ func _on_mouse_entered() -> void:
     if my_id != _hover_id:
         return
 
-    var total_height = (tags_to_show.size() * TOOLTIP_HEIGHT) + ((tags_to_show.size() - 1) * TOOLTIP_SPACING)
-    var center_y = pos.y + (tooltip_panel.size.y / 2.0)
-    var start_y = center_y - (total_height / 2.0)
-
-    var screen_height = get_viewport_rect().size.y
-    if start_y + total_height > screen_height - 20:
-        start_y = screen_height - total_height - 20
-    if start_y < 20:
-        start_y = 20
-
-    # Décalé par rapport au bord droit du tooltip principal, pas de l'icône
-    var base_pos = Vector2(pos.x + tooltip_panel.size.x + TOOLTIP_OFFSET_X, start_y)
+    var start_y := Global.tooltip_column_y(pos.y + (tooltip_panel.size.y / 2.0),
+        tags_to_show.size(), TOOLTIP_HEIGHT, TOOLTIP_SPACING)
+    # Décalé par rapport au bord droit du tooltip principal, pas de l'icône - la place pour
+    # cette colonne est déjà réservée par le placement de groupe ci-dessus.
+    var base_pos := Vector2(pos.x + tooltip_panel.size.x + TOOLTIP_OFFSET_X, start_y)
     var captured_id := my_id
 
     for i in range(tags_to_show.size()):

@@ -7,7 +7,9 @@ extends Panel
 @onready var tooltip_label: RichTextLabel = %TooltipText
 
 func show_tooltip(global_pos: Vector2) -> void:
-    global_position = global_pos
+    # Anchored under a status badge, so an enemy on the right of the field pushed it off the
+    # viewport - see _clamped_to_screen() below.
+    global_position = _clamped_to_screen(global_pos)
     # Show the popup first to ensure the window exists
     show()
     
@@ -108,3 +110,15 @@ func get_tooltip_content(status: Status) -> void:
     tooltip_label.bbcode_text = text_bbcode
 
     
+
+
+# Inlined rather than calling Global: these panel scripts are reached through `const ... =
+# preload(...)` chains (intent_ui.gd), and resolving the Global autoload from here fails at
+# that point - the script then binds as a plain Panel and every show_tooltip() call errors
+# with "Nonexistent function 'show_tooltip' in base 'Panel'". Keep this self-contained.
+func _clamped_to_screen(pos: Vector2) -> Vector2:
+    const MARGIN := 8.0
+    var view: Vector2 = get_viewport_rect().size
+    return Vector2(
+        clampf(pos.x, MARGIN, maxf(MARGIN, view.x - size.x - MARGIN)),
+        clampf(pos.y, MARGIN, maxf(MARGIN, view.y - size.y - MARGIN)))
