@@ -1,7 +1,8 @@
 extends Card
 
 # Ungated (Julien, 2026-08-24) - base and Sleight+ both carry requirement NONE, so
-# meets_requirement() passes trivially on either. They share this one script.
+# meets_requirement() passes trivially on either. They share this one script; the whole
+# upgrade lives in the .tres, where Sleight+ is Celestial (playable with no dice left).
 
 # "Gain Loaded 2 this turn" - the cheap, ungated entry to the Loaded ladder.
 #
