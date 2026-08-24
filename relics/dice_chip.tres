@@ -9,6 +9,7 @@ relic_name = "Dice Chip"
 id = "dice_chip"
 type = 1
 rarity_tier = 1
+shop_only = false
 has_counter = false
 counter = 0
 starter_relic = false

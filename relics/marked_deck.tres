@@ -1,4 +1,4 @@
-[gd_resource type="Resource" load_steps=3 format=3 uid="uid://rmar07qdeck"]
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://coq2tviy1ih02"]
 
 [ext_resource type="Script" path="res://relics/marked_deck.gd" id="1_markedd"]
 [ext_resource type="Texture2D" uid="uid://bydvc6b06mun3" path="res://marked_deck.png" id="2_markedd"]
@@ -9,6 +9,7 @@ relic_name = "Marked Die"
 id = "marked_deck"
 type = 4
 rarity_tier = 1
+shop_only = false
 has_counter = false
 counter = 0
 starter_relic = false

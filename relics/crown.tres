@@ -9,6 +9,7 @@ relic_name = "Crown"
 id = "Crown"
 type = 4
 rarity_tier = 1
+shop_only = false
 has_counter = true
 counter = 0
 starter_relic = false
