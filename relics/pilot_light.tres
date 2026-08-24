@@ -13,5 +13,5 @@ has_counter = false
 counter = 0
 starter_relic = false
 icon = ExtResource("2_pilotli")
-tooltip = "Start each turn with 2 Power"
+tooltip = "Start each fight with 3 Power"
 tags = ""

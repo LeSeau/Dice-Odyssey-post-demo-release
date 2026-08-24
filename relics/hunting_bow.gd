@@ -1,7 +1,9 @@
 class_name BowRelic
 extends Relic
 
-# This relic deals 2 damage to a random enemy whenever you roll a 6
+# Deals 3 damage to a random enemy whenever you roll a 6 (was 5, nerfed 2026-08-24:
+# thrown 6s feed it too, so Cursed Toss's 75%-sixes Evil die was turning it into a
+# per-turn nuke rather than a trickle).
 
 func initialize_relic(owner: RelicUI) -> void:
     # Connect to the dice rolled event when the relic is added
@@ -40,7 +42,7 @@ func _fire_arrow(owner: RelicUI) -> void:
 
     # Create and execute the damage effect
     var dmg = DamageEffect.new()
-    dmg.amount = 5
+    dmg.amount = 3
     dmg.execute([random_enemy])
 
 func deactivate_relic(owner: RelicUI) -> void:

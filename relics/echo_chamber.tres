@@ -13,5 +13,5 @@ has_counter = false
 counter = 0
 starter_relic = false
 icon = ExtResource("2_echo")
-tooltip = "Whenever you roll the same value twice in a row, Charge a Blue Dice"
+tooltip = "Once per turn, when you roll the same value twice in a row, Charge a Blue Dice"
 tags = "Charge, Blue Dice"

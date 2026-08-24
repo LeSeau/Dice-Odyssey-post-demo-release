@@ -24,7 +24,7 @@ const NEW_RELICS := [
 	"underdog_ring", "needle_die", "worms_eye_lens", "sixth_gear", "conductors_baton",
 	"giants_signet", "pilot_light", "marked_deck", "consolation_chip", "jackpot_pin",
 	"blood_chalice", "whetstone_pendant", "mortar_trowel", "thorned_plate", "fuel_gauge",
-	"wayfinder_compass", "diplomats_seal", "stray_die", "alms_box", "hagglers_loupe",
+	"stray_die", "alms_box", "hagglers_loupe",
 	"golem_heart",
 ]
 # Deliberately shop-only: a Giant-specific relic in a treasure chest is a dead chest for a
@@ -292,10 +292,14 @@ func _enemy_hp() -> int:
 # ⚠️ dice_interface._on_dice_rolled SPENDS a die of the active type on this signal (guarded by
 # `> 0`). Any assertion about a dice COUNT therefore has to zero that type first - see
 # _isolate_dice_count - or the relic's +1 and the interface's -1 cancel out and the test lies.
+# Both counters move, mirroring global.gd::report_dice_roll. fight_dice_rolled was added
+# here on 2026-08-24: Sixth Gear now counts across the fight rather than the turn, and this
+# helper only moved the per-turn counter, so the relic looked broken while it was fine.
 func _fake_roll(dice_type: String, value: int) -> void:
 	Global.dice_type = dice_type
 	Global.last_roll = value
 	Global.dice_amount_rolled_this_turn += 1
+	Global.fight_dice_rolled += 1
 	Events.dice_rolled.emit(dice_type, value)
 
 
@@ -344,19 +348,20 @@ func _scenario_low_rolls() -> void:
 func _scenario_giant_and_red() -> void:
 	_section("giant / red relics")
 	_add("giants_signet")
-	var str_before := _strength()
+	# Pays Block since 2026-08-24 (was 1 Strength): Strength compounded over a long fight.
+	var blk_before := _block()
 	_fake_roll("giant", 10)
-	check("Giant's Signet: 10 grants Strength", _strength() == str_before + 1)
-	str_before = _strength()
+	check("Giant's Signet: 10 grants Block", _block() == blk_before + 6, str(_block() - blk_before))
+	blk_before = _block()
 	_fake_roll("giant", 9)
-	check("Giant's Signet: 9 grants nothing", _strength() == str_before)
-	str_before = _strength()
+	check("Giant's Signet: 9 grants nothing", _block() == blk_before)
+	blk_before = _block()
 	_fake_roll("blue", 12)
-	check("Giant's Signet: ignores other types", _strength() == str_before)
+	check("Giant's Signet: ignores other types", _block() == blk_before)
 	await _remove("giants_signet")
 
 	_add("jackpot_pin")
-	str_before = _strength()
+	var str_before := _strength()
 	_fake_red_roll(6)
 	check("Jackpot Pin: red 6 grants 2 Strength", _strength() == str_before + 2,
 			str(_strength() - str_before))
@@ -402,12 +407,14 @@ func _scenario_chain_and_count() -> void:
 			Global.blue_dice_current_amount == 0, str(Global.blue_dice_current_amount))
 	await _remove("conductors_baton")
 
+	# Counts across the FIGHT since 2026-08-24, not per turn - so the counter that matters
+	# is fight_dice_rolled. See debug_relic_rework.gd for the turn-boundary case.
 	_add("sixth_gear")
-	Global.dice_amount_rolled_this_turn = 4
+	Global.fight_dice_rolled = 4
 	Global.roll_value = 0
-	_fake_roll("blue", 3)  # 5th
+	_fake_roll("blue", 3)  # 5th of the fight
 	check("Sixth Gear: 5th die grants nothing", Global.roll_value == 0)
-	_fake_roll("blue", 3)  # 6th
+	_fake_roll("blue", 3)  # 6th of the fight
 	check("Sixth Gear: 6th die grants 6 Power", Global.roll_value == 6, str(Global.roll_value))
 	Global.roll_value = 0
 	_fake_roll("blue", 3)  # 7th
@@ -417,29 +424,9 @@ func _scenario_chain_and_count() -> void:
 
 func _scenario_switching() -> void:
 	_section("dice-switch relics")
-	_add("wayfinder_compass")
-	Global.next_roll_modifier = 0
-	Global.power_at_last_switch = 0
-	Events.active_dice_changed.emit("red")
-	check("Wayfinder: switching at 0 Power does nothing", Global.next_roll_modifier == 0)
-	Global.power_at_last_switch = 7
-	Events.active_dice_changed.emit("blue")
-	check("Wayfinder: switching with Power boosts next roll",
-			Global.next_roll_modifier == 2, str(Global.next_roll_modifier))
-	Global.next_roll_modifier = 0
-	Events.active_dice_changed.emit("red")
-	check("Wayfinder: only once per turn", Global.next_roll_modifier == 0)
-	await _remove("wayfinder_compass")
-
-	_add("diplomats_seal")
-	var before := _block()
-	Global.power_at_last_switch = 0
-	Events.active_dice_changed.emit("red")
-	check("Diplomat's Seal: switching at 0 Power does nothing", _block() == before)
-	Global.power_at_last_switch = 5
-	Events.active_dice_changed.emit("blue")
-	check("Diplomat's Seal: switching with Power grants Block", _block() == before + 3)
-	await _remove("diplomats_seal")
+	# Wayfinder Compass and Diplomat's Seal were CUT from both pools on 2026-08-24.
+	# Their files stay on disk (convention) but they are no longer offered, so there is
+	# nothing left to regression-test here.
 
 
 func _scenario_defence() -> void:
@@ -467,8 +454,8 @@ func _scenario_flags() -> void:
 	var discounted: int = Global.current_dice_price("blue")
 	check("Haggler's Loupe: discounts dice", discounted < full,
 			"%d -> %d" % [full, discounted])
-	check("Haggler's Loupe: discount is ~15%",
-			absf(float(discounted) / float(full) - 0.85) < 0.02,
+	check("Haggler's Loupe: discount is ~10%",
+			absf(float(discounted) / float(full) - 0.90) < 0.02,
 			"%.3f" % (float(discounted) / float(full)))
 	await _remove("hagglers_loupe")
 	check("Haggler's Loupe: price restored on removal",
@@ -536,10 +523,15 @@ func _scenario_blessing_and_refuel() -> void:
 	check("Alms Box: non-Blessing grants nothing", _block() == before)
 	await _remove("alms_box")
 
+	# Cumulative since 2026-08-24: 20 Power refuelled across the fight pays 3 Strength once.
 	_add("fuel_gauge")
-	before = _block()
+	Global.refueled_power_this_fight = 0
+	var fg_str := _strength()
 	Events.refuel_happened.emit(3)
-	check("Fuel Gauge: Refuel grants Block", _block() == before + 2)
+	check("Fuel Gauge: a small refuel alone does not pay", _strength() == fg_str)
+	Events.refuel_happened.emit(20)
+	check("Fuel Gauge: crossing 20 total pays 3 Strength", _strength() == fg_str + 3,
+			str(_strength() - fg_str))
 	await _remove("fuel_gauge")
 
 	_add("whetstone_pendant")
@@ -553,10 +545,11 @@ func _scenario_blessing_and_refuel() -> void:
 
 	# Pilot Light routes through starting_power_next_turn (see the script for why a direct
 	# roll_value bump would be wiped by dice.gd's turn-start assignment).
+	# Fight-start only since 2026-08-24 (was every turn), so battle_started is the hook.
 	_add("pilot_light")
 	Global.starting_power_next_turn = 0
-	Events.player_turn_ended.emit()
-	check("Pilot Light: banks Power for next turn", Global.starting_power_next_turn == 2,
+	Events.battle_started.emit()
+	check("Pilot Light: banks 3 Power at fight start", Global.starting_power_next_turn == 3,
 			str(Global.starting_power_next_turn))
 	await _remove("pilot_light")
 

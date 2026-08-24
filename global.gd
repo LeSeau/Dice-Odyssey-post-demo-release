@@ -194,6 +194,65 @@ func add_tooltip(tooltip: Node, tooltip_owner: Node) -> void:
     get_tree().root.add_child(tooltip)
 
 
+# --- Tooltip placement -------------------------------------------------------
+# Same distance from the edge IconTooltip already uses, so both tooltip families sit alike.
+const TOOLTIP_SCREEN_MARGIN := 8.0
+# tooltip.tscn / status_tooltip.tscn are authored at this size; dice_tooltip grows its height
+# at runtime and passes its real size instead.
+const TOOLTIP_PANEL_SIZE := Vector2(204.0, 108.0)
+
+
+# Last-resort guard, applied inside every show_tooltip(): keep the panel fully on screen.
+# Positions are computed from whatever the player is hovering, and near an edge that used to
+# run straight off the viewport (the rightmost enemy's intent, a relic reward row). A tooltip
+# already on screen is never moved, so this only ever rescues the broken cases.
+func clamp_tooltip_position(pos: Vector2, panel_size: Vector2) -> Vector2:
+    var view: Vector2 = get_tree().root.get_visible_rect().size
+    return Vector2(
+        clampf(pos.x, TOOLTIP_SCREEN_MARGIN,
+            maxf(TOOLTIP_SCREEN_MARGIN, view.x - panel_size.x - TOOLTIP_SCREEN_MARGIN)),
+        clampf(pos.y, TOOLTIP_SCREEN_MARGIN,
+            maxf(TOOLTIP_SCREEN_MARGIN, view.y - panel_size.y - TOOLTIP_SCREEN_MARGIN)))
+
+
+# X where a tooltip group placed beside the hovered thing should START. A "group" is
+# everything laid out on that row: one column of keyword tooltips, or a relic's own tooltip
+# plus its keyword column (pass their combined width).
+#
+# Three outcomes, in order of preference:
+#   - right of the anchor (the convention on every screen), when it fits;
+#   - flipped to its left, when it doesn't but there is room there - clamping instead would
+#     slide the group on top of the very card being read;
+#   - right-aligned to the screen, when neither side fits, which only nudges it far enough
+#     to be fully visible and keeps the group's left-to-right reading order.
+#
+# Callers used to hand-roll `anchor + width + 8` with no horizontal bound at all, so the
+# reward screen's relic row and the deck view's right-hand columns pushed their keyword
+# stacks clean off the edge. Same flip-then-clamp event_fickle_broker.gd worked out for its
+# near-full-width trade buttons, shared now instead of re-derived per screen.
+func tooltip_group_x(anchor_left: float, anchor_width: float, group_width: float,
+        gap: float = 8.0) -> float:
+    var screen_width: float = get_tree().root.get_visible_rect().size.x
+    var right_limit: float = screen_width - TOOLTIP_SCREEN_MARGIN
+    var x := anchor_left + anchor_width + gap
+    if x + group_width > right_limit:
+        var flipped := anchor_left - gap - group_width
+        if flipped >= TOOLTIP_SCREEN_MARGIN:
+            x = flipped
+        else:
+            x = right_limit - group_width
+    return clampf(x, TOOLTIP_SCREEN_MARGIN, maxf(TOOLTIP_SCREEN_MARGIN, right_limit - group_width))
+
+
+# Top Y for a column of `count` stacked tooltips centred on `center_y`, kept on screen.
+# Four screens had this same block copy-pasted verbatim.
+func tooltip_column_y(center_y: float, count: int, tooltip_height: float = TOOLTIP_PANEL_SIZE.y,
+        spacing: float = 1.0) -> float:
+    var total: float = (count * tooltip_height) + (maxi(count - 1, 0) * spacing)
+    var screen_height: float = get_tree().root.get_visible_rect().size.y
+    return clampf(center_y - (total / 2.0), 20.0, maxf(20.0, screen_height - total - 20.0))
+
+
 func _process(_delta: float) -> void:
     _tooltip_sweep_countdown -= 1
     if _tooltip_sweep_countdown > 0:
@@ -268,6 +327,13 @@ var mech_dice_bonus_amount_fight = 0
 var ink_active := false
 
 var charged_dice_this_turn := false
+# Fuel Gauge accumulates Power refuelled across the WHOLE fight rather than per refuel, so
+# several small Recombobulates add up to the same payout as one big one. Relics are shared
+# .tres singletons (relic_handler assigns them without duplicating), so per-fight state
+# cannot live on the relic itself - it would leak into the next run.
+var refueled_power_this_fight := 0
+# Echo Chamber is once per turn; reset next to charged_dice_this_turn in dice_interface.gd.
+var echo_chamber_fired_this_turn := false
 var dice_amount_rolled_this_turn = 0
 var dice_type = "blue"
 var current_card = null
@@ -719,6 +785,8 @@ func reset_run_state() -> void:
 
     ink_active = false
     charged_dice_this_turn = false
+    refueled_power_this_fight = 0
+    echo_chamber_fired_this_turn = false
     dice_amount_rolled_this_turn = 0
     dice_type = "blue"
     current_card = null

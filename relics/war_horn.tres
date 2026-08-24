@@ -12,5 +12,5 @@ has_counter = false
 counter = 0
 starter_relic = false
 icon = ExtResource("1_8g7tv")
-tooltip = "Start each fight with a Scout 3 card"
-tags = "Scout"
+tooltip = "Start each fight with 1 more Red Dice on the first turn"
+tags = "Red Dice"

@@ -8,7 +8,7 @@ extends Relic
 # Works outside combat because relics are only ever deactivated when the relic itself is
 # removed: the RelicHandler lives in run.tscn and survives every scene change.
 
-const DISCOUNT := 0.15
+const DISCOUNT := 0.10
 
 
 func initialize_relic(_owner: RelicUI) -> void:

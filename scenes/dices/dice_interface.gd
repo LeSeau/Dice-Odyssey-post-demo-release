@@ -383,6 +383,7 @@ func _on_player_turn_started() -> void:
     Global.odd_dice_bonus_amount = 0
     Global.mech_dice_bonus_amount = 0
     Global.charged_dice_this_turn = false
+    Global.echo_chamber_fired_this_turn = false
     initialize_dices()
     update_selected_highlight()
     _play_panel_refill_burst()

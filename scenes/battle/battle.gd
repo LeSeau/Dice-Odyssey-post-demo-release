@@ -142,6 +142,7 @@ func start_battle() -> void:
     enemy_handler.reset_enemy_actions()
     Global.fight_turn = 0
     Global.fight_dice_rolled = 0
+    Global.refueled_power_this_fight = 0
     # Not a hard "blue": run loadouts (dice_loadout.gd) can start a run without Blue,
     # so each fight opens on the first planning die the player actually owns.
     Global.dice_type = Global.default_active_dice_type()

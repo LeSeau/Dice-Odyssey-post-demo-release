@@ -14,5 +14,5 @@ has_counter = false
 counter = 0
 starter_relic = false
 icon = ExtResource("2_giantss")
-tooltip = "Whenever a Giant Dice rolls 10 or more, gain 1 Strength"
-tags = "Giant Dice, Strength"
+tooltip = "Whenever a Giant Dice rolls 10 or more, gain 6 Block"
+tags = "Giant Dice"

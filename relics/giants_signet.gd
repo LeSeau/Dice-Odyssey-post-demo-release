@@ -4,9 +4,13 @@ extends Relic
 # these belong on the shop shelf, where the player buys one BECAUSE it fits the dice they
 # already own, rather than in the treasure pool where an Elf would open a dead chest.
 # 10+ on a d12 is a 25% band, so this is a real payout rather than a jackpot.
+#
+# Pays Block rather than Strength since 2026-08-24 (Julien). Strength compounded - every
+# high Giant roll made every later attack better - which made the relic scale absurdly in
+# long fights. Block is spent the turn it arrives, so the payout stays flat however long
+# the fight runs.
 
-const MUSCLE_STATUS = preload("res://statuses/muscle.tres")
-const STRENGTH := 1
+const BLOCK_AMOUNT := 6
 const THRESHOLD := 10
 
 
@@ -18,25 +22,23 @@ func initialize_relic(owner: RelicUI) -> void:
 func _on_dice_rolled(dice_type: String, _roll_value: int, owner: RelicUI) -> void:
     if dice_type != "giant" or Global.last_roll < THRESHOLD:
         return
-    _grant_strength(owner)
+    _grant_block(owner)
 
 
 func _on_dice_thrown_landed(dice_type: String, value: int, owner: RelicUI) -> void:
     if dice_type != "giant" or value < THRESHOLD:
         return
-    _grant_strength(owner)
+    _grant_block(owner)
 
 
-func _grant_strength(owner: RelicUI) -> void:
+func _grant_block(owner: RelicUI) -> void:
     var player := owner.get_tree().get_first_node_in_group("player") as Player
     if player == null:
         return
     owner.flash()
-    var status_effect := StatusEffect.new()
-    var muscle := MUSCLE_STATUS.duplicate()
-    muscle.stacks = STRENGTH
-    status_effect.status = muscle
-    status_effect.execute([player])
+    var block_effect := BlockEffect.new()
+    block_effect.amount = BLOCK_AMOUNT
+    block_effect.execute([player])
 
 
 func deactivate_relic(_owner: RelicUI) -> void:

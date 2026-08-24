@@ -1,18 +1,19 @@
 extends Relic
 
-# Metronome's big sibling. Metronome pays every 3rd die, which is frequent enough to shove
-# your Power off an Exact/Multiple target you were steering toward; this fires ONCE per turn,
-# on the 6th die, so it rewards a genuine swarm turn without polluting a precision one.
+# Every 6th die of the FIGHT, not of the turn (Julien, 2026-08-24). The old per-turn version
+# only ever paid on a turn that reached six rolls, which meant it did nothing at all in a
+# deck that spreads its rolls across several smaller turns. Counting across the fight makes
+# it pay the same total either way, and it keeps paying in long fights.
 
 const POWER_BONUS := 6
-const TRIGGER_ON := 6
+const EVERY := 6
 
 
 func initialize_relic(owner: RelicUI) -> void:
     Events.dice_rolled.connect(_on_dice_rolled.bind(owner))
     # Thrown dice advance the count too: Global.report_thrown_die_landed increments
-    # dice_amount_rolled_this_turn before emitting, exactly like dice.gd's real-roll path,
-    # so the counter shown here and the trigger below stay in step.
+    # fight_dice_rolled before emitting, exactly like dice.gd's real-roll path, so the
+    # counter shown here and the trigger below stay in step.
     Events.dice_thrown_landed.connect(_on_dice_thrown_landed.bind(owner))
     Events.player_turn_started.connect(_on_player_turn_started.bind(owner))
     _update_counter(owner)
@@ -24,18 +25,18 @@ func _on_dice_thrown_landed(dice_type: String, value: int, owner: RelicUI) -> vo
 
 func _on_dice_rolled(_dice_type: String, _roll_value: int, owner: RelicUI) -> void:
     _update_counter(owner)
-    # Exactly the 6th, not "every 6th": one payout per turn is the whole point of the design.
-    if Global.dice_amount_rolled_this_turn != TRIGGER_ON:
+    if Global.fight_dice_rolled == 0 or Global.fight_dice_rolled % EVERY != 0:
         return
     owner.flash()
     Global.roll_value += POWER_BONUS
     Events.change_current_power.emit()
 
 
-# Counts up 0..6 and then stops, so the player can see how far off the payout they are.
+# Cycles 1..6 and pays on the 6, rather than echoing fight_dice_rolled % 6 raw - that would
+# show "0" on the very roll that triggers the bonus instead of the "6" the player expects.
 func _update_counter(owner: RelicUI) -> void:
-    var rolled: int = Global.dice_amount_rolled_this_turn
-    owner.counter.text = str(mini(rolled, TRIGGER_ON))
+    var n: int = Global.fight_dice_rolled
+    owner.counter.text = "0" if n == 0 else str(((n - 1) % EVERY) + 1)
     owner.counter.visible = true
 
 

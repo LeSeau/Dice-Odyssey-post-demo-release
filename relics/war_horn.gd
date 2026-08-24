@@ -1,11 +1,14 @@
 extends Relic
 
-const SCOUT3_CARD = preload("res://characters/warrior/cards/card_scout3.tres")
+# Was a free Scout 3 card; now an extra Red Dice on turn 1 (Julien, 2026-08-24). Red is the
+# gamble die - you socket a card and then roll - so an extra one on the opening turn is a
+# free swing at a big first hit rather than information about a roll you have not made yet.
+#
+# Mirrors Dice Bag exactly: bonus_amount is the one-turn channel (dice_interface.gd refills
+# current = max + bonus at the top of each turn, then zeroes bonus), so this lands on turn 1
+# only and never touches the permanent loadout.
+
 
 func activate_relic(owner: RelicUI) -> void:
     owner.flash()
-    # SCOUT3_CARD is a shared preloaded singleton (the same cached object other
-    # scripts preload from the same path, e.g. status_marionette.gd) - duplicate before
-    # handing it out so it never ends up as the SAME Card object as one already in hand.
-    Events.add_card_to_hand_requested.emit(SCOUT3_CARD.duplicate())
-
+    Global.red_dice_bonus_amount += 1
