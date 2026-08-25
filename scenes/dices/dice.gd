@@ -806,6 +806,11 @@ func _ready():
     # Bounds of the slot-row clearance come from the row's real rect, once layout settles.
     _sync_emanation_row_clearance.call_deferred()
 
+    # Loaded motes: the timer polls forever and spawns nothing while Loaded is 0, so there is
+    # no signal to hook and no way for a grant/expiry path to forget to switch it on.
+    _setup_loaded_motes()
+    _cache_die_rest_rect.call_deferred()
+
     # Initialize the dice display with the correct texture based on dice_type
     update_dice_display()
 
@@ -2505,6 +2510,10 @@ func _on_active_dice_changed(new_dice_type):
     if(dice_type == "red"):
         card_drop_area.show()
         mech_section.hide()
+        # Repaint an empty socket now that Red is live: _socket_is_armed() reads dice_type, and
+        # Armageddon is usually played from a DIFFERENT die, so the socket was last painted
+        # before the blessing existed.
+        _refresh_empty_socket_look()
     elif(dice_type == "mech"):
         mech_section.show()  
         card_drop_area.hide()      
@@ -4421,7 +4430,7 @@ func _fly_charged_card_to_discard() -> void:
 
 
 func _set_socket_empty() -> void:
-    card_drop_area.scale = Vector2(0.857, 0.857)  # after you apply scale
+    card_drop_area.scale = SOCKET_REST_SCALE  # after you apply scale
     card_banner.modulate.a = 0.7
     panel.modulate.a = 0.35
     $CardDropArea/CardBackground/CardFrame/DescriptionPanel.modulate.a = 0.15
@@ -4445,8 +4454,17 @@ func _set_socket_empty() -> void:
     bonus_effect.hide()
     bonus_separator.hide()
     cancel_red_card_panel.hide()
-    
+    # Everything above is the INERT empty socket. With Armageddon up it is not inert, and every
+    # word of it is wrong - so the armed look overwrites it wholesale (see _apply_armed_socket).
+    if _socket_is_armed():
+        _apply_armed_socket()
+    else:
+        _socket_showing_armed = false
+        _hide_armed_socket_icon()
+
 func _set_socket_filled() -> void:
+    _socket_showing_armed = false
+    _hide_armed_socket_icon()
     card_banner.modulate.a = 1.0
     panel.modulate.a = 1.0
     title.modulate.a = 1.0
@@ -4581,3 +4599,286 @@ func _requirement_text(card: Card) -> String:
         Card.Requirement.EXACT: return "Exact %d" % card.requirement_number
         Card.Requirement.MULTIPLE: return "Mult %d" % card.requirement_number
         _: return "Any"
+
+
+# --- Armageddon: the ARMED empty socket -------------------------------------------------------
+# With the Armageddon blessing up, rolling Red on an EMPTY socket is a legal and powerful move.
+# The empty socket placeholder ("?" / "Drop a card" / "Place a card here") is then not merely
+# uninviting - it is FALSE, and it is the only thing the socket ever says to the player. This
+# replaces it with what the empty socket actually does now, and undims the card so it reads as
+# armed rather than disabled. (Julien, 2026-08-25: "remind the player he can actually roll a
+# dice without putting a card in the socket".)
+#
+# ⚠️ NEVER put a texture in charged_card_texture here, tempting as an Armageddon card face is:
+# roll_dice() uses `charged_card_texture.texture != null` as its "a card is socketed" test, and
+# _fire_socketless_red() early-returns on the same check. Filling the art slot would make the
+# die think it has a card, set playing_red_card, and silently kill the whole blessing.
+const SOCKET_REST_SCALE := Vector2(0.857, 0.857)
+const ARMED_SOCKET_TITLE := "Armageddon"
+const ARMED_SOCKET_RIBBON := "No card needed"
+const ARMED_SOCKET_TEXT := "Roll to deal X damage to ALL enemies"
+# Armageddon+ also grants Strength on every socketless roll (_fire_socketless_red), so the
+# socket has to say so - the status badge tooltip is the only other place that does.
+const ARMED_SOCKET_TEXT_PLUS := "Roll to deal X damage to ALL enemies and gain Strength"
+# Armageddon's own card art, shown in the art slot's place. A SEPARATE node, never
+# charged_card_texture - see the warning above; that slot has to stay null.
+# ⚠️ load() at runtime, NOT preload: a preload of an asset with no .ctex is a PARSE error, and
+# a parse error takes the whole of dice.gd down (and with it every scene that touches the die).
+# Same reason _reskin_enemy loads act-2 art at runtime. Worth nothing more than a missing
+# overlay if it ever fails; the rest of the armed socket still reads correctly.
+const ARMED_SOCKET_ICON_PATH := "res://socketless_red.png"
+
+var _socket_showing_armed := false
+var _armed_socket_flash_tween: Tween
+var _armed_socket_icon: TextureRect
+
+
+# Built lazily so the scene file stays untouched, and reused thereafter.
+func _ensure_armed_socket_icon() -> TextureRect:
+    if is_instance_valid(_armed_socket_icon):
+        return _armed_socket_icon
+    var tex := load(ARMED_SOCKET_ICON_PATH) as Texture2D
+    if tex == null:
+        return null
+    var icon := TextureRect.new()
+    icon.name = "ArmedSocketIcon"
+    icon.texture = tex
+    icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+    icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    panel.add_child(icon)
+    icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+    _armed_socket_icon = icon
+    return icon
+
+
+func _hide_armed_socket_icon() -> void:
+    if is_instance_valid(_armed_socket_icon):
+        _armed_socket_icon.hide()
+
+
+# Deliberately does NOT test socketed_card_ui: _on_cancel_red_card_pressed() calls
+# _set_socket_empty() BEFORE it nulls that reference, so including it here would leave the
+# socket looking inert after a cancel. Every caller already means "the display is empty now".
+func _socket_is_armed() -> bool:
+    return Global.socketless_red and dice_type == "red"
+
+
+func _apply_armed_socket() -> void:
+    title.text = ARMED_SOCKET_TITLE
+    title.modulate.a = 1.0
+    card_banner.modulate.a = 1.0
+    # The art slot itself stays empty (it must), but the space it leaves is the biggest part
+    # of the card, so the blessing's own art fills it from a separate overlay node.
+    var armed_icon := _ensure_armed_socket_icon()
+    if armed_icon != null:
+        armed_icon.show()
+        panel.modulate.a = 1.0
+    else:
+        # No art available - keep the slot dim-but-not-dead rather than showing a bright void.
+        panel.modulate.a = 0.5
+    $CardDropArea/CardBackground/CardFrame/DescriptionPanel.modulate.a = 1.0
+    requirement_panel.add_theme_stylebox_override("panel", CardUI.RED_STYLEBOX)
+    requirement_label.text = ARMED_SOCKET_RIBBON
+    requirement_panel.modulate.a = 1.0
+    description_panel.modulate.a = 1.0
+    _set_armed_socket_description()
+    var was_armed := _socket_showing_armed
+    _socket_showing_armed = true
+    # One-shot on the TRANSITION only. A permanent pulse would be on screen for most of a fight
+    # (you sit on Red with an empty socket a lot) and would go to wallpaper the same way an
+    # always-on effect does; this beat exists to catch the eye the moment the state appears.
+    if not was_armed:
+        _flash_armed_socket()
+
+
+# Same measure-and-step-down loop as _set_charged_description(): this is the same 140x56 slot
+# and the sentence is long enough to need it. Routed through colorize_tooltip() rather than
+# set as a raw string so "X" becomes the Power glyph and "Strength" picks up the keyword gold,
+# exactly as they would on a real card face.
+func _set_armed_socket_description() -> void:
+    # Explicitly typed, not inferred: a ternary is one of the spots where GDScript quietly
+    # degrades to Variant, and a degraded local poisons every `:=` after it in the file.
+    var text: String = ARMED_SOCKET_TEXT_PLUS if Global.socketless_red_strength > 0 \
+            else ARMED_SOCKET_TEXT
+    description_panel.offset_top = CardUI.DESC_PANEL_TOP
+    description_panel.offset_bottom = CardUI.DESC_PANEL_TOP + CardUI.DESC_PANEL_HEIGHT
+    var available := description_panel.size.y
+    for font_size: int in CHARGED_DESC_FONT_SIZE_CANDIDATES:
+        charged_card_description.add_theme_font_size_override("normal_font_size", font_size)
+        charged_card_description.text = "[center]%s[/center]" % KeywordColorizer.colorize_tooltip(
+                text, font_size + 2)
+        if charged_card_description.get_content_height() <= available:
+            return
+
+
+# Warm brightness rather than a scale punch: card_drop_area has no pivot_offset authored, so
+# scaling it would grow from the top-left corner, and setting a pivot here would silently
+# change _set_socket_filled()'s existing scale tween too.
+func _flash_armed_socket() -> void:
+    if _armed_socket_flash_tween and _armed_socket_flash_tween.is_valid():
+        _armed_socket_flash_tween.kill()
+    _armed_socket_flash_tween = create_tween()
+    _armed_socket_flash_tween.tween_property(
+            card_drop_area, "modulate", Color(1.7, 1.5, 1.2, 1.0), 0.10) \
+            .from(Color.WHITE).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+    _armed_socket_flash_tween.tween_property(
+            card_drop_area, "modulate", Color.WHITE, 0.38) \
+            .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+
+
+# Armageddon is Min 6 and NOT red_only, so it is usually played from some other die entirely -
+# meaning the socket was last painted (by _set_socket_empty) long before the flag existed, and
+# switching to Red is the first time the blessing's own socket is on screen at all. Without
+# this the socket keeps asking for a card the player does not need.
+func _refresh_empty_socket_look() -> void:
+    if _flying_charged_card_to_discard:
+        return
+    if charged_card_texture.texture != null or is_instance_valid(socketed_card_ui):
+        return
+    _set_socket_empty()
+
+
+# --- Loaded motes -----------------------------------------------------------------------------
+# Sparks leaking off the central die while LOADED is up (Julien, 2026-08-25, after liking the
+# motes on the infusion and dice-shop dice).
+#
+# GATED on Loaded rather than running all the time, deliberately. Those two screens use motes to
+# say "this die is special" about an otherwise static image; the combat die already has three
+# continuous systems saying "alive" (emanation tongues, aura ring, power orbs), so a permanent
+# fourth layer would be wallpaper by turn three - and it would spend clutter in the one region
+# this scene keeps having to fight for, the slot row sitting ~15px above the die art. Loaded, by
+# contrast, had NO presence on the die at all: its whole fantasy is "this die is weighted, every
+# roll pays extra", and the only tell was a badge over on the player, nowhere near the die.
+#
+# Density scales with Global.loaded_amount, so building the ladder (Sleight -> Ringer -> a held
+# Dead Weight) shows on the die itself instead of only in a badge number.
+const LOADED_MOTE_INTERVAL_BASE := 0.55   # spawn gap at Loaded 1; also the idle poll rate
+const LOADED_MOTE_INTERVAL_STEP := 0.09   # shaved off per extra stack
+const LOADED_MOTE_INTERVAL_FLOOR := 0.26  # never denser than the dice shop per-die rate
+# Bigger and brighter than the shop/infusion motes (11-22px at 0.38-0.62), and not by taste:
+# those sit on a static die on a dark screen, while this one is already inside the emanation's
+# light pool. Measured at the shop's values here, the motes lit 99 sampled px against an 84px
+# noise floor from the emanation's own animation - i.e. they rendered and did not exist. Size
+# is the strongest lever because glow_texture() concentrates its brightness in a small core.
+const LOADED_MOTE_SIZE_MIN := 14.0
+const LOADED_MOTE_SIZE_MAX := 26.0
+const LOADED_MOTE_ALPHA_MIN := 0.50
+const LOADED_MOTE_ALPHA_MAX := 0.75
+const LOADED_MOTE_ALPHA_PER_STACK := 0.03
+const LOADED_MOTE_STACK_CAP := 4
+# Spawn band measured UP from _mote_spawn_base_y, and how far a mote climbs.
+const LOADED_MOTE_SPAWN_BAND := 38.0
+const LOADED_MOTE_RISE_MIN := 55.0
+const LOADED_MOTE_RISE_MAX := 95.0
+const LOADED_MOTE_DRIFT_X := 14.0
+# Hard ceiling, as a gap above the die art's top edge. The dice-type slot row sits just above
+# the die and draws at z_index 5, so a spark that drifts into it does not overlap the tray - it
+# vanishes behind an opaque plate mid-flight. Every rise is clamped against this rather than
+# just being tuned to land short of it, so retuning the band above can never quietly reopen it.
+const LOADED_MOTE_HEADROOM := 18.0
+# Strongly warm-shifted, not merely tinted. A spark in the die's own accent is invisible inside
+# that die's light field - the way the charge gust failed on 2026-08-25 - and at a half lerp it
+# was still blue-on-blue, rendering as a pale smudge on the Blue die rather than an ember. This
+# lands close to burst()'s warm gold, which also happens to be the colour the card text already
+# teaches for the Loaded keyword, while keeping a trace of the die's hue.
+const LOADED_MOTE_WARMTH := 0.78
+const LOADED_MOTE_GROUP := "loaded_mote"
+# ⚠️ Being a LATER SIBLING is not enough to draw in front here: dice.tscn gives DiceDisplay
+# z_index 1, and z_index beats tree order. At the default 0 these motes rendered perfectly -
+# behind the opaque die face, invisible, while every property probe (visible, alpha, texture,
+# rect) looked correct. 2 puts them just in front of the face and still under DiceInk (4), so
+# an inked die keeps hiding them, and far under the ROLL button (10) and socket panels (8).
+const LOADED_MOTE_Z_INDEX := 2
+
+var _loaded_mote_timer: Timer
+# The die art's RESTING rect in root-local space. Motes are parented to the ROOT, never to
+# dice_display, so the hop cannot drag them along mid-flight - which is precisely why they need
+# the resting footprint rather than the live one.
+var _die_rest_rect := Rect2()
+# Where motes are born. NOT simply the die art's bottom edge: the art runs 25px past the bottom
+# of the dice root, and the ROLL button is a sibling anchored there at z_index 10 - so the
+# lowest slice of the die is covered, and motes spawned into it were born invisible and rose
+# out from behind a button. Derived from the button's real rect so moving it can't reopen that.
+var _mote_spawn_base_y := 0.0
+
+
+func _setup_loaded_motes() -> void:
+    _loaded_mote_timer = Timer.new()
+    _loaded_mote_timer.wait_time = LOADED_MOTE_INTERVAL_BASE
+    _loaded_mote_timer.timeout.connect(_on_loaded_mote_timer_timeout)
+    add_child(_loaded_mote_timer)
+    _loaded_mote_timer.start()
+
+
+# Deferred from _ready so the anchored layout has resolved. Read once: the plinth dip moves
+# panel.position on big landings, so sampling live would drift the spawn band by a few pixels
+# for the ~0.3s a dip lasts.
+func _cache_die_rest_rect() -> void:
+    _die_rest_rect = Rect2(panel.position + dice_display.position, dice_display.size)
+    _mote_spawn_base_y = _die_rest_rect.end.y
+    var roll_button := get_node_or_null("Button") as Control
+    if roll_button != null:
+        _mote_spawn_base_y = minf(_mote_spawn_base_y, roll_button.position.y)
+
+
+func _loaded_mote_interval(loaded: int) -> float:
+    if loaded <= 1:
+        return LOADED_MOTE_INTERVAL_BASE
+    return maxf(LOADED_MOTE_INTERVAL_FLOOR,
+            LOADED_MOTE_INTERVAL_BASE - LOADED_MOTE_INTERVAL_STEP * float(loaded - 1))
+
+
+func _on_loaded_mote_timer_timeout() -> void:
+    var loaded: int = Global.loaded_amount
+    # start() rather than assigning wait_time: Timer re-arms itself with the OLD value before
+    # emitting, so a mid-turn Sleight (or its expiry) would otherwise take a full extra cycle
+    # to change the density.
+    _loaded_mote_timer.start(_loaded_mote_interval(loaded))
+    if loaded <= 0:
+        return
+    _spawn_loaded_mote(loaded)
+
+
+func _spawn_loaded_mote(loaded: int) -> void:
+    if _die_rest_rect.size == Vector2.ZERO:
+        return
+    var tint := DicePalette.burst(dice_type, LOADED_MOTE_WARMTH)
+    var mote := TextureRect.new()
+    mote.texture = DicePalette.glow_texture()
+    mote.material = DicePalette.additive_material()
+    mote.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    mote.stretch_mode = TextureRect.STRETCH_SCALE
+    # IGNORE, not the Control default STOP: these sit over the die and would otherwise eat the
+    # hovers belonging to the Power number's tooltip zone and the ROLL button.
+    mote.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    mote.z_index = LOADED_MOTE_Z_INDEX
+    # Group, not a name prefix: Godot renames duplicate siblings to "@LoadedMote@2", which no
+    # begins_with("LoadedMote") test ever matches - debug_loaded_motes silently saw one mote at
+    # a time that way.
+    mote.name = "LoadedMote"
+    mote.add_to_group(LOADED_MOTE_GROUP)
+    var mote_size := randf_range(LOADED_MOTE_SIZE_MIN, LOADED_MOTE_SIZE_MAX)
+    mote.size = Vector2(mote_size, mote_size)
+    mote.modulate = Color(tint.r, tint.g, tint.b, 0.0)
+    mote.position = Vector2(
+            _die_rest_rect.position.x + randf_range(0.0, _die_rest_rect.size.x - mote_size),
+            _mote_spawn_base_y - randf_range(0.0, LOADED_MOTE_SPAWN_BAND))
+    add_child(mote)
+
+    var extra_stacks := float(mini(loaded, LOADED_MOTE_STACK_CAP) - 1)
+    var peak_alpha := randf_range(LOADED_MOTE_ALPHA_MIN, LOADED_MOTE_ALPHA_MAX) \
+            + extra_stacks * LOADED_MOTE_ALPHA_PER_STACK
+    var ceiling_y := _die_rest_rect.position.y - LOADED_MOTE_HEADROOM
+    var rise := minf(randf_range(LOADED_MOTE_RISE_MIN, LOADED_MOTE_RISE_MAX),
+            maxf(mote.position.y - ceiling_y, 0.0))
+    var duration := randf_range(1.0, 1.6)
+    var t := create_tween()
+    t.set_parallel(true)
+    t.tween_property(mote, "position:y", mote.position.y - rise, duration) \
+            .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+    t.tween_property(mote, "position:x",
+            mote.position.x + randf_range(-LOADED_MOTE_DRIFT_X, LOADED_MOTE_DRIFT_X), duration)
+    t.tween_property(mote, "modulate:a", peak_alpha, duration * 0.3)
+    t.tween_property(mote, "modulate:a", 0.0, duration * 0.45).set_delay(duration * 0.55)
+    t.chain().tween_callback(mote.queue_free)
