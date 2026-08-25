@@ -5,7 +5,7 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "socketless_red_plus"
+id = "armageddon_plus"
 type = 0
 stack_type = 0
 can_expire = false

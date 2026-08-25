@@ -6,6 +6,18 @@ const WHITE_SPRITE_MATERIAL := preload("res://art/white_sprite_material.tres")
 # idle deformation that replaced the AnimationPlayer transform bob (2026-07-23).
 const SWAY_SHADER := preload("res://scenes/enemy/enemy.gdshader")
 
+# --- Shipped hero art / sprite transform ------------------------------------------------
+# main_character_chibi.png now holds the 2026-08-25 hero (debug candidate character_01, the
+# one Julien picked off the in-game A/B). The FILE NAME is legacy - the art is not a chibi -
+# but overwriting in place keeps warrior.tres and this scene's ext_resource (and its uid)
+# untouched, and makes the next swap a single file copy.
+#
+# Sprite2D's scale/position in player.tscn are NOT authored by eye: they are the same
+# normalisation apply_debug_texture() applies below, baked in, so the new art keeps the OLD
+# art's on-screen body height (249.6px), feet line (y=123.6, which is exactly where StatsUI
+# is pinned) and body centre. Swapping the art again means recomputing them from the two
+# alpha bboxes - do not just drop a new PNG in and leave 0.709091 behind.
+
 @export var stats: CharacterStats : set = set_character_stats
 
 @onready var sprite_2d: Sprite2D = $SpriteRoot/Sprite2D
@@ -132,8 +144,8 @@ func _apply_sway_scale() -> void:
 # is cleared. In a release build that value is always null, so everything past the first branch
 # is dead weight there.
 #
-# The candidates are authored on their own canvases (337x376 vs the shipped 544x458), so a raw
-# texture swap would change both how big the hero is and where his feet sit. Instead the
+# The candidates are authored on their own canvases, so a raw texture swap would change both
+# how big the hero is and where his feet sit. Instead the
 # override is normalised against the shipped art: same on-screen BODY height (the alpha bbox,
 # not the canvas - the art is padded), same feet line, same body centre. That makes the swap a
 # fair A/B against the enemies and the HP bar rather than a resize.

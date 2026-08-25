@@ -98,7 +98,7 @@ func get_tooltip_content(status: Status) -> void:
 
     # Upgraded blessings reuse their base status with a "_plus" id - the player-facing
     # name stays the base name ("Marionette", never "Marionette Plus").
-    title_bbcode = "[center][color=gold][b]" + status.id.trim_suffix("_plus").capitalize() + "[/b][/color][/center]"
+    title_bbcode = "[center][color=gold][b]" + _title_for(status.id) + "[/b][/color][/center]"
     # Same treatment as card text: dice names in their color, keywords gold, Power glyphed.
     # 14px glyph = body font 12 + 2 (the cards' font+2 convention).
     var text_bbcode = "[b][center]" + KeywordColorizer.colorize_tooltip(text, 14) + "[/center][/b]"
@@ -110,6 +110,28 @@ func get_tooltip_content(status: Status) -> void:
     tooltip_label.bbcode_text = text_bbcode
 
     
+
+
+# A card-granted blessing badge must read as the CARD's name - a player who just played
+# Armageddon should not be told he has "Socketless Red". The badge title is derived from
+# status.id (capitalize() turns "dual_cannon" into "Dual Cannon"), so the ids ARE the
+# single source of truth and the legacy ones were renamed to match their cards
+# (socketless_red -> armageddon, second_socket -> dual_cannon, red_edge -> grindstone).
+#
+# This map only exists for names capitalize() structurally CANNOT produce - punctuation.
+# Do not add an entry here for a plain rename: rename the status id instead, or the badge
+# and the id start drifting again. Keys are the base id, "_plus" already stripped.
+const TITLE_OVERRIDES := {
+    "dicelord_gift": "Dicelord's Gift",
+}
+
+
+func _title_for(status_id: String) -> String:
+    var base := status_id.trim_suffix("_plus")
+    # Explicitly typed: Dictionary.get() hands back a Variant, and letting a Variant flow
+    # into a String-typed return is the inference trap that silently breaks a whole file.
+    var override: String = TITLE_OVERRIDES.get(base, "")
+    return override if override != "" else base.capitalize()
 
 
 # Inlined rather than calling Global: these panel scripts are reached through `const ... =
