@@ -1650,12 +1650,23 @@ func _on_roll_landed(roll_index: int, values: Array, faces: Array) -> void:
     # scaled by roll value so a bigger roll gives a slightly bigger pulse. Always settles
     # back to AURA_SCALE_REST (not a charge-dependent size) - the "grows with power" story
     # lives entirely in _update_dice_aura_charge()'s shader parameters now, not in scale.
-    var aura_punch = AURA_SCALE_REST + 0.04 + 0.18 * val_frac
-    var aura_pulse := create_tween()
-    aura_pulse.tween_property(aura, "scale", Vector2(aura_punch, aura_punch), 0.07) \
-        .set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
-    aura_pulse.tween_property(aura, "scale", Vector2(AURA_SCALE_REST, AURA_SCALE_REST), 0.16) \
-        .set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+    # Longest wins: a charge drives this SAME aura.scale (the "charge" AnimationPlayer
+    # kick, whose only track is Aura:scale), much harder and far more rarely, so starting
+    # the landing's small punch on top of one already running would cut the charge beat off
+    # mid-flight. These genuinely collide - a Gnome-infused Green die charges a Blue die on
+    # a natural 1, i.e. on this very landing. Same "the shorter effect must not win" rule
+    # the ref-counted hit-stop exists for.
+    # One-directional on purpose: _apply_roll_result() above is what emits dice_charged, so
+    # a roll-driven charge always starts its beat BEFORE this point and this guard sees it.
+    var charge_beat_running := animation_player.is_playing() \
+            and animation_player.current_animation == "charge"
+    if not charge_beat_running:
+        var aura_punch = AURA_SCALE_REST + 0.04 + 0.18 * val_frac
+        var aura_pulse := create_tween()
+        aura_pulse.tween_property(aura, "scale", Vector2(aura_punch, aura_punch), 0.07) \
+            .set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+        aura_pulse.tween_property(aura, "scale", Vector2(AURA_SCALE_REST, AURA_SCALE_REST), 0.16) \
+            .set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
 
     # Emanation flare on the same landing beat: spike "surge" instantly, decay it out.
     # Tracked so rapid rolls restart the flare instead of stacking tweens on the param.
