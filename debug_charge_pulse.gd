@@ -27,7 +27,7 @@ const DIE_POS := Vector2(521, 294)
 const DIE_CENTER := Vector2(598, 371)  # DIE_POS + panel half (77, 77)
 # Mirrors battle.tscn's DiceInterface placement - keep in step with it, the row-clearance
 # check below asserts the shader derived its bounds from exactly this rect.
-const ROW_POS := Vector2(514, 194)
+const ROW_POS := Vector2(514, 214)
 const ROW_SIZE := Vector2(160, 72)
 
 var vp: SubViewport
