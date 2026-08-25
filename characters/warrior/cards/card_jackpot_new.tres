@@ -1,10 +1,10 @@
-[gd_resource type="Resource" script_class="Card" load_steps=5 format=3 uid="uid://cj4ckp0t51x3"]
+[gd_resource type="Resource" load_steps=5 format=3 uid="uid://cj4ckp0t51x3"]
 
-[ext_resource type="Texture2D" path="res://jackpot_new.png" id="1_icon"]
+[ext_resource type="Texture2D" uid="uid://bg2uf6q8hudsp" path="res://jackpot_new.png" id="1_icon"]
 [ext_resource type="Script" path="res://characters/warrior/cards/jackpot.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://cvjv56ti6hkis" path="res://impact1.ogg" id="3_sound"]
-
 [ext_resource type="Resource" uid="uid://cj4ckp0t6p1u5" path="res://characters/warrior/cards/card_jackpot_new_plus.tres" id="jackpot_new_pl_up"]
+
 [resource]
 script = ExtResource("2_script")
 id = "card_jackpot_new"
