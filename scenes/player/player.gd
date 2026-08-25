@@ -54,23 +54,33 @@ func _ready() -> void:
     _sway_material.set_shader_parameter("sway_speed", randf_range(0.9, 1.15))
     sprite_2d.material = _sway_material
 
-    # Align the status row's left edge to the VISIBLE red HP bar, exactly like enemies do
-    # (enemy.gd::_update_status_row_x). StatsUI is a centring HBoxContainer whose own left
-    # edge sits ~20px LEFT of the bar the player actually sees, so the row's hand-tuned
-    # .tscn offset could never line up - it read as starting too far right of the bar.
-    status_handler.sort_children.connect(_update_status_row_x)
-    stats_ui.sort_children.connect(_update_status_row_x)
-    _update_status_row_x()
+    # Hang the status row off the VISIBLE red HP bar's bottom-left corner, exactly like
+    # enemies do (enemy.gd::_update_status_row_placement) - one rule for the whole game, so
+    # the hero's row can't drift away from the enemies' convention. StatsUI is a centring
+    # HBoxContainer whose own left edge sits ~20px LEFT of the bar the player actually sees,
+    # so the row's hand-tuned .tscn offset could never line up on either axis.
+    status_handler.sort_children.connect(_update_status_row_placement)
+    stats_ui.sort_children.connect(_update_status_row_placement)
+    var health_bar := stats_ui.get_node_or_null("Health/HealthBar") as Control
+    if health_bar != null:
+        health_bar.item_rect_changed.connect(_update_status_row_placement)
+    _update_status_row_placement()
     _update_ground_shadow()
 
 
-func _update_status_row_x() -> void:
+# See enemy.gd::_update_status_row_placement for the full reasoning; this is the same
+# contract on the hero, so the two can't drift apart.
+func _update_status_row_placement() -> void:
     if status_handler == null or stats_ui == null:
         return
     var health_bar := stats_ui.get_node_or_null("Health/HealthBar") as Control
     if health_bar == null or health_bar.size.x <= 0.0:
         return
-    status_handler.position.x = to_local(health_bar.global_position).x
+    var xf := health_bar.get_global_transform()
+    var c0 := xf * Vector2.ZERO
+    var c1 := xf * health_bar.size
+    var anchor := Vector2(minf(c0.x, c1.x), maxf(c0.y, c1.y) + Enemy.STATUS_ROW_GAP)
+    status_handler.position = to_local(anchor)
 
 
 # Ground shadow, mirroring Enemy's (enemy.gd::update_enemy). Every enemy builds one and the
