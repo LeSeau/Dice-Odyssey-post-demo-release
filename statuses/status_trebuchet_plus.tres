@@ -1,7 +1,7 @@
 [gd_resource type="Resource" load_steps=3 format=3 uid="uid://c4trbstatplus2"]
 
 [ext_resource type="Script" path="res://statuses/status_trebuchet.gd" id="1_script"]
-[ext_resource type="Texture2D" uid="uid://bhqtxybmbfujk" path="res://high_roller.png" id="2_icon"]
+[ext_resource type="Texture2D" path="res://status_trebuchet_icon.png" id="2_icon"]
 
 [resource]
 script = ExtResource("1_script")

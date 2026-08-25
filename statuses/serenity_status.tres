@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="SerenityStatus" load_steps=3 format=3 uid="uid://cxurw5kfm1qb1"]
 
-[ext_resource type="Texture2D" uid="uid://cbnktwu8wsnks" path="res://serenity_perfect.png" id="1_ptq4l"]
+[ext_resource type="Texture2D" path="res://status_serenity_icon.png" id="1_ptq4l"]
 [ext_resource type="Script" path="res://statuses/serenity_status.gd" id="2_1vyia"]
 
 [resource]
