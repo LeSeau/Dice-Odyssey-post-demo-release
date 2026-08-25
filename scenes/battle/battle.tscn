@@ -583,9 +583,9 @@ visible = false
 
 [node name="DiceInterface" parent="." groups=["dice_interface"] instance=ExtResource("19_lfnme")]
 offset_left = 514.0
-offset_top = 214.0
+offset_top = 194.0
 offset_right = 674.0
-offset_bottom = 286.0
+offset_bottom = 266.0
 
 [node name="ActiveDice" parent="." instance=ExtResource("19_iy8lh")]
 offset_left = 521.0
@@ -622,7 +622,7 @@ custom_minimum_size = Vector2(250, 50)
 offset_left = 437.0
 offset_top = 90.0
 offset_right = 773.0
-offset_bottom = 218.0
+offset_bottom = 198.0
 theme_override_styles/panel = ExtResource("ui_plate")
 script = ExtResource("23_2rbv5")
 

@@ -25,6 +25,10 @@ extends Node
 const VIEW := Vector2i(1280, 720)
 const DIE_POS := Vector2(521, 294)
 const DIE_CENTER := Vector2(598, 371)  # DIE_POS + panel half (77, 77)
+# Mirrors battle.tscn's DiceInterface placement - keep in step with it, the row-clearance
+# check below asserts the shader derived its bounds from exactly this rect.
+const ROW_POS := Vector2(514, 194)
+const ROW_SIZE := Vector2(160, 72)
 
 var vp: SubViewport
 var dice: Control
@@ -105,8 +109,8 @@ func _build_stage(parent: Node) -> void:
 	var row_dy := float(int(OS.get_environment("CHARGE_PULSE_ROW_DY")))
 	dice_interface = (load("res://scenes/dices/dice_interface.tscn") as PackedScene).instantiate()
 	parent.add_child(dice_interface)
-	dice_interface.position = Vector2(514, 214 - row_dy)
-	dice_interface.size = Vector2(160, 72)
+	dice_interface.position = ROW_POS - Vector2(0.0, row_dy)
+	dice_interface.size = ROW_SIZE
 	# battle.tscn puts its instance in this group; a bare instantiate is not in it, and
 	# dice.gd reads the group to derive the shader's row-clearance bounds.
 	dice_interface.add_to_group("dice_interface")
@@ -115,7 +119,11 @@ func _build_stage(parent: Node) -> void:
 	parent.add_child(dice)
 	dice.position = DIE_POS
 	dice.size = Vector2(144, 144)
-	dice.charge_pulse_mode = int(OS.get_environment("CHARGE_PULSE_MODE"))
+	# Only override when the env var is actually set - int("") is 0, which would silently
+	# force the standard variant and hide whatever the shipped default is.
+	var mode_env := OS.get_environment("CHARGE_PULSE_MODE")
+	if mode_env != "":
+		dice.charge_pulse_mode = int(mode_env)
 
 
 func _set_power(value: int, history: Array) -> void:
@@ -154,7 +162,7 @@ func _ready() -> void:
 	# ---------- row clearance derived from the real row rect ----------
 	var mat := dice.emanation.material as ShaderMaterial
 	var row_bottom: float = mat.get_shader_parameter("row_bottom_y")
-	var expected := (214.0 + 72.0) - DIE_CENTER.y  # row bottom edge, die-centred
+	var expected := (ROW_POS.y + ROW_SIZE.y) - DIE_CENTER.y  # row bottom edge, die-centred
 	_check("R1 row clearance synced from the live row rect",
 			absf(row_bottom - expected) < 1.5,
 			"got=%.1f expected=%.1f" % [row_bottom, expected])
@@ -183,11 +191,19 @@ func _ready() -> void:
 			radius_max = maxf(radius_max, r)
 		max_display_dev = maxf(max_display_dev,
 				(dice.dice_display.scale - rest_scale).length())
-		if prof_early.is_empty() and elapsed >= 90:
+		# Sample by the front's POSITION, not by wall-clock: variants travel at different
+		# speeds, and a fixed "late" timestamp lands after a fast variant has already
+		# finished (which reads as "the wave never left" - a false failure).
+		if prof_early.is_empty() and r >= 2.0:
 			prof_early = _radial_profile(await _grab(), base_a)
-		elif prof_late.is_empty() and elapsed >= 300:
+		elif prof_late.is_empty() and r >= 55.0:
 			prof_late = _radial_profile(await _grab(), base_a)
 		end_gust = g
+	# An empty profile means the sampling condition never triggered - fail loudly rather
+	# than letting _band_mean return 0.0 and quietly satisfy a comparison.
+	_check("A0 both sample points captured",
+			not prof_early.is_empty() and not prof_late.is_empty(),
+			"early=%d late=%d" % [prof_early.size(), prof_late.size()])
 	var early_inner := _band_mean(prof_early, 60, 90)
 	var early_outer := _band_mean(prof_early, 120, 160)
 	var late_inner := _band_mean(prof_late, 60, 90)

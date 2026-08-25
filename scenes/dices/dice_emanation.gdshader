@@ -43,7 +43,11 @@ uniform float die_corner_px = 16.0;
 // outward, flare, and a bright front rides out along the die's own silhouette. This is the
 // "something erupted FROM the die" beat; the delivery arcs then answer where it went.
 // gust_radius is distance BEYOND the silhouette in px (0 = right at the die edge).
-uniform float gust : hint_range(0.0, 1.0) = 0.0;
+// Range runs past 1.0 on purpose: the count ladder (Charge 1 vs Charge 4) adds on top of
+// the base amplitude, and capping at 1.0 silently flattened it - every count produced an
+// identical front. Values above 1 just push brightness/reach further; the final alpha is
+// clamped at the end regardless.
+uniform float gust : hint_range(0.0, 1.5) = 0.0;
 uniform float gust_radius = 0.0;
 uniform vec4 gust_color : source_color = vec4(1.0, 0.95, 0.85, 1.0);
 // CONSTANT pixel thickness, and that is the entire point: the first attempt scaled a

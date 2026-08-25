@@ -587,10 +587,12 @@ const CHARGE_RING_TIME := 0.44
 const CHARGE_RING_TRAVEL_MULT := 1.9
 const CHARGE_RING_ALPHA := 0.34
 
-# Render-harness switch for the pulse bake-off; gameplay never sets this.
-#   0 = gust only (default)   1 = gust + thin sprite ring
-#   2 = gust, punchier        3 = none (pre-pulse baseline: aura flare + particles only)
-var charge_pulse_mode := 0
+# Pulse variant. 2 is what SHIPS (Julien's pick off the 2026-08-25 bake-off plate); the
+# other values exist so that plate stays reproducible - the render harness sets this, and
+# nothing in gameplay ever does.
+#   0 = gust, standard        1 = gust + thin sprite ring
+#   2 = gust, punchier (LIVE) 3 = none (pre-pulse baseline: aura flare + particles only)
+var charge_pulse_mode := 2
 
 var evil_faces = [
                 load("res://assets/images/evil0.png"),
@@ -3183,8 +3185,10 @@ func _spawn_charge_pulse(charged_type: String, count: int) -> void:
     var punchy := charge_pulse_mode == 2
     var travel_time := CHARGE_GUST_TIME * (0.78 if punchy else 1.0)
     var reach := CHARGE_GUST_REACH * (1.12 if punchy else 1.0)
+    # Cap above 1.0 so the count ladder still has somewhere to go - see the gust uniform's
+    # range note in dice_emanation.gdshader.
     var peak := minf(CHARGE_GUST_PEAK * (1.15 if punchy else 1.0)
-            + CHARGE_GUST_COUNT_STEP * float(clampi(count, 1, 4) - 1), 1.0)
+            + CHARGE_GUST_COUNT_STEP * float(clampi(count, 1, 4) - 1), 1.25)
     mat.set_shader_parameter("gust_color", DicePalette.burst(charged_type, 0.55))
 
     for t: Tween in _charge_gust_tweens:
