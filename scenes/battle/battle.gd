@@ -183,7 +183,9 @@ func start_battle() -> void:
     Events.battle_started.emit()
     relics.relics_activated.connect(_on_relics_activated)
     relics.activate_relics_by_type(Relic.Type.START_OF_COMBAT)
-    _maybe_announce_boss()
+    # No boss intro banner (Julien, 2026-08-25) - same verdict as the act banner on the map:
+    # the plate reads as noise over a screen that already announces itself. The function
+    # below stays wired to nothing, so re-enabling it is this one line.
 
 
 # Must run BETWEEN setup_enemies() (stats instances exist - set_enemy_stats
@@ -262,7 +264,12 @@ static func _reskin_enemy(enemy: Enemy) -> void:
     enemy.update_enemy()
 
 
-# Boss intro banner (launch checklist "Boss presence"): the boss fight opened with
+# Boss intro banner - DISABLED (2026-08-25, Julien: "remove banderolle on boss fights").
+# Kept rather than deleted because the wiring (tier-4 detection, post-reskin display name,
+# the delay that lets the arena read first) is the fiddly part; only the call in
+# start_battle() was removed.
+#
+# Original rationale (launch checklist "Boss presence"): the boss fight opened with
 # zero framing — reuse the act banner (same MinionPro gold plate as "ACT 2: ...",
 # already a self-contained one-shot CanvasLayer) to announce the boss by its display
 # name, post-reskin so act 2 says THE DICELORD while act 1 says LEVIATHAN. Delayed a
