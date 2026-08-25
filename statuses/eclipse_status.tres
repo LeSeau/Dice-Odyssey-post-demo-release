@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="EclipseStatus" load_steps=3 format=3 uid="uid://c0466mg6h2qb1"]
 
-[ext_resource type="Texture2D" path="res://status_eclipse_icon.png" id="1_42sod"]
+[ext_resource type="Texture2D" uid="uid://d2phd0n7l1cfc" path="res://status_eclipse_icon.png" id="1_42sod"]
 [ext_resource type="Script" path="res://statuses/eclipse_status.gd" id="2_gha2s"]
 
 [resource]

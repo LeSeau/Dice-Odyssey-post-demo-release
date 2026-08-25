@@ -9,6 +9,7 @@ relic_name = "Sixth Gear"
 id = "sixth_gear"
 type = 4
 rarity_tier = 1
+shop_only = false
 has_counter = true
 counter = 0
 starter_relic = false
