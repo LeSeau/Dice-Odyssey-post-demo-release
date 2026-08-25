@@ -215,13 +215,13 @@ const LAND_SHAKE_MIN := 2.0
 # impact on top. Both streams are PLACEHOLDERS (documented convention) - swap the files
 # freely, the pitch/volume structure is the point.
 const LAND_THUD_SOUND := preload("res://sounds/dicerollsound3.mp3")
-# PLACEHOLDER landing audio, auditionable live in debug builds: drop candidates into
-# res://debug_sfx_candidates/crush/ (big-roll smash) and /riser/ (swell at the max-roll
-# hang, leading INTO the smash), then press F9 / F10 during any fight to cycle them -
-# each press swaps the stream, previews it once and prints the filename. The debug_*
-# folder name rides the web export's exclude_filter, so candidates never ship.
-const DEFAULT_LAND_SMASH_SOUND := preload("res://impact1.ogg")
-var land_smash_sound: AudioStream = DEFAULT_LAND_SMASH_SOUND
+# PLACEHOLDER landing audio, auditionable live in debug builds. The big-roll SMASH moved to
+# Global (Global.high_roll_sound()) so the debug panel's SFX button and the F9 shortcut share
+# one selection that also survives leaving the fight - F9 now just drives that same list.
+# The RISER (swell at the max-roll hang, leading INTO the smash) is still local and still
+# folder-driven: drop candidates into res://debug_sfx_candidates/riser/ and press F10 during
+# any fight - each press swaps the stream, previews it once and prints the filename. The
+# debug_* folder name rides the web export's exclude_filter, so candidates never ship.
 var land_riser_sound: AudioStream = null  # none by default - F10 auditions candidates
 const LAND_THUD_BASE_PITCH := 0.72
 const LAND_THUD_CHAIN_PITCH_STEP := 0.07
@@ -1515,7 +1515,7 @@ func _on_roll_landed(roll_index: int, values: Array, faces: Array) -> void:
     if is_max_roll:
         # The heavier smash rides on top of (not instead of) the thud, so the max landing
         # keeps its place at the top of the same ladder rather than sounding unrelated.
-        SFXPlayer.play(land_smash_sound, false, randf_range(0.92, 1.0), -2.0)
+        SFXPlayer.play(Global.high_roll_sound(), false, randf_range(0.92, 1.0), -2.0)
 
     # Landing rattle, every roll, value^2 so the low end stays quiet (a d6 1-3 computes
     # under LAND_SHAKE_MIN and doesn't shake at all). Skipped when the builder's double
@@ -2083,11 +2083,12 @@ func _tween_emanation_shader_param(t: Tween, param_name: String, value, duration
 
 # ---------------------------------------------------------------------------------------
 # Debug-build SFX audition (2026-08-18): cycle landing-sound candidates live in any fight.
-# F9 = crush (the big-roll smash), F10 = riser (the max-roll hang swell). Files: .ogg/.wav/
-# .mp3 dropped in res://debug_sfx_candidates/crush|riser. Cycle order: file 1..N, then back
-# to the default (crush = shipped impact1, riser = none). Debug builds only; the folder
-# rides the debug_* export exclusion so candidates never ship.
-var _sfx_audition_index := {"crush": -1, "riser": -1}
+# F9 = crush (the big-roll smash), F10 = riser (the max-roll hang swell). F9 is now only a
+# keyboard shortcut for the debug panel's SFX button, so the two can never hold different
+# ideas of which crush candidate is selected; the riser stays local and folder-driven
+# (.ogg/.wav/.mp3 in res://debug_sfx_candidates/riser, cycling file 1..N then back to none).
+# Debug builds only; the folder rides the debug_* export exclusion so candidates never ship.
+var _riser_audition_index := -1
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -2097,13 +2098,14 @@ func _unhandled_input(event: InputEvent) -> void:
     if key == null or not key.pressed or key.echo:
         return
     if key.keycode == KEY_F9:
-        _cycle_sfx_candidate("crush")
+        if Global.debug_overlay != null:
+            Global.debug_overlay.cycle_sfx(1)
     elif key.keycode == KEY_F10:
-        _cycle_sfx_candidate("riser")
+        _cycle_riser_candidate()
 
 
-func _cycle_sfx_candidate(kind: String) -> void:
-    var dir_path := "res://debug_sfx_candidates/" + kind
+func _cycle_riser_candidate() -> void:
+    var dir_path := "res://debug_sfx_candidates/riser"
     var files: Array[String] = []
     var dir := DirAccess.open(dir_path)
     if dir:
@@ -2115,29 +2117,21 @@ func _cycle_sfx_candidate(kind: String) -> void:
     if files.is_empty():
         print("[sfx-audition] no candidates in %s - drop .ogg/.wav/.mp3 there first" % dir_path)
         return
-    var idx: int = _sfx_audition_index[kind] + 1
+    var idx := _riser_audition_index + 1
     if idx >= files.size():
         idx = -1  # wrap through the default before cycling the files again
-    _sfx_audition_index[kind] = idx
+    _riser_audition_index = idx
     if idx == -1:
-        if kind == "crush":
-            land_smash_sound = DEFAULT_LAND_SMASH_SOUND
-            print("[sfx-audition] crush -> shipped default (impact1.ogg)")
-            SFXPlayer.play(land_smash_sound, false, 1.0, -2.0)
-        else:
-            land_riser_sound = null
-            print("[sfx-audition] riser -> none (default)")
+        land_riser_sound = null
+        print("[sfx-audition] riser -> none (default)")
         return
     var stream := load(dir_path + "/" + files[idx]) as AudioStream
     if stream == null:
         print("[sfx-audition] could not load %s (not imported yet? refocus the editor once)" % files[idx])
         return
-    if kind == "crush":
-        land_smash_sound = stream
-    else:
-        land_riser_sound = stream
-    print("[sfx-audition] %s -> %s (%d of %d)" % [kind, files[idx], idx + 1, files.size()])
-    SFXPlayer.play(stream, false, 1.0, -2.0)
+    land_riser_sound = stream
+    print("[sfx-audition] riser -> %s (%d of %d)" % [files[idx], idx + 1, files.size()])
+    SFXPlayer.play(stream, false, 1.0, -4.0)
 
 
 # Silent unless a riser candidate is selected via F10. Fired by the CALM builder as the

@@ -151,6 +151,13 @@ func _ready() -> void:
     SettingsManager.load_and_apply()
     Input.set_custom_mouse_cursor(CURSOR_TEXTURE, Input.CURSOR_ARROW, CURSOR_HOTSPOT)
 
+    # Built as a child of this autoload rather than as its own autoload entry, so it needs no
+    # project.godot change (and therefore no editor restart); the script carries no class_name
+    # for the same reason. Debug builds only - a release build never constructs it.
+    if OS.is_debug_build():
+        debug_overlay = load("res://global/debug_overlay.gd").new()
+        add_child(debug_overlay)
+
 
 # Global left-click press/release swaps the whole cursor to a visually "active" variant -
 # read-only observation, never consumes the event, so it can't interfere with the actual
@@ -530,6 +537,28 @@ var game_over_state = false
 # debug battle can be iterated on quickly. Reset immediately after being read so it
 # never leaks into a real map-flow battle started right after.
 var debug_battle_entry := false
+
+# --- Debug-only A/B pickers (global/debug_overlay.gd) --------------------------------------
+# Two cycle buttons that ride above every scene in debug builds: the max-roll "high roll"
+# smash, and the player sprite. Both selections live here rather than on the node that uses
+# them so they survive scene changes and battle restarts - and are deliberately kept OUT of
+# reset_run_state() and the save dict: they are a dev preference, not run state.
+const DEFAULT_HIGH_ROLL_SOUND := preload("res://impact1.ogg")
+var debug_high_roll_sound: AudioStream = null  # null = shipped default
+var debug_player_texture: Texture2D = null  # null = the shipped CharacterStats.art
+# Untyped on purpose: typing it as Node would make dice.gd's call to cycle_sfx() a compile
+# error, since custom methods are invisible on a base-class-typed var (same reason
+# AchievementManager keeps its toast var untyped).
+var debug_overlay = null
+
+
+# Single source of truth for the max-roll landing smash, so dice.gd and the debug panel can
+# never disagree about which stream is live.
+func high_roll_sound() -> AudioStream:
+    if debug_high_roll_sound != null:
+        return debug_high_roll_sound
+    return DEFAULT_HIGH_ROLL_SOUND
+
 
 # Which act the run is currently in (1 or 2). Reset by run.gd::_start_run(), flipped
 # to 2 by run.gd::_enter_act_2() after the act-1 boss. Battle scaling (battle.gd) and
