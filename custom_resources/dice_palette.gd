@@ -164,8 +164,12 @@ static func die_ring_texture() -> Texture2D:
         var half := size * 0.5
         var band_half := half * DIE_RING_BAND_FRACTION
         var corner_r := band_half * 0.34
-        var sigma_in := 9.0    # inner falloff: hollow quickly (the die panel occludes it anyway)
-        var sigma_out := 15.0  # outer falloff: softer leading tail
+        # Thin ON PURPOSE. The first version used 9/15 and measured as a failure: at the
+        # scales it is drawn, the band's body came out as wide as its entire travel, so no
+        # gap ever opened between die and front and it read as a breath rather than a wave.
+        # A band must stay far thinner than the distance it covers to read as motion.
+        var sigma_in := 5.5   # inner falloff: hollow quickly (the die panel occludes it anyway)
+        var sigma_out := 8.0  # outer falloff: slightly softer trailing tail
         var data := PackedByteArray()
         data.resize(size * size * 4)
         for y in size:
