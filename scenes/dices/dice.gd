@@ -556,6 +556,23 @@ var _emanation_surge_tween: Tween
 # rapid multi-type volley restarts the flare instead of stacking writers on the uniforms.
 var _charge_flash_tween: Tween
 
+# Contained charge pulse (2026-08-25, "feel the impact that something came from the dice"):
+# ONE soft rounded-square wavefront that erupts from behind the die panel and dies ~half a
+# die-width out. Deliberately the opposite of the rejected 2026-08-14 shockwave on every
+# axis that killed it: short contained travel instead of screen-crossing, QUAD instead of
+# EXPO (EXPO crams ~90% of the travel into the first fifth, reading as a blink), and a
+# modest additive alpha that starts decaying immediately. Tinted by the CHARGED type like
+# the rest of the universal beat.
+const CHARGE_PULSE_TIME := 0.42          # travel duration of the main front
+const CHARGE_PULSE_TRAVEL_MULT := 1.5    # end extent as a multiple of the spawn extent
+const CHARGE_PULSE_ALPHA := 0.5          # peak additive alpha of the main front
+const CHARGE_PULSE_COUNT_STEP := 0.1     # ladder: Charge 4 fronts ~30% brighter than Charge 1
+const CHARGE_PULSE_ECHO_DELAY := 0.09    # 2nd front on Charge 2+, trailing the first
+# Same-frame multi-type volleys (Experiment, War Ritual) emit once per die - one wavefront
+# per FRAME is plenty, N stacked additive fronts is the overexposure trap.
+const CHARGE_PULSE_COOLDOWN_MS := 110
+var _last_charge_pulse_ms := -10000
+
 var evil_faces = [
                 load("res://assets/images/evil0.png"),
                 load("res://assets/images/evil6.png"),
@@ -764,6 +781,10 @@ func _ready():
     # Long chains (Turbo Mode territory, 8+ rolls) wrap to a second row of mini faces
     # instead of clipping at the RichTextLabel's fixed width (fit_content grows height).
     roll_history.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
+
+    # Pre-warm the charge-pulse band texture (static cache, ~65k-pixel GDScript bake):
+    # first call would otherwise hitch mid-combat on the first charge of the session.
+    DicePalette.die_ring_texture()
 
     # Initialize the dice display with the correct texture based on dice_type
     update_dice_display()
@@ -2990,13 +3011,14 @@ func _on_dice_charged(charged_type: String, count: int) -> void:
     # flying to the orange slot answers where. charge_heat is a type-neutral warm gold, so
     # surging it claims energy without claiming a type.
     #
-    # This universal half is deliberately just the ORIGINAL charge beat (aura pulse +
-    # inward-converging particle ring) promoted to fire on every charge and tinted by the
-    # charged type. A bespoke expanding wavefront was tried here and rejected: "too much
-    # intensity & too fast ... the animation I had before you touched it was more similar
-    # to what I have in mind" (Julien, 2026-08-14). Do not re-add a big screen-crossing
-    # shockwave - the ask is a contained pulse at the die, in the charged type's colour.
-    animation_player.play("charge")  # aura scale/opacity pulse
+    # This universal half is the ORIGINAL charge beat (aura pulse + inward-converging
+    # particle ring) promoted to fire on every charge and tinted by the charged type,
+    # PLUS one contained wavefront (2026-08-25, _spawn_charge_pulse below - Julien asked
+    # for the eruption to be felt). A big screen-crossing shockwave was tried in 2026-08
+    # and rejected: "too much intensity & too fast". The wavefront must stay a contained
+    # pulse AT the die - do not grow its travel or stack more fronts.
+    animation_player.play("charge")  # aura scale kick (peak ~0.1s, settle ~0.55s)
+    _spawn_charge_pulse(charged_type, count)
     var burst_material := gpu_particles_2d.process_material as ParticleProcessMaterial
     if burst_material:
         burst_material.color = DicePalette.burst(charged_type, 0.35)
@@ -3094,6 +3116,71 @@ func _on_dice_charged(charged_type: String, count: int) -> void:
     power_tween.tween_property(current_power, "scale", Vector2(1.0, 1.0), 0.15) \
         .set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
     
+# The contained wavefront half of the universal charge beat: a soft rounded-square band
+# (die silhouette, DicePalette.die_ring_texture) that snaps bright behind the die panel and
+# travels ~half a die-width out while melting. Spawn scale is DERIVED from the panel's real
+# rect at runtime, never hardcoded - a resized die can't silently re-bury the band's
+# brightest moment under the opaque plate (the exact bug of the first 2026-08-14 attempt).
+func _spawn_charge_pulse(charged_type: String, count: int) -> void:
+    var now := Time.get_ticks_msec()
+    if now - _last_charge_pulse_ms < CHARGE_PULSE_COOLDOWN_MS:
+        return
+    _last_charge_pulse_ms = now
+    var die_panel := get_node_or_null("Panel") as Panel
+    if die_panel == null:
+        return
+    var center := die_panel.position + die_panel.size * 0.5
+    var band_px := DicePalette.die_ring_texture().get_width() * 0.5 \
+            * DicePalette.DIE_RING_BAND_FRACTION
+    # Band peak spawns a hair OUTSIDE the opaque panel edge, so frame 1 already shows it.
+    var start_scale := (maxf(die_panel.size.x, die_panel.size.y) * 0.5 + 4.0) / band_px
+    var end_scale := start_scale * CHARGE_PULSE_TRAVEL_MULT
+    var tint := DicePalette.burst(charged_type, 0.18)
+    var strength := 1.0 + CHARGE_PULSE_COUNT_STEP * float(clampi(count, 1, 4) - 1)
+    var peak_alpha := minf(CHARGE_PULSE_ALPHA * strength, 0.62)
+    _spawn_charge_pulse_ring(center, tint, start_scale, end_scale, peak_alpha,
+            CHARGE_PULSE_TIME, 0.0)
+    # Charge 2+ sends a fainter trailing echo - the count ladder, capped at two fronts
+    # total (staggered peaks, so the additive layers never spike together).
+    if count >= 2:
+        _spawn_charge_pulse_ring(center, tint, start_scale,
+                start_scale + (end_scale - start_scale) * 0.8, peak_alpha * 0.5,
+                CHARGE_PULSE_TIME * 0.9, CHARGE_PULSE_ECHO_DELAY)
+
+
+func _spawn_charge_pulse_ring(center: Vector2, tint: Color, start_scale: float,
+        end_scale: float, peak_alpha: float, travel_time: float, delay: float) -> void:
+    var ring := Sprite2D.new()
+    ring.texture = DicePalette.die_ring_texture()
+    ring.material = DicePalette.additive_material()
+    ring.position = center
+    ring.scale = Vector2(start_scale, start_scale)
+    ring.modulate = Color(tint.r, tint.g, tint.b, 0.0)  # invisible until its delay elapses
+    ring.add_to_group("charge_pulse_ring")
+    add_child(ring)
+    # Under the whole die cluster via TREE ORDER (right after Emanation, before Panel) -
+    # never a negative z_index, which would drop it below the opaque battle Background.
+    move_child(ring, 1)
+    var travel := create_tween()
+    if delay > 0.0:
+        travel.tween_interval(delay)
+    # QUAD, not EXPO: the front has to be SEEN traveling, not teleport then linger.
+    travel.tween_property(ring, "scale", Vector2(end_scale, end_scale), travel_time) \
+            .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT) \
+            .from(Vector2(start_scale, start_scale))
+    travel.tween_callback(ring.queue_free)
+    var fade := create_tween()
+    if delay > 0.0:
+        fade.tween_interval(delay)
+    # Alpha on its OWN tween: snap to peak in a blink, then start melting immediately
+    # (EASE_IN keeps the band readable through mid-travel, gone right as it stops). A
+    # peak held through the whole expansion is the additive wash trap.
+    fade.tween_property(ring, "modulate:a", peak_alpha, 0.05) \
+            .set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT).from(0.0)
+    fade.tween_property(ring, "modulate:a", 0.0, travel_time - 0.05) \
+            .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+
+
 func _on_put_ink_on_dice():
     if not ink_is_on:
         ink_animation.play("ink_spray")
