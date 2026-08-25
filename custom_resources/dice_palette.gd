@@ -145,6 +145,56 @@ static func additive_material() -> CanvasItemMaterial:
 static var _die_halo_texture: ImageTexture
 
 
+# Rounded-square ANNULUS sibling of die_halo_texture(): a soft-bodied wavefront band that
+# hugs the die silhouette, for the contained charge pulse (2026-08-25). The band peak sits
+# exactly on the halo's core edge (DIE_RING_BAND_FRACTION of the half-extent) so consumers
+# can size both against the same reference: at scale S the band lives at
+# S * width/2 * DIE_RING_BAND_FRACTION pixels from center. Falloff is a deliberately FAT
+# asymmetric gaussian (thin fronts stretched over a circumference disappear - the wave
+# needs body, lesson from the reverted 2026-08-14 shockwave), with a touch of low-frequency
+# angular unevenness so it reads as energy rather than a UI stroke. Alpha reaches ~0 well
+# inside the bitmap, so no box edge can ever show (the power_glyph halo-crop lesson).
+const DIE_RING_BAND_FRACTION := 0.52
+static var _die_ring_texture: ImageTexture
+
+
+static func die_ring_texture() -> Texture2D:
+    if _die_ring_texture == null:
+        var size := 256
+        var half := size * 0.5
+        var band_half := half * DIE_RING_BAND_FRACTION
+        var corner_r := band_half * 0.34
+        # Thin ON PURPOSE. The first version used 9/15 and measured as a failure: at the
+        # scales it is drawn, the band's body came out as wide as its entire travel, so no
+        # gap ever opened between die and front and it read as a breath rather than a wave.
+        # A band must stay far thinner than the distance it covers to read as motion.
+        var sigma_in := 5.5   # inner falloff: hollow quickly (the die panel occludes it anyway)
+        var sigma_out := 8.0  # outer falloff: slightly softer trailing tail
+        var data := PackedByteArray()
+        data.resize(size * size * 4)
+        for y in size:
+            for x in size:
+                var px := x + 0.5 - half
+                var py := y + 0.5 - half
+                var qx := absf(px) - (band_half - corner_r)
+                var qy := absf(py) - (band_half - corner_r)
+                # Signed distance to the rounded-rect band line (same SDF as die_halo_texture).
+                var dist := Vector2(maxf(qx, 0.0), maxf(qy, 0.0)).length() \
+                        + minf(maxf(qx, qy), 0.0) - corner_r
+                var sigma := sigma_in if dist < 0.0 else sigma_out
+                var a := exp(-0.5 * pow(dist / sigma, 2.0))
+                var theta := atan2(py, px)
+                a *= 0.84 + 0.10 * sin(3.0 * theta + 1.3) + 0.06 * sin(5.0 * theta + 4.0)
+                var i := (y * size + x) * 4
+                data[i] = 255
+                data[i + 1] = 255
+                data[i + 2] = 255
+                data[i + 3] = int(clampf(a, 0.0, 1.0) * 255.0)
+        var img := Image.create_from_data(size, size, false, Image.FORMAT_RGBA8, data)
+        _die_ring_texture = ImageTexture.create_from_image(img)
+    return _die_ring_texture
+
+
 static func die_halo_texture() -> Texture2D:
     if _die_halo_texture == null:
         var size := 256

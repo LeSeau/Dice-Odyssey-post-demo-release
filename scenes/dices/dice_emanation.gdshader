@@ -39,10 +39,31 @@ uniform vec2 die_center_uv = vec2(0.5, 0.6);
 uniform vec2 die_half_px = vec2(74.0, 74.0);
 uniform float die_corner_px = 16.0;
 
-// Slot-row clearance, in die-centered px: the row spans the die's width and its bottom
-// edge sits ~11px above the die top (die top = -74 locally, row bottom ~= -85).
-const float ROW_HALF_WIDTH = 92.0;
-const float ROW_BOTTOM_Y = -85.0;
+// GUST (2026-08-25): the charge event blowing through this light field - the licks lean
+// outward, flare, and a bright front rides out along the die's own silhouette. This is the
+// "something erupted FROM the die" beat; the delivery arcs then answer where it went.
+// gust_radius is distance BEYOND the silhouette in px (0 = right at the die edge).
+// Range runs past 1.0 on purpose: the count ladder (Charge 1 vs Charge 4) adds on top of
+// the base amplitude, and capping at 1.0 silently flattened it - every count produced an
+// identical front. Values above 1 just push brightness/reach further; the final alpha is
+// clamped at the end regardless.
+uniform float gust : hint_range(0.0, 1.5) = 0.0;
+uniform float gust_radius = 0.0;
+uniform vec4 gust_color : source_color = vec4(1.0, 0.95, 0.85, 1.0);
+// CONSTANT pixel thickness, and that is the entire point: the first attempt scaled a
+// sprite band, so the front grew as fast as the ground it covered and never appeared to
+// travel at all (measured - it read as a breath). A wave is only legible when its
+// thickness stays well under the distance it crosses.
+const float GUST_WIDTH = 20.0;
+const float GUST_LEAN_PX = 20.0;
+
+// Slot-row clearance, in die-centered px: light directly under the dice-type row is faded
+// out so the row stays readable. Driven from the row's REAL rect by dice.gd
+// (_sync_emanation_row_clearance) rather than hardcoded - a hardcoded copy silently stops
+// matching the moment someone nudges the row in battle.tscn, and nothing errors when it
+// drifts (exact failure mode of the stale END_TURN_LEFT/TOP status clamp).
+uniform float row_half_width = 92.0;
+uniform float row_bottom_y = -85.0;
 const float ROW_FADE_PX = 12.0;
 
 // Same value-noise family as dice_glow.gdshader, so the two layers churn in a
@@ -77,21 +98,35 @@ void fragment() {
 	vec2 p = (UV - die_center_uv) * rect_size;
 	float d = sd_round_box(p, die_half_px, die_corner_px);
 
+	vec2 dirn = p / max(length(p), 0.001);
+
+	// The gust front, as a band around gust_radius. Slightly crisper on the LEADING
+	// (outer) side than the trail, so the wave has a direction rather than being a
+	// symmetric blob.
+	float gx = (d - gust_radius) / GUST_WIDTH;
+	float gust_band = exp(-gx * gx) * gust;
+	float gust_front = exp(-gx * gx * (gx > 0.0 ? 2.6 : 0.9)) * gust;
+
 	// Energy level: sustained charge plus the transient landing surge. Late-blooming
 	// growth (pow) keeps low charge TIGHT - the tall reach only arrives at high power
 	// (~12+ banked, i.e. charge ~0.7 on the shared curve).
 	float energy = clamp(charge + surge * 0.35, 0.0, 1.3);
 	float level = clamp(energy, 0.0, 1.0);
 	float growth = pow(level, 1.6);
-	float reach = mix(14.0, 44.0, growth) + 8.0 * max(energy - 1.0, 0.0);
+	// The gust locally stretches how far the light reaches - the licks get pulled out
+	// with the front as it passes them.
+	float reach = mix(14.0, 44.0, growth) + 8.0 * max(energy - 1.0, 0.0)
+		+ gust_band * 34.0;
 
 	// Direction budget: the upward bias itself grows with charge, so a low-power halo
 	// hugs the die evenly (never reaching the slot row) while a charged one streams
-	// upward. Near-nothing below (the ROLL button lives there).
-	vec2 dirn = p / max(length(p), 0.001);
+	// upward. Near-nothing below (the ROLL button lives there). The gust briefly
+	// overrides that bias toward isotropic - it blows out in every direction, which is
+	// what separates "an event happened" from "the flame is taller right now".
 	float up_f = clamp(-dirn.y, 0.0, 1.0);
 	float down_f = clamp(dirn.y, 0.0, 1.0);
 	float dir_budget = 0.60 + (0.20 + 0.45 * growth) * up_f * up_f - 0.45 * down_f;
+	dir_budget = mix(dir_budget, 1.0 - 0.30 * down_f, clamp(gust_band, 0.0, 1.0) * 0.65);
 
 	// Rising, churning noise field: sampling y grows over time so the pattern climbs,
 	// a slow sine sways it laterally, and a low-frequency warp billows it sideways.
@@ -101,6 +136,9 @@ void fragment() {
 	vec2 q = p * vec2(0.050, 0.027);
 	q.y += t * 1.5;
 	q.x += sin(p.y * 0.02 + TIME * 0.6) * 0.22;
+	// Sample BEHIND the front along the radial direction, so the existing lick pattern
+	// appears shoved outward where the gust is passing - wind through fire.
+	q -= dirn * (gust_band * GUST_LEAN_PX) * vec2(0.050, 0.027);
 	float w = vnoise(q * 0.5 - vec2(0.0, t * 0.30));
 	q.x += (w - 0.5) * 1.1;
 	float n = vnoise(q) * 0.60
@@ -118,15 +156,25 @@ void fragment() {
 
 	// Keep the die face clean and the slot row readable.
 	float inside_cut = smoothstep(-4.0, 6.0, d);
-	float row_side = step(abs(p.x), ROW_HALF_WIDTH);
-	float allowed = smoothstep(ROW_BOTTOM_Y - ROW_FADE_PX, ROW_BOTTOM_Y, p.y);
+	// Feathered, not step(): a binary edge here puts a hard vertical seam at the row's
+	// side, which carved a visible rectangular notch out of the top of the gust front the
+	// moment the light got bright enough to see (invisible on the dim ambient licks, very
+	// obvious on the wave). Anything masking this layer has to be soft.
+	float row_side = 1.0 - smoothstep(row_half_width - 14.0, row_half_width + 6.0, abs(p.x));
+	float allowed = smoothstep(row_bottom_y - ROW_FADE_PX, row_bottom_y, p.y);
 	float row_cut = mix(1.0, allowed, row_side);
 
 	// Energy gain deliberately front-loaded (0.74 base): low/mid power is clearly visible
 	// (Julien's call after approving the alive-light look), full charge tops out the same.
 	// Intensity scales here - SIZE stays governed by the late-blooming growth curve above.
 	float lum = halo * (0.27 + 1.25 * streaks) * (0.74 + 0.26 * energy);
+	lum *= (1.0 + gust_band * 1.5);
 	lum *= inside_cut * row_cut * master_alpha;
+
+	// The front's OWN light, partly modulated by the lick pattern so it reads as this
+	// die's energy being shoved outward rather than a clean UI ring drawn on top.
+	float front = gust_front * (0.34 + 0.50 * streaks);
+	front *= inside_cut * row_cut * master_alpha;
 
 	// Accent-colored light, whitening slightly where streaks peak near the die (the
 	// energy source), with a whisper of the deep hue at the tips for color depth;
@@ -136,6 +184,10 @@ void fragment() {
 	col = mix(col, deep_color.rgb, clamp(d / max(reach, 6.0), 0.0, 1.0) * 0.25);
 	vec3 heat = vec3(1.0, 0.76, 0.22);
 	col = mix(col, heat, charge_heat * 0.35);
+	// The front carries the CHARGED type's colour, which is often not this die's colour
+	// (charging magma while blue is active) - and it is pulled toward hot white, because a
+	// blue front inside a blue field is invisible no matter how bright it is.
+	col = mix(col, gust_color.rgb, clamp(gust_front * 1.7, 0.0, 0.9));
 
-	COLOR = vec4(col, clamp(lum, 0.0, 0.8));
+	COLOR = vec4(col, clamp(lum + front, 0.0, 1.0));
 }
