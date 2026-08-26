@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://c8slashvar826"]
+
+[ext_resource type="Script" path="res://debug_slash_variants.gd" id="1_slashv"]
+
+[node name="DebugSlashVariants" type="Node"]
+script = ExtResource("1_slashv")

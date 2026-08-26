@@ -61,6 +61,248 @@ static func _get_smear_material() -> CanvasItemMaterial:
     _smear_material.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
     return _smear_material
 
+
+# ===========================================================================
+# SLASH VARIANT BOARD (2026-08-26) - see debug_slash_variants.gd
+#
+# Julien: "too fast, we can't really see it". Two structural reasons, both measured
+# rather than guessed:
+#   1. The slash MISSES ITS OWN FREEZE FRAME. DamageEffect calls take_damage() (which
+#      spawns the slash) BEFORE Shaker.hit_stop_impact(). The CURRENT style then defers
+#      0.055s of GAME time to dodge the white flash - under a 0.1x freeze that stretches
+#      to ~0.3-0.5s of wall time, so the most photographable instant of every hit shows
+#      flash + damage number and NO SLASH, and the streak plays its fastest motion during
+#      the ramp-out. Anime does the opposite: the frozen frame IS the blade at extension.
+#   2. There is no actual hold. The comment on _spawn_smear_streak claims sweep-then-HOLD,
+#      but its fade tween starts at 35% of life while the sweep runs to 45% - alpha is
+#      already dropping before the motion ends. Readable window: ~0.25s wide, ~0.16s core.
+#   3. The "blade" is a stretched radial blob. It only reads as a cut WHILE MOVING, which
+#      is why it had to be tuned fast. Slowing it down alone would leave a glowing smudge.
+#
+# STYLES (set Enemy.slash_style; CURRENT is the shipped one, untouched below):
+#   CURRENT  - two travelling streaks + aimed cone. The baseline.
+#   CRESCENT - suggestions 1+2 together: a real crescent blade (sharp convex edge, soft
+#              trailing edge, tapered tips) that appears AT the impact instant, blooms
+#              white-hot -> dice accent as the sprite flash decays, HOLDS dead still, then
+#              dissolves tail-first along its own length. No travel at all.
+#   WOUND    - suggestion 3: a cut mark etched ON the sprite (child of Sprite2D, so it
+#              rides the squash/knockback), which persists ~0.5-0.8s before healing shut.
+#              The readable artifact outlives the hit, so speed stops mattering.
+#   FLURRY   - suggestion 4: the damage ladder expressed as CHOREOGRAPHY, not intensity.
+#              Small hit = one crescent; medium = two crossing; big = a three-slash flurry
+#              whose final blade is longer and holds longest. Built on CRESCENT's blade.
+# ===========================================================================
+enum SlashStyle { CURRENT, CRESCENT, WOUND, FLURRY }
+# CRESCENT is the shipped default as of 2026-08-26 (Julien's pick off the variant board,
+# for playtest). CURRENT is the pre-rework slash and is still intact below - switching back
+# is one word here, and WOUND / FLURRY stay available for a second look.
+static var slash_style: int = SlashStyle.CRESCENT
+
+# --- Crescent blade (CRESCENT / FLURRY) ------------------------------------
+# Wide canvas: the blade is a shallow arc, not a half-moon. A fast sword swing reads as a
+# gently bowed line; a deep crescent reads as a logo.
+const CRESCENT_TEX_W := 384
+const CRESCENT_TEX_H := 176
+# Arc geometry is shared by BOTH blade layers so their bows match exactly. The wide body
+# and the white-hot core are two textures rather than one texture at two scales: scaling
+# the same bitmap thinner would also flatten its bow, and a straight core inside a curved
+# blade reads as two unrelated shapes (measured on the first render).
+const CRESCENT_ARC_HALF_CHORD := 176.0
+const CRESCENT_ARC_SAGITTA := 26.0
+const CRESCENT_ARC_APEX_Y := 58.0
+# Which way the arc bows on screen once rotated. -1 puts the concave side toward the
+# attacker (upper-left), which is where a swing's pivot is.
+const CRESCENT_BOW_SIGN := -1.0
+# Front-loaded so it looks struck rather than popped, but short enough to land inside the
+# freeze. This is the ONLY motion the blade ever has.
+const CRESCENT_DRAW_ON := 0.05
+const CRESCENT_BLOOM := 0.07
+const CRESCENT_DISSOLVE := 0.26
+# Hold per Shaker.Impact rung (indexed by the enum's int value). NOT a const Dictionary
+# keyed on Shaker.Impact: Shaker is an autoload, so its enum is not a compile-time
+# constant and a const dict keyed on it would not parse.
+# Visible band width of the crescent bitmap in texture pixels (~2 sigma each side of the
+# arc). Needed to turn a target ON-SCREEN thickness into a scale factor: dividing by the
+# canvas height instead undersizes everything by ~3x, since most of the 176px canvas is
+# empty space around the arc. (Cost one render to find.)
+const CRESCENT_BAND_PX := 58.0
+const CRESCENT_HOLD := [0.13, 0.19, 0.27, 0.35, 0.44]
+const CRESCENT_LENGTH := [110.0, 140.0, 180.0, 220.0, 260.0]
+const CRESCENT_ANGLE := 0.55
+
+# --- Wound (WOUND) ---------------------------------------------------------
+const WOUND_TEX_W := 384
+const WOUND_TEX_H := 96
+const WOUND_OPEN := 0.055
+const WOUND_BLOOM := 0.1
+const WOUND_HOLD := [0.3, 0.42, 0.58, 0.72, 0.86]
+const WOUND_CLOSE := 0.22
+const WOUND_THICKNESS_PX := [4.0, 5.0, 7.0, 9.0, 11.0]
+const WOUND_MAX_CONCURRENT := 3
+const WOUND_BAND_SIGMA := 3.4
+# Visible band width in texture pixels (~4 sigma), used to convert a target on-screen
+# thickness into a scale factor instead of hand-fudging a divisor.
+const WOUND_BAND_PX := 13.6
+
+# --- Flurry (FLURRY) -------------------------------------------------------
+const FLURRY_COUNT := [1, 1, 2, 3, 3]
+const FLURRY_STAGGER := 0.085
+# Alternating so consecutive blades cross into an X instead of stacking on one line.
+const FLURRY_ANGLES := [0.55, -0.46, 0.66]
+const FLURRY_LENGTH_MUL := [0.86, 0.94, 1.16]
+
+static var _crescent_texture: ImageTexture
+static var _crescent_core_texture: ImageTexture
+static var _wound_texture: ImageTexture
+static var _wipe_shader_add: Shader
+static var _wipe_shader_mix: Shader
+var _wounds: Array[Node] = []
+
+
+# Shallow-arc crescent with a SHARP convex edge and a soft concave tail, tapering to
+# points at both tips. This is the shape fix that makes holding still possible: the old
+# smear was a radial gradient stretched into a pill, which only reads as a cut while it
+# is moving. A crescent reads as a swing even frozen.
+static func _get_crescent_texture() -> ImageTexture:
+    if _crescent_texture == null:
+        # Fat on purpose. The first build used 4.5/13 and measured as a failure at game
+        # scale: a ~10px line across a 120px body reads as a sword OUTLINE, not a cut
+        # ("mass beats form", the same lesson the death fragments and the thrown-dice bash
+        # both landed on). 7/22 puts ~35px of blade on a big hit.
+        _crescent_texture = _build_crescent(7.0, 22.0, 0.55, 0.35)
+    return _crescent_texture
+
+
+static func _get_crescent_core_texture() -> ImageTexture:
+    if _crescent_core_texture == null:
+        _crescent_core_texture = _build_crescent(2.2, 4.2, 0.5, 0.3)
+    return _crescent_core_texture
+
+
+# Shallow-arc crescent: SHARP convex edge (the "edge"), soft concave tail (the "wake"),
+# tapering to points at both tips. This is the shape fix that makes holding still possible
+# - the old smear was a radial gradient stretched into a pill, which only reads as a cut
+# while it is moving, which is exactly why it had to be tuned fast.
+static func _build_crescent(sigma_lead: float, sigma_trail: float,
+        taper_pow: float, alpha_pow: float) -> ImageTexture:
+    var w := CRESCENT_TEX_W
+    var h := CRESCENT_TEX_H
+    var half_chord := CRESCENT_ARC_HALF_CHORD
+    var sagitta := CRESCENT_ARC_SAGITTA
+    var radius := (sagitta * sagitta + half_chord * half_chord) / (2.0 * sagitta)
+    var cx := w * 0.5
+    var cy := CRESCENT_ARC_APEX_Y + radius  # circle centre sits far below the canvas
+    var theta_max := asin(half_chord / radius)
+    var data := PackedByteArray()
+    data.resize(w * h * 4)
+    for y in h:
+        for x in w:
+            var px := x + 0.5 - cx
+            var py := y + 0.5 - cy
+            var sd := sqrt(px * px + py * py) - radius  # >0 = convex side
+            var t := absf(atan2(px, -py)) / theta_max
+            var a := 0.0
+            if t < 1.0:
+                var falloff := 1.0 - t * t
+                var sigma := (sigma_lead if sd > 0.0 else sigma_trail) * pow(falloff, taper_pow)
+                if sigma > 0.05:
+                    a = exp(-0.5 * pow(sd / sigma, 2.0)) * pow(falloff, alpha_pow)
+            var i := (y * w + x) * 4
+            data[i] = 255
+            data[i + 1] = 255
+            data[i + 2] = 255
+            data[i + 3] = int(clampf(a, 0.0, 1.0) * 255.0)
+    var img := Image.create_from_data(w, h, false, Image.FORMAT_RGBA8, data)
+    return ImageTexture.create_from_image(img)
+
+
+# A cut, not a beam: near-black slit core with a bright rim, so it reads as broken cel
+# linework on the body rather than a glow laid over it. RGB (not flat white) is the whole
+# point - modulate multiplies, so the dark core survives tinting while the rim takes the
+# dice accent. Much thinner and shorter than the crescent; it lives ON the sprite.
+static func _get_wound_texture() -> ImageTexture:
+    if _wound_texture:
+        return _wound_texture
+    var w := WOUND_TEX_W
+    var h := WOUND_TEX_H
+    var half_chord := 178.0
+    # Very gentle: the wound is drawn thin and then stretched hard on the thickness axis
+    # to hit a target pixel width, and that stretch multiplies the bow too. A texture-space
+    # sagitta that looks right unstretched comes out as a banana on the body.
+    var sagitta := 7.0
+    var radius := (sagitta * sagitta + half_chord * half_chord) / (2.0 * sagitta)
+    var cx := w * 0.5
+    var cy := h * 0.5 - 6.0 + radius
+    var theta_max := asin(half_chord / radius)
+    var sigma := WOUND_BAND_SIGMA
+    var data := PackedByteArray()
+    data.resize(w * h * 4)
+    for y in h:
+        for x in w:
+            var px := x + 0.5 - cx
+            var py := y + 0.5 - cy
+            var sd := sqrt(px * px + py * py) - radius
+            var t := absf(atan2(px, -py)) / theta_max
+            var a := 0.0
+            var rim := 0.0
+            if t < 1.0:
+                var falloff := 1.0 - t * t
+                var s := sigma * pow(falloff, 0.45)
+                if s > 0.05:
+                    a = exp(-0.5 * pow(sd / s, 2.0)) * pow(falloff, 0.3)
+                    # Dark at the centreline, hot at the edges of the slit.
+                    rim = clampf(absf(sd) / (s * 1.15), 0.0, 1.0)
+            var lum := lerpf(0.05, 1.0, rim * rim)
+            var i := (y * w + x) * 4
+            var c := int(clampf(lum, 0.0, 1.0) * 255.0)
+            data[i] = c
+            data[i + 1] = c
+            data[i + 2] = c
+            data[i + 3] = int(clampf(a, 0.0, 1.0) * 255.0)
+    var img := Image.create_from_data(w, h, false, Image.FORMAT_RGBA8, data)
+    _wound_texture = ImageTexture.create_from_image(img)
+    return _wound_texture
+
+
+# Tail-first dissolve along the blade's own length. Built from a code string rather than a
+# .gdshader file on purpose: no import step, so a stale worktree cache can never turn this
+# into the parse error that kills the whole script (the preload trap in CLAUDE.md).
+# Only COLOR.a is touched - in Godot 4 canvas_item fragment(), COLOR already arrives as
+# texture * modulate, so multiplying alpha is the whole job and no MODULATE semantics are
+# being relied on.
+# A dice accent pulled toward white and gained up, for anything that has to stay BRIGHT
+# while still reading as its type. Modulating straight by `accent` is a trap: cobalt blue
+# is (0.24, 0.48, 1.0), so a mark born white at 2.2 and "bloomed" to accent*1.6 actually
+# LOSES most of its luminance and sinks into the body art. Measured on the first wound
+# render, where the mark vanished within ~6 frames of landing.
+static func _hot_accent(accent: Color, toward_white: float, gain: float, alpha: float) -> Color:
+    var c := accent.lerp(Color.WHITE, toward_white)
+    return Color(c.r * gain, c.g * gain, c.b * gain, alpha)
+
+
+static func _get_wipe_shader(additive: bool) -> Shader:
+    if additive and _wipe_shader_add:
+        return _wipe_shader_add
+    if not additive and _wipe_shader_mix:
+        return _wipe_shader_mix
+    var src := "shader_type canvas_item;\n"
+    if additive:
+        src += "render_mode blend_add;\n"
+    src += """
+uniform float wipe : hint_range(0.0, 1.3) = 0.0;
+uniform float wipe_soft : hint_range(0.01, 1.0) = 0.34;
+void fragment() {
+    COLOR.a *= smoothstep(wipe - wipe_soft, wipe, UV.x);
+}
+"""
+    var sh := Shader.new()
+    sh.code = src
+    if additive:
+        _wipe_shader_add = sh
+    else:
+        _wipe_shader_mix = sh
+    return sh
+
 @export var stats: EnemyStats : set = set_enemy_stats
 @export var width: int 
 @export var height: int
@@ -815,6 +1057,21 @@ func flash_impact() -> void:
 func _spawn_hit_smear(damage: int) -> void:
     if damage < HIT_SMEAR_MIN_DAMAGE:
         return
+    # Variant board dispatch. The three new styles all spawn on the IMPACT FRAME with no
+    # deferral - dodging the white flash is exactly what cost the old slash its freeze
+    # frame, and each of them handles the flash instead: the crescent is born white-hot
+    # and blooms to colour AS the flash decays, and the wound is a dark slit which is at
+    # its most visible over a white silhouette.
+    match slash_style:
+        SlashStyle.CRESCENT:
+            _spawn_crescent_slash(damage)
+            return
+        SlashStyle.WOUND:
+            _spawn_wound(damage)
+            return
+        SlashStyle.FLURRY:
+            _spawn_flurry(damage)
+            return
     # Deferred a beat past take_damage's white flash: the smear used to spawn in the same
     # instant the whole sprite went flat white, and additive light over a white silhouette
     # is invisible - "I can barely see it" (Julien, 2026-08). Now the beat is flash pop ->
@@ -930,6 +1187,270 @@ func _spawn_smear_streak(origin: Vector2, dir: Vector2, angle: float, length: fl
     fade.tween_property(smear, "modulate:a", 0.0, life * 0.65) \
         .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
     fade.tween_callback(smear.queue_free)
+
+
+# ---------------------------------------------------------------------------
+# STYLE: CRESCENT (suggestions 1+2)
+# ---------------------------------------------------------------------------
+
+func _spawn_crescent_slash(damage: int) -> void:
+    var rung: int = Shaker.impact_for_damage(damage)
+    var hold: float = CRESCENT_HOLD[rung]
+    var length: float = CRESCENT_LENGTH[rung]
+    _spawn_crescent_blade(CRESCENT_ANGLE + randf_range(-0.09, 0.09), length, hold, true, damage)
+
+
+# One blade. Appears at full length, holds dead still at peak brightness, then dissolves
+# tail-first. `with_cone` gates the particle mass so a flurry does not spray three times.
+func _spawn_crescent_blade(angle: float, length: float, hold: float, with_cone: bool,
+        damage: int) -> void:
+    var accent := DicePalette.accent(Global.dice_type)
+    var dir := Vector2(cos(angle), sin(angle))
+    var origin := sprite_2d.position + Vector2(randf_range(-9.0, 9.0), randf_range(-12.0, 6.0))
+
+    # Same two-blend-mode split the shipped smear established, and for the same two failure
+    # modes: the wide layer is NORMAL-blend saturated accent (additive washes to pastel and
+    # dies on light act-1 grounds - this is what makes the cut read unmistakably
+    # BLUE/ORANGE), the thin core is additive white-hot (which is what survives on dark
+    # act-2 grounds). Some layer is always loud on every ground the game has.
+    # Both layers take the SAME scale so their arcs are concentric - only the texture
+    # differs. Thinning the core via scale.y instead would flatten its bow and the two
+    # shapes would visibly disagree.
+    var base_scale := length / float(CRESCENT_TEX_W)
+    var thickness := base_scale * 0.95
+    _spawn_crescent_layer(origin, angle, base_scale, thickness,
+            Color(accent.r * 1.15, accent.g * 1.15, accent.b * 1.15, 0.97), hold, false, false)
+    # 1.55, not the 2.0 this first shipped with: at 2.0 the additive core blew out the
+    # whole blade to white and the dice-type accent - the part Julien explicitly likes -
+    # only survived as a thin fringe. The core is meant to be the hot line INSIDE a
+    # coloured blade, not the blade.
+    _spawn_crescent_layer(origin, angle, base_scale, thickness,
+            Color(1.55, 1.52, 1.42, 0.95), hold, true, true)
+
+    if with_cone:
+        _spawn_slash_cone(origin, dir, angle, length, accent, damage)
+
+
+func _spawn_crescent_layer(origin: Vector2, angle: float, scale_x: float, scale_y: float,
+        target_color: Color, hold: float, additive: bool, core: bool) -> void:
+    var blade := Sprite2D.new()
+    blade.texture = _get_crescent_core_texture() if core else _get_crescent_texture()
+    var mat := ShaderMaterial.new()
+    mat.shader = _get_wipe_shader(additive)
+    mat.set_shader_parameter("wipe", 0.0)
+    mat.set_shader_parameter("wipe_soft", 0.34)
+    blade.material = mat
+    # The enemy's Sprite2D sits at z_index 7 (enemy.tscn) - anything lower renders BEHIND
+    # the body. 9 clears the sprite while staying under the IntentUI at 10.
+    blade.z_index = 9
+    blade.rotation = angle
+    # Born white-hot so it belongs to the same event as take_damage's white flash instead
+    # of hiding from it, then blooms into the dice colour as that flash decays.
+    blade.modulate = Color(2.0, 1.95, 1.85, 0.97)
+    add_child(blade)
+    blade.position = origin
+    var full_y := CRESCENT_BOW_SIGN * scale_y
+    blade.scale = Vector2(scale_x * 0.34, full_y)
+
+    # The blade's ONLY motion: a front-loaded draw-on short enough to land inside the
+    # freeze. QUINT rather than EXPO - EXPO puts ~90% of the travel in the first fifth and
+    # reads as a pop (lesson from the reverted charge shockwave).
+    var draw := blade.create_tween()
+    draw.tween_property(blade, "scale:x", scale_x, CRESCENT_DRAW_ON) \
+        .set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_OUT)
+
+    var bloom := blade.create_tween()
+    bloom.tween_interval(CRESCENT_DRAW_ON)
+    bloom.tween_property(blade, "modulate", target_color, CRESCENT_BLOOM) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+    # Dissolve along the blade's own length instead of a uniform alpha fade: a line that
+    # un-draws itself keeps reading as a cut right to the end, where a whole-sprite fade
+    # turns into a dimming smudge halfway through.
+    var wipe := blade.create_tween()
+    wipe.tween_interval(CRESCENT_DRAW_ON + CRESCENT_BLOOM + hold)
+    wipe.tween_property(mat, "shader_parameter/wipe", 1.3, CRESCENT_DISSOLVE) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+    wipe.tween_callback(blade.queue_free)
+
+
+# The MASS. Streaks alone read as a glint; ~75 glowing motes for half a second read as an
+# event ("the particles were 10x more noticeable", Julien 2026-08). Same particle language
+# the old radial burst spoke, but AIMED along the cut instead of radial.
+func _spawn_slash_cone(origin: Vector2, dir: Vector2, _angle: float, length: float,
+        accent: Color, damage: int) -> void:
+    var burst := CPUParticles2D.new()
+    burst.one_shot = true
+    burst.explosiveness = 1.0
+    burst.amount = clampi(40 + damage * 3, 40, 90)
+    burst.lifetime = 0.46
+    burst.texture = _get_smear_texture()
+    burst.material = _get_smear_material()
+    burst.direction = dir
+    burst.spread = 32.0
+    burst.initial_velocity_min = 190.0
+    burst.initial_velocity_max = 430.0
+    burst.gravity = Vector2(0, 190)
+    burst.scale_amount_min = 0.07
+    burst.scale_amount_max = 0.16
+    burst.color = Color(accent.r * 1.6, accent.g * 1.6, accent.b * 1.6, 1.0)
+    burst.z_index = 8
+    add_child(burst)
+    # Erupt from where the blade crosses the BODY, not from the far end of the arc: the
+    # first render put the cone ~88px past the target and it read as a separate little
+    # puff sitting next to the enemy rather than as debris from the cut.
+    burst.position = origin + dir * length * 0.1
+    burst.emitting = true
+    var cleanup := burst.create_tween()
+    cleanup.tween_interval(0.8)
+    cleanup.tween_callback(burst.queue_free)
+
+
+# ---------------------------------------------------------------------------
+# STYLE: WOUND (suggestion 3)
+# ---------------------------------------------------------------------------
+
+# A mark that OUTLIVES the hit, so how fast it arrived stops mattering. Parented to the
+# Sprite2D, which means it inherits the hit squash, the knockback, the enemy's per-fight
+# scale and the death fade for free - it behaves like part of the body because it is.
+func _spawn_wound(damage: int) -> void:
+    var rung: int = Shaker.impact_for_damage(damage)
+    var accent := DicePalette.accent(Global.dice_type)
+    var angle := CRESCENT_ANGLE + randf_range(-0.12, 0.12)
+    # A hit that lands while three marks are already open would read as clutter rather than
+    # damage, so the oldest is retired instead of accumulating across a 5-card turn.
+    # Rebuilt with an explicit loop, NOT Array.filter(): filter() returns an untyped
+    # Array, and assigning that back into an Array[Node] throws at runtime - which aborted
+    # this whole function from the second hit onwards, so no wound ever appeared after the
+    # first one. gdtoolkit parses it happily; only running it surfaces this.
+    var alive: Array[Node] = []
+    for w in _wounds:
+        if is_instance_valid(w):
+            alive.append(w)
+    _wounds = alive
+    while _wounds.size() >= WOUND_MAX_CONCURRENT:
+        var oldest: Node = _wounds.pop_front()
+        if is_instance_valid(oldest):
+            oldest.queue_free()
+
+    # Local space here is the sprite's own texture pixels, so sizing off the texture rect
+    # makes the mark body-relative on every enemy automatically - no per-art tuning, and a
+    # 0.65-scale swarm body gets a proportionally smaller cut for free.
+    var rect := sprite_2d.get_rect()
+    var length := rect.size.x * randf_range(0.5, 0.62)
+    var px_to_local := 1.0 / maxf(absf(sprite_2d.scale.x), 0.001)
+    var thickness_px: float = WOUND_THICKNESS_PX[rung]
+    var scale_y := (thickness_px * px_to_local) / WOUND_BAND_PX
+    var scale_x := length / float(WOUND_TEX_W)
+
+    # A group so open/close/heal drive both layers as one object while each layer keeps
+    # its own colour ramp (modulate multiplies down the tree, so a shared bloom tween
+    # could not take one layer to accent-glow and the other to a dark slit).
+    var group := Node2D.new()
+    # Relative z (default z_as_relative) so it sits just above the body at effective 8,
+    # still under the IntentUI at 10.
+    group.z_index = 1
+    group.rotation = angle
+    group.position = rect.get_center() + Vector2(
+            randf_range(-rect.size.x * 0.07, rect.size.x * 0.07),
+            randf_range(-rect.size.y * 0.12, rect.size.y * 0.05))
+    group.scale = Vector2(0.12, 1.0)
+    sprite_2d.add_child(group)
+    _wounds.append(group)
+
+    # LAYER 1 - the glow. Load-bearing: the first build was the dark slit alone, and the
+    # render showed it essentially vanishing the moment the white flash ended (a thin dark
+    # line on a mid-tone cel body is about the least visible mark you can draw). The slit
+    # is what makes it read as a CUT; the glow is what makes it read at all.
+    var glow := Sprite2D.new()
+    glow.texture = _get_crescent_texture()
+    glow.material = _get_smear_material()
+    glow.modulate = Color(1.7, 1.66, 1.55, 0.85)
+    glow.scale = Vector2(length / float(CRESCENT_TEX_W),
+            CRESCENT_BOW_SIGN * (thickness_px * 3.5 * px_to_local) / CRESCENT_BAND_PX)
+    group.add_child(glow)
+
+    # LAYER 2 - the slit itself: near-black core with a hot rim, i.e. broken cel linework.
+    # At its most visible over take_damage's white silhouette, which is exactly when it
+    # spawns - this style uses the flash instead of hiding from it.
+    var slit := Sprite2D.new()
+    slit.texture = _get_wound_texture()
+    slit.modulate = Color(2.2, 2.1, 1.95, 1.0)
+    slit.scale = Vector2(scale_x, CRESCENT_BOW_SIGN * scale_y)
+    group.add_child(slit)
+
+    # The cut OPENS fast, then the two layers take the dice colour, then it just sits there.
+    var open := group.create_tween()
+    open.tween_property(group, "scale:x", 1.0, WOUND_OPEN) \
+        .set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_OUT)
+
+    # ⚠️ .parallel() on the SECOND tweener, never set_parallel(true) after an interval:
+    # set_parallel appends into the CURRENT step, which is the interval's - so the colour
+    # ramp (and, below, the whole fade-out) ran simultaneously with its own delay instead
+    # of after it. That is what made the first wound build vanish ~6 frames after landing
+    # while its hold timer still had 0.7s to run.
+    var bloom := group.create_tween()
+    bloom.tween_interval(WOUND_OPEN)
+    # Deliberately restrained once it settles: the glow is additive, and at the brightness
+    # it is BORN with it saturates to white and the dice colour - the part Julien likes -
+    # disappears into the bloom. Hot on the impact frame, saturated blue/orange/etc for the
+    # rest of its life.
+    bloom.tween_property(glow, "modulate", _hot_accent(accent, 0.05, 1.15, 0.6), WOUND_BLOOM) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+    bloom.parallel().tween_property(slit, "modulate",
+            _hot_accent(accent, 0.35, 1.85, 1.0), WOUND_BLOOM) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+    # Heals shut rather than fading out: the slit closes on the thickness axis while the
+    # glow drains, which reads as a wound sealing instead of a decal being turned off.
+    var hold: float = WOUND_HOLD[rung]
+    var close := group.create_tween()
+    close.tween_interval(WOUND_OPEN + WOUND_BLOOM + hold)
+    close.tween_property(group, "scale:y", 0.06, WOUND_CLOSE) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+    close.parallel().tween_property(group, "modulate:a", 0.0, WOUND_CLOSE) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+    close.chain().tween_callback(group.queue_free)
+
+    # A short spark cone on the impact frame so the hit still has MASS - the mark alone is
+    # a quiet artifact, and quiet is what the complaint was about.
+    var dir := Vector2(cos(angle), sin(angle))
+    _spawn_slash_cone(sprite_2d.position, dir, angle,
+            CRESCENT_LENGTH[rung] * 0.7, accent, damage)
+
+
+# ---------------------------------------------------------------------------
+# STYLE: FLURRY (suggestion 4)
+# ---------------------------------------------------------------------------
+
+# The damage ladder as CHOREOGRAPHY rather than intensity: today damage only scales the
+# streak's length/brightness/particle count, so a 20 looks like a 6 with the contrast
+# turned up. Here the PATTERN escalates - one cut, two crossing cuts, a three-slash flurry
+# whose last blade is the longest and holds longest, and only that final blade carries the
+# particle cone so the event ends on its biggest beat. Same philosophy as the roll ladder.
+func _spawn_flurry(damage: int) -> void:
+    var rung: int = Shaker.impact_for_damage(damage)
+    var count: int = FLURRY_COUNT[rung]
+    var base_length: float = CRESCENT_LENGTH[rung]
+    var base_hold: float = CRESCENT_HOLD[rung]
+    if count <= 1:
+        _spawn_crescent_blade(CRESCENT_ANGLE + randf_range(-0.09, 0.09),
+                base_length, base_hold, true, damage)
+        return
+    # Enemy-owned so a killing blow silently cancels the blades still queued behind it.
+    var seq := create_tween()
+    for i in count:
+        var idx := i
+        if idx > 0:
+            seq.tween_interval(FLURRY_STAGGER)
+        var is_last := idx == count - 1
+        var angle: float = FLURRY_ANGLES[idx % FLURRY_ANGLES.size()] + randf_range(-0.07, 0.07)
+        var mul: float = FLURRY_LENGTH_MUL[idx % FLURRY_LENGTH_MUL.size()]
+        # Early blades snap through; only the finisher gets a real hold, so the flurry
+        # reads as build-up -> payoff instead of three equal flashes.
+        var hold := base_hold * (1.25 if is_last else 0.28)
+        seq.tween_callback(_spawn_crescent_blade.bind(
+                angle, base_length * mul, hold, is_last, damage))
 
 
 # Directional knockback + sprite squash on hit. Knockback rides self.position (the same
