@@ -33,7 +33,10 @@ var _hit_reaction_active := false
 # Directional hit smear (juice_audit P1a): a radial burst says "something happened", a
 # smear says "force came FROM somewhere". Shared soft-streak texture + additive material,
 # static so all enemies reuse one instance (same recipe as dice.gd's power orbs).
-const HIT_SMEAR_MIN_DAMAGE := 3
+# 1, not 3: a hit under the old floor spawned NOTHING AT ALL, which is exactly the
+# "1 damage on a red die and I literally see nothing even when focusing" case
+# (Julien, 2026-08-26). Every real hit now draws a blade; only a true zero is skipped.
+const HIT_SMEAR_MIN_DAMAGE := 1
 static var _smear_texture: GradientTexture2D
 static var _smear_material: CanvasItemMaterial
 
@@ -117,7 +120,7 @@ const CRESCENT_BOW_SIGN := -1.0
 # freeze. This is the ONLY motion the blade ever has.
 const CRESCENT_DRAW_ON := 0.05
 const CRESCENT_BLOOM := 0.07
-const CRESCENT_DISSOLVE := 0.26
+const CRESCENT_DISSOLVE := 0.30
 # Hold per Shaker.Impact rung (indexed by the enum's int value). NOT a const Dictionary
 # keyed on Shaker.Impact: Shaker is an autoload, so its enum is not a compile-time
 # constant and a const dict keyed on it would not parse.
@@ -126,8 +129,17 @@ const CRESCENT_DISSOLVE := 0.26
 # canvas height instead undersizes everything by ~3x, since most of the 176px canvas is
 # empty space around the arc. (Cost one render to find.)
 const CRESCENT_BAND_PX := 58.0
-const CRESCENT_HOLD := [0.13, 0.19, 0.27, 0.35, 0.44]
-const CRESCENT_LENGTH := [110.0, 140.0, 180.0, 220.0, 260.0]
+# Both ends moved on the same pass (Julien, 2026-08-26: "a bit longer, a bit more
+# intense... always visible, and VERY visible on big hits, but never nothing"). The
+# floor rose further than the ceiling: the bottom rungs were under the ~4px/10%
+# perceptibility floor, so a chip read as an empty frame rather than as a small hit.
+const CRESCENT_HOLD := [0.26, 0.32, 0.40, 0.50, 0.62]
+const CRESCENT_LENGTH := [150.0, 180.0, 220.0, 265.0, 310.0]
+# Thickness-to-length ratio, DELIBERATELY inverted against the length ladder: a short
+# blade scaled proportionally is thin twice over and vanishes, so small hits get a
+# stubbier, chunkier blade and big hits stay elegant. Keeps the low end above the
+# visibility floor without flattening the ladder Julien wants to keep.
+const CRESCENT_THICKNESS := [1.30, 1.18, 1.06, 0.99, 0.96]
 const CRESCENT_ANGLE := 0.55
 
 # --- Wound (WOUND) ---------------------------------------------------------
@@ -1052,7 +1064,7 @@ func flash_impact() -> void:
 # accent so a magma hit slashes orange, a blue hit indigo. This REPLACES the old radial
 # card-particle burst on attacks (gated off in card.gd::play - the burst buried the
 # slash; Julien, 2026-08). Length/sparks scale with damage; hits under
-# HIT_SMEAR_MIN_DAMAGE (block chip, 1-point ticks) stay smear-free. Spawned as children
+# HIT_SMEAR_MIN_DAMAGE (a true zero) stay smear-free. Spawned as children
 # of this enemy so multi-body fight scales (0.65-0.75 Enemy.scale) shrink it with the body.
 func _spawn_hit_smear(damage: int) -> void:
     if damage < HIT_SMEAR_MIN_DAMAGE:
@@ -1217,15 +1229,16 @@ func _spawn_crescent_blade(angle: float, length: float, hold: float, with_cone: 
     # differs. Thinning the core via scale.y instead would flatten its bow and the two
     # shapes would visibly disagree.
     var base_scale := length / float(CRESCENT_TEX_W)
-    var thickness := base_scale * 0.95
+    var thick_rung: int = Shaker.impact_for_damage(damage)
+    var thickness := base_scale * float(CRESCENT_THICKNESS[thick_rung])
     _spawn_crescent_layer(origin, angle, base_scale, thickness,
-            Color(accent.r * 1.15, accent.g * 1.15, accent.b * 1.15, 0.97), hold, false, false)
+            Color(accent.r * 1.4, accent.g * 1.4, accent.b * 1.4, 0.98), hold, false, false)
     # 1.55, not the 2.0 this first shipped with: at 2.0 the additive core blew out the
     # whole blade to white and the dice-type accent - the part Julien explicitly likes -
     # only survived as a thin fringe. The core is meant to be the hot line INSIDE a
     # coloured blade, not the blade.
     _spawn_crescent_layer(origin, angle, base_scale, thickness,
-            Color(1.55, 1.52, 1.42, 0.95), hold, true, true)
+            Color(1.72, 1.68, 1.55, 0.96), hold, true, true)
 
     if with_cone:
         _spawn_slash_cone(origin, dir, angle, length, accent, damage)
@@ -1282,7 +1295,7 @@ func _spawn_slash_cone(origin: Vector2, dir: Vector2, _angle: float, length: flo
     var burst := CPUParticles2D.new()
     burst.one_shot = true
     burst.explosiveness = 1.0
-    burst.amount = clampi(40 + damage * 3, 40, 90)
+    burst.amount = clampi(52 + damage * 4, 52, 130)
     burst.lifetime = 0.46
     burst.texture = _get_smear_texture()
     burst.material = _get_smear_material()

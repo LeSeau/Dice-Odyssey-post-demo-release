@@ -147,7 +147,13 @@ func _ready() -> void:
 		if not is_instance_valid(enemy):
 			break
 		var dmg: int = damages[idx]
-		print("[slash]   hit %d = %d dmg at frame %d" % [idx + 1, dmg, Engine.get_process_frames()])
+		# Re-assert every hit: the dice cluster writes Global.dice_type during its own
+		# init, AFTER _ready() here, so setting it once up front silently loses the
+		# override and every blade renders in the default blue no matter what SLASH_DICE
+		# says. Caught by measuring the added-light hue, not by eye.
+		Global.dice_type = dice
+		print("[slash]   hit %d = %d dmg at frame %d (dice_type=%s)"
+				% [idx + 1, dmg, Engine.get_process_frames(), Global.dice_type])
 		var eff := DamageEffect.new()
 		eff.amount = dmg
 		eff.sound = HIT_SOUND
