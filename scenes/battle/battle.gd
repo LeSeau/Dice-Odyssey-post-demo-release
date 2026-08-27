@@ -115,15 +115,71 @@ func _ready() -> void:
     Events.enemy_turn_ended.connect(_on_enemy_turn_ended)
 
     Events.player_turn_ended.connect(player_handler.end_turn)
+    Events.player_turn_ended.connect(_on_player_turn_ended_dim)
     Events.player_hand_discarded.connect(enemy_handler.start_turn)
     Events.player_died.connect(_on_player_died)
     Events.scout_effect.connect(_on_scout_effect)
     Events.stop_battle_music.connect(_on_stop_battle_music)
     Events.show_warning_message.connect(_on_show_warning_message)
+    Events.player_turn_started.connect(_on_player_turn_started_dim)
     dice_animation_check.button_pressed = Global.testing_mode
 
     
 
+
+
+# --- Player-action UI dimming during the enemy turn (2026-08-27) ---------------------------
+# The dice cluster (aura, emanation glow, ROLL, the big die) and the slot row are the most
+# luminous things on screen, and for the whole enemy turn they are inert - nothing there is
+# actionable while you are being hit. Dimming them hands the frame to the attack, which is
+# what a trailer cut of an enemy swing needs, and it reads as "not your turn" in play.
+#
+# NOTE for anyone re-reading the old feel-pass plan: the item there was "drop and dim the
+# HAND". That is a no-op - end_turn() runs the END_OF_TURN statuses, which call
+# discard_cards(), and only when the last card has flown does player_hand_discarded start
+# the enemy turn. The hand is already empty before an enemy ever acts.
+#
+# Brightness multiply rather than alpha (the house convention for dimming), tweened on the
+# two ROOT nodes: every modulate write in dice.gd and dice_interface.gd targets a CHILD, so
+# this cannot collide with the slot highlight, the nudge pulse or any flash.
+const ENEMY_TURN_DIM := 0.5
+const ENEMY_TURN_DIM_TIME := 0.25
+
+var _dim_tween: Tween
+
+
+func _player_action_ui_roots() -> Array[CanvasItem]:
+    var roots: Array[CanvasItem] = []
+    for node_name in ["ActiveDice", "DiceInterface"]:
+        var n := get_node_or_null(node_name) as CanvasItem
+        if n != null:
+            roots.append(n)
+    return roots
+
+
+func _tween_player_action_ui(target: float) -> void:
+    var roots := _player_action_ui_roots()
+    if roots.is_empty():
+        return
+    if _dim_tween and _dim_tween.is_valid():
+        _dim_tween.kill()
+    _dim_tween = create_tween()
+    var tint := Color(target, target, target, 1.0)
+    for i in roots.size():
+        # parallel() applies to the NEXT tweener, so it has to be called BEFORE the property
+        # leg it groups - otherwise the two roots queue up and the row dims a beat late.
+        if i > 0:
+            _dim_tween.parallel()
+        _dim_tween.tween_property(roots[i], "modulate", tint, ENEMY_TURN_DIM_TIME) \
+            .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+
+func _on_player_turn_ended_dim() -> void:
+    _tween_player_action_ui(ENEMY_TURN_DIM)
+
+
+func _on_player_turn_started_dim() -> void:
+    _tween_player_action_ui(1.0)
 
 
 func start_battle() -> void:
