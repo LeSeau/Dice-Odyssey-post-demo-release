@@ -6,7 +6,7 @@
 [node name="Tier2Vortex" type="Node2D"]
 
 [node name="Vortex" parent="." instance=ExtResource("1_hrbe0")]
-position = Vector2(858, 375)
+position = Vector2(858, 371)
 stats = ExtResource("2_n8nm5")
 width = 324
 height = 324

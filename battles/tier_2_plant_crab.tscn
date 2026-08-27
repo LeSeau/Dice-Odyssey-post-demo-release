@@ -9,7 +9,7 @@
 [node name="Crab" parent="." instance=ExtResource("1_pdfuf")]
 width = 240
 height = 240
-position = Vector2(754, 409)
+position = Vector2(772, 406)
 stats = ExtResource("2_77x4v")
 sprite_y_offset = 10
 

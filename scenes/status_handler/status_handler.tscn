@@ -5,5 +5,5 @@
 [node name="StatusHandler" type="GridContainer"]
 theme_override_constants/h_separation = 6
 theme_override_constants/v_separation = 6
-columns = 6
+columns = 12
 script = ExtResource("1_3ey6h")

@@ -23,13 +23,20 @@ const ACT2_DAMAGE_BASE := {0: 2, 1: 3, 2: 4, 3: 5, 4: 4}
 # instead of blanking the sprite. Names are display-only (hover label) - the internal
 # enemy type/AI never changes, so nothing else in the game needs these.
 const ACT2_RESKIN := {
+    # y_shift (screen px, negative = up): act-2 art with WIDER ink grows a wider (taller)
+    # body-scaled HP bar, which eats the fan-clearance margin the act-1 fight was audited
+    # with (Enemy.FAN_KEEPOUT_BANDS). Values are from debug_status_overlap.gd's
+    # OVERLAP_ACT=2 run - re-measure there before changing any.
     "Skeleton":        {"art": "res://assets/enemies_act2/act2_skeleton.png",     "name": "Gnawer"},
-    "Satyr":           {"art": "res://assets/enemies_act2/act2_satyr.png",        "name": "Screecher"},
-    "Kraken":          {"art": "res://assets/enemies_act2/act2_kraken.png",       "name": "Deepling"},
+    "Satyr":           {"art": "res://assets/enemies_act2/act2_satyr.png",        "name": "Screecher",
+                        "y_shift": -7.0},
+    "Kraken":          {"art": "res://assets/enemies_act2/act2_kraken.png",       "name": "Deepling",
+                        "y_shift": -4.0},
     "Goblin":          {"art": "res://assets/enemies_act2/act2_goblin.png",       "name": "Bog Hag"},
     "Venom Bloom":     {"art": "res://assets/enemies_act2/act2_plant.png",        "name": "Thornheart"},
     "Lurker":          {"art": "res://assets/enemies_act2/act2_lurker.png",       "name": "Harlequin"},
-    "Marauder":        {"art": "res://assets/enemies_act2/act2_marauder.png",     "name": "Ravager"},
+    "Marauder":        {"art": "res://assets/enemies_act2/act2_marauder.png",     "name": "Ravager",
+                        "y_shift": -8.0},
     "Temple Defender": {"art": "res://assets/enemies_act2/act2_defender.png",     "name": "Warden"},
     "Oculus":          {"art": "res://assets/enemies_act2/act2_oculus.png",       "name": "Onlooker"},
     "Sigil Slug":      {"art": "res://assets/enemies_act2/act2_sigil.png",        "name": "Wisp"},
@@ -44,7 +51,7 @@ const ACT2_RESKIN := {
     # narrow act-2 art ended up elite-sized and crowding the right screen edge. Runtime
     # override only (the .tscn is shared with the act-1 Leviathan, which stays as-is).
     "Leviathan":       {"art": "res://assets/enemies_act2/act2_leviathan.png",    "name": "The Dicelord",
-                        "box_mult": 1.26, "x_shift": -72.0},
+                        "box_mult": 1.26, "x_shift": -72.0, "y_shift": -4.0},
 }
 
 # Act-local tier set by run.gd at room entry; -1 (debug launches without run.gd)
@@ -246,20 +253,30 @@ static func _reskin_enemy(enemy: Enemy) -> void:
     var tex: Texture2D = load(skin["art"])
     if tex == null:
         return  # texture not imported yet - keep the act-1 art rather than blanking it
+    # Feet-line preservation (2026-08-27): the ground line derives from the DISPLAYED art
+    # height (box-fit), so swapping to art with a different aspect ratio silently moved it
+    # - the act-2 Gnawer stood 31px lower than the Skeleton it replaced, parking its
+    # status row on End Turn and the card fan. Capture the act-1 feet line BEFORE the
+    # swap and give the difference back to position.y afterwards: act 2 then inherits the
+    # exact ground geometry that debug_status_overlap.gd verified on act 1. This also
+    # covers the box_mult growth below, which used to hand back half the added height as
+    # an approximation of the same idea.
+    var old_feet: float = Enemy.feet_line_for(
+        enemy.stats.art, enemy.width, enemy.height, enemy.sprite_y_offset)
     enemy.stats.art = tex
     enemy._display_name = skin["name"]
     # New art has its own proportions; the act-1 name-label centering no longer
     # applies, so fall back to canvas-centered rather than a stale per-enemy value.
     enemy.stats.content_center_x = 0.5
-    # Optional presence overrides (currently only the Dicelord). Grow the box around
-    # the feet line - the box expands from its center, so half the added height is
-    # given back to position.y or the enemy would sink through the floor.
+    # Optional presence overrides (currently only the Dicelord).
     var box_mult: float = skin.get("box_mult", 1.0)
     if not is_equal_approx(box_mult, 1.0):
-        var added_h := enemy.height * (box_mult - 1.0)
         enemy.width = roundi(enemy.width * box_mult)
         enemy.height = roundi(enemy.height * box_mult)
-        enemy.position.y -= added_h * 0.5 * enemy.scale.y
+    var new_feet: float = Enemy.feet_line_for(
+        tex, enemy.width, enemy.height, enemy.sprite_y_offset)
+    enemy.position.y -= (new_feet - old_feet) * enemy.scale.y
+    enemy.position.y += float(skin.get("y_shift", 0.0))
     enemy.position.x += float(skin.get("x_shift", 0.0)) * enemy.scale.x
     enemy.update_enemy()
 

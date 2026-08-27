@@ -8,5 +8,5 @@
 [node name="Dragonpriest" parent="." instance=ExtResource("1_6k8pb")]
 width = 290
 height = 290
-position = Vector2(858, 373)
+position = Vector2(858, 369)
 stats = ExtResource("2_ntj7k")

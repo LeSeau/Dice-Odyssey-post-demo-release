@@ -9,7 +9,7 @@
 [node name="Defender" parent="." instance=ExtResource("1_xfoi0")]
 width = 207
 height = 207
-position = Vector2(745, 412)
+position = Vector2(745, 406)
 stats = ExtResource("2_tj2vy")
 
 [node name="Satyr1" parent="." instance=ExtResource("1_xfoi0")]

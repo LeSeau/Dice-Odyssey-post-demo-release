@@ -7,7 +7,7 @@
 
 [node name="Enemy" parent="." instance=ExtResource("1_47act")]
 width = 275
-position = Vector2(860, 352)
+position = Vector2(860, 348)
 stats = ExtResource("2_6s1fn")
 height = 313
 sprite_y_offset = 10

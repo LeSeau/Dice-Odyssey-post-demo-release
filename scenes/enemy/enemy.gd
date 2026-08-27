@@ -453,10 +453,33 @@ const MAX_ENEMY_HEIGHT := 256.0
 # enemy whose bar sits lower than any current one, re-run debug_status_align.gd: it fails
 # loudly on any row that touches the button, which is exactly what the old constants here
 # could not do (they went stale in silence when the button moved on 2026-08-15).
+#
+# --- 2026-08-27: the CARD FAN side of the same conflict, solved for good ---------------
+# The 08-25 pass cleared End Turn but left the fan collision open: measured across all 38
+# fights, resting cards actually reached y540 in their centre columns (the hand box grows
+# UPWARD to fit 210px cards, fan lift is 25, tilted cards raise a corner up to 22px) while
+# the HUD stack bottomed out at y564-579 - every front enemy's status row sat ON the fan
+# at big hands, and no legal feet position could fix it (painted floor starts ~y510).
+# The fix is a mix, each piece measured by debug_status_overlap.gd:
+#   * battle.tscn's Hand rests 20px lower (offset_top -139 -> -119) - the structural piece
+#   * BAR_BOX_DEAD_SPACE below removes 3px of dead air between feet and visible bar
+#   * 14 battle scenes got small position.y raises (feet stay >= ~510, still grounded)
+#   * FAN_KEEPOUT_BANDS below is the baked contract; the harness re-verifies it per run
+# Every reachable fight now clears the worst-case (10-card) resting fan by >= 4px.
 
 # Screen-px gap between the HP bar's BOTTOM edge and the status row's TOP edge. Small and
 # positive: the row must read as hanging off the bar, never as floating loose under it.
 const STATUS_ROW_GAP := 2.0
+
+# The 20px HealthBar is SHRINK_CENTERed inside StatsUI's box, which at runtime is ~32px
+# tall (theme margins on top of the authored 26) - so ~6px of transparent dead space sits
+# between the feet line and the visible bar top. update_enemy() reclaims 3 of them
+# (scaled); the remaining ~3px stay as a deliberate air gap so the bar doesn't touch the
+# toes. The whole HUD stack below the feet is fighting the card fan for ~40px of screen
+# height (see the keep-out block below), so dead pixels here are real budget. Every margin
+# in FAN_KEEPOUT_BANDS was measured WITH this value - retuning it means re-running
+# debug_status_overlap.gd.
+const BAR_BOX_DEAD_SPACE := 3.0
 
 # --- Enemy HUD scale (2026-07-24) ----------------------------------------------
 # The HP bar + status row are drawn SMALLER than their authored size. This is not
@@ -590,6 +613,24 @@ static func _get_head_line_fraction(tex: Texture2D) -> float:
     return result
 
 
+# Single formula for "where is the ground line of a box-fitted texture", in enemy-local
+# pixels. update_enemy() derives everything from it live, and battle.gd's act-2 reskin
+# uses it to PRESERVE the act-1 feet line when swapping to art with a different aspect
+# ratio - without that, the swap silently moves the ground line (the act-2 Gnawer stood
+# 31px lower than the Skeleton it replaced, parking its status row on the card fan).
+static func feet_line_for(tex: Texture2D, target_width: int, target_height: int,
+        y_offset: int) -> float:
+    var w := target_width if target_width > 0 else 256
+    var h := target_height if target_height > 0 else 256
+    if tex == null:
+        return float(y_offset)
+    var ts := tex.get_size()
+    if ts.x <= 0.0 or ts.y <= 0.0:
+        return float(y_offset)
+    var fs: float = minf(float(w) / ts.x, float(h) / ts.y)
+    return float(y_offset) + ts.y * fs / 2.0
+
+
 static func _get_content_rect(tex: Texture2D) -> Rect2:
     var key := tex.resource_path if tex.resource_path != "" else str(tex.get_instance_id())
     if _content_rect_cache.has(key):
@@ -644,6 +685,69 @@ func _update_status_row_placement() -> void:
     # Enemy.scale for us.
     var anchor := Vector2(minf(c0.x, c1.x), maxf(c0.y, c1.y) + STATUS_ROW_GAP)
     status_handler.position = to_local(anchor)
+    _check_fan_keepout(anchor)
+
+
+# --- HUD / card-fan keep-out contract (2026-08-27) -------------------------------------
+# THE rule that ends the "status icons overlap the cards" whack-a-mole: the enemy HUD
+# stack (visible HP bar + the one-icon status row reserved under it) must stay ABOVE the
+# resting card fan's worst-case top, per column. The bands below are MEASURED by
+# debug_status_overlap.gd across hand sizes 5/8/10 against the true ROTATED card quads
+# (an axis-aligned bbox over-reaches by up to 22px at the tilted corners) - and that
+# harness ASSERTS on every run that these numbers are still at-or-below the live fan.
+# Retune the hand (offsets, fan_radius/degrees, separation, card size) and the harness
+# fails loudly; re-bake this table from its "fan tops" output.
+#
+# The check only exists in debug builds and only WARNS. Fixing a violation means raising
+# the fight's position.y (keep feet >= ~510, where the painted floor starts) or shrinking
+# the stack - never letting runtime code silently move a grounded body.
+const FAN_KEEPOUT_BANDS := [
+    # [x0, x1, worst-case resting card top over hand sizes 5/8/10] - baked 2026-08-27
+    # from debug_status_overlap.gd's "fan tops" line, measured on battle.tscn's Hand at
+    # offset_top -119 / fan_radius 25 / fan_degrees 18 / separation -35.
+    [100.0, 150.0, 583.0],
+    [150.0, 200.0, 575.0],
+    [200.0, 250.0, 569.0],
+    [250.0, 300.0, 570.0],
+    [300.0, 350.0, 564.0],
+    [350.0, 400.0, 567.0],
+    [400.0, 450.0, 562.0],
+    [450.0, 500.0, 562.0],
+    [500.0, 550.0, 561.0],
+    [550.0, 600.0, 561.0],
+    [600.0, 650.0, 560.0],
+    [650.0, 700.0, 563.0],
+    [700.0, 750.0, 566.0],
+    [750.0, 800.0, 568.0],
+    [800.0, 850.0, 572.0],
+    [850.0, 900.0, 575.0],
+    [900.0, 950.0, 580.0],
+    [950.0, 1000.0, 583.0],
+    [1000.0, 1050.0, 589.0],
+    [1050.0, 1100.0, 591.0],
+    [1100.0, 1150.0, 599.0],
+    [1150.0, 1200.0, 607.0],
+]
+# One icon row is ALWAYS reserved under the bar, statuses present or not - a fight with a
+# clean bar in testing must still warn if the first status would land on a card.
+const STATUS_ROW_RESERVED_HEIGHT := 30.0
+
+var _keepout_warned := false
+
+
+func _check_fan_keepout(row_anchor: Vector2) -> void:
+    if _keepout_warned or not OS.is_debug_build():
+        return
+    var reserved_bottom: float = row_anchor.y + STATUS_ROW_RESERVED_HEIGHT
+    var row_w: float = maxf(status_handler.size.x * status_handler.scale.x * scale.x, 30.0)
+    for band in FAN_KEEPOUT_BANDS:
+        if row_anchor.x + row_w <= band[0] or row_anchor.x >= band[1]:
+            continue
+        if reserved_bottom > band[2]:
+            _keepout_warned = true
+            push_warning("%s's status row can reach y%.0f but resting cards reach up to y%.0f at x%.0f-%.0f - raise this fight's position.y (feet must stay >= ~510) or shrink the HUD stack. See debug_status_overlap.gd."
+                % [_display_name, reserved_bottom, band[2], band[0], band[1]])
+            return
 
 
 func update_enemy() -> void:
@@ -679,6 +783,8 @@ func update_enemy() -> void:
         # the HP bar, the status row and the shadow all derive from it below.
         var content := _get_content_rect(sprite_2d.texture)
         var content_bottom_from_center: float = (content.end.y - tex_size.y / 2.0) * final_scale
+        # Same formula as the static feet_line_for() above (which the act-2 reskin uses to
+        # preserve this line across an art swap) - change one, change both.
         var feet_line_y: float = sprite_y_offset + sprite_display_height / 2.0
         sprite_2d.position.y = feet_line_y - content_bottom_from_center
 
@@ -701,7 +807,8 @@ func update_enemy() -> void:
         stats_ui.pivot_offset = Vector2(stats_ui_width / 2.0, 0.0)
         stats_ui.scale = Vector2(bar_scale, bar_scale)
 
-        stats_ui.position.y = feet_line_y + maxf(stats_ui_y_offset, 0.0)
+        stats_ui.position.y = feet_line_y + maxf(stats_ui_y_offset, 0.0) \
+            - BAR_BOX_DEAD_SPACE * bar_scale
         # `size.y` is the AUTHORED height (32) - scaling doesn't change it, so the drawn
         # height must be applied by hand or the status row hangs too low.
         var stats_ui_drawn_height: float = stats_ui.size.y * bar_scale

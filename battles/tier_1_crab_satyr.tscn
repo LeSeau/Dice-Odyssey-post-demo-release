@@ -23,5 +23,5 @@ sprite_y_offset = 20
 [node name="Crab" parent="." instance=ExtResource("1_csfcg")]
 width = 205
 height = 205
-position = Vector2(745, 434)
+position = Vector2(767, 430)
 stats = ExtResource("3_qdu4l")

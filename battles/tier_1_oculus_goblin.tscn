@@ -11,7 +11,7 @@
 [node name="Lurker" parent="." instance=ExtResource("1_2jp6t")]
 width = 186
 height = 186
-position = Vector2(766, 450)
+position = Vector2(766, 447)
 stats = ExtResource("3_3l5d1")
 initial_statuses = Array[ExtResource("4_wn5w0")]([ExtResource("5_qvccn")])
 sprite_y_offset = -25
