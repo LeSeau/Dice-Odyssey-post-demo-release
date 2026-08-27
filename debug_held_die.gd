@@ -66,7 +66,7 @@ func _run_render() -> void:
 
 	var dice_interface: Control = (load("res://scenes/dices/dice_interface.tscn") as PackedScene).instantiate()
 	add_child(dice_interface)
-	dice_interface.position = Vector2(514, 214)
+	dice_interface.position = Vector2(514, 202)
 	dice_interface.size = Vector2(160, 72)
 	var die: Control = (load("res://scenes/dices/dice.tscn") as PackedScene).instantiate()
 	add_child(die)
@@ -187,6 +187,28 @@ func _run_dim_checks() -> void:
 		else:
 			print("ok    held die built, modulate %s" % str(held.modulate))
 			pass_count += 1
+
+			# Regression for the one-switch-late tint (2026-08-27). Global.dice_type is
+			# assigned by dice.gd's OWN listener of this signal, and Player is earlier in
+			# battle.tscn so its listener runs FIRST - reading the global there yields the
+			# PREVIOUS type. Emitting without touching the global reproduces exactly that:
+			# the tint target is computed synchronously at emit time, so a stale read lands
+			# the tween on the wrong colour and this check fails.
+			Global.dice_type = "blue"
+			player.call("_update_die_tint", false)
+			Events.active_dice_changed.emit("magma")
+			for i in 45:
+				await get_tree().process_frame
+			var want: Color = DicePalette.accent("magma").lerp(Color.WHITE, 0.15)
+			var got: Color = held.modulate
+			var close := absf(got.r - want.r) < 0.02 and absf(got.g - want.g) < 0.02 \
+					and absf(got.b - want.b) < 0.02
+			if close:
+				print("ok    tint follows the signal, not the racing global (%s)" % str(got))
+				pass_count += 1
+			else:
+				print("FAIL  tint is one switch behind: got %s, want %s" % [str(got), str(want)])
+				fail_count += 1
 
 	_report(pass_count, fail_count)
 

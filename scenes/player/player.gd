@@ -221,13 +221,21 @@ func _sync_held_die_transform() -> void:
     _die_sprite.scale = sprite_2d.scale
 
 
-func _update_die_tint(animate: bool = false) -> void:
+# type_override exists because of a real race: Global.dice_type is assigned inside dice.gd's
+# OWN listener of active_dice_changed (dice.gd::_on_active_dice_changed), so whether this node
+# sees the new type or the previous one is decided purely by signal connection order. It lost
+# that race, and the die rendered exactly one switch behind - Julien had to click a slot twice.
+# The signal already carries the new type, so the fix is to trust the argument and never read
+# the global on that path. Any future listener that needs the active type at switch time has
+# the same trap waiting for it.
+func _update_die_tint(animate: bool = false, type_override: String = "") -> void:
     if _die_sprite == null:
         return
+    var type: String = type_override if type_override != "" else Global.dice_type
     # accent() is infusion-aware at the single source, so an infused die recolours the one
     # the hero holds for free. An unknown/empty type returns white, which lands back on the
     # die's original painted white - the correct look outside combat.
-    var target: Color = DicePalette.accent(Global.dice_type).lerp(Color.WHITE, DIE_TINT_WHITE_LIFT)
+    var target: Color = DicePalette.accent(type).lerp(Color.WHITE, DIE_TINT_WHITE_LIFT)
     if _die_tint_tween and _die_tint_tween.is_valid():
         _die_tint_tween.kill()
     if not animate:
@@ -271,8 +279,8 @@ func punch_held_die(strength: float = 1.0) -> void:
         .set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
 
 
-func _on_active_dice_changed(_active_dice) -> void:
-    _update_die_tint(true)
+func _on_active_dice_changed(active_dice) -> void:
+    _update_die_tint(true, String(active_dice))
     punch_held_die(DIE_RETUNE_PUNCH)
 
 
