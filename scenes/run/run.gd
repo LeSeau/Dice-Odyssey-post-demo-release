@@ -1198,7 +1198,7 @@ func _save_checkpoint() -> void:
         "event_pool_initial": initial_event_pool_out,
         "run_stats": {
             "card_rewards": stats.card_rewards,
-            "rare_weight": stats.rare_weight,
+            "rare_offset": stats.rare_offset,
         },
         "map": map.get_save_data(),
     })
@@ -1215,10 +1215,11 @@ func _load_run() -> void:
 
     stats = RunStats.new()
     stats.card_rewards = data["run_stats"]["card_rewards"]
-    # data.get() fallback: saves written before the rarity system (normal_weight/
-    # support_weight keys, no rare_weight) fall back to the fresh RunStats.new() default
-    # rather than KeyError-ing on load.
-    stats.rare_weight = data["run_stats"].get("rare_weight", RunStats.BASE_RARE_WEIGHT)
+    # data.get() fallback covers every older save shape at once: pre-rarity saves
+    # (normal_weight/support_weight), and weight-model saves (rare_weight, a 0.3-2.0 scale
+    # that means nothing to the offset model). Both land on the run-start floor rather than
+    # KeyError-ing or importing a nonsense offset.
+    stats.rare_offset = data["run_stats"].get("rare_offset", RunStats.RARE_OFFSET_FLOOR)
 
     Global.current_act = data["act"]
     Global.gold = data["gold"]

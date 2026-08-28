@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bq7rdx2rarity1"]
+
+[ext_resource type="Script" path="res://debug_rarity_odds.gd" id="1_dbgro"]
+
+[node name="DebugRarityOdds" type="Node"]
+script = ExtResource("1_dbgro")

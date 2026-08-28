@@ -4,18 +4,20 @@ extends Control
 #enum Type {GOLD, NEW_CARD, RELIC}
 
 # Set by run.gd (_on_battle_won) based on the room just cleared, before add_card_reward() is
-# ever clicked - see _setup_card_chances()/_show_card_rewards() for how each context changes
+# ever clicked - see _rarity_source()/_show_card_rewards() for how each context changes
 # the draw. Event-triggered rewards (Wandering Merchant etc., via run.gd::_on_show_reward)
 # never set this, so they default to NORMAL - correct, those shouldn't get elite/boss odds.
 enum RewardContext {NORMAL, ELITE, BOSS}
 @export var reward_context: RewardContext = RewardContext.NORMAL
 
-# Elite screens lean toward Uncommon/Rare without going all-the-way to the Boss's guaranteed-
-# Rare treatment - local multipliers only, never written back to run_stats (pity still tracks
-# against the true underlying weight, see _update_rare_pity()). At base weights this lands on
-# ~48% / 42% / 10% per slot - close to STS's 50/40/10 elite odds.
-const ELITE_UNCOMMON_MULT := 1.4
-const ELITE_RARE_MULT := 4.0
+# Per-card chance that a reward offer arrives already upgraded, ported from STS2's
+# CardFactory.RollForUpgrade: `actIndex * UpgradedCardOddScaling` with scaling 0.25, so
+# act 1 = 0%, act 2 = 25% (the reference's act 3 = 50% has no equivalent here yet). The roll
+# happens AFTER rarity is known and is skipped for Rares - in the reference the act bonus is
+# only added when `card.Rarity != Rare`, which also means boss screens (all-Rare) never hand
+# out pre-upgraded cards. Shop cards are never upgraded either; the reference passes an
+# enormous negative base chance there, ours simply doesn't roll.
+const UPGRADED_CARD_ODDS_SCALING := 0.25
 
 const CARD_REWARDS = preload("res://scenes/ui/card_rewards.tscn")
 const REWARD_BUTTON = preload("res://scenes/ui/reward_button.tscn")
@@ -60,13 +62,6 @@ var warning_dismissed := false
 @onready var continue_act_2_button: Button = $GGPanel/ContinueAct2Button
 @onready var gg_run_stats: PanelContainer = $GGPanel/GGRunStats
 @onready var gg_main_menu_button: Button = $GGPanel/GGMainMenuButton
-
-
-var card_reward_total_weight := 0.0
-var card_rarity_weights := {
-    Card.RarityTier.COMMON: 0.0,
-    Card.RarityTier.UNCOMMON: 0.0,
-    Card.RarityTier.RARE: 0.0}
 
 
 func _ready() -> void:
@@ -312,33 +307,21 @@ func _show_card_rewards() -> void:
     var available_cards: Array[Card] = character_stats.draftable_cards.cards.duplicate(true)
     var owned_cards: Array[Card] = character_stats.deck.cards
 
-    if reward_context == RewardContext.BOSS:
-        # Boss screens skip the weighted draw entirely - all 3 offers are Rare, the run's
-        # biggest reward-screen moment. Still dedups against already-owned Rares (see
-        # CardRarityDraw) so a second boss screen doesn't just re-show what the first one did.
-        for i in range(3):
-            var picked_card := CardRarityDraw.pick_card(available_cards, Card.RarityTier.RARE, owned_cards)
-            if picked_card:
-                available_cards.erase(picked_card)
-                card_reward_array.append(_resolve_reward_card(picked_card))
-    else:
-        _setup_card_chances()
-        var rare_drawn := false
-        for i in range(3):
-            var roll := randf_range(0.0, card_reward_total_weight)
-            var cumulative := 0.0
-
-            for tier: Card.RarityTier in card_rarity_weights:
-                cumulative += card_rarity_weights[tier]
-                if roll <= cumulative:
-                    if tier == Card.RarityTier.RARE:
-                        rare_drawn = true
-                    var picked_card := CardRarityDraw.pick_card(available_cards, tier, owned_cards)
-                    if picked_card:
-                        available_cards.erase(picked_card)
-                        card_reward_array.append(_resolve_reward_card(picked_card))
-                    break
-        _update_rare_pity(rare_drawn)
+    # One independent roll per slot, each advancing the run's rare offset immediately - that
+    # per-CARD reset is what stops two Rares landing side by side (see CardRarityDraw).
+    # Boss needs no special case any more: its odds row is a flat 1.0 Rare, so it fills all
+    # three slots, and because each Rare resets the offset it also leaves pity at the floor
+    # afterwards - which the old dedicated boss branch never did.
+    var source := _rarity_source()
+    for i in range(3):
+        var tier := CardRarityDraw.roll_rarity(source, run_stats.rare_offset)
+        # Advanced off the ROLL, not off whether a card was found: the reference moves the
+        # offset inside Roll(), before anything is drawn from the pool.
+        run_stats.rare_offset = CardRarityDraw.advance_offset(run_stats.rare_offset, tier)
+        var picked_card := CardRarityDraw.pick_card(available_cards, tier, owned_cards)
+        if picked_card:
+            available_cards.erase(picked_card)
+            card_reward_array.append(_resolve_reward_card(picked_card))
 
     Global.force_upgraded_card_rewards = false
     card_rewards.rewards = card_reward_array
@@ -346,41 +329,33 @@ func _show_card_rewards() -> void:
 
 
 func _resolve_reward_card(picked_card: Card) -> Card:
-    if Global.force_upgraded_card_rewards and picked_card.can_be_upgraded():
+    if not picked_card.can_be_upgraded():
+        return picked_card
+    # Wandering Merchant's paid browse is an unconditional override that predates the odds
+    # roll - it upgrades Rares too, which is the whole point of paying for it.
+    if Global.force_upgraded_card_rewards:
+        return picked_card.upgraded_version
+    if picked_card.rarity_tier == Card.RarityTier.RARE:
+        return picked_card
+    # Explicitly typed: Global.current_act is an autoload field, and `:=` off one of those is
+    # the documented way to silently break this whole file's parse.
+    var act_index: int = maxi(Global.current_act - 1, 0)
+    if randf() < float(act_index) * UPGRADED_CARD_ODDS_SCALING:
         return picked_card.upgraded_version
     return picked_card
 
 
-# Elite multipliers are local to this one draw (never written back to run_stats) - pity below
-# still tracks the true underlying rare_weight regardless of which context rolled the Rare.
-func _setup_card_chances() -> void:
-    var uncommon_mult := 1.0
-    var rare_mult := 1.0
-    if reward_context == RewardContext.ELITE:
-        uncommon_mult = ELITE_UNCOMMON_MULT
-        rare_mult = ELITE_RARE_MULT
-
-    card_rarity_weights[Card.RarityTier.COMMON] = run_stats.common_weight
-    card_rarity_weights[Card.RarityTier.UNCOMMON] = run_stats.uncommon_weight * uncommon_mult
-    card_rarity_weights[Card.RarityTier.RARE] = run_stats.rare_weight * rare_mult
-    card_reward_total_weight = card_rarity_weights[Card.RarityTier.COMMON] \
-        + card_rarity_weights[Card.RarityTier.UNCOMMON] \
-        + card_rarity_weights[Card.RarityTier.RARE]
-
-
-# Pity ticks once per REWARD SCREEN, not per card slot - the initial per-slot version
-# effectively tripled the ramp (+0.9 per screen), capping rare odds at ~24% per slot within
-# three battles (Julien: "insane amount of uncommon & rare"). Resets whenever a screen
-# actually offered a Rare. Boss screens never touch pity (they bypass the weighted draw).
-func _update_rare_pity(rare_drawn: bool) -> void:
-    if rare_drawn:
-        run_stats.rare_weight = RunStats.BASE_RARE_WEIGHT
-    else:
-        run_stats.rare_weight = clampf(
-            run_stats.rare_weight + RunStats.RARE_WEIGHT_PITY_STEP,
-            RunStats.BASE_RARE_WEIGHT,
-            RunStats.RARE_WEIGHT_PITY_CAP
-        )
+# RewardContext is "which room did we just clear" (set by run.gd off the map); Source is
+# "which odds row does that map to". Deliberately two enums: the shop is a rarity source but
+# never a reward context.
+func _rarity_source() -> CardRarityDraw.Source:
+    match reward_context:
+        RewardContext.BOSS:
+            return CardRarityDraw.Source.BOSS
+        RewardContext.ELITE:
+            return CardRarityDraw.Source.ELITE
+        _:
+            return CardRarityDraw.Source.NORMAL
 
 
 func _on_card_reward_taken(card: Card) -> void:

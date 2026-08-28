@@ -197,22 +197,29 @@ func populate_shop() -> void:
     _setup_deal_stall()
     _setup_removal_stall()
 
-# Guaranteed composition (2 Common / 2 Uncommon / 1 Rare) rather than a blind shuffle - every
-# shop visit now contains exactly one expensive temptation instead of the old pure-random slice
-# sometimes offering zero Rares (or, before rarity existed at all, zero of anything special).
-const SHOP_COMPOSITION: Array[Card.RarityTier] = [
-    Card.RarityTier.COMMON, Card.RarityTier.COMMON,
-    Card.RarityTier.UNCOMMON, Card.RarityTier.UNCOMMON,
-    Card.RarityTier.RARE,
-]
+# STS2's merchant rolls every slot independently instead of guaranteeing a composition
+# (CardFactory.CreateForMerchant -> CardRarityOdds.RollWithoutChangingFutureOdds(Shop)):
+# 0.54 / 0.37 / 0.09 plus the run's current rare offset. Two consequences worth knowing:
+#   * It READS the offset but never advances it, so browsing a shop can no longer starve
+#     the next combat reward (and a dry spell makes shop rares likelier too).
+#   * A shop is no longer guaranteed to hold a Rare. The old SHOP_COMPOSITION hard-wired
+#     exactly one per visit; measured, ~18% of visits hold one at the run-start offset
+#     (0.09 - 0.05 = 4% a slot), climbing as a dry spell pushes the offset up.
+const SHOP_CARD_SLOTS := 5
 
 
 func _generate_shop_cards() -> void:
     var shop_card_array: Array[Card] = []
     var available_cards: Array[Card] = char_stats.draftable_cards.cards.duplicate(true)
     var owned_cards: Array[Card] = char_stats.deck.cards
+    # run_stats is assigned by run.gd::_on_shop_entered before populate_shop(); the fallback
+    # only covers a shop booted straight from the editor with nothing wired up.
+    var offset := RunStats.RARE_OFFSET_FLOOR
+    if run_stats:
+        offset = run_stats.rare_offset
 
-    for tier: Card.RarityTier in SHOP_COMPOSITION:
+    for _slot in SHOP_CARD_SLOTS:
+        var tier := CardRarityDraw.roll_rarity(CardRarityDraw.Source.SHOP, offset)
         var picked_card := CardRarityDraw.pick_card(available_cards, tier, owned_cards)
         if picked_card:
             available_cards.erase(picked_card)
