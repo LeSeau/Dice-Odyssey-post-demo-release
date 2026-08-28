@@ -449,18 +449,15 @@ func _on_card_frame_mouse_entered() -> void:
     if tooltips_to_show.is_empty():
         return
     
-    var total_tooltip_height = (tooltips_to_show.size() * TOOLTIP_HEIGHT) + ((tooltips_to_show.size() - 1) * TOOLTIP_SPACING)
-    var card_center_y = global_position.y + (size.y / 2.0)
-    var start_y = card_center_y - (total_tooltip_height / 2.0)
-    
-    var screen_height = get_viewport_rect().size.y
-    var bottom_y = start_y + total_tooltip_height
-    if bottom_y > screen_height - 20:
-        start_y = screen_height - total_tooltip_height - 20
-    if start_y < 20:
-        start_y = 20
-    
-    var base_pos = Vector2(global_position.x + size.x + TOOLTIP_OFFSET_X, start_y)
+    var start_y := Global.tooltip_column_y(global_position.y + (size.y / 2.0),
+        tooltips_to_show.size(), TOOLTIP_HEIGHT, TOOLTIP_SPACING)
+    # Flips to the card's left when there's no room on its right (a card in the deck view's
+    # rightmost columns used to push this stack ~70px off screen). Flipping rather than
+    # clamping matters here: a clamped column would sit on top of the card being read.
+    var base_pos := Vector2(
+        Global.tooltip_group_x(global_position.x, size.x, Global.TOOLTIP_PANEL_SIZE.x,
+            TOOLTIP_OFFSET_X),
+        start_y)
     var captured_id := my_id
     
     for i in range(tooltips_to_show.size()):

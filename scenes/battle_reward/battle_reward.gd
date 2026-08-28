@@ -237,15 +237,22 @@ func _on_relic_reward_mouse_entered(relic: Relic, button: Control) -> void:
         tooltip_panel.tooltip_title.add_theme_font_size_override("bold_font_size", 13)
     tooltip_panel.tooltip_label.text = relic.get_colorized_description(relic.tooltip)
 
-    # Position tooltip to the right of the button
-    var pos = button.get_global_position() + Vector2(button.get_size().x + 8, 0)
-    tooltip_panel.show_tooltip(pos)
-
     # Secondary keyword tooltips (e.g. "Scout"), through the same shared ordering as relic_ui.gd
     # and the card hovers - tags, dice types and Power, in the order the relic's text mentions
-    # them.
+    # them. Resolved before placing anything: the tooltip and its keyword column are laid out
+    # as ONE group, so the pair only gets pushed left as far as it needs to fit. The column
+    # alone used to run 32px off the right edge here - reward buttons are 496px wide inside a
+    # centred 550px panel, leaving less room on the right than two stacked panels need.
     var tags_to_show: Array = KeywordColorizer.ordered_description_keywords(
         relic.tooltip, relic.tags)
+
+    var group_width := Global.TOOLTIP_PANEL_SIZE.x
+    if not tags_to_show.is_empty():
+        group_width += TOOLTIP_OFFSET_X + Global.TOOLTIP_PANEL_SIZE.x
+    var pos := Vector2(
+        Global.tooltip_group_x(button.get_global_position().x, button.get_size().x, group_width),
+        button.get_global_position().y)
+    tooltip_panel.show_tooltip(pos)
 
     if tags_to_show.is_empty():
         return
@@ -256,17 +263,10 @@ func _on_relic_reward_mouse_entered(relic: Relic, button: Control) -> void:
     if my_id != _relic_hover_id:
         return
 
-    var total_height = (tags_to_show.size() * TOOLTIP_HEIGHT) + ((tags_to_show.size() - 1) * TOOLTIP_SPACING)
-    var center_y = pos.y + (tooltip_panel.size.y / 2.0)
-    var start_y = center_y - (total_height / 2.0)
-
-    var screen_height = get_viewport_rect().size.y
-    if start_y + total_height > screen_height - 20:
-        start_y = screen_height - total_height - 20
-    if start_y < 20:
-        start_y = 20
-
-    var base_pos = Vector2(pos.x + tooltip_panel.size.x + TOOLTIP_OFFSET_X, start_y)
+    var start_y := Global.tooltip_column_y(pos.y + (tooltip_panel.size.y / 2.0),
+        tags_to_show.size(), TOOLTIP_HEIGHT, TOOLTIP_SPACING)
+    # x already reserved for this column by the group placement above.
+    var base_pos := Vector2(pos.x + tooltip_panel.size.x + TOOLTIP_OFFSET_X, start_y)
     var captured_id := my_id
 
     for i in range(tags_to_show.size()):

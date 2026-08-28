@@ -18,12 +18,17 @@ func _ready() -> void:
     tooltip_label.fit_content = true
 
 
+# Where the caller asked for, kept so _fit_to_content() can re-clamp against the final height.
+var _requested_pos := Vector2.ZERO
+
+
 func show_tooltip(global_pos: Vector2) -> void:
     # Now parented under a CanvasLayer (see dice_tooltip.tscn) instead of directly
     # under get_tree().root, so get_parent() is the CanvasLayer, which has no
     # get_canvas_transform() (that's a Viewport method) - global_position already
     # accounts for canvas transforms on its own, same as tooltip.gd's relic tooltip.
-    global_position = global_pos
+    _requested_pos = global_pos
+    global_position = _clamped_to_screen(global_pos)
     show()
     _fit_to_content()
 
@@ -40,6 +45,9 @@ func _fit_to_content() -> void:
     panel_height = maxf(panel_height, 88.0)  # never smaller than the authored base look
     size.y = panel_height
     margin_container.offset_bottom = panel_height - 2.0
+    # Re-clamp now that the real height is known: show_tooltip() could only clamp against the
+    # authored 88px, so a tall infusion tooltip spawned low would still hang off the bottom.
+    global_position = _clamped_to_screen(_requested_pos)
 
 
 
@@ -64,3 +72,15 @@ func get_tooltip_content(dice):
             body += "[color=#%s]%s[/color]" % [accent_hex, info["description"]]
     tooltip_label.text = body
     tooltip_title.text = "[center][color=%s][b]%s[/b][/color][/center]" % [title_color, title]
+
+
+# Inlined rather than calling Global: these panel scripts are reached through `const ... =
+# preload(...)` chains (intent_ui.gd), and resolving the Global autoload from here fails at
+# that point - the script then binds as a plain Panel and every show_tooltip() call errors
+# with "Nonexistent function 'show_tooltip' in base 'Panel'". Keep this self-contained.
+func _clamped_to_screen(pos: Vector2) -> Vector2:
+    const MARGIN := 8.0
+    var view: Vector2 = get_viewport_rect().size
+    return Vector2(
+        clampf(pos.x, MARGIN, maxf(MARGIN, view.x - size.x - MARGIN)),
+        clampf(pos.y, MARGIN, maxf(MARGIN, view.y - size.y - MARGIN)))
