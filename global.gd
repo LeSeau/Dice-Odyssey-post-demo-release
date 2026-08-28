@@ -543,7 +543,10 @@ var debug_battle_entry := false
 # smash, and the player sprite. Both selections live here rather than on the node that uses
 # them so they survive scene changes and battle restarts - and are deliberately kept OUT of
 # reset_run_state() and the save dict: they are a dev preference, not run state.
-const DEFAULT_HIGH_ROLL_SOUND := preload("res://impact1.ogg")
+# dicecrush3 is the shipped max-roll smash (Julien, 2026-08-26, after auditioning the
+# candidate list below). NOT impact1.ogg any more - note that file stays where it is,
+# it is still the card sound on ~40 .tres files and deleting it would silence them.
+const DEFAULT_HIGH_ROLL_SOUND := preload("res://dicecrush3.mp3")
 var debug_high_roll_sound: AudioStream = null  # null = shipped default
 var debug_player_texture: Texture2D = null  # null = the shipped CharacterStats.art
 # Untyped on purpose: typing it as Node would make dice.gd's call to cycle_sfx() a compile

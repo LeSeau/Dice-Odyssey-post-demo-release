@@ -215,7 +215,7 @@ script = ExtResource("1_4s751")
 char_stats = ExtResource("4_fwb8a")
 music = ExtResource("3_7d1uf")
 
-[node name="Background" type="Sprite2D" parent="."]
+[node name="Background" type="Sprite2D" parent="." groups=["battle_background"]]
 material = SubResource("ShaderMaterial_bggrd")
 texture = ExtResource("4_51csj")
 centered = false
