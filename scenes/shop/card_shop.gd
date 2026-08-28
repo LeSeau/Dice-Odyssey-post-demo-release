@@ -28,6 +28,29 @@ const CARD_REMOVAL_PRICE_STEP := 25
 
 const DICE_TOOLTIP_SCENE := preload("res://scenes/ui/dice_tooltip.tscn")
 
+# --- Inspect (right-click) -----------------------------------------------------------------
+# Same overlay the reward picker uses: right-click a card for a magnified view with an upgrade
+# preview toggle, paging through everything still on the shelf. Preloaded as a plain .gd (no
+# class_name, builds its own nodes) so this costs no scene and no editor rescan.
+const CARD_INSPECT_OVERLAY := preload("res://scenes/ui/card_inspect_overlay.gd")
+const INSPECT_HINT_TEXT := "Right-click a card to preview its upgrade"
+# CardShop's root is an UNSCALED full-rect Control, so these are plain screen pixels (unlike
+# the reward picker, whose root is authored small and scaled 1.5x). Placed to clear the Leave
+# button at x1024..1236 / y612..670 - debug_card_inspect.gd asserts the rects stay disjoint
+# rather than trusting these numbers to survive a future layout change.
+const INSPECT_HINT_FONT_SIZE := 18
+const INSPECT_HINT_ALPHA := 0.7
+# Insets are asymmetric so the label's CENTRE lands on the card row's centre (x 595 - the row
+# spans x 200..990, left of screen centre because the two right-hand stalls take that space)
+# while its right edge still stops short of the Leave button's column at x1024.
+const INSPECT_HINT_LEFT_INSET := 166.0
+const INSPECT_HINT_RIGHT_INSET := 256.0
+const INSPECT_HINT_BOTTOM_MARGIN := 22.0
+const INSPECT_HINT_HEIGHT := 24.0
+
+var _inspect_overlay: Node = null
+var _inspect_hint: Label = null
+
 # Deal die: shown-face art per type - the same textures the dice shop's columns use
 # (keep in sync with dice_shop.tscn if those ever change).
 const DICE_DEAL_TEXTURES := {
@@ -120,6 +143,53 @@ func _ready() -> void:
     Events.stop_map_music.emit()
     MusicPlayer.play(SHOP_MUSIC, true)
 
+    _build_inspect_hint()
+
+
+func _build_inspect_hint() -> void:
+    var hint := CARD_INSPECT_OVERLAY.make_hint_label(
+        INSPECT_HINT_TEXT, INSPECT_HINT_FONT_SIZE, INSPECT_HINT_ALPHA)
+    hint.name = "InspectHint"
+    hint.anchor_left = 0.0
+    hint.anchor_right = 1.0
+    hint.anchor_top = 1.0
+    hint.anchor_bottom = 1.0
+    hint.offset_left = INSPECT_HINT_LEFT_INSET
+    hint.offset_right = -INSPECT_HINT_RIGHT_INSET
+    hint.offset_top = -(INSPECT_HINT_BOTTOM_MARGIN + INSPECT_HINT_HEIGHT)
+    hint.offset_bottom = -INSPECT_HINT_BOTTOM_MARGIN
+    add_child(hint)
+    _inspect_hint = hint
+
+
+# Pages through the cards STILL on the shelf: a bought slot keeps its ShopCard node (only the
+# art and price are freed, to hold the row's footprint) so it has to be filtered out here.
+func _cards_on_offer() -> Array[Card]:
+    var out: Array[Card] = []
+    for shop_card: ShopCard in cards.get_children():
+        if not shop_card.is_sold() and shop_card.card != null:
+            out.append(shop_card.card)
+    return out
+
+
+func _open_inspect(card: Card) -> void:
+    if _inspect_overlay != null:
+        return
+    var on_offer: Array[Card] = _cards_on_offer()
+    if on_offer.is_empty():
+        return
+    var overlay: Node = CARD_INSPECT_OVERLAY.new()
+    overlay.closed.connect(_on_inspect_closed)
+    add_child(overlay)
+    overlay.setup(on_offer, on_offer.find(card))
+    _inspect_overlay = overlay
+    _inspect_hint.hide()
+
+
+func _on_inspect_closed() -> void:
+    _inspect_overlay = null
+    _inspect_hint.show()
+
 
 func populate_shop() -> void:
     _generate_shop_cards()
@@ -152,6 +222,7 @@ func _generate_shop_cards() -> void:
         var new_shop_card := SHOP_CARD.instantiate() as ShopCard
         cards.add_child(new_shop_card)
         new_shop_card.card = card
+        new_shop_card.inspect_requested.connect(_open_inspect)
         new_shop_card.update(run_stats)
 
 

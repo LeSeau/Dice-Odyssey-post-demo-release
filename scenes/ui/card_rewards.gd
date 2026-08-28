@@ -5,6 +5,26 @@ signal card_reward_selected(card: Card)
 
 const CARD_MENU_UI = preload("res://scenes/ui/card_menu_ui.tscn")
 
+# --- Inspect (right-click) -----------------------------------------------------------------
+# Right-clicking an offered card opens the STS2-style inspect overlay: the card magnified on a
+# dimmed backstop, with a toggle that re-renders it as its upgraded version. Preloaded as a
+# plain .gd (that script builds its own nodes and deliberately has no class_name - see its
+# header) so this adds no scene, no new class for the editor to rescan, and no import step.
+const CARD_INSPECT_OVERLAY := preload("res://scenes/ui/card_inspect_overlay.gd")
+# Nothing else on this screen teaches right-click, so the affordance has to be written down.
+# One code-built label anchored to the bottom edge, outside the centred VBox - adding it as a
+# VBox child would re-centre the row and move the cards Julien already positioned.
+const INSPECT_HINT_TEXT := "Right-click a card to preview its upgrade"
+# NOTE: this scene's root is authored 857x480 and then SCALED 1.5x, so everything below is in
+# local units worth 1.5 screen px each - the font included (12 here renders at ~18px). Sized and
+# placed from measured pixels: the Skip button's ink ends at screen y 637, so the hint sits at
+# local 442..464 (screen 663..696) and clears it by ~26px. debug_card_inspect.gd asserts the
+# two rects stay disjoint rather than trusting these numbers to survive a future layout tweak.
+const INSPECT_HINT_FONT_SIZE := 12
+const INSPECT_HINT_ALPHA := 0.55
+const INSPECT_HINT_BOTTOM_MARGIN := 16.0
+const INSPECT_HINT_HEIGHT := 22.0
+
 # --- Reveal ceremony -----------------------------------------------------------------------
 # Staggered card entrance, mirroring battle_reward.gd's _animate_reward_entrance recipe
 # (settle one frame -> center pivot -> alpha+scale tween).
@@ -103,6 +123,8 @@ var _fx_tweens: Array[Tween] = []
 var _live_motes: Array[Node] = []
 # CardMenuUI -> Vector2 resting scale captured after the containers settled (see reveal note).
 var _rest_scales := {}
+var _inspect_overlay: Node = null
+var _inspect_hint: Label = null
 
 static var _mote_texture: GradientTexture2D
 static var _mote_material: CanvasItemMaterial
@@ -111,6 +133,24 @@ static var _mote_material: CanvasItemMaterial
 func _ready() -> void:
     clear_rewards()
     skip_card_reward.pressed.connect(_on_skip_pressed)
+    _build_inspect_hint()
+
+
+func _build_inspect_hint() -> void:
+    var hint := CARD_INSPECT_OVERLAY.make_hint_label(
+        INSPECT_HINT_TEXT, INSPECT_HINT_FONT_SIZE, INSPECT_HINT_ALPHA)
+    hint.name = "InspectHint"
+    # The VBox above sits at z_index 11; match it so the hint can never end up behind a
+    # sibling if the layout ever moves it under one.
+    hint.z_index = 12
+    hint.anchor_left = 0.0
+    hint.anchor_right = 1.0
+    hint.anchor_top = 1.0
+    hint.anchor_bottom = 1.0
+    hint.offset_top = -(INSPECT_HINT_BOTTOM_MARGIN + INSPECT_HINT_HEIGHT)
+    hint.offset_bottom = -INSPECT_HINT_BOTTOM_MARGIN
+    add_child(hint)
+    _inspect_hint = hint
 
 
 func _on_skip_pressed() -> void:
@@ -280,6 +320,9 @@ func _spawn_rare_motes(visuals: Control) -> void:
 func _on_card_menu_clicked(event: InputEvent, card_menu: CardMenuUI, card: Card) -> void:
     if _picked:
         return
+    if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
+        _open_inspect(card)
+        return
     if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
         _picked = true
         _settle_intro()
@@ -287,6 +330,33 @@ func _on_card_menu_clicked(event: InputEvent, card_menu: CardMenuUI, card: Card)
         var seq := create_tween()
         seq.tween_interval(PICK_HOLD)
         seq.tween_callback(_finish_pick.bind(card_menu, card))
+
+
+# The overlay is parented here, so picking or skipping (both queue_free this screen) takes it
+# down with them, and its own backstop blocks any click reaching the cards while it is up.
+func _open_inspect(card: Card) -> void:
+    if _picked or _inspect_overlay != null:
+        return
+    # The one-shot tutorial popups render on layer 101, ABOVE the overlay's layer 99 (which
+    # sits below tooltips on purpose - see the overlay's header). Rather than open a second
+    # modal underneath the first, wait until the player has dismissed it.
+    if bonus_explanation_box.visible or bonus_explanation_box_2.visible \
+            or blessing_explanation_box.visible:
+        return
+    var overlay: Node = CARD_INSPECT_OVERLAY.new()
+    overlay.closed.connect(_on_inspect_closed)
+    add_child(overlay)
+    overlay.setup(rewards, rewards.find(card))
+    _inspect_overlay = overlay
+    # Cream text at 0.55 alpha still reads straight through the 0.88 backstop, and the hint is
+    # redundant the moment you are already inspecting.
+    _inspect_hint.hide()
+
+
+func _on_inspect_closed() -> void:
+    _inspect_overlay = null
+    if not _picked:
+        _inspect_hint.show()
 
 
 # Clicking mid-reveal: kill every entrance/flash tween and snap all cards to their resting
