@@ -151,12 +151,18 @@ func _ready() -> void:
     SettingsManager.load_and_apply()
     Input.set_custom_mouse_cursor(CURSOR_TEXTURE, Input.CURSOR_ARROW, CURSOR_HOTSPOT)
 
-    # Built as a child of this autoload rather than as its own autoload entry, so it needs no
-    # project.godot change (and therefore no editor restart); the script carries no class_name
-    # for the same reason. Debug builds only - a release build never constructs it.
-    if OS.is_debug_build():
-        debug_overlay = load("res://global/debug_overlay.gd").new()
-        add_child(debug_overlay)
+    # The debug A/B picker panel (global/debug_overlay.gd) used to be constructed here in
+    # debug builds. RETIRED 2026-08-28 at Julien's request ("remove the debug top left"): its
+    # SFX job is finished (dicecrush2 was picked off it on 08-27 and is now the shipped
+    # DEFAULT_HIGH_ROLL_SOUND below). It never reached players either way - it was always
+    # behind OS.is_debug_build() - this only clears it off the editor-run screen.
+    # The script is still on disk (cut content stays, per project convention): re-enable by
+    # restoring the two lines below. Everything downstream already tolerates its absence -
+    # debug_overlay stays null and both readers (dice.gd's F9, player.gd's hero swap) are
+    # null-guarded, so the shipped sound and shipped hero art are what you get.
+    #   if OS.is_debug_build():
+    #       debug_overlay = load("res://global/debug_overlay.gd").new()
+    #       add_child(debug_overlay)
 
 
 # Global left-click press/release swaps the whole cursor to a visually "active" variant -
