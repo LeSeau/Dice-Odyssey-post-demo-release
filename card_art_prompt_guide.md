@@ -62,6 +62,16 @@ So, before writing: *what does this card DO to the player?* Then:
   no die in it stops looking like a Dice Odyssey card.
 - **Say what the effect literally does** when it's depictable: Counterfeit shows the forger
   *carving the lowest face into a six*, which is precisely the card's rules text.
+- **Show the mechanic, never the number.** Charge, Scout, Refuel and friends should be
+  *readable* in the image — dice being fed light, ghostly faces of possible rolls, a die
+  materialising — but never counted out. "A fan of five die-faces" for Scout 5 dates the art:
+  the upgraded card shares the exact same PNG (all `_plus.tres` point at the same file), and
+  the base number gets retuned anyway. Draw *a spread* of ghost faces, *dice* tumbling into
+  the tray, *cards* spraying out — quantity left vague on purpose.
+- **Aim at the fantasy, not the rules text.** "Deal X damage and gain X Block" is one armoured
+  charge that hits and guards in the same motion; "Exact 21: kill" is one perfect cut that
+  ends anything regardless of size. Cards get re-costed and re-gated constantly — art tied to
+  the *feeling* of the effect survives that, art tied to a specific condition does not.
 
 ---
 
@@ -109,6 +119,13 @@ wasted before the working Block prompt was used as the template.
 
 - **Cards: Wide (3:2)** — matches the shipped card art exactly (strike_v3, meteor,
   low_roller, dicelord_gift are all 1.5:1), so nothing gets cropped on integration.
+- **If a batch comes out Square by mistake, EXPAND it — never crop it.** These prompts
+  compose vertically (Coiled Spring stacks ghost dice above the die and puts the spring
+  below it; Sleight's whole gesture is the gap between the hand and the die), so a 3:2
+  window has to delete one end of the composition. Use Firefly's Generative Expand,
+  widen left and right only, leave the fill prompt empty. What it has to invent is just
+  more radiating background, which is the easiest fill there is. Watch for a duplicate
+  subject appearing in the new strip, and for a brightness step at the seam.
 - **Icons: Square (1:1)** — relic icons, status icons, the mech arrow.
 - **No reference images** (see failure #5).
 - If one generation comes out wrong but the prompt is right, **re-roll before re-writing** —

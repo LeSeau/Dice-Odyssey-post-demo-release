@@ -7,7 +7,7 @@
 [resource]
 script = ExtResource("2_script")
 id = "card_dice_avalanche_plus"
-name = "Dice Avalanche+"
+name = "Avalanche+"
 type = 0
 target = 1
 description = "Throw one Dice of each type you own. Each deals damage equal to its roll"
