@@ -716,6 +716,32 @@ var power_at_last_switch := 0
 # can find who threw the punch. Null outside the enemy turn.
 var acting_enemy: Node = null
 
+# --- Held-die attack reaction (2026-08-28) -------------------------------------------------
+# The hero's die punches harder on a bigger hit, and on a big or lethal single-target hit it
+# flies out and strikes the body itself. Deciding that needs one thing damage_effect.gd
+# cannot see on its own: "is this hit the attack card the player just played?".
+#
+# The whole filter is a frame comparison, the same trick dice.gd already uses to tell a
+# card-generated Power gain from a roll-generated one (_last_card_played_frame). Card.play()
+# emits card_played as its first statement and calls apply_effects() synchronously right
+# after, so a card's own damage always shares its frame - while an enemy attack, a magma
+# roll, a status payout (Earthquake), a thorns reflect and a thrown die's landing (~0.95s
+# later) never do. That is exactly the set that must NOT move the hero's die.
+var last_attack_card_played_frame := -1
+# Whether that attack card resolved against a single enemy. The strike is single-target only
+# in v1 - a die that flies through a crowd is a different animation, not a louder one.
+var last_attack_card_single_target := false
+# Set for cards that read their target's state (HP, alive/dead) AFTER their damage resolves;
+# see Card.observes_post_damage(). Scoped around apply_effects() exactly like
+# playing_card_requirement.
+var playing_card_observes_post_damage := false
+# Once-per-frame guards. An AoE card runs one execute() per target inside a single frame, and
+# a multi-hit card schedules its later hits onto other frames; both are handled by keying on
+# the frame and keeping the LARGEST hit of that frame.
+var die_reaction_frame := -1
+var die_reaction_best_amount := -1
+var die_strike_frame := -1
+
 var pending_card_rewards = 1
 var hound_debuff_attack_done = false
 var gargantua_debuff_attack_done = false
@@ -802,6 +828,15 @@ func reset_run_state() -> void:
     keep_all_dice_always = false
     power_at_last_switch = 0
     acting_enemy = null
+
+    # Held-die attack reaction: frame guards, so a fresh run can never inherit a frame index
+    # from the previous one (the process-frame counter does not reset with the run).
+    last_attack_card_played_frame = -1
+    last_attack_card_single_target = false
+    playing_card_observes_post_damage = false
+    die_reaction_frame = -1
+    die_reaction_best_amount = -1
+    die_strike_frame = -1
 
     ink_active = false
     charged_dice_this_turn = false

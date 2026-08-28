@@ -1,4 +1,12 @@
 extends Card
+
+
+# The second hit filters for "still alive after the first", which needs the first hit's
+# damage to have already landed. See Card.observes_post_damage().
+func observes_post_damage() -> bool:
+    return true
+
+
 func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
 
     if Global.roll_value <= 10:

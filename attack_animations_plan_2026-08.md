@@ -1,6 +1,12 @@
 # Attack Animations — Hero Body & Held Die (execution plan, 2026-08-28)
 
-**Status: designs approved by Julien in discussion ("I really like your ideas"). NOTHING implemented.** This doc is the handoff spec for the executing session. It is self-contained: current state was verified in code on 2026-08-28, and every known trap is listed in §7 — read §7 BEFORE writing any code.
+**Status: ✅ BATCHES 1-4 IMPLEMENTED 2026-08-28 (+ garnish 5.2), verified by harness and Movie Maker render, NOT PLAYTESTED.** See the CLAUDE.md TL;DR entry for the as-built summary, the two design changes made during execution, and the tuning levers. Batches 5.1 / 5.3 / 5.4 remain unbuilt (5.1 and 5.3 need new plumbing, 5.4 needs a fresh verdict).
+
+Everything below is the ORIGINAL handoff spec, kept as the design record. Two things in it were changed during execution and the doc has NOT been rewritten to match — the CLAUDE.md entry is authoritative where they disagree:
+1. **§3 said the strike defers damage unconditionally.** It cannot: three cards read their target's state right after damaging it (`executioner.gd` checks `health <= 0`, `clank(_plus).gd` filters "still alive between hits"), and deferral would silently eat their payoffs on exactly the hits they exist for. Cards now declare that via `Card.observes_post_damage()` and keep the instant path.
+2. **§3 said the deferred bundle is "everything execute normally does".** It also has to re-open the Kaboom achievement window, which `Card.play()` opens and closes synchronously and which a deferred hit would otherwise fall outside of — on precisely the biggest hits, the only ones that could earn it.
+
+This doc is the handoff spec for the executing session. It is self-contained: current state was verified in code on 2026-08-28, and every known trap is listed in §7 — read §7 BEFORE writing any code.
 
 **Context in one line:** the hero now has final(ish) art, split into a body + a levitated white die overlay (`main_character_chibi.png` + `main_character_die.png`, see the "held die" section of CLAUDE.md). Attacks should feel alive: the body should move, the die's existing punch should scale with the hit, and on big/lethal single-target hits the die should physically fly out and strike the enemy.
 

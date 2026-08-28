@@ -186,7 +186,10 @@ func _run_dim_checks() -> void:
 		print("FAIL  Player missing")
 		fail_count += 1
 	else:
-		var held := player.get_node_or_null("SpriteRoot/HeldDiePivot/HeldDie")
+		# HeldDieBob was inserted above the pivot by the 2026-08-28 attack pass: the idle
+		# levitation needs its own node, because the punch snaps the PIVOT back to a canonical
+		# rest whenever it is interrupted and would flatten a bob sharing that transform.
+		var held := player.get_node_or_null("SpriteRoot/HeldDieBob/HeldDiePivot/HeldDie")
 		if held == null:
 			print("FAIL  held die not built")
 			fail_count += 1
