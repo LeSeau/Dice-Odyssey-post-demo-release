@@ -105,6 +105,13 @@ var _last_card_play_frame := -1 # "did a card play THIS frame" - picks the fligh
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+    # Draw the slot row ABOVE the big die's aura. Both sat at z 0, and tree order put the
+    # aura on top, so the die's charge pulse washed these count labels out as it expanded -
+    # which is what capped how bright/big that pulse was allowed to get. Set here rather
+    # than on the battle.tscn instance so it also holds in every harness that builds this
+    # row by hand. Safe: the flying charge-delivery icons live on the ui_layer CanvasLayer
+    # at z 150, and the ROLL button is z 10, so both still draw over this.
+    z_index = 5
     dice_1_label.text = str(Global.blue_dice_current_amount, "/", Global.blue_dice_max_amount)
     dice_2_label.text = str(Global.red_dice_current_amount, "/", Global.red_dice_max_amount)
     dice_3_label.text = str(Global.evil_dice_current_amount, "/", Global.evil_dice_max_amount)

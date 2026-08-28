@@ -31,6 +31,9 @@ var _power_tooltip: Node = null
 
 @onready var aura: ColorRect = $Panel/Aura
 @onready var emanation: ColorRect = $Emanation
+# Nothing plays this any more: its only library entry, "charge", was a single keyframed
+# curve on Aura:scale, and that beat now lives in code (_on_dice_charged) so it can
+# ladder by dice count and be interrupted cleanly. Node and animation kept as-is.
 @onready var animation_player: AnimationPlayer = $Panel/DiceDisplay/AnimationPlayer
 @onready var animation_player_power: AnimationPlayer = $CurrentPower/AnimationPlayerPower
 @onready var ink_animation: AnimationPlayer = $Panel/DiceDisplay/DiceInk/InkAnimation
@@ -529,6 +532,44 @@ const AURA_RED_BASELINE_CHARGE := 0.47  # ~6-7 power on blue, under the curve ab
 # gap. It always settles back to this fixed 1.0, not a charge-dependent value.
 const AURA_SCALE_REST := 1.0
 
+# Charge pulse - the "energy just erupted" wavefront every charge fires (see
+# _on_dice_charged). It expands the aura NODE, because the glow band is defined in that
+# node's own uv space (dice_glow.gdshader): its visible outer edge is hard-capped by the
+# node's rect, so scaling the node is the only lever that makes the ring actually travel
+# outward - and the band thickens as it goes, which is what keeps it reading as a wave
+# with body instead of a thinning hairline.
+#
+# Sizes MEASURED on the real cluster over the act-1 background (debug_charge_pulse.gd:
+# lit-pixel diff against a calm frame, shimmer noise floor 3 px):
+#     1.20 (the old peak)  ->  9,871 lit px
+#     1.35                 -> 20,053 lit px
+#     1.50                 -> 29,170 lit px   slot-row labels start to haze (+26/255)
+#     1.70                 -> 38,971 lit px   row washed out, and the ring stops reading
+#                                             as a ring - it floods instead
+# The old 1.20 peak was the whole problem: the ROLL-LANDING punch already peaks at 1.22,
+# so a charge pulsed no harder than routinely rolling a die. The band below clears that
+# ceiling by a wide margin and still stops short of 1.5, where the dice slot row above
+# the die starts losing contrast. Bigger was measured, and is NOT the answer.
+const CHARGE_PULSE_SCALE_BASE := 1.34
+const CHARGE_PULSE_SCALE_PER_DIE := 0.03  # Charge 1 -> 1.37, Charge 4+ -> 1.46
+# Deliberately not snappy: the previous attempt at this beat was rejected as "too much
+# intensity & too fast". QUAD (not EXPO/QUINT, which dump ~90% of the travel into the
+# first fifth and read as a snap) so the front is watchable on its way out, then an
+# unhurried drift home - ~0.66s total, near the 0.7s the original animation ran.
+# Brightness is what actually sells this beat - size alone does not. Measured: past ~1.5
+# the expanding ring's TOP hides behind the slot row and its bottom runs behind ROLL, so
+# only the left/right edges stay visible and it degenerates into a vertical smear. Flaring
+# the glow instead turns the thin rim into a solid bloom of the die's colour across the
+# whole area around it, which reads instantly at any size.
+# NOTE: this deliberately overshoots the shader uniform's hint_range(0.1, 2.0). hint_range
+# is an editor hint only - it does not clamp values set from code, and power_intensity is
+# just a multiplier on the glow's alpha, so overshooting saturates the halo rather than
+# breaking anything. AURA_INTENSITY_MAX stays 2.0 because that one IS a resting level.
+# 10.0 was measured too: it flattens into a near-uniform slab and loses the falloff shape.
+const CHARGE_PULSE_INTENSITY := 5.0
+const CHARGE_PULSE_OUT_TIME := 0.28
+const CHARGE_PULSE_HOME_TIME := 0.38
+
 # Per-type base wave_speed (read from each dice_*_shader.tres) - needed so driving wave_speed
 # dynamically multiplies from the RIGHT starting point per type instead of a single guess;
 # magma is the only outlier (2.55 vs 2.022 everywhere else).
@@ -555,6 +596,10 @@ var _emanation_surge_tween: Tween
 # The aura's charge flash (brightness+reach flare on every dice_charged) - tracked so a
 # rapid multi-type volley restarts the flare instead of stacking writers on the uniforms.
 var _charge_flash_tween: Tween
+# The aura's charge wavefront (scale). Tracked both so a volley restarts it instead of
+# stacking writers on aura.scale, and so the roll-landing punch can stand down while it
+# is still in flight (see the guard next to that punch).
+var _charge_pulse_tween: Tween
 
 var evil_faces = [
                 load("res://assets/images/evil0.png"),
@@ -1609,12 +1654,20 @@ func _on_roll_landed(roll_index: int, values: Array, faces: Array) -> void:
     # scaled by roll value so a bigger roll gives a slightly bigger pulse. Always settles
     # back to AURA_SCALE_REST (not a charge-dependent size) - the "grows with power" story
     # lives entirely in _update_dice_aura_charge()'s shader parameters now, not in scale.
-    var aura_punch = AURA_SCALE_REST + 0.04 + 0.18 * val_frac
-    var aura_pulse := create_tween()
-    aura_pulse.tween_property(aura, "scale", Vector2(aura_punch, aura_punch), 0.07) \
-        .set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
-    aura_pulse.tween_property(aura, "scale", Vector2(AURA_SCALE_REST, AURA_SCALE_REST), 0.16) \
-        .set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+    # Longest wins: a charge drives this same aura.scale, much further and much more
+    # rarely, so starting the landing's small punch on top of one in flight would cut the
+    # wavefront off mid-travel. These really do collide - a Gnome-infused Green die charges
+    # a Blue die ON a natural 1, i.e. on this very landing. (Same "the shorter effect must
+    # not win" rule the ref-counted hit-stop exists for.)
+    # One-directional on purpose: _apply_roll_result() above is what emits dice_charged, so
+    # a roll-driven charge always starts its pulse BEFORE this point and this guard sees it.
+    if not (_charge_pulse_tween and _charge_pulse_tween.is_valid()):
+        var aura_punch = AURA_SCALE_REST + 0.04 + 0.18 * val_frac
+        var aura_pulse := create_tween()
+        aura_pulse.tween_property(aura, "scale", Vector2(aura_punch, aura_punch), 0.07) \
+            .set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+        aura_pulse.tween_property(aura, "scale", Vector2(AURA_SCALE_REST, AURA_SCALE_REST), 0.16) \
+            .set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
 
     # Emanation flare on the same landing beat: spike "surge" instantly, decay it out.
     # Tracked so rapid rolls restart the flare instead of stacking tweens on the param.
@@ -2996,7 +3049,18 @@ func _on_dice_charged(charged_type: String, count: int) -> void:
     # intensity & too fast ... the animation I had before you touched it was more similar
     # to what I have in mind" (Julien, 2026-08-14). Do not re-add a big screen-crossing
     # shockwave - the ask is a contained pulse at the die, in the charged type's colour.
-    animation_player.play("charge")  # aura scale/opacity pulse
+    # The wavefront. Same beat the "charge" AnimationPlayer track used to play (its one
+    # and only track was a keyframed curve on aura.scale) - driven from code now so it can
+    # ladder with how many dice landed, ease outward properly instead of linearly, and be
+    # tracked so a volley or a simultaneous roll landing cannot strand it half-expanded.
+    var pulse_peak: float = CHARGE_PULSE_SCALE_BASE + CHARGE_PULSE_SCALE_PER_DIE * float(clampi(count, 1, 4))
+    if _charge_pulse_tween and _charge_pulse_tween.is_valid():
+        _charge_pulse_tween.kill()
+    _charge_pulse_tween = create_tween()
+    var pulse_out := _charge_pulse_tween.tween_property(aura, "scale", Vector2(pulse_peak, pulse_peak), CHARGE_PULSE_OUT_TIME)
+    pulse_out.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    var pulse_home := _charge_pulse_tween.tween_property(aura, "scale", Vector2(AURA_SCALE_REST, AURA_SCALE_REST), CHARGE_PULSE_HOME_TIME)
+    pulse_home.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
     var burst_material := gpu_particles_2d.process_material as ParticleProcessMaterial
     if burst_material:
         burst_material.color = DicePalette.burst(charged_type, 0.35)
@@ -3025,7 +3089,7 @@ func _on_dice_charged(charged_type: String, count: int) -> void:
         if heat_rise:
             heat_rise.set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
         var intensity_rise := _charge_flash_tween.parallel().tween_property(
-            aura_material, "shader_parameter/power_intensity", AURA_INTENSITY_MAX, 0.12)
+            aura_material, "shader_parameter/power_intensity", CHARGE_PULSE_INTENSITY, 0.12)
         if intensity_rise:
             intensity_rise.set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
         var reach_rise := _charge_flash_tween.parallel().tween_property(
