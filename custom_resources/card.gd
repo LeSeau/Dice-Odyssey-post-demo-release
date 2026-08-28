@@ -283,6 +283,12 @@ func play(targets: Array[Node], char_stats: CharacterStats, modifiers: ModifierH
     # one that was designed.
     var resolved_targets: Array[Node] = pick_single_target(targets) if is_single_targeted() else _get_targets(targets)
     Global.last_played_card_targets = resolved_targets
+    # Stamped BEFORE card_played so the hero's held-die reaction (player.gd, damage_effect.gd)
+    # can tell this card's own damage from everything else landing this turn. Attacks only -
+    # a block or a blessing must not give the die a phantom attack tell.
+    if type == Type.ATTACK:
+        Global.last_attack_card_played_frame = Engine.get_process_frames()
+        Global.last_attack_card_single_target = is_single_targeted()
     Events.card_played.emit(self)
     Events.check_ink_status.emit()
 
@@ -319,10 +325,12 @@ func play(targets: Array[Node], char_stats: CharacterStats, modifiers: ModifierH
     # never picks it up. The two description call sites open the same scope, so preview and
     # damage always agree.
     Global.playing_card_requirement = requirement
+    Global.playing_card_observes_post_damage = observes_post_damage()
 
     apply_effects(resolved_targets, modifiers)
 
     Global.playing_card_requirement = -1
+    Global.playing_card_observes_post_damage = false
 
     AchievementManager.end_card_damage_window()
 
@@ -343,6 +351,19 @@ func play(targets: Array[Node], char_stats: CharacterStats, modifiers: ModifierH
 
 func apply_effects(_targets: Array[Node], modifiers: ModifierHandler) -> void:
     pass
+
+
+# Override and return true on any card whose apply_effects() READS its target's state after
+# dealing damage - "did that kill it?" (Executioner), "is it still alive between my hits?"
+# (Clank). Those reads only work because DamageEffect applies HP synchronously, and the die
+# strike breaks that assumption: it defers the whole hit ~0.26s so the damage lands on the
+# die, which would leave such a card looking at an enemy that has not been hit yet.
+#
+# Declaring it here rather than testing card ids in damage_effect.gd keeps the contract next
+# to the code that depends on it: a future card that reads post-damage state opts out by
+# overriding this, and gets the old instant-damage behaviour (and no strike) automatically.
+func observes_post_damage() -> bool:
+    return false
 
 
 # Face-value pools per dice type, shared by the thrown-dice cards (Meteor, Fastball, Cursed

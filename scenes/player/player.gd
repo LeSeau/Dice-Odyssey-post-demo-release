@@ -49,6 +49,73 @@ const DIE_PUNCH_BACK := 0.34
 # new accent, with a fractional punch so the change is felt and not just seen.
 const DIE_RETUNE_PUNCH := 0.45
 
+# --- Attack animation pass (2026-08-28) ---------------------------------------------------
+# Three channels write the hero's transform and they are deliberately kept on THREE separate
+# nodes, because every one of them can be in flight at the same time (you can be hit during
+# your own attack):
+#
+#   root position      <- body lunge AND hit knockback (one shared tween slot, see below)
+#   HeldDieBob.y       <- idle levitation bob only
+#   HeldDiePivot       <- punch / strike only
+#
+# Sharing a slot between lunge and knockback is the point: they are the same property, so a
+# single tween var plus one canonical rest position makes "two owners fighting" structurally
+# impossible rather than merely unlikely.
+
+# Body lunge. The hero stands at x~207 and the enemies at x~750-1150, so the thrust is
+# right-and-slightly-up. 14px clears the ~4px floor below which an effect does not exist at
+# play speed, without shoving him far enough to break the ground line he shares with them.
+const LUNGE_OFFSET := Vector2(14.0, -4.0)
+const LUNGE_OUT := 0.07
+const LUNGE_BACK := 0.30
+
+# Punch strength per Shaker.Impact rung, indexed by the enum's int value
+# (VERY_WEAK, WEAK, MEDIUM, STRONG, HUGE). A plain literal Array rather than a Dictionary
+# keyed by Shaker.Impact.*: an autoload is not available at parse time, so keying by the
+# enum would be a const that cannot be folded.
+# NOTE any read MUST be typed (`var s: float = ...`) - indexing a const Array yields Variant,
+# and `:=` on a Variant is the parse error that silently kills an entire file.
+const DIE_PUNCH_TIER_STRENGTH := [1.0, 1.0, 1.15, 1.4, 1.7]
+
+# Anticipation: a short pull-back opposite the thrust before the push. This is the whole
+# difference between a punch that reads as THROWN and one that reads as a twitch, and it
+# costs ~45ms of latency on the game's most common verb.
+const DIE_ANTICIPATION_FRAC := -0.35
+const DIE_ANTICIPATION_SCALE := 0.96
+const DIE_ANTICIPATION_TIME := 0.045
+
+# Afterimages along the push axis, on hard punches only - at small sizes on a light punch
+# they read as noise rather than speed.
+const DIE_SMEAR_MIN_STRENGTH := 1.3
+const DIE_SMEAR_COUNT := 2
+const DIE_SMEAR_LIFETIME := 0.15
+const DIE_SMEAR_ALPHA := 0.42
+
+# Idle levitation. The die was the only motionless element on the character (it opts out of
+# the sway shader, see _ensure_held_die), which is precisely what read as dead. Position
+# only - scaling a ~38px sprite resamples its edges every frame and shimmers.
+const DIE_BOB_AMPLITUDE := 4.0
+const DIE_BOB_PERIOD := 3.0
+
+# Die strike: on a big or lethal single-target hit the die itself is the weapon. Much
+# shorter than the 0.95s thrown-dice ceremony - a throw is a mortar, this is a gunshot
+# punctuating a decision the player already made.
+const STRIKE_FLIGHT_TIME := 0.26
+const STRIKE_ARC_HEIGHT := 46.0
+const STRIKE_SCATTER := 10.0
+const STRIKE_DRIVE_IN := 10.0          # px past the impact point, so it bites in
+const STRIKE_DISSOLVE := 0.1
+const STRIKE_REMATERIALIZE_DELAY := 0.2
+const STRIKE_KILL_EMBED_HOLD := 0.1    # lethal only: a readable "die buried in the body" frame
+const STRIKE_TUMBLE := 2.4             # radians over the flight
+const STRIKE_SOUND := preload("res://whipsound.mp3")
+
+# Taking a hit flinches the die too. A NEGATIVE punch strength is exactly a recoil: the same
+# tween runs backwards along the thrust axis (away from the enemies, slightly down) and eases
+# the die smaller instead of bigger. The die already flashes white with the body; moving it as
+# well is what makes it read as something alive he is carrying rather than a pinned decal.
+const DIE_FLINCH_STRENGTH := -0.35
+
 @export var stats: CharacterStats : set = set_character_stats
 
 @onready var sprite_2d: Sprite2D = $SpriteRoot/Sprite2D
@@ -58,20 +125,34 @@ const DIE_RETUNE_PUNCH := 0.45
 @onready var animation_player: AnimationPlayer = $AnimationPlayer
 
 # Hit-reaction state (knockback + squash), mirrors Enemy.take_damage.
-var _hit_pos_tween: Tween
+# _body_move_tween is the SINGLE owner of self.position - both the hit knockback and the
+# attack lunge build onto it, so the two can never tween the same property against each
+# other. _body_rest_position is captured once, on the first move of either kind (at which
+# point the body is guaranteed to be at rest), and is the only "home" either one returns to:
+# re-reading position at that moment would capture a mid-lunge spot as home and the hero
+# would walk off across the fight, one hit at a time.
+var _body_move_tween: Tween
 var _hit_squash_tween: Tween
-var _hit_rest_position: Vector2
+var _body_rest_position: Vector2
+var _body_rest_captured := false
 var _hit_rest_sprite_scale: Vector2
-var _hit_reaction_active := false
+var _hit_squash_active := false
 var _sway_material: ShaderMaterial
 var _ground_shadow: Sprite2D
-# Held die: a pivot parked on the die's INK centre (so a punch scales/rotates about the die
-# and not about the empty canvas centre it would otherwise orbit), and the sprite itself.
+# Held die: a bob node (idle levitation only) wrapping a pivot parked on the die's INK centre
+# (so a punch scales/rotates about the die and not about the empty canvas centre it would
+# otherwise orbit), and the sprite itself.
+var _die_bob: Node2D
 var _die_pivot: Node2D
 var _die_sprite: Sprite2D
 var _die_rest_position: Vector2
 var _die_punch_tween: Tween
 var _die_tint_tween: Tween
+var _die_bob_phase := 0.0
+# Strike state. _die_strike_active gates re-entry (one die, one flight) and is cleared by
+# both the normal landing and an idempotent failsafe, so the palm can never stay empty.
+var _die_strike_active := false
+var _die_strike_generation := 0
 var _debug_hero_override_active := false
 # The scene's authored sprite transform, captured before the debug hero swap can touch it so
 # clearing the swap can restore it exactly. ZERO = not captured yet.
@@ -183,6 +264,12 @@ func _ensure_held_die() -> void:
         # old behaviour (no overlay) instead of drawing a die that belongs to other art.
         return
 
+    # Bob wraps the pivot rather than sharing it: the idle levitation and the attack punch
+    # are both position writes, and the punch snaps the pivot back to a canonical rest every
+    # time it is interrupted. On one node the bob would be that snap's collateral damage.
+    _die_bob = Node2D.new()
+    _die_bob.name = "HeldDieBob"
+    _die_bob_phase = randf() * TAU  # so it doesn't tick in lockstep with anything else
     _die_pivot = Node2D.new()
     _die_pivot.name = "HeldDiePivot"
     _die_sprite = Sprite2D.new()
@@ -196,7 +283,8 @@ func _ensure_held_die() -> void:
     # die is levitated, not gripped, and the hand it hovers over only travels ~2.5px on
     # screen - under the floor where the difference registers.
     _die_pivot.add_child(_die_sprite)
-    sprite_2d.get_parent().add_child(_die_pivot)
+    _die_bob.add_child(_die_pivot)
+    sprite_2d.get_parent().add_child(_die_bob)
     _sync_held_die_transform()
     _update_die_tint()
 
@@ -252,7 +340,7 @@ func _update_die_tint(animate: bool = false, type_override: String = "") -> void
 # rather than set_parallel(true), which after a first step would fold the return INTO the
 # outward step and play both at once.
 func punch_held_die(strength: float = 1.0) -> void:
-    if _die_pivot == null:
+    if _die_pivot == null or _die_strike_active:
         return
     if _die_punch_tween and _die_punch_tween.is_valid():
         _die_punch_tween.kill()
@@ -264,7 +352,18 @@ func punch_held_die(strength: float = 1.0) -> void:
     var out_scale: Vector2 = Vector2.ONE * (1.0 + (DIE_PUNCH_SCALE - 1.0) * strength)
     var out_rot: float = DIE_PUNCH_ROTATION * strength
 
+    if strength >= DIE_SMEAR_MIN_STRENGTH:
+        _spawn_die_smear(out_pos)
+
     _die_punch_tween = create_tween()
+    # Anticipation, as its own SEQUENTIAL step ahead of the push. .parallel() applies to the
+    # tweener that comes AFTER it, so the push block below still groups correctly.
+    var back_pos: Vector2 = _die_rest_position + DIE_PUNCH_OFFSET * strength * DIE_ANTICIPATION_FRAC
+    _die_punch_tween.tween_property(_die_pivot, "position", back_pos, DIE_ANTICIPATION_TIME) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+    _die_punch_tween.parallel().tween_property(_die_pivot, "scale",
+            Vector2.ONE * DIE_ANTICIPATION_SCALE, DIE_ANTICIPATION_TIME) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
     _die_punch_tween.tween_property(_die_pivot, "position", out_pos, DIE_PUNCH_OUT) \
         .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
     _die_punch_tween.parallel().tween_property(_die_pivot, "scale", out_scale, DIE_PUNCH_OUT) \
@@ -279,6 +378,201 @@ func punch_held_die(strength: float = 1.0) -> void:
         .set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
 
 
+# Afterimages along the push axis. Sprites, never a material (the sway shader discards
+# modulate - see _ensure_held_die), each on its OWN tween so it outlives the punch that
+# spawned it, and freed by that tween rather than by anything on the rig.
+func _spawn_die_smear(out_pos: Vector2) -> void:
+    if _die_sprite == null or _die_sprite.texture == null or _die_bob == null:
+        return
+    for i in DIE_SMEAR_COUNT:
+        var t: float = float(i + 1) / float(DIE_SMEAR_COUNT + 1)
+        var ghost := Sprite2D.new()
+        ghost.texture = _die_sprite.texture
+        ghost.position = _die_sprite.position
+        ghost.scale = _die_sprite.scale
+        var tint: Color = _die_sprite.modulate
+        tint.a = DIE_SMEAR_ALPHA * (1.0 - t * 0.45)
+        ghost.modulate = tint
+        var holder := Node2D.new()
+        holder.position = _die_rest_position.lerp(out_pos, t)
+        holder.add_child(ghost)
+        _die_bob.add_child(holder)
+        _die_bob.move_child(holder, 0)  # behind the real die
+        var tw := holder.create_tween()
+        tw.tween_property(ghost, "modulate:a", 0.0, DIE_SMEAR_LIFETIME) \
+            .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+        tw.tween_callback(holder.queue_free)
+
+
+# Ladder entry point: one rung drives the punch AND the lunge, so the hero's whole body
+# answers a 40-damage haymaker differently from a 3-damage poke - the last feel element in
+# the game that was still flat regardless of what it hit.
+func punch_held_die_for_impact(impact: int) -> void:
+    var idx: int = clampi(impact, 0, DIE_PUNCH_TIER_STRENGTH.size() - 1)
+    # Typed on purpose: indexing a const Array yields Variant, and `:=` on a Variant is the
+    # parse error that takes the whole file down while gdtoolkit reports it clean.
+    var strength: float = DIE_PUNCH_TIER_STRENGTH[idx]
+    punch_held_die(strength)
+    lunge_body(strength)
+
+
+# --- Body lunge ---------------------------------------------------------------------------
+# Shares _body_move_tween with the hit knockback (see the var block): whichever fires last
+# owns the property, and both return to the same canonical rest, so an attack played while
+# being hit still ends the hero exactly where he started.
+func lunge_body(strength: float = 1.0) -> void:
+    _capture_body_rest()
+    if _body_move_tween and _body_move_tween.is_valid():
+        _body_move_tween.kill()
+
+    var out_pos: Vector2 = _body_rest_position + LUNGE_OFFSET * strength
+    _body_move_tween = create_tween()
+    _body_move_tween.tween_property(self, "position", out_pos, LUNGE_OUT) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    _body_move_tween.tween_property(self, "position", _body_rest_position, LUNGE_BACK) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+
+# Captured on the first body move of the run, when nothing has displaced the hero yet.
+func _capture_body_rest() -> void:
+    if not _body_rest_captured:
+        _body_rest_position = position
+        _body_rest_captured = true
+
+
+func _process(delta: float) -> void:
+    # Idle levitation. Driven here rather than by a looping Tween: a loop restarts at its leg
+    # boundary, which is exactly what makes independent breathers drift into lockstep.
+    if _die_bob == null:
+        return
+    _die_bob_phase += delta * TAU / DIE_BOB_PERIOD
+    _die_bob.position.y = sin(_die_bob_phase) * DIE_BOB_AMPLITUDE
+
+
+# --- Die strike ----------------------------------------------------------------------------
+# The die itself is the weapon on a big or lethal single-target hit: it launches from the
+# palm, smashes the body, and the damage lands ON that impact (damage_effect.gd defers the
+# whole hit bundle into on_impact). The clone-flight pattern - hide the real one, fly a
+# duplicate on its own tweens, restore behind a failsafe - is the same one the played card,
+# the scout pick and the refuel return all use.
+#
+# Returns false if it cannot run (no die overlay after an art swap, already striking, dead
+# target), and the caller then resolves the hit immediately as before. Never assume it ran.
+func strike_with_die(target: Node, on_impact: Callable, lethal: bool = false) -> bool:
+    if _die_sprite == null or _die_pivot == null or _die_bob == null:
+        return false
+    if _die_strike_active or _debug_hero_override_active:
+        return false
+    if target == null or not is_instance_valid(target) or not (target is Node2D):
+        return false
+    var parent_layer := get_tree().get_first_node_in_group("ui_layer")
+    if parent_layer == null:
+        return false
+
+    var to_pos: Vector2 = Card.thrown_impact_pos(target) + Vector2(
+            randf_range(-STRIKE_SCATTER, STRIKE_SCATTER),
+            randf_range(-STRIKE_SCATTER, STRIKE_SCATTER))
+    var from_pos: Vector2 = _die_pivot.global_position
+
+    _die_strike_active = true
+    _die_strike_generation += 1
+    var generation := _die_strike_generation
+
+    if _die_punch_tween and _die_punch_tween.is_valid():
+        _die_punch_tween.kill()
+    _die_pivot.position = _die_rest_position
+    _die_pivot.scale = Vector2.ONE
+    _die_pivot.rotation = 0.0
+    _die_pivot.visible = false
+
+    # A duplicate of the whole pivot subtree, so the clone inherits the ink-centre offset and
+    # can be positioned by its ink centre exactly like the real rig. flags 0 = geometry only,
+    # no signals or groups riding along.
+    var clone := _die_pivot.duplicate(0) as Node2D
+    clone.visible = true
+    clone.z_index = 150  # ui_layer flourish convention, above the flying card's 100
+    parent_layer.add_child(clone)
+    clone.global_position = from_pos
+
+    # The body throws it: lunge now, at full strength, whatever the punch ladder said.
+    lunge_body(1.0)
+    SFXPlayer.play(STRIKE_SOUND, false, randf_range(1.15, 1.3), -6.0)
+
+    var arc_from := from_pos
+    var arc_to := to_pos
+    var step := func(t: float) -> void:
+        if not is_instance_valid(clone):
+            return
+        # Quadratic bezier through a raised control point: rises out of the palm, falls into
+        # the body, rather than sliding along a straight line.
+        var control := arc_from.lerp(arc_to, 0.5) + Vector2(0.0, -STRIKE_ARC_HEIGHT)
+        var a := arc_from.lerp(control, t)
+        var b := control.lerp(arc_to, t)
+        clone.global_position = a.lerp(b, t)
+        clone.rotation = t * STRIKE_TUMBLE
+
+    var fly := clone.create_tween()
+    fly.tween_method(step, 0.0, 1.0, STRIKE_FLIGHT_TIME) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+    fly.tween_callback(func() -> void:
+        _on_strike_landed(clone, target, to_pos, on_impact, lethal, generation)
+    )
+
+    # Idempotent failsafe: whatever happens to the clone or the target, the palm refills.
+    var failsafe := get_tree().create_timer(
+            STRIKE_FLIGHT_TIME + STRIKE_KILL_EMBED_HOLD + STRIKE_DISSOLVE
+            + STRIKE_REMATERIALIZE_DELAY + 0.6, false)
+    failsafe.timeout.connect(func() -> void: _restore_held_die(generation))
+    return true
+
+
+func _on_strike_landed(clone: Node2D, target: Node, to_pos: Vector2, on_impact: Callable,
+        lethal: bool, generation: int) -> void:
+    # The damage bundle first: it owns the slash, the flash, the hit-stop and the number, so
+    # the freeze punctuates the landing instead of stranding the flight.
+    if on_impact.is_valid():
+        on_impact.call()
+
+    if is_instance_valid(clone):
+        var drive := to_pos
+        if target != null and is_instance_valid(target) and target is Node2D:
+            drive = to_pos + (to_pos - clone.global_position).normalized() * STRIKE_DRIVE_IN
+        var hold: float = STRIKE_KILL_EMBED_HOLD if lethal else 0.0
+        var out := clone.create_tween()
+        out.tween_property(clone, "global_position", drive, 0.05) \
+            .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+        # On a kill the die stays buried for a beat, so there is a readable frame of "his die
+        # is in them" right as the body bursts into dice shards.
+        if hold > 0.0:
+            out.tween_interval(hold)
+        out.tween_property(clone, "scale", Vector2.ZERO, STRIKE_DISSOLVE) \
+            .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+        out.parallel().tween_property(clone, "modulate:a", 0.0, STRIKE_DISSOLVE) \
+            .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+        out.tween_callback(clone.queue_free)
+
+    var back := get_tree().create_timer(STRIKE_REMATERIALIZE_DELAY, false)
+    back.timeout.connect(func() -> void: _restore_held_die(generation))
+
+
+# Re-forms the die in the palm using the retune language (flash toward white, settle into the
+# current accent). Guarded by generation so a stale failsafe from a previous strike cannot
+# yank a newer one out of the air, and idempotent so both the normal path and the failsafe
+# can call it.
+func _restore_held_die(generation: int) -> void:
+    if generation != _die_strike_generation or not _die_strike_active:
+        return
+    _die_strike_active = false
+    if _die_pivot == null or _die_sprite == null:
+        return
+    _die_pivot.position = _die_rest_position
+    _die_pivot.scale = Vector2.ONE
+    _die_pivot.rotation = 0.0
+    _die_pivot.visible = true
+    _update_die_tint(true)
+    punch_held_die(DIE_RETUNE_PUNCH)
+
+
 func _on_active_dice_changed(active_dice) -> void:
     _update_die_tint(true, String(active_dice))
     punch_held_die(DIE_RETUNE_PUNCH)
@@ -288,8 +582,13 @@ func _on_card_played(card: Card) -> void:
     # Attacks only, matching the gate that spawns the directional slash on the enemy
     # (card.gd) - so the thrust and the cut that lands ~0.055s later read as one beat, and a
     # block or a blessing does not get a phantom attack tell.
+    # Baseline floor, deliberately kept even though damage_effect.gd upgrades this a moment
+    # later on the same frame: cards whose damage is entirely timer-deferred (Flurry,
+    # Stampede, the thrown-dice cards) never produce a same-frame hit, and without this they
+    # would lose their thrust entirely.
     if card != null and card.type == Card.Type.ATTACK:
         punch_held_die()
+        lunge_body()
 
 
 # Sway amplitudes are authored in SCREEN px (tuned via the idle_sway_preview A/B), so they have
@@ -356,8 +655,11 @@ func apply_debug_texture() -> void:
     # overlay has to step aside for them or the hero holds two. Shipped art keeps it.
     _debug_hero_override_active = sprite_2d.texture != stats.art
     _sync_held_die_transform()
-    if _die_pivot != null:
-        _die_pivot.visible = not _debug_hero_override_active
+    # Toggled on the BOB, not the pivot: the pivot's visibility belongs to the strike (which
+    # hides the real die while its clone is in the air), and two owners on one flag would
+    # have the A/B swap and a landing strike undoing each other.
+    if _die_bob != null:
+        _die_bob.visible = not _debug_hero_override_active
 
 
 func set_character_stats(value: CharacterStats) -> void:
@@ -431,29 +733,39 @@ func take_damage(damage: int, which_modifier: Modifier.Type) -> void:
 # (a shader-side deformation since 2026-07-23 - nothing animates SpriteRoot anymore),
 # so neither tween fights it.
 func _play_hit_reaction() -> void:
-    if not _hit_reaction_active:
-        _hit_rest_position = position
+    # Shares the body's single position tween slot with the attack lunge, and the same
+    # canonical rest - so being hit mid-lunge (or lunging mid-recoil) still lands the hero
+    # back exactly where he started instead of adopting a mid-animation spot as home.
+    _capture_body_rest()
+    if not _hit_squash_active:
         _hit_rest_sprite_scale = sprite_2d.scale
-        _hit_reaction_active = true
+        _hit_squash_active = true
 
-    if _hit_pos_tween and _hit_pos_tween.is_valid():
-        _hit_pos_tween.kill()
+    if _body_move_tween and _body_move_tween.is_valid():
+        _body_move_tween.kill()
     if _hit_squash_tween and _hit_squash_tween.is_valid():
         _hit_squash_tween.kill()
 
     # Player sits to the left of the enemies, so recoils leftward (-x).
-    _hit_pos_tween = create_tween()
-    _hit_pos_tween.tween_property(self, "position", _hit_rest_position + Vector2(-16, 0), 0.05) \
+    _body_move_tween = create_tween()
+    _body_move_tween.tween_property(self, "position", _body_rest_position + Vector2(-16, 0), 0.05) \
         .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-    _hit_pos_tween.tween_property(self, "position", _hit_rest_position, 0.3) \
+    _body_move_tween.tween_property(self, "position", _body_rest_position, 0.3) \
         .set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
-    _hit_pos_tween.tween_callback(func(): _hit_reaction_active = false)
 
     _hit_squash_tween = create_tween()
     _hit_squash_tween.tween_property(sprite_2d, "scale", Vector2(_hit_rest_sprite_scale.x * 1.15, _hit_rest_sprite_scale.y * 0.85), 0.05) \
         .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
     _hit_squash_tween.tween_property(sprite_2d, "scale", _hit_rest_sprite_scale, 0.28) \
         .set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+    # Released so the next hit re-reads the resting scale: the debug hero swap rewrites
+    # sprite_2d.scale, and a value cached before that swap would squash to the wrong size.
+    _hit_squash_tween.tween_callback(func(): _hit_squash_active = false)
+
+    # The die recoils with him. Routed through punch_held_die so it shares the one tween slot
+    # on the pivot (and inherits its guard: a die that is currently mid-strike stays in the
+    # air rather than being yanked back to the palm to flinch).
+    punch_held_die(DIE_FLINCH_STRENGTH)
 
 func _on_event_damage(amount):
     print("taking damage from event")

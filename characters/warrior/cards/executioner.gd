@@ -1,5 +1,14 @@
 extends Card
 
+
+# The kill check below reads the target's HP immediately after the hit, which only works
+# while DamageEffect applies damage synchronously. Opting out keeps the die strike from
+# deferring that damage past the check (and so from silently eating this card's payoff on
+# exactly the kills it exists for).
+func observes_post_damage() -> bool:
+    return true
+
+
 func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     Events.reset_charged_card.emit()
     var damage_effect := DamageEffect.new()
