@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="EnemyStats" load_steps=4 format=3 uid="uid://dgftvnca8jlxs"]
+
+[ext_resource type="PackedScene" uid="uid://s85ugo2e7nwmh" path="res://enemies/boar_knight/boar_knight_enemy_ai.tscn" id="1_ai"]
+[ext_resource type="Texture2D" uid="uid://c2lx31488pagb" path="res://assets/enemies/boar_knight.png" id="2_art"]
+[ext_resource type="Script" path="res://custom_resources/enemy_stats.gd" id="3_stats"]
+
+[resource]
+script = ExtResource("3_stats")
+ai = ExtResource("1_ai")
+enemy_name = "Boar Knight"
+content_center_x = 0.5
+max_health = 44
+art = ExtResource("2_art")

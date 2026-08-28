@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="EnemyStats" load_steps=4 format=3 uid="uid://fe5wddsi03z2a"]
+
+[ext_resource type="PackedScene" uid="uid://ezcu52e9vbzoc" path="res://enemies/shackled_brute/shackled_brute_enemy_ai.tscn" id="1_ai"]
+[ext_resource type="Texture2D" uid="uid://b7agbyd83cl4c" path="res://assets/enemies/shackled_brute.png" id="2_art"]
+[ext_resource type="Script" path="res://custom_resources/enemy_stats.gd" id="3_stats"]
+
+[resource]
+script = ExtResource("3_stats")
+ai = ExtResource("1_ai")
+enemy_name = "Shackled Brute"
+content_center_x = 0.5
+max_health = 48
+art = ExtResource("2_art")
