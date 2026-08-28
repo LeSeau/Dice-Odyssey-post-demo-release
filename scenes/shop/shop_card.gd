@@ -3,6 +3,10 @@ extends VBoxContainer
 
 const CARD_MENU_UI = preload("res://scenes/ui/card_menu_ui.tscn")
 
+# Right-click opens the shared inspect overlay. Emitted rather than handled here because the
+# overlay pages through every card still on offer, and only the shop knows what those are.
+signal inspect_requested(card: Card)
+
 @export var card: Card : set = set_card
 
 @onready var card_container: CenterContainer = $CardContainer
@@ -63,8 +67,15 @@ func _price_for(for_card: Card) -> int:
     return randi_range(range.x, range.y)
 
 
+func is_sold() -> bool:
+    return _sold
+
+
 func _on_card_gui_input(event: InputEvent) -> void:
     if _sold:
+        return
+    if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
+        inspect_requested.emit(card)
         return
     if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
         if Global.gold < gold_cost:

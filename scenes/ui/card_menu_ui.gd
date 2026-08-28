@@ -308,6 +308,24 @@ func _apply_description(text: String) -> void:
             return
 
 
+# Public swap used by the inspect overlay's upgrade toggle / paging. set_card() alone would
+# leave the previous card's hover tooltip column standing over the new one, and because the
+# cursor never leaves the frame during a swap, mouse_entered can't fire again to rebuild it -
+# so hand the hover back explicitly, the same way _on_rarity_gem_mouse_exited already does.
+func display_card(value: Card) -> void:
+    clear_hover_tooltips()
+    set_card(value)
+    if not disable_hover_tooltip and card and is_mouse_over_card():
+        _on_card_frame_mouse_entered()
+
+
+func clear_hover_tooltips() -> void:
+    _card_hover_id += 1
+    _gem_hover_id += 1
+    _cleanup_tooltips()
+    _cleanup_gem_tooltip()
+
+
 func _on_card_frame_gui_input(event: InputEvent) -> void:
     if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
         if not interactive:
@@ -449,14 +467,20 @@ func _on_card_frame_mouse_entered() -> void:
     if tooltips_to_show.is_empty():
         return
     
-    var start_y := Global.tooltip_column_y(global_position.y + (size.y / 2.0),
+    # Anchor off get_global_rect(), which carries scale (measured: a 140x210 card at scale 2.4
+    # reports 336x504), NOT off `size`, which does not. Mixing the two put the column one
+    # unscaled card-width from the left edge - i.e. on top of a magnified card. Every other
+    # consumer draws at scale 1, where the two agree; the inspect overlay is the first that
+    # magnifies one.
+    var card_rect := get_global_rect()
+    var start_y := Global.tooltip_column_y(card_rect.get_center().y,
         tooltips_to_show.size(), TOOLTIP_HEIGHT, TOOLTIP_SPACING)
     # Flips to the card's left when there's no room on its right (a card in the deck view's
     # rightmost columns used to push this stack ~70px off screen). Flipping rather than
     # clamping matters here: a clamped column would sit on top of the card being read.
     var base_pos := Vector2(
-        Global.tooltip_group_x(global_position.x, size.x, Global.TOOLTIP_PANEL_SIZE.x,
-            TOOLTIP_OFFSET_X),
+        Global.tooltip_group_x(card_rect.position.x, card_rect.size.x,
+            Global.TOOLTIP_PANEL_SIZE.x, TOOLTIP_OFFSET_X),
         start_y)
     var captured_id := my_id
     
