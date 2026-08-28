@@ -130,6 +130,14 @@ signal charge_dice_animation
 # Multi-type sources (Experiment, War Ritual...) emit once PER die so each delivery flies in
 # its own type's color - that's what makes a random charge readable.
 signal dice_charged(dice_type: String, count: int)
+# Presentation-only companion to dice_charged: emitted by the DiceInterface exactly ONCE
+# per volley, at the moment the volley's LAST delivered die lands in its slot (or right
+# away when no flight is possible - no ui_layer - and via a failsafe timer if an arrival
+# callback is ever lost; see dice_interface.gd). dice.gd keys the big die's entire charge
+# response (gust + aura flash + absorb ceremony) on THIS signal, never on dice_charged:
+# the pulse is a landing receipt, not a launch announcement (Julien, 2026-08-28). Carries
+# the volley's FULL count, not the icon-capped visual count.
+signal dice_charge_delivered(dice_type: String, count: int)
 signal enemy_strength_changed
 signal display_next_roll_modifier
 signal card_removed(card)
