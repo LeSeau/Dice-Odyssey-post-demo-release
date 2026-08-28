@@ -17,20 +17,25 @@ theme_override_styles/panel = ExtResource("2_84ury")
 script = ExtResource("3_8dw8k")
 
 [node name="MarginContainer" type="MarginContainer" parent="DiceTooltip"]
-layout_mode = 0
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 offset_left = 2.0
 offset_top = 2.0
-offset_right = 202.0
-offset_bottom = 86.0
+offset_right = -2.0
+offset_bottom = -2.0
+grow_horizontal = 2
+grow_vertical = 2
 theme_override_constants/margin_left = 10
 theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 10
 theme_override_constants/margin_bottom = 6
 
 [node name="VBoxContainer" type="VBoxContainer" parent="DiceTooltip/MarginContainer"]
-custom_minimum_size = Vector2(180, 60)
+custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
-size_flags_horizontal = 4
+size_flags_horizontal = 3
 size_flags_vertical = 4
 alignment = 1
 

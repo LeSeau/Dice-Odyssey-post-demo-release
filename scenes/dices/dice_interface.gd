@@ -4,6 +4,14 @@ extends Control
 signal active_dice_changed(active_dice)
 
 const TooltipScene = preload("res://scenes/ui/dice_tooltip.tscn")
+# The dice tooltip sits centred just ABOVE the slot row, bottom-anchored so it grows upward
+# instead of down into the row (its height tracks its text: 88px for a plain "Faces: 1-6",
+# up to 120px once an infusion appends its effect line). The floor keeps the tallest case
+# 2px clear of the top bar, which ends at y=80; at that extreme the bottom lands exactly on
+# the row's top edge rather than crossing it.
+const DICE_TOOLTIP_BOTTOM := 196.0   # row top is 202
+const DICE_TOOLTIP_CENTER_X := 594.0 # centre of the slot row (514..674)
+const DICE_TOOLTIP_MIN_TOP := 56.0
 const DICE_TYPE_TO_NODE = {
     "blue": "dice_1", "red": "dice_2", "evil": "dice_3",
     "giant": "dice_4", "magma": "dice_5", "even": "dice_6",
@@ -579,7 +587,7 @@ func _show_tooltip(dice_node: VBoxContainer, dice_type: String) -> void:
     Global.add_tooltip(tooltip_instance, self)
     var tooltip_panel = tooltip_instance.get_node("DiceTooltip")
     tooltip_panel.get_tooltip_content(dice_type)
-    tooltip_panel.show_tooltip(Vector2(498, 123))  # adjust to taste
+    tooltip_panel.show_tooltip_above(DICE_TOOLTIP_BOTTOM, DICE_TOOLTIP_CENTER_X, DICE_TOOLTIP_MIN_TOP)
 
 func _hide_tooltip() -> void:
     if tooltip_instance and is_instance_valid(tooltip_instance):

@@ -215,7 +215,7 @@ script = ExtResource("1_4s751")
 char_stats = ExtResource("4_fwb8a")
 music = ExtResource("3_7d1uf")
 
-[node name="Background" type="Sprite2D" parent="."]
+[node name="Background" type="Sprite2D" parent="." groups=["battle_background"]]
 material = SubResource("ShaderMaterial_bggrd")
 texture = ExtResource("4_51csj")
 centered = false
@@ -584,9 +584,9 @@ visible = false
 
 [node name="DiceInterface" parent="." groups=["dice_interface"] instance=ExtResource("19_lfnme")]
 offset_left = 514.0
-offset_top = 214.0
+offset_top = 202.0
 offset_right = 674.0
-offset_bottom = 286.0
+offset_bottom = 274.0
 
 [node name="ActiveDice" parent="." instance=ExtResource("19_iy8lh")]
 offset_left = 521.0
@@ -621,9 +621,9 @@ volume_db = 5.0
 visible = false
 custom_minimum_size = Vector2(250, 50)
 offset_left = 437.0
-offset_top = 90.0
+offset_top = 88.0
 offset_right = 773.0
-offset_bottom = 218.0
+offset_bottom = 192.0
 theme_override_styles/panel = ExtResource("ui_plate")
 script = ExtResource("23_2rbv5")
 
@@ -633,10 +633,10 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -40.0
-offset_top = 10.0
+offset_left = -34.0
+offset_top = 5.0
 offset_right = -8.0
-offset_bottom = 42.0
+offset_bottom = 31.0
 grow_horizontal = 0
 theme_override_colors/font_color = Color(0.144787, 0.273985, 0.277578, 1)
 theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
@@ -647,20 +647,20 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_afe52")
 text = "X"
 
 [node name="RichTextLabel" type="RichTextLabel" parent="ScoutPanel"]
-custom_minimum_size = Vector2(0, 36)
+custom_minimum_size = Vector2(0, 30)
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_top = 8.0
+offset_top = 4.0
 offset_left = 45.0
 offset_right = -45.0
-offset_bottom = 44.0
+offset_bottom = 34.0
 grow_horizontal = 2
 mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("12_e36uc")
 theme_override_fonts/bold_font = ExtResource("12_e36uc")
-theme_override_font_sizes/normal_font_size = 28
-theme_override_font_sizes/bold_font_size = 28
+theme_override_font_sizes/normal_font_size = 24
+theme_override_font_sizes/bold_font_size = 24
 bbcode_enabled = true
 scroll_active = false
 text = "[center][color=gold][b]Choose next roll[/b][/color][/center]"
@@ -671,14 +671,14 @@ anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -90.0
-offset_top = 52.0
+offset_top = 38.0
 offset_right = 90.0
-offset_bottom = 102.0
+offset_bottom = 86.0
 grow_horizontal = 2
-theme_override_constants/separation = 15
+theme_override_constants/separation = 12
 
 [node name="ScoutDice1" type="TextureRect" parent="ScoutPanel/HBoxContainer"]
-custom_minimum_size = Vector2(50, 50)
+custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
@@ -686,7 +686,7 @@ texture = ExtResource("24_bxf3j")
 expand_mode = 1
 
 [node name="ScoutDice2" type="TextureRect" parent="ScoutPanel/HBoxContainer"]
-custom_minimum_size = Vector2(50, 50)
+custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
@@ -694,7 +694,7 @@ texture = ExtResource("24_bxf3j")
 expand_mode = 1
 
 [node name="ScoutDice3" type="TextureRect" parent="ScoutPanel/HBoxContainer"]
-custom_minimum_size = Vector2(50, 50)
+custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
@@ -702,7 +702,7 @@ texture = ExtResource("24_bxf3j")
 expand_mode = 1
 
 [node name="ScoutDice4" type="TextureRect" parent="ScoutPanel/HBoxContainer"]
-custom_minimum_size = Vector2(50, 50)
+custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
@@ -710,7 +710,7 @@ texture = ExtResource("24_bxf3j")
 expand_mode = 1
 
 [node name="ScoutDice5" type="TextureRect" parent="ScoutPanel/HBoxContainer"]
-custom_minimum_size = Vector2(50, 50)
+custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
@@ -718,7 +718,7 @@ texture = ExtResource("24_bxf3j")
 expand_mode = 1
 
 [node name="ScoutDice6" type="TextureRect" parent="ScoutPanel/HBoxContainer"]
-custom_minimum_size = Vector2(50, 50)
+custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4

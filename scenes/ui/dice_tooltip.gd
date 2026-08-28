@@ -21,6 +21,29 @@ func _ready() -> void:
 # Where the caller asked for, kept so _fit_to_content() can re-clamp against the final height.
 var _requested_pos := Vector2.ZERO
 
+# Bottom-anchored mode. When _anchor_bottom_y >= 0 the tooltip is placed by its BOTTOM edge,
+# centred on _anchor_center_x, growing UPWARD as its text gets taller - never above
+# _anchor_min_top. Callers that must sit above a fixed piece of UI need this: anchoring by
+# the top-left makes a tall tooltip grow DOWN into the very thing it was meant to clear,
+# which is exactly how the combat dice tooltip used to bury the dice row.
+var _anchor_bottom_y := -1.0
+var _anchor_center_x := 0.0
+var _anchor_min_top := 0.0
+
+
+func show_tooltip_above(bottom_y: float, center_x: float, min_top: float) -> void:
+    _anchor_bottom_y = bottom_y
+    _anchor_center_x = center_x
+    _anchor_min_top = min_top
+    show()
+    _apply_bottom_anchor()
+    _fit_to_content()
+
+
+func _apply_bottom_anchor() -> void:
+    var top: float = maxf(_anchor_min_top, _anchor_bottom_y - size.y)
+    global_position = _clamped_to_screen(Vector2(_anchor_center_x - size.x / 2.0, top))
+
 
 func show_tooltip(global_pos: Vector2) -> void:
     # Now parented under a CanvasLayer (see dice_tooltip.tscn) instead of directly
@@ -44,10 +67,12 @@ func _fit_to_content() -> void:
     var panel_height: float = content_height + 8.0 + 6.0 + 4.0
     panel_height = maxf(panel_height, 88.0)  # never smaller than the authored base look
     size.y = panel_height
-    margin_container.offset_bottom = panel_height - 2.0
-    # Re-clamp now that the real height is known: show_tooltip() could only clamp against the
+    # Re-place now that the real height is known: show_tooltip() could only clamp against the
     # authored 88px, so a tall infusion tooltip spawned low would still hang off the bottom.
-    global_position = _clamped_to_screen(_requested_pos)
+    if _anchor_bottom_y >= 0.0:
+        _apply_bottom_anchor()
+    else:
+        global_position = _clamped_to_screen(_requested_pos)
 
 
 

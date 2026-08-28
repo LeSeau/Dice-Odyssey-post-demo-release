@@ -62,7 +62,7 @@ var _power_tooltip: Node = null
 var ink_is_on = false
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
     # Glow follow (see GLOW_FOLLOW_* above). No-op until the first roll captures the rest
     # transforms; from then on the glows track the die's offset every frame - which is 0
     # whenever the die is at rest, so this also pins them home between rolls.
@@ -70,6 +70,7 @@ func _process(_delta: float) -> void:
         var glow_offset := dice_display.position - _dice_display_rest_position
         aura.position = _aura_rest_position + glow_offset * GLOW_FOLLOW_AURA
         emanation.position = _emanation_rest_position + glow_offset * GLOW_FOLLOW_EMANATION
+    _tick_overcharge_gust(delta)
 
 
 # Called by the ROLL button on button_down: compress the die and hold. Refused when the
@@ -772,6 +773,7 @@ func _cleanup_power_tooltip() -> void:
 
 func _exit_tree() -> void:
     _cleanup_power_tooltip()
+    _shutdown_overcharge()
 
 
 func _ready():
@@ -797,6 +799,9 @@ func _ready():
     Events.dice_thrown.connect(_spawn_thrown_dice)
     Events.coin_flip.connect(_spawn_coin_flip)
     Events.card_played.connect(_on_card_played_track_frame)
+    # 2-arg signal, 2-arg handler: a 0-arg callable would connect without complaint and then
+    # silently never run (documented Godot 4 arity trap).
+    Events.battle_over_screen_requested.connect(_on_battle_over_screen_requested)
 
     
     # Long chains (Turbo Mode territory, 8+ rolls) wrap to a second row of mini faces
@@ -810,6 +815,10 @@ func _ready():
     # no signal to hook and no way for a grant/expiry path to forget to switch it on.
     _setup_loaded_motes()
     _cache_die_rest_rect.call_deferred()
+
+    # Overcharge: the ember timer polls forever and spawns nothing below its tier, same
+    # no-signal-to-forget design as the Loaded motes above.
+    _setup_overcharge()
 
     # Initialize the dice display with the correct texture based on dice_type
     update_dice_display()
@@ -1555,8 +1564,13 @@ func _on_roll_landed(roll_index: int, values: Array, faces: Array) -> void:
     # 0 (not -1): the landing is the beat of the whole animation, orb plinks get stolen
     # before it does.
     var chain_depth := Global.roll_history.size()
+    # Overcharge raises the ladder's ceiling (see OVERCHARGE_THUD_PITCH_CAP_STEP). It only
+    # binds on chains long enough to have hit the cap already, which is exactly the runaway
+    # turn it is meant to describe - a normal chain never reaches the extra steps.
+    var pitch_cap := LAND_THUD_CHAIN_PITCH_CAP \
+            + _overcharge_tier * OVERCHARGE_THUD_PITCH_CAP_STEP
     var thud_pitch := LAND_THUD_BASE_PITCH \
-            + LAND_THUD_CHAIN_PITCH_STEP * clampi(chain_depth - 1, 0, LAND_THUD_CHAIN_PITCH_CAP)
+            + LAND_THUD_CHAIN_PITCH_STEP * clampi(chain_depth - 1, 0, pitch_cap)
     SFXPlayer.play(LAND_THUD_SOUND, false, thud_pitch, lerpf(-8.0, -2.0, val_frac))
     if is_max_roll:
         # The heavier smash rides on top of (not instead of) the thud, so the max landing
@@ -2120,6 +2134,12 @@ func _update_dice_aura_charge() -> void:
     _tween_emanation_shader_param(charge_tween, "charge", t, 0.3)
     _tween_emanation_shader_param(charge_tween, "charge_heat", target_heat, 0.3)
 
+    # Overcharge rides here rather than on its own set of hooks: this function is already the
+    # one place every power change funnels through, so the tier climbs AND tears itself down
+    # on paths (Reservoir keep, ricochet restore, red's delayed wipe) that will never know it
+    # exists. See the Overcharge section at the bottom of this file.
+    _update_overcharge()
+
 
 # Defensive wrapper: tween_property() returns null if the material's currently-loaded/
 # compiled shader doesn't expose the given parameter (e.g. right after adding a new uniform
@@ -2159,6 +2179,38 @@ func _unhandled_input(event: InputEvent) -> void:
             Global.debug_overlay.cycle_sfx(1)
     elif key.keycode == KEY_F10:
         _cycle_riser_candidate()
+    elif key.keycode == KEY_F11:
+        _debug_stock_dice()
+
+
+# Debug builds only: fill EVERY dice type to DEBUG_STOCK_AMOUNT, live, mid-fight. Exists so
+# the overcharge tiers can be reached in one turn without playing a run up to them - a long
+# same-type chain is the only way to bank that much Power, and 20 blue rolls averages ~70.
+#
+# A key rather than edited starting data on purpose: the run loadout picker (dice_loadout.gd)
+# rewrites all nine types at the start of every run #2+, so seeding reset_run_state() would
+# be silently overwritten, and either way it would mean restarting a run per experiment.
+#
+# Writes max_amount as well as current: dice_interface refills current = max + bonus at the
+# start of every turn, so setting only current would evaporate on the next turn.
+const DEBUG_STOCK_AMOUNT := 20
+
+
+func _debug_stock_dice() -> void:
+    for type: String in Global.DICE_TYPE_ORDER:
+        Global.set(type + "_dice_max_amount", DEBUG_STOCK_AMOUNT)
+        Global.set(type + "_dice_current_amount", DEBUG_STOCK_AMOUNT)
+        if not Global.dice_inventory.has(type):
+            Global.dice_inventory.append(type)
+    # The slot row caches which types are visible and how wide the tray is, so it has to be
+    # rebuilt rather than left to notice on its own.
+    var row := get_tree().get_first_node_in_group("dice_interface")
+    if row != null:
+        row.initialize_dices()
+        row._resize_panel_for_dice_inventory()
+        row.update_selected_highlight()
+    Events.update_dice_top_bar.emit()
+    print("[debug] stocked all 9 dice types to %d" % DEBUG_STOCK_AMOUNT)
 
 
 func _cycle_riser_candidate() -> void:
@@ -2288,11 +2340,13 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
             )
         _magma_burned_this_turn = true
 
-    # High roll sound: celebrate this die's own best possible face (max of its values,
-    # not literally 6 - e.g. 12 on Giant, 8 on Even, 3 on Green), same definition of
-    # "max roll" used for the landing flourish in roll_dice().
-    if Global.last_roll == values.max():
-        play_high_roll_sound()
+    # NO high-roll sound here any more. A max roll used to fire TWO of them: an orchestral
+    # hit from this line, plus the smash in _on_roll_landed() - Julien, 2026-08-26, wanted
+    # only the crush kept. The smash survives because it is the one on the landing BEAT
+    # (it rides on top of the thud, at the moment of impact), whereas this fired at result
+    # time. Both were gated on the identical condition - this die's own best face
+    # (values.max(), so 12 on Giant / 3 on Green, never literally 6) - so nothing changed
+    # about WHEN the celebration happens, only that it is one sound instead of two.
 
     # Evil dice's crack face (0): a distinct sting so whiffing reads as a felt outcome
     # rather than a silent non-event (a 0 roll spawns no power orbs, no popup worth noting).
@@ -2577,6 +2631,7 @@ func update_dice_display():
     _power_resting_modulate = current_power.modulate  # capture per-type color for the clang flash to return to
     set_shader_from_global_type(dice_type)
     _update_emanation_colors()
+    _update_power_ember_colors()
 
 
 # Retint the emanation tongues to the active die's identity. Safe to set directly: the
@@ -2642,19 +2697,6 @@ func play_dice_roll_sound():
     # Play the sound
     dice_roll_player.play()
     
-func play_high_roll_sound():
-    # Pick a random sound from the list
-    #dice_roll_player.stream = load("res://sound_high_roll.wav")
-    #
-    ## Increase volume if needed
-    #dice_roll_player.volume_db = 6  # Increase volume (optional)
-    #
-    ## Play the sound
-    #dice_roll_player.play()  
-    
-    var sfx_high_roll = preload("res://sfx/817811__thesoundlibrary__orchestral-hit.wav")
-    SFXPlayer.play(sfx_high_roll)
-
 func play_crack_sound():
     var sfx_crack = preload("res://glass_sound.mp3")
     SFXPlayer.play(sfx_crack, false, 1.0, 3.0)
@@ -3193,9 +3235,6 @@ func _spawn_charge_pulse(charged_type: String, count: int) -> void:
     if now - _last_charge_pulse_ms < CHARGE_PULSE_COOLDOWN_MS:
         return
     _last_charge_pulse_ms = now
-    var mat := emanation.material as ShaderMaterial
-    if mat == null:
-        return
     var punchy := charge_pulse_mode == 2
     var travel_time := CHARGE_GUST_TIME * (0.78 if punchy else 1.0)
     var reach := CHARGE_GUST_REACH * (1.12 if punchy else 1.0)
@@ -3203,7 +3242,20 @@ func _spawn_charge_pulse(charged_type: String, count: int) -> void:
     # range note in dice_emanation.gdshader.
     var peak := minf(CHARGE_GUST_PEAK * (1.15 if punchy else 1.0)
             + CHARGE_GUST_COUNT_STEP * float(clampi(count, 1, 4) - 1), 1.25)
-    mat.set_shader_parameter("gust_color", DicePalette.burst(charged_type, 0.55))
+    _fire_gust(DicePalette.burst(charged_type, 0.55), peak, reach, travel_time)
+
+    if charge_pulse_mode == 1:
+        _spawn_charge_ring_sprite(charged_type, count)
+
+
+# The wavefront itself, shared by the charge beat and by the overcharge leaks so the two can
+# never drift apart in shape - only in colour, amplitude, reach and speed. Killing whatever is
+# already in flight is part of the contract: two live fronts on an additive layer overexpose.
+func _fire_gust(color: Color, peak: float, reach: float, travel_time: float) -> void:
+    var mat := emanation.material as ShaderMaterial
+    if mat == null:
+        return
+    mat.set_shader_parameter("gust_color", color)
 
     for t: Tween in _charge_gust_tweens:
         if t and t.is_valid():
@@ -3223,12 +3275,9 @@ func _spawn_charge_pulse(charged_type: String, count: int) -> void:
     amp_tween.tween_property(mat, "shader_parameter/gust", peak, CHARGE_GUST_RISE) \
             .from(0.0).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
     amp_tween.tween_property(mat, "shader_parameter/gust", 0.0,
-            travel_time - CHARGE_GUST_RISE) \
+            maxf(travel_time - CHARGE_GUST_RISE, 0.05)) \
             .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
     _charge_gust_tweens = [radius_tween, amp_tween]
-
-    if charge_pulse_mode == 1:
-        _spawn_charge_ring_sprite(charged_type, count)
 
 
 # Optional companion sprite band (mode 1 only): a thin bright rim riding just ahead of the
@@ -3297,6 +3346,9 @@ func _on_remove_ink_from_dice():
     ink_is_on = false
     Global.ink_active = false
     Events.hover_playable_cards.emit()
+    # Overcharge freezes rather than climbing while inked, so it needs an explicit nudge to
+    # catch up with whatever was banked under the ink - no roll may follow for a while.
+    _update_overcharge()
     
 func _on_display_next_roll_modifier():
     if Global.next_roll_modifier > 0:
@@ -3574,6 +3626,9 @@ func _spawn_roll_popup(value: int) -> void:
     popup.add_theme_font_size_override("font_size", font_size)
     popup.add_theme_constant_override("outline_size", 4)
     popup.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
+    # Above the slot row (z 5): the popup rises from the Power number straight through the
+    # row's band, and at the default z 0 it slid behind it.
+    popup.z_index = 12
     popup.position = current_power.position + Vector2(0, -10)
     popup.pivot_offset = Vector2(20, font_size / 2.0)
     popup.scale = Vector2(0.3, 0.3)
@@ -4789,7 +4844,7 @@ const LOADED_MOTE_GROUP := "loaded_mote"
 # behind the opaque die face, invisible, while every property probe (visible, alpha, texture,
 # rect) looked correct. 2 puts them just in front of the face and still under DiceInk (4), so
 # an inked die keeps hiding them, and far under the ROLL button (10) and socket panels (8).
-const LOADED_MOTE_Z_INDEX := 2
+const LOADED_MOTE_Z_INDEX := 8
 
 var _loaded_mote_timer: Timer
 # The die art's RESTING rect in root-local space. Motes are parented to the ROOT, never to
@@ -4882,3 +4937,452 @@ func _spawn_loaded_mote(loaded: int) -> void:
     t.tween_property(mote, "modulate:a", peak_alpha, duration * 0.3)
     t.tween_property(mote, "modulate:a", 0.0, duration * 0.45).set_delay(duration * 0.55)
     t.chain().tween_callback(mote.queue_free)
+
+
+# --- Overcharge ------------------------------------------------------------------------------
+# "My power is uncontrollable" (Julien, 2026-08-26, asking for a Balatro-style absurd-combo
+# escalation without letting it take over the screen). The existing charge glow already grows
+# with banked power, but it PLATEAUS - the emanation's own energy gain tops out around 12-16
+# power, so a 45-power turn and an 18-power turn look nearly identical. Everything below lives
+# in that unclaimed headroom above the plateau.
+#
+# Three ideas drive the feel, in descending order of how much work they do:
+#   1. AUTONOMY - past T2 the die fires gusts on its own timer, with no roll happening. Nothing
+#      reads "this is no longer under my control" like effects going off unprompted.
+#   2. INSTABILITY - the Power number stops being a label and starts burning (power_float's
+#      `heat`), because in Balatro the SCORE is the star of the spectacle, not the background.
+#   3. CONTRAST - the world dims slightly instead of the die getting brighter. The additive
+#      stack around this die is already near its ceiling (documented overexposure trap), so
+#      more light is the one lever that cannot work; taking light away from everything else
+#      makes the die read hotter for free.
+#
+# SINGLE DRIVER: _update_overcharge() is called from the tail of _update_dice_aura_charge(),
+# which every single power-changing path already calls (roll, card reset, turn start, type
+# switch, Reservoir keep, ricochet restore, _ready). So the tier follows banked power for free
+# and, crucially, TEARS ITSELF DOWN on every reset path without any of them knowing it exists.
+const OVERCHARGE_T2_THRESHOLD := 30
+const OVERCHARGE_T3_THRESHOLD := 46
+# Where the continuous 0..1 level starts once tier 1 is reached. Without a floor, crossing
+# POWER_TIER_THRESHOLD would leave literally no trace (t is 0 at exactly 18) and the existing
+# ignition flare would fire into nothing.
+const OVERCHARGE_LEVEL_FLOOR := 0.25
+
+# ⚠️ INK. Ink exists to hide the Power number from the player; a roaring die and a darkening
+# room would announce the same information the enemy just paid a turn to conceal, so the
+# escalation freezes while inked (it does not tear down - it stops CLIMBING, and resumes when
+# the ink clears). The emanation's own charge glow already leaks a little under ink, which is
+# pre-existing and much quieter. Flip this one bool to take the other side of that call
+# ("you can hide the number, you cannot hide the energy") - nothing else needs to change.
+const OVERCHARGE_DURING_INK := false
+
+# 2 - the number ignites. heat drives colour + flicker + extra tremor in power_float.gdshader.
+const OVERCHARGE_HEAT_TWEEN_TIME := 0.35
+# Embers dripping off the number. Tier-gated: at T1 the number only crackles hotter.
+const OVERCHARGE_EMBER_MIN_TIER := 2
+const OVERCHARGE_EMBER_INTERVAL_T2 := 0.34
+const OVERCHARGE_EMBER_INTERVAL_T3 := 0.17
+const OVERCHARGE_EMBER_SIZE_MIN := 10.0
+const OVERCHARGE_EMBER_SIZE_MAX := 20.0
+const OVERCHARGE_EMBER_ALPHA_MIN := 0.42
+const OVERCHARGE_EMBER_ALPHA_MAX := 0.70
+const OVERCHARGE_EMBER_RISE_MIN := 34.0
+const OVERCHARGE_EMBER_RISE_MAX := 62.0
+const OVERCHARGE_EMBER_DRIFT_X := 11.0
+# Same warmth as the Loaded sparks and for the same measured reason: an ember in the die's own
+# accent vanishes inside the die's own light field.
+const OVERCHARGE_EMBER_WARMTH := 0.82
+# Matches LOADED_MOTE_Z_INDEX - in front of the die face (z 1), under DiceInk (4), the socket
+# panels (8) and the ROLL button (10).
+const OVERCHARGE_EMBER_Z_INDEX := 2
+const OVERCHARGE_EMBER_GROUP := "overcharge_ember"
+
+# 1 - spontaneous mini-gusts. Reuses the shipped charge wavefront at reduced amplitude.
+const OVERCHARGE_GUST_MIN_TIER := 2
+const OVERCHARGE_GUST_INTERVAL_T2 := Vector2(1.9, 3.4)
+const OVERCHARGE_GUST_INTERVAL_T3 := Vector2(1.1, 2.1)
+const OVERCHARGE_GUST_PEAK_T2 := 0.40
+const OVERCHARGE_GUST_PEAK_T3 := 0.58
+const OVERCHARGE_GUST_REACH := 46.0     # shorter than a real charge's 62 - a leak, not an event
+const OVERCHARGE_GUST_TIME := 0.52      # and slower, so it reads as a breath rather than a bang
+# A real charge must never be swallowed, so the two directions are NOT symmetric: a charge
+# always kills whatever spontaneous gust is in flight (the shared kill loop in _fire_gust), but
+# a spontaneous one refuses to fire in the wake of a real one and never touches the charge
+# cooldown clock. Otherwise a leak landing 100ms before a Charge 4 would eat its wavefront.
+const OVERCHARGE_GUST_QUIET_AFTER_CHARGE_MS := 700
+
+# 3 - the world recedes. Deltas ON TOP of whatever the background material is authored with,
+# never absolute values - a hardcoded restore target is the stale-copy failure mode that the
+# emanation's row clearance already had to be rescued from.
+const OVERCHARGE_VIGNETTE_ADD := 0.16
+const OVERCHARGE_BRIGHTNESS_DROP := 0.08
+const OVERCHARGE_WORLD_TWEEN_TIME := 0.6
+
+# 4 - audio simmer. PLACEHOLDER asset (project convention): a synthesized 2s seamless drone.
+# load() not preload(): a missing/unimported file in a preload is a PARSE ERROR that takes the
+# whole of dice.gd down with it, and gdtoolkit does not catch it (documented, cost 3 runs).
+const OVERCHARGE_HUM_PATH := "res://sounds/overcharge_hum.wav"
+const OVERCHARGE_HUM_MIN_DB := -30.0
+# -9, not -13: this is a texture meant to be FELT under the other SFX, and the first pass
+# was quiet enough to miss entirely (compounded by the v1 asset being nearly all sub-bass).
+# This is the first dial to turn down if it crowds the mix.
+const OVERCHARGE_HUM_MAX_DB := -9.0
+const OVERCHARGE_HUM_FADE_IN := 0.7
+const OVERCHARGE_HUM_FADE_OUT := 0.45
+const OVERCHARGE_HUM_PITCH_MAX := 1.16
+# The landing thud's chain ladder is capped at 6 steps so it cannot climb into a squeal on a
+# normal turn. Overcharge lifts that ceiling: a chain long enough to reach it is exactly the
+# situation the player should hear running away from them.
+const OVERCHARGE_THUD_PITCH_CAP_STEP := 2
+
+var _overcharge_tier := 0
+var _overcharge_level := 0.0
+var _overcharge_heat_tween: Tween
+var _overcharge_ember_timer: Timer
+var _overcharge_gust_countdown := 0.0
+var _overcharge_hum: AudioStreamPlayer
+var _overcharge_hum_tween: Tween
+var _world_dim_material: ShaderMaterial
+var _world_dim_base_vignette := 0.0
+var _world_dim_base_brightness := 0.0
+var _world_dim_resolved := false
+var _world_dim_tween: Tween
+
+
+func _setup_overcharge() -> void:
+    # ⚠️ SEED `heat` BEFORE ANYTHING TRIES TO TWEEN OR READ IT. A ShaderMaterial does not
+    # expose `shader_parameter/<name>` as a real property until that parameter has been
+    # ASSIGNED at least once - declaring the uniform in the .gdshader is not enough, and
+    # dice.tscn's material only authors amplitude/speed. Without this line the feature is
+    # DEAD but looks alive: tween_property() finds no such property (console error, silent
+    # no-op) and get_shader_parameter() returns null, so heat sits at the shader default
+    # forever and the number never ignites. Caught by debug_overcharge - the "does the
+    # shader expose a heat uniform" probe passed the whole time it was broken.
+    if current_power.material is ShaderMaterial:
+        (current_power.material as ShaderMaterial).set_shader_parameter("heat", 0.0)
+
+    _overcharge_ember_timer = Timer.new()
+    _overcharge_ember_timer.wait_time = OVERCHARGE_EMBER_INTERVAL_T2
+    _overcharge_ember_timer.timeout.connect(_on_overcharge_ember_timer_timeout)
+    add_child(_overcharge_ember_timer)
+    _overcharge_ember_timer.start()
+
+    var stream: AudioStream = load(OVERCHARGE_HUM_PATH)
+    if stream != null:
+        _overcharge_hum = AudioStreamPlayer.new()
+        _overcharge_hum.stream = _looping_copy_of(stream)
+        _overcharge_hum.bus = &"SFX"
+        _overcharge_hum.volume_db = OVERCHARGE_HUM_MIN_DB
+        add_child(_overcharge_hum)
+
+
+# The two ends of the number's incandescence swing, derived from the ACTIVE die rather than
+# fixed. Julien's playtest verdict: the Power number must keep saying which die is active -
+# it is the one element the HUD leans on to answer that - so it goes white-hot in its own
+# hue instead of turning orange. Called from update_dice_display(), the same chokepoint that
+# already retints the number, its outline and the emanation, so switching type recolours the
+# ignition for free and infused dice inherit it (DicePalette is infusion-aware).
+#
+# Set directly rather than tweened, so unlike `heat` these need no seeding - a written
+# parameter is what makes the property exist in the first place.
+func _update_power_ember_colors() -> void:
+    if not (current_power.material is ShaderMaterial):
+        return
+    var mat: ShaderMaterial = current_power.material
+    var accent := DicePalette.accent(dice_type)
+    # Trough of the flicker: the accent, pushed a little richer so even the low end of the
+    # swing reads as charged rather than identical to rest.
+    # ⚠️ The swing must be MONOTONIC away from rest, never straddling it. Making the trough
+    # MORE saturated than the accent put the resting colour in the middle of the range, so
+    # roughly half of every flicker cycle rendered identical to rest and the whole ignition
+    # measured as ~0 changed pixels on blue. Trough is now a touch hotter than rest, peak is
+    # much hotter, and every point in between is brighter than the number's resting look.
+    var deep := Color.from_hsv(accent.h, accent.s * 0.9, 1.0)
+    mat.set_shader_parameter("ember_color", deep)
+    # Peak of the flicker. Built in HSV, NOT with lightened(): blue's own blue channel is
+    # already 1.0, so lightening it can only raise the other two - i.e. it walks straight to
+    # white and the hue this whole change exists to preserve is the first thing lost
+    # (measured r=.86 g=.90 b=.93, a white number). Dropping saturation while pinning value
+    # keeps the hue intact at full brightness, and works for warm accents too.
+    mat.set_shader_parameter("ember_core", Color.from_hsv(accent.h, accent.s * 0.35, 1.0))
+
+
+# The hum has to loop, and the .import that says so is the one thing here an editor re-scan
+# could quietly reset (loop_mode would fall back to Disabled and the drone would play once,
+# reading as a bug rather than a missing loop). Re-asserting it on a DUPLICATE costs nothing,
+# never mutates the shared imported resource, and makes the import setting a redundancy rather
+# than a dependency.
+func _looping_copy_of(stream: AudioStream) -> AudioStream:
+    var wav := stream as AudioStreamWAV
+    if wav == null:
+        return stream  # not a WAV (someone swapped in an .ogg) - trust its own import
+    if wav.loop_mode != AudioStreamWAV.LOOP_DISABLED:
+        return wav
+    var bytes_per_frame := 0
+    if wav.format == AudioStreamWAV.FORMAT_16_BITS:
+        bytes_per_frame = 2
+    elif wav.format == AudioStreamWAV.FORMAT_8_BITS:
+        bytes_per_frame = 1
+    if bytes_per_frame == 0:
+        return wav  # compressed format - frame count isn't derivable from byte length
+    if wav.stereo:
+        bytes_per_frame *= 2
+    var looped: AudioStreamWAV = wav.duplicate()
+    looped.loop_begin = 0
+    looped.loop_end = looped.data.size() / bytes_per_frame
+    looped.loop_mode = AudioStreamWAV.LOOP_FORWARD
+    return looped
+
+
+func _overcharge_tier_for(power: int) -> int:
+    if power >= OVERCHARGE_T3_THRESHOLD:
+        return 3
+    if power >= OVERCHARGE_T2_THRESHOLD:
+        return 2
+    if power >= POWER_TIER_THRESHOLD:
+        return 1
+    return 0
+
+
+# Called from the tail of _update_dice_aura_charge() - see the section header for why that is
+# the only hook this system needs.
+func _update_overcharge() -> void:
+    # Frozen, not torn down, while inked: the tier holds whatever it reached so the die does
+    # not visibly deflate the instant an enemy inks it (which would itself be information).
+    if not OVERCHARGE_DURING_INK and Global.ink_active:
+        return
+
+    var power := int(Global.roll_value)
+    var tier := _overcharge_tier_for(power)
+    var span := float(OVERCHARGE_T3_THRESHOLD - POWER_TIER_THRESHOLD)
+    var t := clampf((float(power) - float(POWER_TIER_THRESHOLD)) / maxf(span, 1.0), 0.0, 1.0)
+    var level := 0.0
+    if tier > 0:
+        level = OVERCHARGE_LEVEL_FLOOR + (1.0 - OVERCHARGE_LEVEL_FLOOR) * t
+
+    var previous_tier := _overcharge_tier
+    _overcharge_tier = tier
+    _overcharge_level = level
+
+    _apply_overcharge_heat(level)
+    _apply_overcharge_hum(level)
+    _apply_world_dim(level)
+
+    if tier < OVERCHARGE_GUST_MIN_TIER:
+        _overcharge_gust_countdown = 0.0
+    elif previous_tier < OVERCHARGE_GUST_MIN_TIER:
+        # Arm on ENTERING the tier rather than firing immediately: the roll that crossed the
+        # threshold already has its own celebration, and a leak on the same frame would land
+        # inside it and read as part of the roll instead of as the die acting on its own.
+        _overcharge_gust_countdown = _overcharge_gust_interval()
+
+    if tier > previous_tier and tier >= 2:
+        # Tier 1's ceremony already exists (the ignition flare + freeze in _apply_roll_result),
+        # so only the new ceilings get a new one, or 18 would fire two beats on one roll.
+        _play_overcharge_escalation(tier)
+
+
+func _apply_overcharge_heat(level: float) -> void:
+    if current_power.material == null:
+        return
+    if _overcharge_heat_tween and _overcharge_heat_tween.is_valid():
+        _overcharge_heat_tween.kill()
+    _overcharge_heat_tween = create_tween()
+    var tweener := _overcharge_heat_tween.tween_property(
+            current_power.material, "shader_parameter/heat", level, OVERCHARGE_HEAT_TWEEN_TIME)
+    if tweener:
+        tweener.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+
+func _apply_overcharge_hum(level: float) -> void:
+    if _overcharge_hum == null:
+        return
+    if _overcharge_hum_tween and _overcharge_hum_tween.is_valid():
+        _overcharge_hum_tween.kill()
+    _overcharge_hum_tween = create_tween()
+    if level <= 0.0:
+        if not _overcharge_hum.playing:
+            return
+        _overcharge_hum_tween.tween_property(
+                _overcharge_hum, "volume_db", OVERCHARGE_HUM_MIN_DB, OVERCHARGE_HUM_FADE_OUT)
+        _overcharge_hum_tween.tween_callback(_overcharge_hum.stop)
+        return
+    if not _overcharge_hum.playing:
+        _overcharge_hum.volume_db = OVERCHARGE_HUM_MIN_DB
+        _overcharge_hum.play()
+    _overcharge_hum.pitch_scale = lerpf(1.0, OVERCHARGE_HUM_PITCH_MAX, level)
+    _overcharge_hum_tween.tween_property(_overcharge_hum, "volume_db",
+            lerpf(OVERCHARGE_HUM_MIN_DB, OVERCHARGE_HUM_MAX_DB, level), OVERCHARGE_HUM_FADE_IN)
+
+
+# Resolved lazily and ONCE, and by group rather than by path, because this node also lives in
+# render harnesses and in dice.tscn on its own, where no battle background exists at all.
+#
+# The material is DUPLICATED and reassigned rather than written to in place. battle.tscn's
+# background material is a SubResource, i.e. potentially shared between instantiations of that
+# scene, and a compounding "baseline" captured from an already-dimmed copy would darken the
+# game a little more every fight. Owning a private copy makes that impossible rather than
+# merely unlikely, and removes any need to restore anything on the way out.
+func _ensure_world_dim() -> void:
+    if _world_dim_resolved:
+        return
+    _world_dim_resolved = true
+    var bg := get_tree().get_first_node_in_group("battle_background") as CanvasItem
+    if bg == null:
+        return
+    var shared := bg.material as ShaderMaterial
+    if shared == null:
+        return
+    # Same "unassigned parameters read back as null" rule as the heat seed above - here the
+    # values are authored on the material so they resolve, but a stripped/retuned background
+    # material must degrade to "no world dim" rather than crash the whole power update path.
+    var vig = shared.get_shader_parameter("vignette_strength")
+    var bright = shared.get_shader_parameter("brightness")
+    if vig == null or bright == null:
+        return
+    var owned: ShaderMaterial = shared.duplicate()
+    bg.material = owned
+    _world_dim_material = owned
+    _world_dim_base_vignette = float(vig)
+    _world_dim_base_brightness = float(bright)
+
+
+func _apply_world_dim(level: float) -> void:
+    _ensure_world_dim()
+    if _world_dim_material == null:
+        return
+    if _world_dim_tween and _world_dim_tween.is_valid():
+        _world_dim_tween.kill()
+    _world_dim_tween = create_tween()
+    _world_dim_tween.set_parallel(true)
+    _world_dim_tween.tween_property(_world_dim_material, "shader_parameter/vignette_strength",
+            _world_dim_base_vignette + OVERCHARGE_VIGNETTE_ADD * level,
+            OVERCHARGE_WORLD_TWEEN_TIME).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+    _world_dim_tween.tween_property(_world_dim_material, "shader_parameter/brightness",
+            _world_dim_base_brightness - OVERCHARGE_BRIGHTNESS_DROP * level,
+            OVERCHARGE_WORLD_TWEEN_TIME).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+
+# One-shot beat on crossing T2/T3. Deliberately built from parts that already ship (the same
+# flare as the tier-1 ignition, the same wavefront as a charge, the same thud stream) - a new
+# ceiling should sound like MORE of this die, not like a different game.
+func _play_overcharge_escalation(tier: int) -> void:
+    var big := tier >= 3
+    _spawn_thrown_die_flare(self, current_power.get_global_rect().get_center(),
+            DicePalette.burst(dice_type, 0.7), big)
+    Shaker.hit_stop(0.12 if big else 0.09)
+    _fire_gust(DicePalette.burst(dice_type, 0.6),
+            0.85 if big else 0.7, CHARGE_GUST_REACH, CHARGE_GUST_TIME)
+    # PLACEHOLDER: the landing thud dropped an octave and a half reads as a low detonation.
+    SFXPlayer.play(LAND_THUD_SOUND, false, 0.34 if big else 0.45, -1.0)
+
+
+func _overcharge_gust_interval() -> float:
+    # Explicitly typed, not `:=`: a ternary is one of the places GDScript quietly drops the
+    # static type, and a degraded Variant here breaks inference further down the file.
+    var band: Vector2 = OVERCHARGE_GUST_INTERVAL_T3 if _overcharge_tier >= 3 \
+            else OVERCHARGE_GUST_INTERVAL_T2
+    return randf_range(band.x, band.y)
+
+
+# Driven from _process, not a Timer, so the countdown genuinely stops while the tier is below
+# threshold instead of a timer firing into a guard forever.
+func _tick_overcharge_gust(delta: float) -> void:
+    if _overcharge_tier < OVERCHARGE_GUST_MIN_TIER:
+        return
+    if not OVERCHARGE_DURING_INK and Global.ink_active:
+        return
+    _overcharge_gust_countdown -= delta
+    if _overcharge_gust_countdown > 0.0:
+        return
+    _overcharge_gust_countdown = _overcharge_gust_interval()
+    if charge_pulse_mode == 3:
+        return
+    # Never in a real charge's wake, and never on top of a front still travelling - two
+    # overlapping wavefronts on an additive layer is the documented overexposure trap.
+    if Time.get_ticks_msec() - _last_charge_pulse_ms < OVERCHARGE_GUST_QUIET_AFTER_CHARGE_MS:
+        return
+    for t: Tween in _charge_gust_tweens:
+        if t and t.is_valid() and t.is_running():
+            return
+    var peak: float = OVERCHARGE_GUST_PEAK_T3 if _overcharge_tier >= 3 \
+            else OVERCHARGE_GUST_PEAK_T2
+    # The die's OWN accent, warm-shifted: a charge gust is tinted by the type being charged
+    # because it announces a delivery elsewhere. Nothing is being delivered here - this is
+    # this die failing to hold what it already has.
+    _fire_gust(DicePalette.burst(dice_type, 0.5), peak,
+            OVERCHARGE_GUST_REACH, OVERCHARGE_GUST_TIME)
+
+
+func _on_overcharge_ember_timer_timeout() -> void:
+    var interval: float = OVERCHARGE_EMBER_INTERVAL_T3 if _overcharge_tier >= 3 \
+            else OVERCHARGE_EMBER_INTERVAL_T2
+    # start() rather than assigning wait_time - a Timer re-arms with the OLD value before it
+    # emits, so a tier change would otherwise take a full extra cycle to show up (same trap
+    # the Loaded mote timer documents).
+    _overcharge_ember_timer.start(interval)
+    if _overcharge_tier < OVERCHARGE_EMBER_MIN_TIER:
+        return
+    if not OVERCHARGE_DURING_INK and Global.ink_active:
+        return
+    _spawn_overcharge_ember()
+
+
+func _spawn_overcharge_ember() -> void:
+    var rect := Rect2(current_power.position, current_power.size)
+    if rect.size == Vector2.ZERO:
+        return
+    var tint := DicePalette.burst(dice_type, OVERCHARGE_EMBER_WARMTH)
+    var ember := TextureRect.new()
+    ember.texture = DicePalette.glow_texture()
+    ember.material = DicePalette.additive_material()
+    ember.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    ember.stretch_mode = TextureRect.STRETCH_SCALE
+    # IGNORE, not the Control default STOP: these drift straight across the Power number's own
+    # hover zone, which owns the tooltip that teaches what the glyph on every card means.
+    ember.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    ember.z_index = OVERCHARGE_EMBER_Z_INDEX
+    ember.name = "OverchargeEmber"
+    ember.add_to_group(OVERCHARGE_EMBER_GROUP)
+    var ember_size := randf_range(OVERCHARGE_EMBER_SIZE_MIN, OVERCHARGE_EMBER_SIZE_MAX)
+    ember.size = Vector2(ember_size, ember_size)
+    ember.modulate = Color(tint.r, tint.g, tint.b, 0.0)
+    # Born across the lower half of the glyph box and rising - embers come off the top of a
+    # fire, they do not materialize above it.
+    ember.position = Vector2(
+            rect.position.x + randf_range(0.0, maxf(rect.size.x - ember_size, 1.0)),
+            rect.position.y + rect.size.y * randf_range(0.35, 0.75))
+    add_child(ember)
+
+    var duration := randf_range(0.8, 1.35)
+    var t := create_tween()
+    t.set_parallel(true)
+    t.tween_property(ember, "position:y",
+            ember.position.y - randf_range(OVERCHARGE_EMBER_RISE_MIN, OVERCHARGE_EMBER_RISE_MAX),
+            duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+    t.tween_property(ember, "position:x",
+            ember.position.x + randf_range(-OVERCHARGE_EMBER_DRIFT_X, OVERCHARGE_EMBER_DRIFT_X),
+            duration)
+    t.tween_property(ember, "modulate:a",
+            randf_range(OVERCHARGE_EMBER_ALPHA_MIN, OVERCHARGE_EMBER_ALPHA_MAX), duration * 0.25)
+    t.tween_property(ember, "modulate:a", 0.0, duration * 0.5).set_delay(duration * 0.5)
+    t.chain().tween_callback(ember.queue_free)
+
+
+# The battle-over panel pauses the tree while the scene is still alive, so nothing else would
+# ever bring the drone down - it would keep simmering under the Game Over screen.
+func _on_battle_over_screen_requested(_text, _type) -> void:
+    _shutdown_overcharge()
+
+
+func _shutdown_overcharge() -> void:
+    _overcharge_tier = 0
+    _overcharge_level = 0.0
+    _overcharge_gust_countdown = 0.0
+    if _overcharge_hum_tween and _overcharge_hum_tween.is_valid():
+        _overcharge_hum_tween.kill()
+    if _overcharge_hum != null and _overcharge_hum.playing:
+        _overcharge_hum.stop()
+    if _overcharge_heat_tween and _overcharge_heat_tween.is_valid():
+        _overcharge_heat_tween.kill()
+    if current_power != null and current_power.material != null:
+        current_power.material.set_shader_parameter("heat", 0.0)

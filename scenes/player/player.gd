@@ -18,6 +18,37 @@ const SWAY_SHADER := preload("res://scenes/enemy/enemy.gdshader")
 # is pinned) and body centre. Swapping the art again means recomputing them from the two
 # alpha bboxes - do not just drop a new PNG in and leave 0.709091 behind.
 
+# --- Held die (2026-08-27) ---------------------------------------------------------------
+# The hero levitates a die above his open palm. It is its own Sprite2D - split out of the
+# body art by split_hero_die.py, which leaves both halves on the SAME canvas so the die
+# drops back into the hole it left - because it has to do two things a baked-in die can't:
+#
+#   * recolour to the ACTIVE dice type, so the resource you are rolling is visibly the one
+#     the character holds. Everything that says "you are on Magma" used to live in the dice
+#     cluster while the hero sat inert on the far side of the frame; this ties the two
+#     halves of the screen together, and it is infusion-aware for free via DicePalette.
+#   * punch forward when you play an attack, giving the slash that lands a beat later a
+#     visible cause. The hero was the only actor on screen that never moved when it acted
+#     (enemies lunge, thrown dice fly, the big die hops).
+#
+# Because it MOVES it cannot simply be drawn over the baked one - the original would peek
+# out from under it - hence a genuine split rather than an occluding overlay.
+const DIE_TEXTURE_PATH := "res://main_character_die.png"
+# Accent lifted toward white. At its real ~38px on-screen size a fully saturated cobalt or
+# fuchsia die goes muddy against the navy cloak; 0.15 keeps the identity and the luminance.
+const DIE_TINT_WHITE_LIFT := 0.15
+# Enemies stand to the RIGHT of the hero, so the thrust travels right-and-up. ~15px on a
+# 38px die is ~40% of its own width - comfortably over the ~4px floor below which an effect
+# does not exist at play speed.
+const DIE_PUNCH_OFFSET := Vector2(15.0, -11.0)
+const DIE_PUNCH_SCALE := 1.16
+const DIE_PUNCH_ROTATION := 0.22  # radians; a flick, not a tumble
+const DIE_PUNCH_OUT := 0.07
+const DIE_PUNCH_BACK := 0.34
+# A switch of dice type re-attunes the die: brief flash toward white, then settle into the
+# new accent, with a fractional punch so the change is felt and not just seen.
+const DIE_RETUNE_PUNCH := 0.45
+
 @export var stats: CharacterStats : set = set_character_stats
 
 @onready var sprite_2d: Sprite2D = $SpriteRoot/Sprite2D
@@ -34,6 +65,14 @@ var _hit_rest_sprite_scale: Vector2
 var _hit_reaction_active := false
 var _sway_material: ShaderMaterial
 var _ground_shadow: Sprite2D
+# Held die: a pivot parked on the die's INK centre (so a punch scales/rotates about the die
+# and not about the empty canvas centre it would otherwise orbit), and the sprite itself.
+var _die_pivot: Node2D
+var _die_sprite: Sprite2D
+var _die_rest_position: Vector2
+var _die_punch_tween: Tween
+var _die_tint_tween: Tween
+var _debug_hero_override_active := false
 # The scene's authored sprite transform, captured before the debug hero swap can touch it so
 # clearing the swap can restore it exactly. ZERO = not captured yet.
 var _base_sprite_scale := Vector2.ZERO
@@ -78,6 +117,11 @@ func _ready() -> void:
         health_bar.item_rect_changed.connect(_update_status_row_placement)
     _update_status_row_placement()
     _update_ground_shadow()
+    _ensure_held_die()
+    # active_dice_changed carries the new type, so the handler MUST take an argument - a
+    # 0-arg callable connects without complaint here and then silently never runs.
+    Events.active_dice_changed.connect(_on_active_dice_changed)
+    Events.card_played.connect(_on_card_played)
 
 
 # See enemy.gd::_update_status_row_placement for the full reasoning; this is the same
@@ -124,6 +168,128 @@ func _update_ground_shadow() -> void:
     var shadow_width: float = content.size.x * sprite_2d.scale.x * 0.82
     _ground_shadow.scale = Vector2(shadow_width / 256.0, shadow_width * 0.24 / 256.0)
 
+
+
+# --- Held die ----------------------------------------------------------------------------
+# Built in code rather than authored in player.tscn, following the ground shadow above: the
+# whole feature is then one script plus one PNG, with no ext_resource/uid/load_steps surface
+# in the scene, and pulling it back out is deleting a block.
+func _ensure_held_die() -> void:
+    if _die_sprite != null or sprite_2d == null:
+        return
+    var tex := load(DIE_TEXTURE_PATH) as Texture2D
+    if tex == null:
+        # Hero art was swapped without re-running split_hero_die.py. Degrade to exactly the
+        # old behaviour (no overlay) instead of drawing a die that belongs to other art.
+        return
+
+    _die_pivot = Node2D.new()
+    _die_pivot.name = "HeldDiePivot"
+    _die_sprite = Sprite2D.new()
+    _die_sprite.name = "HeldDie"
+    _die_sprite.texture = tex
+    # Deliberately NO material. The shared sway shader ends on `COLOR = tex_color`, a raw
+    # texture sample, which overwrites the incoming COLOR and therefore DISCARDS modulate -
+    # a sprite wearing it cannot be tinted at all. Editing that shader would touch every
+    # enemy in the game for one hero prop, so the die simply opts out of it. The cost is
+    # that it does not sway with the body, which is arguably the better read anyway: this
+    # die is levitated, not gripped, and the hand it hovers over only travels ~2.5px on
+    # screen - under the floor where the difference registers.
+    _die_pivot.add_child(_die_sprite)
+    sprite_2d.get_parent().add_child(_die_pivot)
+    _sync_held_die_transform()
+    _update_die_tint()
+
+
+# Keeps the die welded to the body through every transform the body can take (the authored
+# scale, and the debug A/B swap's renormalisation). Derived from the die art's own alpha
+# bbox, so re-splitting new art needs no hand-tuned numbers here.
+func _sync_held_die_transform() -> void:
+    if _die_sprite == null or _die_sprite.texture == null or sprite_2d == null:
+        return
+    var tex_size: Vector2 = _die_sprite.texture.get_size()
+    var content: Rect2 = Enemy._get_content_rect(_die_sprite.texture)
+    # Sprite2D centres on its texture, and the die's ink sits far off that centre (~127px
+    # right, ~122px up). Parking the pivot on the ink centre is what keeps a scale/rotation
+    # punch on the die instead of flinging it across the screen in an arc about the canvas.
+    var delta: Vector2 = (content.get_center() - tex_size * 0.5) * sprite_2d.scale
+    _die_rest_position = sprite_2d.position + delta
+    _die_pivot.position = _die_rest_position
+    _die_pivot.scale = Vector2.ONE
+    _die_pivot.rotation = 0.0
+    _die_sprite.position = -delta
+    _die_sprite.scale = sprite_2d.scale
+
+
+# type_override exists because of a real race: Global.dice_type is assigned inside dice.gd's
+# OWN listener of active_dice_changed (dice.gd::_on_active_dice_changed), so whether this node
+# sees the new type or the previous one is decided purely by signal connection order. It lost
+# that race, and the die rendered exactly one switch behind - Julien had to click a slot twice.
+# The signal already carries the new type, so the fix is to trust the argument and never read
+# the global on that path. Any future listener that needs the active type at switch time has
+# the same trap waiting for it.
+func _update_die_tint(animate: bool = false, type_override: String = "") -> void:
+    if _die_sprite == null:
+        return
+    var type: String = type_override if type_override != "" else Global.dice_type
+    # accent() is infusion-aware at the single source, so an infused die recolours the one
+    # the hero holds for free. An unknown/empty type returns white, which lands back on the
+    # die's original painted white - the correct look outside combat.
+    var target: Color = DicePalette.accent(type).lerp(Color.WHITE, DIE_TINT_WHITE_LIFT)
+    if _die_tint_tween and _die_tint_tween.is_valid():
+        _die_tint_tween.kill()
+    if not animate:
+        _die_sprite.modulate = target
+        return
+    _die_tint_tween = create_tween()
+    _die_tint_tween.tween_property(_die_sprite, "modulate", target.lerp(Color.WHITE, 0.55), 0.09) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    _die_tint_tween.tween_property(_die_sprite, "modulate", target, 0.22) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+
+
+# Thrust toward the enemies. Legs are grouped with .parallel() on the follow-up tweeners
+# rather than set_parallel(true), which after a first step would fold the return INTO the
+# outward step and play both at once.
+func punch_held_die(strength: float = 1.0) -> void:
+    if _die_pivot == null:
+        return
+    if _die_punch_tween and _die_punch_tween.is_valid():
+        _die_punch_tween.kill()
+        # A punch interrupted mid-flight leaves the pivot away from rest; snap the canonical
+        # rest transform back before measuring the new one.
+        _die_pivot.position = _die_rest_position
+
+    var out_pos: Vector2 = _die_rest_position + DIE_PUNCH_OFFSET * strength
+    var out_scale: Vector2 = Vector2.ONE * (1.0 + (DIE_PUNCH_SCALE - 1.0) * strength)
+    var out_rot: float = DIE_PUNCH_ROTATION * strength
+
+    _die_punch_tween = create_tween()
+    _die_punch_tween.tween_property(_die_pivot, "position", out_pos, DIE_PUNCH_OUT) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    _die_punch_tween.parallel().tween_property(_die_pivot, "scale", out_scale, DIE_PUNCH_OUT) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    _die_punch_tween.parallel().tween_property(_die_pivot, "rotation", out_rot, DIE_PUNCH_OUT) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    _die_punch_tween.tween_property(_die_pivot, "position", _die_rest_position, DIE_PUNCH_BACK) \
+        .set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+    _die_punch_tween.parallel().tween_property(_die_pivot, "scale", Vector2.ONE, DIE_PUNCH_BACK) \
+        .set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+    _die_punch_tween.parallel().tween_property(_die_pivot, "rotation", 0.0, DIE_PUNCH_BACK) \
+        .set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+
+
+func _on_active_dice_changed(active_dice) -> void:
+    _update_die_tint(true, String(active_dice))
+    punch_held_die(DIE_RETUNE_PUNCH)
+
+
+func _on_card_played(card: Card) -> void:
+    # Attacks only, matching the gate that spawns the directional slash on the enemy
+    # (card.gd) - so the thrust and the cut that lands ~0.055s later read as one beat, and a
+    # block or a blessing does not get a phantom attack tell.
+    if card != null and card.type == Card.Type.ATTACK:
+        punch_held_die()
 
 
 # Sway amplitudes are authored in SCREEN px (tuned via the idle_sway_preview A/B), so they have
@@ -186,6 +352,12 @@ func apply_debug_texture() -> void:
     # shadow derives its width and position from the live texture.
     _apply_sway_scale()
     _update_ground_shadow()
+    # The A/B candidates are whole characters carrying their own baked die, so the split-out
+    # overlay has to step aside for them or the hero holds two. Shipped art keeps it.
+    _debug_hero_override_active = sprite_2d.texture != stats.art
+    _sync_held_die_transform()
+    if _die_pivot != null:
+        _die_pivot.visible = not _debug_hero_override_active
 
 
 func set_character_stats(value: CharacterStats) -> void:
@@ -207,6 +379,10 @@ func update_player() -> void:
     # The debug hero swap rides on top of the shipped art (a no-op when unset) and refreshes
     # the ground shadow itself, so this stays the one place the sprite texture is assigned.
     apply_debug_texture()
+    # A battle can open on a type that never emits active_dice_changed (the run's default
+    # active die is simply assigned), so the tint is seeded here rather than waiting for a
+    # switch that may not come until the second turn.
+    _update_die_tint()
     update_stats()
 
 
@@ -219,6 +395,10 @@ func take_damage(damage: int, which_modifier: Modifier.Type) -> void:
         return
 
     sprite_2d.material = WHITE_SPRITE_MATERIAL
+    # The die flashes with the body - it is part of the silhouette, and a tinted die sitting
+    # calmly inside a white-hot hero reads as a rendering fault.
+    if _die_sprite != null:
+        _die_sprite.material = WHITE_SPRITE_MATERIAL
     var modified_damage := modifier_handler.get_modified_value(damage, which_modifier)
     # Display (and stats) report what reaches HP, not the raw attack: block soaks first.
     # Mirrors the exact clamp stats.take_damage applies right below.
@@ -236,6 +416,11 @@ func take_damage(damage: int, which_modifier: Modifier.Type) -> void:
     flash_tween.tween_callback(
         func():
             sprite_2d.material = _sway_material
+            # Back to null, not _sway_material: the die opts out of the sway shader on
+            # purpose (see _ensure_held_die) - handing it that material would silently kill
+            # its tint, since the shader discards modulate.
+            if _die_sprite != null:
+                _die_sprite.material = null
             if stats.health <= 0:
                 Events.player_died.emit()
                 queue_free()

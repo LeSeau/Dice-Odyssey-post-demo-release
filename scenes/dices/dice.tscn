@@ -379,6 +379,7 @@ pivot_offset = Vector2(160, 180)
 mouse_filter = 2
 
 [node name="Panel" type="Panel" parent="."]
+z_index = 6
 custom_minimum_size = Vector2(144, 144)
 layout_mode = 1
 anchors_preset = 15
@@ -799,7 +800,7 @@ stretch_mode = 5
 [node name="DiceRollPlayer" type="AudioStreamPlayer" parent="."]
 
 [node name="Button" type="Button" parent="."]
-z_index = 10
+z_index = 12
 layout_mode = 1
 anchors_preset = -1
 anchor_top = 1.0

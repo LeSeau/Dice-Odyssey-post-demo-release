@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://c8helddie827"]
+
+[ext_resource type="Script" path="res://debug_held_die.gd" id="1_helddie"]
+
+[node name="DebugHeldDie" type="Node"]
+script = ExtResource("1_helddie")
