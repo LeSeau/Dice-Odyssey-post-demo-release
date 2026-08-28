@@ -6,7 +6,7 @@ extends Card
 #
 # The Block itself is granted by dice.gd at the same `last_roll == 6` check Jackpot and
 # Effigy already key off, so all three agree on what a "6" is: the face actually rolled,
-# never a Boosted or Loaded 5->6. The amount lives in Global.TALISMAN_SIX_BLOCK.
+# never a Boosted or Surge 5->6. The amount lives in Global.TALISMAN_SIX_BLOCK.
 #
 # would_no_op_now() is what the pick-up refusal in card_clicked_state.gd checks, so dragging
 # this gives the standard shake + message instead of silently doing nothing.

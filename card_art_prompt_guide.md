@@ -45,7 +45,7 @@ Worked example (Red Edge, "remove the 2 lowest faces from Red Dice"):
 ## 2. Writing the subject sentence
 
 **Read the card's EFFECT, not its name.** This is the rule that produced the worst miss of
-the session: *Dead Weight* is an unplayable card that sits in your hand **granting Loaded** —
+the session: *Dead Weight* is an unplayable card that sits in your hand **granting Surge** —
 i.e. it BUFFS your dice — and it got drawn as a cursed ball-and-chain, which reads as a
 penalty. Rewritten as a colossal die planted like an anvil, radiating rings of golden light
 that make nearby dice glow brighter, it reads as the buff it is.

@@ -811,13 +811,13 @@ func _ready():
     # Bounds of the slot-row clearance come from the row's real rect, once layout settles.
     _sync_emanation_row_clearance.call_deferred()
 
-    # Loaded motes: the timer polls forever and spawns nothing while Loaded is 0, so there is
+    # Surge motes: the timer polls forever and spawns nothing while Surge is 0, so there is
     # no signal to hook and no way for a grant/expiry path to forget to switch it on.
-    _setup_loaded_motes()
+    _setup_surge_motes()
     _cache_die_rest_rect.call_deferred()
 
     # Overcharge: the ember timer polls forever and spawns nothing below its tier, same
-    # no-signal-to-forget design as the Loaded motes above.
+    # no-signal-to-forget design as the Surge motes above.
     _setup_overcharge()
 
     # Initialize the dice display with the correct texture based on dice_type
@@ -2358,7 +2358,7 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
     if Global.last_roll == 6:
         Global.has_rolled_6_this_turn = true
         # Fight-long tally for Jackpot/Effigy. Keyed on the NATURAL face like the flag above,
-        # so a Boosted or Loaded 5->6 never counts.
+        # so a Boosted or Surge 5->6 never counts.
         Global.sixes_rolled_this_fight += 1
 
         # Talisman, held in hand: every natural 6 grants Block (Julien, 2026-08-20). Sits
@@ -2406,16 +2406,16 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
         animation_player_power.play("power_change")
         next_roll_bonus_panel.hide()
 
-    # Loaded: flat Power on EVERY roll. Boost above is consumed by a single roll; this is not,
+    # Surge: flat Power on EVERY roll. Boost above is consumed by a single roll; this is not,
     # which is the whole point - it's the per-ROLL scaling axis (Strength being the per-HIT one).
     # Deliberately applied HERE, after every natural-face trigger above: Arcane's 6, Gnome's 1,
-    # Octet's 8 and Critical Edge's max face all read Global.last_roll, so a Loaded roll can
+    # Octet's 8 and Critical Edge's max face all read Global.last_roll, so a Surge roll can
     # never fake a natural face. Same ruling Boost already follows (Julien, 2026-07-14).
-    if Global.loaded_amount > 0:
-        Global.roll_value += Global.loaded_amount
+    if Global.surge_amount > 0:
+        Global.roll_value += Global.surge_amount
 
-    # Cards that buff rolls purely by being HELD (Blood Oath on Red, Dead Weight's Loaded 1).
-    # Same placement rule as Loaded: after every natural-face trigger, so a held card can never
+    # Cards that buff rolls purely by being HELD (Blood Oath on Red, Dead Weight's Surge 1).
+    # Same placement rule as Surge: after every natural-face trigger, so a held card can never
     # fake a natural 6/1/8.
     var held_bonus: int = Global.in_hand_roll_bonus(dice_type)
     if held_bonus > 0:
@@ -4794,59 +4794,59 @@ func _refresh_empty_socket_look() -> void:
     _set_socket_empty()
 
 
-# --- Loaded motes -----------------------------------------------------------------------------
-# Sparks leaking off the central die while LOADED is up (Julien, 2026-08-25, after liking the
+# --- Surge motes -----------------------------------------------------------------------------
+# Sparks leaking off the central die while SURGE is up (Julien, 2026-08-25, after liking the
 # motes on the infusion and dice-shop dice).
 #
-# GATED on Loaded rather than running all the time, deliberately. Those two screens use motes to
+# GATED on Surge rather than running all the time, deliberately. Those two screens use motes to
 # say "this die is special" about an otherwise static image; the combat die already has three
 # continuous systems saying "alive" (emanation tongues, aura ring, power orbs), so a permanent
 # fourth layer would be wallpaper by turn three - and it would spend clutter in the one region
-# this scene keeps having to fight for, the slot row sitting ~15px above the die art. Loaded, by
+# this scene keeps having to fight for, the slot row sitting ~15px above the die art. Surge, by
 # contrast, had NO presence on the die at all: its whole fantasy is "this die is weighted, every
 # roll pays extra", and the only tell was a badge over on the player, nowhere near the die.
 #
-# Density scales with Global.loaded_amount, so building the ladder (Sleight -> Ringer -> a held
+# Density scales with Global.surge_amount, so building the ladder (Sleight -> Ringer -> a held
 # Dead Weight) shows on the die itself instead of only in a badge number.
-const LOADED_MOTE_INTERVAL_BASE := 0.55   # spawn gap at Loaded 1; also the idle poll rate
-const LOADED_MOTE_INTERVAL_STEP := 0.09   # shaved off per extra stack
-const LOADED_MOTE_INTERVAL_FLOOR := 0.26  # never denser than the dice shop per-die rate
+const SURGE_MOTE_INTERVAL_BASE := 0.55   # spawn gap at Surge 1; also the idle poll rate
+const SURGE_MOTE_INTERVAL_STEP := 0.09   # shaved off per extra stack
+const SURGE_MOTE_INTERVAL_FLOOR := 0.26  # never denser than the dice shop per-die rate
 # Bigger and brighter than the shop/infusion motes (11-22px at 0.38-0.62), and not by taste:
 # those sit on a static die on a dark screen, while this one is already inside the emanation's
 # light pool. Measured at the shop's values here, the motes lit 99 sampled px against an 84px
 # noise floor from the emanation's own animation - i.e. they rendered and did not exist. Size
 # is the strongest lever because glow_texture() concentrates its brightness in a small core.
-const LOADED_MOTE_SIZE_MIN := 14.0
-const LOADED_MOTE_SIZE_MAX := 26.0
-const LOADED_MOTE_ALPHA_MIN := 0.50
-const LOADED_MOTE_ALPHA_MAX := 0.75
-const LOADED_MOTE_ALPHA_PER_STACK := 0.03
-const LOADED_MOTE_STACK_CAP := 4
+const SURGE_MOTE_SIZE_MIN := 14.0
+const SURGE_MOTE_SIZE_MAX := 26.0
+const SURGE_MOTE_ALPHA_MIN := 0.50
+const SURGE_MOTE_ALPHA_MAX := 0.75
+const SURGE_MOTE_ALPHA_PER_STACK := 0.03
+const SURGE_MOTE_STACK_CAP := 4
 # Spawn band measured UP from _mote_spawn_base_y, and how far a mote climbs.
-const LOADED_MOTE_SPAWN_BAND := 38.0
-const LOADED_MOTE_RISE_MIN := 55.0
-const LOADED_MOTE_RISE_MAX := 95.0
-const LOADED_MOTE_DRIFT_X := 14.0
+const SURGE_MOTE_SPAWN_BAND := 38.0
+const SURGE_MOTE_RISE_MIN := 55.0
+const SURGE_MOTE_RISE_MAX := 95.0
+const SURGE_MOTE_DRIFT_X := 14.0
 # Hard ceiling, as a gap above the die art's top edge. The dice-type slot row sits just above
 # the die and draws at z_index 5, so a spark that drifts into it does not overlap the tray - it
 # vanishes behind an opaque plate mid-flight. Every rise is clamped against this rather than
 # just being tuned to land short of it, so retuning the band above can never quietly reopen it.
-const LOADED_MOTE_HEADROOM := 18.0
+const SURGE_MOTE_HEADROOM := 18.0
 # Strongly warm-shifted, not merely tinted. A spark in the die's own accent is invisible inside
 # that die's light field - the way the charge gust failed on 2026-08-25 - and at a half lerp it
 # was still blue-on-blue, rendering as a pale smudge on the Blue die rather than an ember. This
 # lands close to burst()'s warm gold, which also happens to be the colour the card text already
-# teaches for the Loaded keyword, while keeping a trace of the die's hue.
-const LOADED_MOTE_WARMTH := 0.78
-const LOADED_MOTE_GROUP := "loaded_mote"
+# teaches for the Surge keyword, while keeping a trace of the die's hue.
+const SURGE_MOTE_WARMTH := 0.78
+const SURGE_MOTE_GROUP := "surge_mote"
 # ⚠️ Being a LATER SIBLING is not enough to draw in front here: dice.tscn gives DiceDisplay
 # z_index 1, and z_index beats tree order. At the default 0 these motes rendered perfectly -
 # behind the opaque die face, invisible, while every property probe (visible, alpha, texture,
 # rect) looked correct. 2 puts them just in front of the face and still under DiceInk (4), so
 # an inked die keeps hiding them, and far under the ROLL button (10) and socket panels (8).
-const LOADED_MOTE_Z_INDEX := 8
+const SURGE_MOTE_Z_INDEX := 8
 
-var _loaded_mote_timer: Timer
+var _surge_mote_timer: Timer
 # The die art's RESTING rect in root-local space. Motes are parented to the ROOT, never to
 # dice_display, so the hop cannot drag them along mid-flight - which is precisely why they need
 # the resting footprint rather than the live one.
@@ -4858,12 +4858,12 @@ var _die_rest_rect := Rect2()
 var _mote_spawn_base_y := 0.0
 
 
-func _setup_loaded_motes() -> void:
-    _loaded_mote_timer = Timer.new()
-    _loaded_mote_timer.wait_time = LOADED_MOTE_INTERVAL_BASE
-    _loaded_mote_timer.timeout.connect(_on_loaded_mote_timer_timeout)
-    add_child(_loaded_mote_timer)
-    _loaded_mote_timer.start()
+func _setup_surge_motes() -> void:
+    _surge_mote_timer = Timer.new()
+    _surge_mote_timer.wait_time = SURGE_MOTE_INTERVAL_BASE
+    _surge_mote_timer.timeout.connect(_on_surge_mote_timer_timeout)
+    add_child(_surge_mote_timer)
+    _surge_mote_timer.start()
 
 
 # Deferred from _ready so the anchored layout has resolved. Read once: the plinth dip moves
@@ -4877,28 +4877,28 @@ func _cache_die_rest_rect() -> void:
         _mote_spawn_base_y = minf(_mote_spawn_base_y, roll_button.position.y)
 
 
-func _loaded_mote_interval(loaded: int) -> float:
-    if loaded <= 1:
-        return LOADED_MOTE_INTERVAL_BASE
-    return maxf(LOADED_MOTE_INTERVAL_FLOOR,
-            LOADED_MOTE_INTERVAL_BASE - LOADED_MOTE_INTERVAL_STEP * float(loaded - 1))
+func _surge_mote_interval(surge: int) -> float:
+    if surge <= 1:
+        return SURGE_MOTE_INTERVAL_BASE
+    return maxf(SURGE_MOTE_INTERVAL_FLOOR,
+            SURGE_MOTE_INTERVAL_BASE - SURGE_MOTE_INTERVAL_STEP * float(surge - 1))
 
 
-func _on_loaded_mote_timer_timeout() -> void:
-    var loaded: int = Global.loaded_amount
+func _on_surge_mote_timer_timeout() -> void:
+    var surge: int = Global.surge_amount
     # start() rather than assigning wait_time: Timer re-arms itself with the OLD value before
     # emitting, so a mid-turn Sleight (or its expiry) would otherwise take a full extra cycle
     # to change the density.
-    _loaded_mote_timer.start(_loaded_mote_interval(loaded))
-    if loaded <= 0:
+    _surge_mote_timer.start(_surge_mote_interval(surge))
+    if surge <= 0:
         return
-    _spawn_loaded_mote(loaded)
+    _spawn_surge_mote(surge)
 
 
-func _spawn_loaded_mote(loaded: int) -> void:
+func _spawn_surge_mote(surge: int) -> void:
     if _die_rest_rect.size == Vector2.ZERO:
         return
-    var tint := DicePalette.burst(dice_type, LOADED_MOTE_WARMTH)
+    var tint := DicePalette.burst(dice_type, SURGE_MOTE_WARMTH)
     var mote := TextureRect.new()
     mote.texture = DicePalette.glow_texture()
     mote.material = DicePalette.additive_material()
@@ -4907,25 +4907,25 @@ func _spawn_loaded_mote(loaded: int) -> void:
     # IGNORE, not the Control default STOP: these sit over the die and would otherwise eat the
     # hovers belonging to the Power number's tooltip zone and the ROLL button.
     mote.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    mote.z_index = LOADED_MOTE_Z_INDEX
-    # Group, not a name prefix: Godot renames duplicate siblings to "@LoadedMote@2", which no
-    # begins_with("LoadedMote") test ever matches - debug_loaded_motes silently saw one mote at
+    mote.z_index = SURGE_MOTE_Z_INDEX
+    # Group, not a name prefix: Godot renames duplicate siblings to "@SurgeMote@2", which no
+    # begins_with("SurgeMote") test ever matches - debug_surge_motes silently saw one mote at
     # a time that way.
-    mote.name = "LoadedMote"
-    mote.add_to_group(LOADED_MOTE_GROUP)
-    var mote_size := randf_range(LOADED_MOTE_SIZE_MIN, LOADED_MOTE_SIZE_MAX)
+    mote.name = "SurgeMote"
+    mote.add_to_group(SURGE_MOTE_GROUP)
+    var mote_size := randf_range(SURGE_MOTE_SIZE_MIN, SURGE_MOTE_SIZE_MAX)
     mote.size = Vector2(mote_size, mote_size)
     mote.modulate = Color(tint.r, tint.g, tint.b, 0.0)
     mote.position = Vector2(
             _die_rest_rect.position.x + randf_range(0.0, _die_rest_rect.size.x - mote_size),
-            _mote_spawn_base_y - randf_range(0.0, LOADED_MOTE_SPAWN_BAND))
+            _mote_spawn_base_y - randf_range(0.0, SURGE_MOTE_SPAWN_BAND))
     add_child(mote)
 
-    var extra_stacks := float(mini(loaded, LOADED_MOTE_STACK_CAP) - 1)
-    var peak_alpha := randf_range(LOADED_MOTE_ALPHA_MIN, LOADED_MOTE_ALPHA_MAX) \
-            + extra_stacks * LOADED_MOTE_ALPHA_PER_STACK
-    var ceiling_y := _die_rest_rect.position.y - LOADED_MOTE_HEADROOM
-    var rise := minf(randf_range(LOADED_MOTE_RISE_MIN, LOADED_MOTE_RISE_MAX),
+    var extra_stacks := float(mini(surge, SURGE_MOTE_STACK_CAP) - 1)
+    var peak_alpha := randf_range(SURGE_MOTE_ALPHA_MIN, SURGE_MOTE_ALPHA_MAX) \
+            + extra_stacks * SURGE_MOTE_ALPHA_PER_STACK
+    var ceiling_y := _die_rest_rect.position.y - SURGE_MOTE_HEADROOM
+    var rise := minf(randf_range(SURGE_MOTE_RISE_MIN, SURGE_MOTE_RISE_MAX),
             maxf(mote.position.y - ceiling_y, 0.0))
     var duration := randf_range(1.0, 1.6)
     var t := create_tween()
@@ -4933,7 +4933,7 @@ func _spawn_loaded_mote(loaded: int) -> void:
     t.tween_property(mote, "position:y", mote.position.y - rise, duration) \
             .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
     t.tween_property(mote, "position:x",
-            mote.position.x + randf_range(-LOADED_MOTE_DRIFT_X, LOADED_MOTE_DRIFT_X), duration)
+            mote.position.x + randf_range(-SURGE_MOTE_DRIFT_X, SURGE_MOTE_DRIFT_X), duration)
     t.tween_property(mote, "modulate:a", peak_alpha, duration * 0.3)
     t.tween_property(mote, "modulate:a", 0.0, duration * 0.45).set_delay(duration * 0.55)
     t.chain().tween_callback(mote.queue_free)
@@ -4988,10 +4988,10 @@ const OVERCHARGE_EMBER_ALPHA_MAX := 0.70
 const OVERCHARGE_EMBER_RISE_MIN := 34.0
 const OVERCHARGE_EMBER_RISE_MAX := 62.0
 const OVERCHARGE_EMBER_DRIFT_X := 11.0
-# Same warmth as the Loaded sparks and for the same measured reason: an ember in the die's own
+# Same warmth as the Surge sparks and for the same measured reason: an ember in the die's own
 # accent vanishes inside the die's own light field.
 const OVERCHARGE_EMBER_WARMTH := 0.82
-# Matches LOADED_MOTE_Z_INDEX - in front of the die face (z 1), under DiceInk (4), the socket
+# Matches SURGE_MOTE_Z_INDEX - in front of the die face (z 1), under DiceInk (4), the socket
 # panels (8) and the ROLL button (10).
 const OVERCHARGE_EMBER_Z_INDEX := 2
 const OVERCHARGE_EMBER_GROUP := "overcharge_ember"
@@ -5318,7 +5318,7 @@ func _on_overcharge_ember_timer_timeout() -> void:
             else OVERCHARGE_EMBER_INTERVAL_T2
     # start() rather than assigning wait_time - a Timer re-arms with the OLD value before it
     # emits, so a tier change would otherwise take a full extra cycle to show up (same trap
-    # the Loaded mote timer documents).
+    # the Surge mote timer documents).
     _overcharge_ember_timer.start(interval)
     if _overcharge_tier < OVERCHARGE_EMBER_MIN_TIER:
         return

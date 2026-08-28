@@ -1,11 +1,11 @@
-[gd_resource type="Resource" script_class="LoadedStatus" load_steps=3 format=3 uid="uid://cl0aded5tatu5"]
+[gd_resource type="Resource" script_class="SurgeStatus" load_steps=3 format=3 uid="uid://c5urge5tatu55"]
 
-[ext_resource type="Script" path="res://statuses/loaded.gd" id="1_loaded"]
+[ext_resource type="Script" path="res://statuses/surge.gd" id="1_surge"]
 [ext_resource type="Texture2D" uid="uid://bvb66opsumnuj" path="res://gpt_blessed_status.png" id="2_icon"]
 
 [resource]
-script = ExtResource("1_loaded")
-id = "loaded"
+script = ExtResource("1_surge")
+id = "surge"
 type = 0
 stack_type = 1
 can_expire = false

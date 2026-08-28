@@ -74,8 +74,8 @@ func in_hand_roll_bonus(dice_type: String) -> int:
             bonus += 2
         if in_hand(IN_HAND_RED_AURA_PLUS):
             bonus += 3
-    # Dead Weight is Loaded 1 while held, and Loaded applies to every type. The + keeps the
-    # same Loaded 1 and adds its Strength through in_hand_damage_bonus() instead.
+    # Dead Weight is Surge 1 while held, and Surge applies to every type. The + keeps the
+    # same Surge 1 and adds its Strength through in_hand_damage_bonus() instead.
     if in_hand(IN_HAND_DEAD_WEIGHT) or in_hand(IN_HAND_DEAD_WEIGHT_PLUS):
         bonus += 1
     return bonus
@@ -598,7 +598,7 @@ var no_reset: bool = false
 # reset_run_state() for run hygiene.
 var thrown_dice_bonus_fight := 0
 
-# LOADED: a flat Power bonus added to EVERY roll, unlike Boost (next_roll_modifier) which is
+# SURGE: a flat Power bonus added to EVERY roll, unlike Boost (next_roll_modifier) which is
 # consumed by one roll. The status badge is display only - the effect has to live here because
 # dice.gd reads it inside _apply_roll_result (same split as Emanation's fight-scoped global).
 # Fight-scoped: reset by battle.gd::start_battle() alongside ink_active AND in reset_run_state().
@@ -606,7 +606,7 @@ var thrown_dice_bonus_fight := 0
 # rainbow archetype - Spectrum reads its size, the Prismatic Lens relic fires at 4. Turn-scoped:
 # cleared by player_handler.gd::start_turn next to dice_amount_rolled_this_turn.
 var dice_types_rolled_this_turn := {}
-# Natural 6s rolled this FIGHT (the rolled face itself, never a Boosted/Loaded 5->6). Drives
+# Natural 6s rolled this FIGHT (the rolled face itself, never a Boosted/Surge 5->6). Drives
 # Jackpot and Effigy. Fight-scoped: reset by battle.gd::start_battle alongside ink_active.
 var sixes_rolled_this_fight := 0
 
@@ -642,7 +642,7 @@ const IN_HAND_DEAD_WEIGHT_PLUS := "card_dead_weight_plus"
 
 # Talisman, held: every NATURAL 6 you roll grants this much Block. Read by dice.gd at the
 # same `last_roll == 6` check Jackpot and Effigy already key off, so all three agree on what
-# a "6" is (a rolled face, never a Boosted or Loaded 5->6).
+# a "6" is (a rolled face, never a Boosted or Surge 5->6).
 const TALISMAN_SIX_BLOCK := 3
 const TALISMAN_PLUS_SIX_BLOCK := 5
 
@@ -654,10 +654,10 @@ var reroll_types := {}
 # plays every socketed card in order.
 var red_socket_capacity := 1
 
-var loaded_amount := 0
-# The slice of loaded_amount that expires at the start of the next turn ("Loaded N this turn").
-# LoadedStatus.apply_status() subtracts it and zeroes this - see statuses/loaded.gd.
-var loaded_expiring := 0
+var surge_amount := 0
+# The slice of surge_amount that expires at the start of the next turn ("Surge N this turn").
+# SurgeStatus.apply_status() subtracts it and zeroes this - see statuses/surge.gd.
+var surge_expiring := 0
 
 # Golem Dice (internal type "even"): unspent dice roll over into the next turn instead of
 # being lost. Captured from the leftover count on player_turn_ended and consumed by
@@ -802,8 +802,8 @@ func reset_run_state() -> void:
     power_generated_this_turn = 0
     no_reset = false
     thrown_dice_bonus_fight = 0
-    loaded_amount = 0
-    loaded_expiring = 0
+    surge_amount = 0
+    surge_expiring = 0
     dice_types_rolled_this_turn = {}
     sixes_rolled_this_fight = 0
     face_overrides = {}

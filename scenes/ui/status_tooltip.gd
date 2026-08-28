@@ -28,7 +28,7 @@ func get_tooltip_content(status: Status) -> void:
     match status.id:
         "absorb":
             text = "At the end of its turn, this enemy gains Strength equal to your last roll."
-        "loaded":
+        "surge":
             text = "Your Dice rolls gain that much bonus Power."
         "canalize":
             # Read off CanalizeStatus's own constants rather than retyped here - same reason as

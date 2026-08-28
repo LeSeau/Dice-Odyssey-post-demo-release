@@ -5,7 +5,7 @@ extends Status
 # for its per-six damage. The sixes payoff aimed at a single target (Jackpot is the whole-fight
 # lump); buying an Evil die - 75% sixes - is what turns this into a machine gun.
 #
-# Keyed on Global.last_roll, the face actually rolled, so a Boosted or Loaded 5->6 never
+# Keyed on Global.last_roll, the face actually rolled, so a Boosted or Surge 5->6 never
 # counts - the same ruling Arcane and Critical Edge already follow. dice_rolled carries the
 # ACCUMULATED power, not the face, which is exactly why it can't be used for the check.
 

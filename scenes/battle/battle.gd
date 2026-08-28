@@ -206,8 +206,8 @@ func start_battle() -> void:
     Global.gargantua_debuff_attack_done = false
     Global.ink_active = false
     Global.thrown_dice_bonus_fight = 0
-    Global.loaded_amount = 0
-    Global.loaded_expiring = 0
+    Global.surge_amount = 0
+    Global.surge_expiring = 0
     Global.dice_types_rolled_this_turn = {}
     Global.sixes_rolled_this_fight = 0
     Global.face_overrides = {}

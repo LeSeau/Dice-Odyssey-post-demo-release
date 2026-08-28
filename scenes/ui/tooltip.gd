@@ -56,7 +56,7 @@ func get_tooltip_content(requirement):
         text += "You have 1 less Blue Dice next turn for each stack."
     elif requirement == "Energized":
         text += "You have 1 more Blue Dice next turn."
-    elif requirement == "Loaded":
+    elif requirement == "Surge":
         text += "Your Dice rolls gain that much bonus Power."
     elif requirement == "Exposed":
         text += "Take 50% more damage. Wears off by 1 each turn."

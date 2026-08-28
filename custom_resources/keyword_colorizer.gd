@@ -39,7 +39,7 @@ static var power_glyph_mode := PowerGlyphMode.WORD_WITH_GLYPH
 # system already reads in tooltip.gd::get_tooltip_content(), so tagging a card/relic for
 # tooltip purposes also makes it eligible for colorized keywords, with no separate bookkeeping.
 const KEYWORDS: Array[String] = [
-    "Charge", "Refuel", "Scout", "Boost", "Throw", "Loaded", "Reroll", "Weak", "Exposed", "Lucky",
+    "Charge", "Refuel", "Scout", "Boost", "Throw", "Surge", "Reroll", "Weak", "Exposed", "Lucky",
     "Unlucky", "Depleted", "Energized", "Strength", "Muscle", "Exhaust", "Support", "REST",
     "Blue Dice", "Red Dice", "Pixie Dice", "Ricochet Dice", "Golem Dice", "Evil Dice",
     "Giant Dice", "Magma Dice", "Mech Dice",

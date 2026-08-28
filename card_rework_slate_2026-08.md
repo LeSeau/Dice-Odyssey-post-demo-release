@@ -37,7 +37,7 @@ Files stay on disk per convention; they're removed from `warrior_draftable_cards
 | **Cursed Toss** | throw a Golem Dice | throw an **Evil Dice**<br>**Cursed Toss+ → 2 Evil Dice** | throw / sixes — 75% six, 25% crack-for-0; a free Celestial *should* gamble, and the art is already a purple cursed figure |
 | **Rupture** | Min 6: X dmg + Exposed 2 | **Deal X damage. The enemy takes 3 damage each time you roll a Dice this turn** | volume / payoff — ⚠️ **ROLL, not throw** (confirmed). Inverts sequencing: play at 0 Power, then roll *into* it. Fills volume's single-target gap |
 | **Dominance** | Min 10: Exposed 2 AoE + X Block | **Min 8: Deal X damage, twice against Exposed enemies** | **exposed / payoff** — this is the card previously drafted as "Open Wound". Reworked **in place** (keeps name, art, uid, pool slot); Exposed had 4 applicators and 0 payoffs |
-| **Supplication** | Celestial: if no Dice left, Charge 3 Pixie | **Charge 2 Pixie Dice. Gain Loaded 1** | lowroll / enabler — ⚠️ **the one item Julien never explicitly ruled on** (asked twice). Proceeding on his original complaint (*"the requirement is annoying… I like the idea of giving pixie dice though"*). Blocked on Loaded, so it lands in Batch 2 — easy to veto before then |
+| **Supplication** | Celestial: if no Dice left, Charge 3 Pixie | **Charge 2 Pixie Dice. Gain Surge 1** | lowroll / enabler — ⚠️ **the one item Julien never explicitly ruled on** (asked twice). Proceeding on his original complaint (*"the requirement is annoying… I like the idea of giving pixie dice though"*). Blocked on Surge, so it lands in Batch 2 — easy to veto before then |
 
 ### 1.3 Rarity move (1)
 
@@ -82,12 +82,12 @@ Files stay on disk per convention; they're removed from `warrior_draftable_cards
 | **Kaleidoscope** | *No requirement:* this turn, switching Dice types does not reset your Power | aoe / enabler — the fair-sized Attunement |
 | **Reservoir** | *Blessing:* when a card resets your Power, keep 5 | chain / engine |
 
-### 2.2 Needs the Loaded status (2 cards)
+### 2.2 Needs the Surge status (2 cards)
 
 | name | text | rung |
 |---|---|---|
-| **Loaded 2** | *No requirement:* gain Loaded 2 this turn | volume / enabler |
-| **Loaded 1** | *Min 5:* gain Loaded 1 for the rest of combat | volume / enabler |
+| **Surge 2** | *No requirement:* gain Surge 2 this turn | volume / enabler |
+| **Surge 1** | *Min 5:* gain Surge 1 for the rest of combat | volume / enabler |
 
 ### 2.3 Needs a dice-type counter (2 + 1 relic)
 
@@ -109,7 +109,7 @@ Files stay on disk per convention; they're removed from `warrior_draftable_cards
 |---|---|
 | **In-hand Red aura** | While this is in your hand, your Red Dice rolls gain 3 bonus Power | ⚠️ needs a real *play* effect too, so holding is a choice — and a visual held-state or nobody believes it works |
 | **Talisman** | While in hand: your dice cannot roll their lowest face. *Play:* reroll your last roll |
-| **Dead Weight** | While in hand: Loaded 1. Cannot be played. Exhausts at end of turn |
+| **Dead Weight** | While in hand: Surge 1. Cannot be played. Exhausts at end of turn |
 
 ### 2.6 Needs die-ability grafting (1 card)
 
@@ -140,7 +140,7 @@ Files stay on disk per convention; they're removed from `warrior_draftable_cards
 - **Rule-breakers:** Attunement, Cascade, Perfect Memory, Blood Pact.
 - **Roll/dice manipulators:** Humility, Fortune's Favor, Fine Tuning, Escalation, Whetstone,
   Wild Die, Rewind, Resonance, Dice Tower.
-- **Payoffs:** Ritual Scars, Colossus, Executioner's Mark, Loaded Dice.
+- **Payoffs:** Ritual Scars, Colossus, Executioner's Mark, Ringer.
 - **Families:** Steady Grip, Echo Socket, Spellbreaker, Full Spectrum.
 - **Runic Bones as a *card*** — resolved by changing the relic directly instead (§1.4).
 
@@ -154,7 +154,7 @@ conscious re-look after playtest.
 
 | system | needed by | cost |
 |---|---|---|
-| **Loaded status** (rename dormant `Infused` → `Loaded`; +N Power per roll) | Loaded 1/2, Dead Weight, Supplication | **Cheap** — mirror of enemy Weak through the same modifier path, sign flipped. Only live user of `Infused` is Rainbow, which isn't in the pool. ⚠️ Must show in the next-roll/Scout panel (Boost's "+N" badge rides here) and must **not** change natural-face triggers (Arcane 6, Gnome 1, Octet 8, Critical Edge) — same ruling already made for Boost |
+| **Surge status** (rename dormant `Infused` → `Surge`; +N Power per roll) | Surge 1/2, Dead Weight, Supplication | **Cheap** — mirror of enemy Weak through the same modifier path, sign flipped. Only live user of `Infused` is Rainbow, which isn't in the pool. ⚠️ Must show in the next-roll/Scout panel (Boost's "+N" badge rides here) and must **not** change natural-face triggers (Arcane 6, Gnome 1, Octet 8, Critical Edge) — same ruling already made for Boost |
 | **Distinct dice types rolled this turn** | Rainbow nuke, Fluorescent relic | Trivial — a Set in Global, cleared on turn start |
 | **Sixes rolled this fight** | Jackpot, Effigy | One fight-scoped counter. Thrown 6s should count (consistent with Hunting Bow) |
 | **Rolls-since-played tracking** | Rupture | A short-lived status on the target listening to `dice_rolled` — the Sigil/Parasite pattern |
@@ -174,25 +174,25 @@ conscious re-look after playtest.
 Cut Perpetual Motion / Spark / Low Profile; Earthquake→Rare; Necromancy; Rampart; Cursed Toss
 (+ its `+`); Dominance→Exposed payoff; Runic Bones→draw 2. **Closed the Exposed payoff hole.**
 
-**Batch 2 — ✅ Loaded status + both cards DONE 2026-08-16, verified
+**Batch 2 — ✅ Surge status + both cards DONE 2026-08-16, verified
 (`debug_batch2_check.tscn`, 29/29), NOT playtested.** Pool 77 → 79.
-- `Global.loaded_amount` + `loaded_expiring`, reset at both run and fight scope
-- `statuses/loaded.gd` / `loaded.tres` — replaces the dormant `Infused` (which was a one-shot
+- `Global.surge_amount` + `surge_expiring`, reset at both run and fight scope
+- `statuses/surge.gd` / `surge.tres` — replaces the dormant `Infused` (which was a one-shot
   "+2 next roll", i.e. a second Boost, reachable only from out-of-pool Rainbow). START_OF_TURN
   so the turn slice expires and the badge resyncs; INTENSITY so the count shows; never
   self-expires; hides at 0
-- `dice.gd::_apply_roll_result` adds it **after** every natural-face trigger, so a Loaded roll
+- `dice.gd::_apply_roll_result` adds it **after** every natural-face trigger, so a Surge roll
   can't fake a natural 6/1/8 for Arcane / Gnome / Octet / Critical Edge
-- **Weighted Dice** (Common, ungated) "Gain Loaded 2 this turn"
-- **Loaded Dice** (Uncommon, Min 5) "Gain Loaded 1 for the rest of combat"
+- **Weighted Dice** (Common, ungated) "Gain Surge 2 this turn"
+- **Ringer** (Uncommon, Min 5) "Gain Surge 1 for the rest of combat"
 - **Supplication: CUT** (Julien, asked at implementation time). The "no Dice left" gate *was*
   its cost — dropping it left a Celestial, keeps-Power card that charges dice for free, and
   neither of the two ways to re-price it (make it a normal Skill, or keep it free but Exhaust)
-  was worth keeping. Pixie charging survives on Shattering; Loaded now has two dedicated cards.
+  was worth keeping. Pixie charging survives on Shattering; Surge now has two dedicated cards.
 - ⚠️ **Dead Weight is NOT in this batch** — it also needs in-hand passives, so it moved to
   Batch 5. (The original batch list was wrong about this.)
 - Placeholder art recycled from the cuts: `low_profile.png` (Weighted Dice),
-  `perpetual_motion.png` (Loaded Dice). `spark.png` is still free.
+  `perpetual_motion.png` (Ringer). `spark.png` is still free.
 
 **Batch 3 — ✅ DONE 2026-08-16, verified (`debug_batch3_check.tscn`, 36/36), NOT playtested.**
 Pool 78 → 81, rares 10 → 12.
@@ -272,9 +272,9 @@ on screen.**
 
 | # | test | why it could fail |
 |---|---|---|
-| 1 | **Loaded**: play Weighted Dice, roll, confirm Power jumps by +2 per roll and the badge reads 2 | The whole status is new. If the badge shows but Power doesn't move, the dice.gd hook is misplaced |
-| 2 | **Loaded expiry**: play Weighted Dice, end turn — badge must drop to 0/vanish next turn. With Loaded Dice (Min 5) too: 3 this turn → 1 next | The trickiest logic in the batch; the badge has to resync *downward* |
-| 3 | **Loaded must NOT fake natural faces**: with Loaded up, roll a natural 5 on infused Blue — Arcane's AoE must **not** fire. Same for Gnome (1), Octet (8), Critical Edge | Explicitly coded for; if wrong, every face trigger becomes unreliable |
+| 1 | **Surge**: play Weighted Dice, roll, confirm Power jumps by +2 per roll and the badge reads 2 | The whole status is new. If the badge shows but Power doesn't move, the dice.gd hook is misplaced |
+| 2 | **Surge expiry**: play Weighted Dice, end turn — badge must drop to 0/vanish next turn. With Ringer (Min 5) too: 3 this turn → 1 next | The trickiest logic in the batch; the badge has to resync *downward* |
+| 3 | **Surge must NOT fake natural faces**: with Surge up, roll a natural 5 on infused Blue — Arcane's AoE must **not** fire. Same for Gnome (1), Octet (8), Critical Edge | Explicitly coded for; if wrong, every face trigger becomes unreliable |
 | 4 | **Red rolls fire the new triggers**: with Effigy on an enemy, roll a **Red** 6 — it must take 8. Same for Rupture's bleed and the Prismatic Lens counter | `dice_rolled` is *not emitted for Red*. Handled, but this is the trap most likely to have been missed somewhere |
 | 5 | **Red Edge**: play it, then open the dice tray and Scout — Red must show **3/4/5/6** everywhere (roll, Scout preview, thrown Red) | Four consumers of the face list must agree; a mismatch means Scout lies |
 | 6 | **Counterfeit**: on Blue, faces become 2,3,4,5,6,**6** — check the second 6 renders (same texture twice) | Face textures are loaded by `"<type><value>.png"`; duplicates are new |
@@ -303,8 +303,8 @@ on screen.**
   strongest thing in the four batches.
 - **Kaleidoscope + Spectrum** — keep the chain *and* go rainbow. The combo flagged as dangerous.
 - **Second-socket-free Red decks** generally: Red now has a full ladder for the first time.
-- **Loaded vs Exact** — your original worry. Loaded 1–2 should still allow Exact play; the
-  Loaded engine deck is meant to be walking away from Exact.
+- **Surge vs Exact** — your original worry. Surge 1–2 should still allow Exact play; the
+  Surge engine deck is meant to be walking away from Exact.
 - **Pool at 90** with 12 rares. Draft variety, and whether the 16 new cards actually show up.
 
 ### Tier 4 — quick sanity
@@ -324,7 +324,7 @@ Kaleidoscope keeps Power across a type switch.
 | **Second socket** | Second card socket on the Red Dice; one roll fires **both** | Socket state is singular throughout `dice.gd` / `card_released_state.gd` (`socketed_card_ui`, `charged_card_instance_id`, one drop area). Much the biggest job here |
 | **In-hand Red aura** | While in hand, your Red Dice rolls gain 3 bonus Power | In-hand passive system + a visual held-state. Needs a real *play* effect too, so holding is a choice |
 | **Talisman** | While in hand: dice cannot roll their lowest face. *Play:* reroll your last roll | Same system + the face-edit layer (which now exists) |
-| **Dead Weight** | While in hand: Loaded 1. Cannot be played. Exhausts at end of turn | Same system. Loaded already exists |
+| **Dead Weight** | While in hand: Surge 1. Cannot be played. Exhausts at end of turn | Same system. Surge already exists |
 | **Blue reroll** | *Blessing:* your Blue Dice gain the reroll ability | Die-ability grafting. Opens "any die can borrow any die's power" as a family |
 
 **Systems (3):**
@@ -337,7 +337,7 @@ Kaleidoscope keeps Power across a type switch.
 - **Tray counter readout** (deferred from Batch 3) — dice rolled this turn / types this turn.
   The count-based cards currently rely on their own resolved descriptions.
 - **14 cards have no `+` upgrade version** and so cannot be upgraded at a campfire: Artillery,
-  Cadence, Counterfeit, Effigy, Greed, Hoard, Jackpot, Kaleidoscope, Loaded Dice, Red Edge,
+  Cadence, Counterfeit, Effigy, Greed, Hoard, Jackpot, Kaleidoscope, Ringer, Red Edge,
   Reservoir, Socketless Red, Spectrum, Weighted Dice.
 - **Placeholder art** on all 16 new cards (recycled from cuts). `spark.png` still free.
 - **The trim pass you flagged** — "I'll cut boring cards after". Pool is 90.
