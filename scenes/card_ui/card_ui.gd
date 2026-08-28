@@ -1143,7 +1143,13 @@ func reapply_playable_visual() -> void:
 func _on_dice_rolled_update_description(_a = null, _b = null) -> void:
     if card and card.has_method("get_dynamic_description"):
         _prune_stale_targets()
-        var aimed_target: Node = targets[0] if not targets.is_empty() else null
+        # Same single-target collapse Card.play() performs, so when two hitboxes overlap under
+        # the cursor the previewed number is computed against the enemy that will actually be
+        # hit - not just whichever body entered the aim probe first.
+        var aim_candidates: Array[Node] = targets
+        if card.is_single_targeted():
+            aim_candidates = card.pick_single_target(targets)
+        var aimed_target: Node = aim_candidates[0] if not aim_candidates.is_empty() else null
         # Same requirement scope Card.play() opens around apply_effects(): a relic that
         # boosts one gate's cards (Worm's Eye Lens -> Max) is read inside
         # ModifierHandler.get_modified_value, so without this the PREVIEW would quietly

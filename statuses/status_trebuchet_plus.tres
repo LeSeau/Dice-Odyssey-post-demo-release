@@ -12,6 +12,6 @@ can_expire = false
 duration = 0
 stacks = 0
 icon = ExtResource("2_icon")
-tooltip = "Your thrown Dice deal 3 more damage"
+tooltip = "Your thrown Dice deal 4 more damage"
 hide_when_zero = false
 hide_counter_when_zero = false

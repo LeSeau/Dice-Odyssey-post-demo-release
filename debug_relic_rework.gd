@@ -130,7 +130,7 @@ func _check_rarity_and_text() -> void:
 	var texts := {
 		"war_horn": "Red Dice",
 		"fuel_gauge": "20 Power",
-		"sixth_gear": "4 Power",   # nerfed 2026-08-24, second pass (was 6 Power)
+		"sixth_gear": "6 Power",   # retuned 2026-08-28: every 8 dice for 6 Power
 		"pilot_light": "3 Power",
 		"metronome": "20 damage",
 		"hunting_bow": "3 damage",
@@ -263,21 +263,21 @@ func _scenario_counters() -> void:
 	Global.fight_dice_rolled = 0
 	Global.roll_value = 0
 	_add("sixth_gear")
-	for i in 5:
+	for i in 7:
 		_fake_roll("blue", 1)
 	var before: int = Global.roll_value
-	check("Sixth Gear: silent for the first 5 dice", true, "power %d" % before)
+	check("Sixth Gear: silent for the first 7 dice", true, "power %d" % before)
 	_fake_roll("blue", 1)
-	check("Sixth Gear: 6th die of the FIGHT grants 4 Power (nerfed 2026-08-24, was 6)",
-			Global.roll_value == before + 4, "delta %d" % (Global.roll_value - before))
+	check("Sixth Gear: 8th die of the FIGHT grants 6 Power (retuned 2026-08-28)",
+			Global.roll_value == before + 6, "delta %d" % (Global.roll_value - before))
 	# The old version was per-turn; a turn boundary must NOT reset the count now.
 	Global.dice_amount_rolled_this_turn = 0
-	for i in 5:
+	for i in 7:
 		_fake_roll("blue", 1)
 	before = Global.roll_value
 	_fake_roll("blue", 1)
-	check("Sixth Gear: 12th die pays even across a turn boundary",
-			Global.roll_value == before + 4, "delta %d" % (Global.roll_value - before))
+	check("Sixth Gear: 16th die pays even across a turn boundary",
+			Global.roll_value == before + 6, "delta %d" % (Global.roll_value - before))
 	await _remove("sixth_gear")
 
 	Global.fight_dice_rolled = 0

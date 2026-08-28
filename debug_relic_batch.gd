@@ -410,16 +410,16 @@ func _scenario_chain_and_count() -> void:
 	# Counts across the FIGHT since 2026-08-24, not per turn - so the counter that matters
 	# is fight_dice_rolled. See debug_relic_rework.gd for the turn-boundary case.
 	_add("sixth_gear")
-	Global.fight_dice_rolled = 4
+	Global.fight_dice_rolled = 6
 	Global.roll_value = 0
-	_fake_roll("blue", 3)  # 5th of the fight
-	check("Sixth Gear: 5th die grants nothing", Global.roll_value == 0)
-	_fake_roll("blue", 3)  # 6th of the fight
-	check("Sixth Gear: 6th die grants 4 Power (nerfed 2026-08-24, was 6)",
-			Global.roll_value == 4, str(Global.roll_value))
-	Global.roll_value = 0
-	_fake_roll("blue", 3)  # 7th
+	_fake_roll("blue", 3)  # 7th of the fight
 	check("Sixth Gear: 7th die grants nothing", Global.roll_value == 0)
+	_fake_roll("blue", 3)  # 8th of the fight
+	check("Sixth Gear: 8th die grants 6 Power (retuned 2026-08-28)",
+			Global.roll_value == 6, str(Global.roll_value))
+	Global.roll_value = 0
+	_fake_roll("blue", 3)  # 9th
+	check("Sixth Gear: 9th die grants nothing", Global.roll_value == 0)
 	await _remove("sixth_gear")
 
 
