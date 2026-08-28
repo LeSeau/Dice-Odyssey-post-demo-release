@@ -9,6 +9,15 @@ extends Node
 # brightness profile in the clear corridors either side of the die and demands that the
 # outer band overtake the inner one partway through. A pulse that only pulses fails.
 #
+# Since 2026-08-28 the pulse fires on Events.dice_charge_delivered - the volley's LAST
+# delivered die LANDING in its slot - not on dice_charged. So the harness runs two ways:
+#   * A/B (physics of the front) keep flights DISABLED. With no node in group "ui_layer"
+#     the interface takes its no-flight fallback and announces delivery immediately, which
+#     keeps the pulse the only thing moving in the measured field. Flying dice, their mote
+#     trails and the launch flare would all land inside the very corridors A4/A5 sample.
+#     Do NOT "fix" this by adding a ui_layer to _build_stage - it wrecks A4/A5.
+#   * C/D (timing of the trigger) ENABLE flights and exercise the real shipped path.
+#
 # Run (checks):
 #   Godot_v4.3-stable_win64_console.exe --path . res://debug_charge_pulse.tscn
 #       --rendering-driver opengl3 --position 2000,2000
@@ -33,9 +42,57 @@ const ROW_SIZE := Vector2(160, 72)
 var vp: SubViewport
 var dice: Control
 var dice_interface: Control
+var ui_layer: Control      # in group "ui_layer" only while flights are enabled - see header
 var out_dir := ""
 var checks := 0
 var fails := 0
+var delivered_count := 0   # Events.dice_charge_delivered tally (exactly-once check)
+
+
+# Group membership is the switch the interface actually reads, so toggling it is how the
+# harness chooses between "real delivery flights" and "instant no-flight fallback".
+func _set_flights_enabled(enabled: bool) -> void:
+	if ui_layer == null:
+		return
+	if enabled and not ui_layer.is_in_group("ui_layer"):
+		ui_layer.add_to_group("ui_layer")
+	elif not enabled and ui_layer.is_in_group("ui_layer"):
+		ui_layer.remove_from_group("ui_layer")
+
+
+func _on_delivered(_type: String, _count: int) -> void:
+	delivered_count += 1
+
+
+# get_shader_parameter returns null until a uniform has actually been ASSIGNED once, even
+# when the shader declares a default - reading one straight into a typed float throws
+# before the run's first pulse (the documented "shader params must be seeded" trap).
+func _param_f(mat: ShaderMaterial, param: String) -> float:
+	var v = mat.get_shader_parameter(param)
+	return 0.0 if v == null else float(v)
+
+
+# Polls the front every frame for `ms` of REAL time (wall clock, so the volley's hit-stop
+# cannot stall the loop) and reports when it first woke up plus how often it restarted.
+# A radius that jumps backwards is a NEW front: gust_radius is tweened .from(GUST_START)
+# each time, so a reset is unambiguous even while the previous front is still decaying.
+func _watch_front(mat: ShaderMaterial, ms: int) -> Dictionary:
+	var t0 := Time.get_ticks_msec()
+	var first := -1
+	var peak := 0.0
+	var resets := 0
+	var prev_r := _param_f(mat, "gust_radius")
+	while Time.get_ticks_msec() - t0 < ms:
+		await get_tree().process_frame
+		var g := _param_f(mat, "gust")
+		var r := _param_f(mat, "gust_radius")
+		peak = maxf(peak, g)
+		if first < 0 and g > 0.05:
+			first = Time.get_ticks_msec() - t0
+		if r < prev_r - 20.0:
+			resets += 1
+		prev_r = r
+	return {"first_ms": first, "peak": peak, "resets": resets}
 
 
 func _check(name: String, ok: bool, detail: String = "") -> void:
@@ -115,6 +172,14 @@ func _build_stage(parent: Node) -> void:
 	# dice.gd reads the group to derive the shader's row-clearance bounds.
 	dice_interface.add_to_group("dice_interface")
 
+	# Flight host. Deliberately NOT in group "ui_layer" yet: the A/B measurement blocks need
+	# an empty field (see header), and _set_flights_enabled() opts in for C/D.
+	ui_layer = Control.new()
+	ui_layer.name = "HarnessUILayer"
+	ui_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ui_layer.size = Vector2(VIEW)
+	parent.add_child(ui_layer)
+
 	dice = (load("res://scenes/dices/dice.tscn") as PackedScene).instantiate()
 	parent.add_child(dice)
 	dice.position = DIE_POS
@@ -150,6 +215,7 @@ func _ready() -> void:
 	vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	add_child(vp)
 	_build_stage(vp)
+	Events.dice_charge_delivered.connect(_on_delivered)
 
 	await _settle(30)
 	# Measurement scenarios run at Power 0: the aura swirl and lick field animate every
@@ -243,18 +309,56 @@ func _ready() -> void:
 	_check("B2 count ladder raises the front", b_peak_gust > peak_gust,
 			"c1=%.2f c3=%.2f" % [peak_gust, b_peak_gust])
 
-	# ---------- C: same-frame multi-type volley collapses to one front ----------
-	await _settle(50)
+	# ---------- C: same-frame multi-type volleys each get their OWN front ----------
+	# This check used to assert the opposite. Before 2026-08-28 both charges pulsed at CAST
+	# time, one frame apart, so the 110ms cooldown swallowed the second and one front was
+	# correct. Now the interface sequences volleys (>= CHARGE_STAGGER apart) and the pulse
+	# rides each LANDING, so a multi-type charge is MEANT to read as bam-bam in two colors.
+	# Restarts are counted off gust_radius jumping backwards: it is tweened .from(GUST_START)
+	# every pulse, so a reset is unambiguous even while the previous front is still decaying.
+	_set_flights_enabled(true)
+	await _settle(60)
 	Events.dice_charged.emit("magma", 1)
-	await get_tree().process_frame
-	var r_after_first: float = mat.get_shader_parameter("gust_radius")
 	Events.dice_charged.emit("evil", 1)
-	await get_tree().process_frame
-	var r_after_second: float = mat.get_shader_parameter("gust_radius")
-	_check("C1 volley cooldown does not restart the front",
-			r_after_second >= r_after_first,
-			"%.1f -> %.1f" % [r_after_first, r_after_second])
-	await _settle(50)
+	var c_watch: Dictionary = await _watch_front(mat, 2600)
+	_check("C1 sequenced volleys each fire their own front",
+			int(c_watch["resets"]) >= 2,
+			"fronts=%d peak=%.2f" % [int(c_watch["resets"]), float(c_watch["peak"])])
+
+	# ---------- D: the trigger itself - does the pulse WAIT for the delivery? ----------
+	# D1 is the whole point of the 2026-08-28 retiming. With 3 dice the last one lands at
+	# roughly stagger*2 + birth + flight = ~0.95s, so a front that wakes up inside the first
+	# ~0.4s means something is still firing at cast time.
+	await _settle(90)
+	Events.dice_charged.emit("magma", 3)
+	var d_watch: Dictionary = await _watch_front(mat, 3000)
+	var d_first := int(d_watch["first_ms"])
+	_check("D1 pulse waits for the landing, not the cast",
+			d_first > 400 and d_first < 3000,
+			"first gust at %d ms (peak %.2f)" % [d_first, float(d_watch["peak"])])
+
+	# D2: the arrival callback and the interface's own failsafe timer both race to announce
+	# the delivery. The window deliberately outlasts that timer (flight total + 1.0s) so a
+	# double-fire - which would double-pulse every charge in the game - shows up here.
+	await _settle(90)
+	delivered_count = 0
+	Events.dice_charged.emit("blue", 2)
+	var t_d2 := Time.get_ticks_msec()
+	while Time.get_ticks_msec() - t_d2 < 3500:
+		await get_tree().process_frame
+	_check("D2 exactly one delivery per volley (failsafe never doubles)",
+			delivered_count == 1, "emitted=%d" % delivered_count)
+
+	# D3: with no ui_layer nothing can fly, so the payoff moment is immediately - otherwise
+	# every harness and boot context would lose the charge pulse entirely.
+	_set_flights_enabled(false)
+	await _settle(30)
+	delivered_count = 0
+	Events.dice_charged.emit("magma", 1)
+	await _settle(12)
+	_check("D3 no-flight fallback still cues the die", delivered_count == 1,
+			"emitted=%d" % delivered_count)
+	await _settle(40)
 
 	print("[charge-pulse] done: %d checks, %d FAIL -> %s" % [checks, fails, out_dir])
 	get_tree().quit(1 if fails > 0 else 0)
@@ -262,14 +366,18 @@ func _ready() -> void:
 
 func _run_movie_pass() -> void:
 	_build_stage(self)
+	# The strip exists to show the NEW phrase - launch flare, flight, rising plinks, then
+	# clack + kick + freeze + gust on one beat - so the visual pass needs real flights and
+	# beats long enough to contain a whole delivery (~1s) plus its pulse.
+	_set_flights_enabled(true)
 	await get_tree().create_timer(0.8).timeout
 	dice._on_active_dice_changed("blue")
 	_set_power(6, [4, 2])
 	await get_tree().create_timer(0.8).timeout
 	print("[charge-pulse-movie] beat A (magma x1) frame ", Engine.get_frames_drawn())
 	Events.dice_charged.emit("magma", 1)
-	await get_tree().create_timer(1.6).timeout
+	await get_tree().create_timer(2.8).timeout
 	print("[charge-pulse-movie] beat B (blue x3) frame ", Engine.get_frames_drawn())
 	Events.dice_charged.emit("blue", 3)
-	await get_tree().create_timer(1.8).timeout
+	await get_tree().create_timer(3.0).timeout
 	get_tree().quit()

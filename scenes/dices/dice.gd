@@ -518,7 +518,7 @@ const AURA_REACH_MAX := 0.45
 const AURA_WAVE_SPEED_MULT_MAX := 1.9  # swirl runs ~90% faster at full charge
 const AURA_HEAT_MAX := 1.0  # shader's own 0.55 blend cap keeps each die's base hue visible
 # How far the on-charge flash may push glow_reach above its banked-power level. Small by
-# design - see the comment at the reach_rise tweener in _on_dice_charged().
+# design - see the comment at the reach_rise tweener in _on_charge_delivered().
 const AURA_CHARGE_FLASH_REACH_BUMP := 0.05
 const AURA_CHARGE_FULL_AT_POWER := 12.0  # used by the power-number crackle (_update_power_float), not the aura glow curve below
 # Aura glow curve shape: t = 1 - e^(-roll_value / AURA_CHARGE_SOFTNESS). ~10 lands power 5
@@ -576,8 +576,11 @@ const CHARGE_GUST_START := -10.0      # born just INSIDE the edge, so it emerges
 const CHARGE_GUST_PEAK := 0.95
 const CHARGE_GUST_RISE := 0.05        # amplitude snap; the decay owns the rest of the travel
 const CHARGE_GUST_COUNT_STEP := 0.05  # ladder: Charge 4 reads a little heavier than Charge 1
-# Same-frame multi-type volleys (Experiment, War Ritual) emit once per die - one front per
-# FRAME is plenty; N stacked fronts is the additive-overexposure trap.
+# Guard against N fronts stacking in one instant (the additive-overexposure trap). Since
+# 2026-08-28 the pulse fires on DELIVERY and same-frame multi-type volleys are sequenced by
+# the interface (>= CHARGE_STAGGER apart), so each volley legitimately gets its own tinted
+# front - that IS the multi-type reveal. This now only catches degenerate same-instant
+# deliveries, e.g. two no-flight fallbacks resolving in a single frame.
 const CHARGE_PULSE_COOLDOWN_MS := 110
 var _last_charge_pulse_ms := -10000
 var _charge_gust_tweens: Array[Tween] = []
@@ -787,7 +790,7 @@ func _ready():
     Events.reset_charged_card.connect(_on_reset_charged_card)
     Events.change_current_power.connect(_on_change_current_power)
     Events.next_roll_determined.connect(_on_next_roll_determined)
-    Events.dice_charged.connect(_on_dice_charged)
+    Events.dice_charge_delivered.connect(_on_charge_delivered)
     Events.put_ink_on_dice.connect(_on_put_ink_on_dice)
     Events.remove_ink_from_dice.connect(_on_remove_ink_from_dice)
     Events.display_next_roll_modifier.connect(_on_display_next_roll_modifier)
@@ -3039,7 +3042,7 @@ var _infused_aura_materials := {}
 
 # Infused dice get a recolored COPY of their type's aura material. NEVER mutate the
 # preloaded shared .tres directly - that's the exact bug the old "charge" animation had
-# (see _on_dice_charged): the 9 per-type ShaderMaterials are shared preloaded
+# (see _on_charge_delivered): the 9 per-type ShaderMaterials are shared preloaded
 # resources, so writing colors into one repaints it for the rest of the app session.
 func _resolve_aura_material(type: String, base_material: ShaderMaterial) -> ShaderMaterial:
     if not Global.is_dice_infused(type):
@@ -3055,7 +3058,18 @@ func _resolve_aura_material(type: String, base_material: ShaderMaterial) -> Shad
     return _infused_aura_materials[type]
 
 
-func _on_dice_charged(charged_type: String, count: int) -> void:
+# Fires on Events.dice_charge_delivered, i.e. when the volley's LAST delivered die LANDS
+# in its slot - not when the charge was cast (2026-08-28). Everything else in this game
+# that reads as impact follows "projectile lands -> receiver reacts" (the power orbs'
+# arrival reaction, the thrown-die bash); the charge pulse was the lone impact-sized effect
+# firing at LAUNCH, so it was an announcement with no payoff, over before the eye finished
+# following the flying dice to the row. Landing-timed, the phrase becomes a crescendo -
+# launch flare, flight, rising plinks, then clack + panel kick + hit-stop + THIS on one
+# beat - and the pulse now happens INSIDE the volley's hit-stop instead of being long dead
+# by it (the same freeze-frame miss the slash rework had to fix). Launch-time
+# responsiveness is carried by the delivery's own launch flare and sound (dice_interface).
+# The signal is emitted exactly once per volley, so nothing here needs its own de-dup.
+func _on_charge_delivered(charged_type: String, count: int) -> void:
     if count <= 0:
         return
     # Two DIFFERENT claims, deliberately split (Julien, 2026-08-14) - conflating them is
@@ -3143,6 +3157,10 @@ func _on_dice_charged(charged_type: String, count: int) -> void:
             .set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
     # ---- Everything past here is the OWNERSHIP claim: this die really did gain dice. ----
+    # Evaluated at LANDING time, so switching the active die mid-flight decides which claim
+    # fires. That is deliberate and more honest than snapshotting the type at cast time:
+    # the absorb ceremony says "the die you are looking at just took these in", and if you
+    # walked away from that die before they arrived, it did not. Do not snapshot.
     if charged_type != dice_type:
         return
 
