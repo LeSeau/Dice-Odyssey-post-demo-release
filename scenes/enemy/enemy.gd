@@ -116,10 +116,10 @@ func _ready() -> void:
     # Re-run the status row placement every time it re-lays out: the End Turn clamp needs
     # the row's width, which changes as statuses are gained and lost. Setting position
     # doesn't re-trigger a sort, so this can't loop.
-    status_handler.sort_children.connect(_update_status_row_x)
+    status_handler.sort_children.connect(_update_status_row_placement)
     # StatsUI is a Container too: its HealthBar only reaches its final x once the container
     # has sorted, and the status row is aligned to that bar.
-    stats_ui.sort_children.connect(_update_status_row_x)
+    stats_ui.sort_children.connect(_update_status_row_placement)
 
     # Per-enemy phase/speed jitter so multiple enemies on screen never breathe in
     # lockstep. Replaces the old AnimationPlayer phase-randomization trick - the idle
@@ -180,26 +180,38 @@ const MAX_ENEMY_WIDTH := 256.0
 const MAX_ENEMY_HEIGHT := 256.0
 
 # Keep the status-icon row clear of the End Turn button (BattleUI, bottom-right:
-# x 1022..1216, y 554..616 in the 1280x720 design space). The row grows rightward/down
-# from its start; on far-right, low enemies (Oculus, scaled multi-fights) it can reach
-# the button. We pull the row left by JUST enough to clear the button's left edge - never
-# to a fixed far-left x. The old fixed-970 yank detached right-side enemies' status far
-# left of their own body (the Plant's Strength landed next to the Skeleton, Oculus's in
-# the gap), so now we only clamp when the row actually INTERSECTS the button rect (both
-# axes), not merely "is somewhat right and somewhat low". Gargantua (row at gx 951) and
-# any status sitting above the button's y-band stay untouched. Screen-space constants:
-# the battle camera is identity on the 1280x720 design rect and enemy.gd has no clean
-# handle into the BattleUI CanvasLayer.
-# ⚠️ These MUST match EndTurnButton's rect in battle.tscn. They were 1060/592 and silently
-# went stale on 2026-08-15 when the button was made taller and inset further from the corner
-# (offsets -258/-166/-64/-104 -> rect x 1022..1216, y 554..616): the button moved 38px LEFT
-# and 38px UP, so the old numbers left a 38px band on each axis where a status row could
-# overlap it with the clamp believing everything was fine. Nothing errors when these drift -
-# the clamp just stops clamping. Re-check them whenever that button moves.
-const END_TURN_LEFT := 1022.0
-const END_TURN_TOP := 554.0
-const STATUS_ICON_EXTENT := 42.0  # 30px icon + the stack label hanging off its corner
-const STATUS_ROW_END_TURN_GAP := 8.0
+# x 1022..1216, y 554..616 in the 1280x720 design space). The row hangs below the HP bar
+# and grows rightward, so on right-side enemies it lands on the button's top-left corner -
+# and the button is on a CanvasLayer, so it DRAWS OVER the icons: the stack number, which
+# sits in the icon's bottom half, disappears entirely.
+# ⚠️ WHY THIS IS NOT A SIDEWAYS CLAMP ANY MORE (2026-08-24). It used to snap the row to
+# END_TURN_LEFT - width - gap, an ABSOLUTE x that ignored where the row started. The comment
+# here claimed it "pulls left by JUST enough", but the code did the flat yank it said had
+# been removed: every affected enemy's row landed on the SAME x (972 for a one-icon row),
+# 36-180px from its own bar. Measured on the shipped pool: 22 enemies across 19 fights, and
+# in tier_1_crab_satyr / tier_2_defender_satyr BOTH Satyrs' rows stacked on the identical
+# pixel, so you could not tell whose Strength was whose. The reported case was the Venom
+# Bloom in tier_2_plant_crab: bar at x 1062, its Strength badge parked at 972 on bare floor.
+# There is no honest sideways answer for those enemies - their bar's LEFT edge is already
+# inside the button's x-band, so NO x under the bar clears it. The dodge is therefore
+# VERTICAL: the row flips ABOVE its own bar, the only free space that still reads as
+# belonging to this enemy.
+# ⚠️ END_TURN_RECT MUST match EndTurnButton's rect in battle.tscn. It was 1060/592 and
+# silently went stale on 2026-08-15 when the button was made taller and inset further from
+# the corner (offsets -258/-166/-64/-104 -> x 1022..1216, y 554..616): the button moved 38px
+# LEFT and 38px UP, so the old numbers left a 38px band on each axis where a status row could
+# overlap it with the dodge believing everything was fine. Nothing errors when this drifts -
+# the dodge just stops dodging. Re-check it whenever that button moves. Screen-space because
+# the battle camera is identity on the 1280x720 design rect and enemy.gd has no clean handle
+# into the BattleUI CanvasLayer.
+const END_TURN_RECT := Rect2(1022.0, 554.0, 194.0, 62.0)
+# The authored StatusUI cell: a 30x30 Icon with the stack/duration label INSIDE it (that
+# label's own rect is y 15..30 of the same box - measured, not assumed). Only a floor, for
+# the case where the GridContainer's size is read mid-sort before it has laid out.
+const STATUS_ICON_EXTENT := 30.0
+const STATUS_ROW_ABOVE_GAP := 2.0
+# An above-bar row has to clear the body to be seen: Sprite2D is z 7, IntentUI is z 10.
+const STATUS_ROW_ABOVE_Z := 8
 
 # --- Enemy HUD scale (2026-07-24) ----------------------------------------------
 # The HP bar + status row are drawn SMALLER than their authored size. This is not
@@ -349,37 +361,55 @@ static func _get_content_rect(tex: Texture2D) -> Rect2:
 
 # Local x of the HP bar's LEFT EDGE; the status row starts there. Set by update_enemy().
 var _status_row_left_x: float = 17.0
+# Local y of the row's normal spot, just under the HP bar (enemy.tscn's authored 145 until
+# update_enemy() runs). Kept as a field so the End Turn dodge below can flip the row above
+# the bar and hand it back as statuses come and go, without recomputing the normal spot.
+var _status_row_below_y: float = 145.0
 
 
 # Status row starts at the HP bar's LEFT EDGE and grows rightward - the convention in every
 # comparable roguelike (Slay the Spire). Do NOT centre it: that was tried once and rejected.
-# Re-run whenever the row re-lays out, because the End Turn clamp below depends on the row's
-# width, which changes as statuses are gained and lost.
-func _update_status_row_x() -> void:
-    if status_handler == null:
+# Re-run whenever the row or the bar re-lays out, because the End Turn dodge depends on the
+# row's size, which changes as statuses are gained and lost.
+func _update_status_row_placement() -> void:
+    if status_handler == null or scale.x == 0.0 or scale.y == 0.0:
         return
-    var row_width: float = status_handler.size.x * status_handler.scale.x
+
     # Align to the VISIBLE red bar, not to StatsUI. StatsUI is a 206px HBoxContainer that
     # centres a 175px HealthBar (plus a Block icon at -25 separation) inside itself, so its
     # left edge sits ~11px LEFT of the bar the player actually sees - which is exactly the
     # "status starts too far left" everyone kept seeing. HealthBar's global position already
     # accounts for the bar's scale, so to_local() gives the right enemy-space x directly.
     var health_bar := stats_ui.get_node_or_null("Health/HealthBar") as Control
-    if health_bar != null and health_bar.size.x > 0.0:
-        status_handler.position.x = to_local(health_bar.global_position).x
-    else:
-        status_handler.position.x = _status_row_left_x
-    if scale.x == 0 or scale.y == 0:
+    var has_bar: bool = health_bar != null and health_bar.size.x > 0.0
+    # Always restart from the untouched spot, so a dodge taken while the row was wide is given
+    # back once it shrinks: this function is the only thing that ever moves the row.
+    status_handler.position.x = to_local(health_bar.global_position).x if has_bar else _status_row_left_x
+    status_handler.position.y = _status_row_below_y
+    status_handler.z_index = 0
+    if not has_bar:
         return
-    var row_left: float = global_position.x + status_handler.position.x * scale.x
-    var row_top: float = global_position.y + status_handler.position.y * scale.y
-    var status_extent: float = STATUS_ICON_EXTENT * STATUS_UI_SCALE
-    var hits_button := row_left + maxf(row_width, status_extent) > END_TURN_LEFT \
-        and row_top + status_extent > END_TURN_TOP
-    if hits_button:
-        var target_left: float = END_TURN_LEFT - maxf(row_width, status_extent) \
-            - STATUS_ROW_END_TURN_GAP
-        status_handler.position.x = (target_left - global_position.x) / scale.x
+
+    var bar_rect: Rect2 = health_bar.get_global_transform() * Rect2(Vector2.ZERO, health_bar.size)
+    var row_size: Vector2 = status_handler.size * status_handler.scale
+    row_size.x = maxf(row_size.x, STATUS_ICON_EXTENT * STATUS_UI_SCALE)
+    row_size.y = maxf(row_size.y, STATUS_ICON_EXTENT * STATUS_UI_SCALE)
+    var row := Rect2(status_handler.global_position, row_size)
+    if not row.intersects(END_TURN_RECT):
+        return
+
+    # Dodge UPWARD, never sideways. Sideways cannot work: for every enemy that hits the
+    # button, the bar's own LEFT edge is already inside the button's x-band, so no x under
+    # the bar clears it - which is why the old sideways clamp had to detach the row to do
+    # anything at all. A bounded "slide left only while the row stays under its own bar" was
+    # tried too, and it walks the row into the LEFT NEIGHBOUR's row (tier_0_satyrs_3 at three
+    # statuses), swapping one ownership bug for another. Above the bar there is no such
+    # competition: the row keeps its x, so two enemies' rows stay exactly as far apart as
+    # their bars. It also clears the Block badge, which straddles the bar's left edge and
+    # collides with anything parked on the bar itself (that was the other rejected attempt).
+    var above_top: float = bar_rect.position.y - row_size.y - STATUS_ROW_ABOVE_GAP
+    status_handler.position.y += (above_top - row.position.y) / scale.y
+    status_handler.z_index = STATUS_ROW_ABOVE_Z
 
 
 func update_enemy() -> void:
@@ -441,11 +471,11 @@ func update_enemy() -> void:
         # `size.y` is the AUTHORED height (32) - scaling doesn't change it, so the drawn
         # height must be applied by hand or the status row hangs too low.
         var stats_ui_drawn_height: float = stats_ui.size.y * bar_scale
-        status_handler.position.y = stats_ui.position.y + stats_ui_drawn_height - 8.0 + maxf(status_handler_y_offset, 0.0)
+        _status_row_below_y = stats_ui.position.y + stats_ui_drawn_height - 8.0 + maxf(status_handler_y_offset, 0.0)
         # Status row starts at the bar's LEFT EDGE (STS convention - never centred).
         # The bar shrinks about its own centre, so its left edge moves with bar_scale.
         _status_row_left_x = stats_ui.position.x + (stats_ui_width / 2.0) * (1.0 - bar_scale)
-        _update_status_row_x()
+        _update_status_row_placement()
         _name_label_local_y = stats_ui.position.y + stats_ui_drawn_height + 4
 
         # --- Intent: anchored to the real HEAD, and scaled to the body ------------------
