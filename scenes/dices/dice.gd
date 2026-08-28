@@ -2586,7 +2586,6 @@ func _on_player_turn_started() -> void:
     if socketed_card_ui != null:
         _on_cancel_red_card_pressed()
     if Global.starting_power_next_turn!=0:
-        print("almost there")
         Global.roll_value = Global.starting_power_next_turn
         Global.starting_power_next_turn = 0
     else:

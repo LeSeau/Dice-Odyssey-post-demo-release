@@ -413,6 +413,11 @@ var blessing_cast_any_roll: bool = false  # Prayer Beads - bypasses every Blessi
 # card for its upgraded_version when available, then resets itself. Set by
 # event_wandering_merchant.gd's browse option.
 var force_upgraded_card_rewards: bool = false
+# Power promised to the NEXT turn's opening (Compound/Compound+, the unpooled Tension,
+# the Stockpile statuses). Written during a turn, consumed exactly once by
+# dice.gd::_on_player_turn_started(). FIGHT-SCOPED: also reset by battle.gd::start_battle(),
+# because a promise made on the turn a fight ends never gets a turn to pay out and would
+# otherwise hand free Power to the opening turn of the next combat.
 var starting_power_next_turn = 0
 var is_removing_card = true
 var removing_card: bool = false

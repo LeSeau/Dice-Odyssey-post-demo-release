@@ -7,7 +7,7 @@
 [resource]
 script = ExtResource("2_script")
 id = "card_weighted_dice_plus"
-name = "Weighted Dice+"
+name = "Sleight+"
 type = 1
 target = 0
 description = "Gain Loaded 2 this turn"

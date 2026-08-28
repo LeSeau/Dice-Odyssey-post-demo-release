@@ -7,7 +7,7 @@
 [resource]
 script = ExtResource("2_script")
 id = "card_second_socket_plus"
-name = "Second Socket+"
+name = "Dual Cannon+"
 type = 2
 target = 0
 description = "Your Red Dice gains a second card socket. One roll plays both"
