@@ -39,6 +39,7 @@ func _ready() -> void:
     DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUT_DIR))
     await _run()
     await _run_shop()
+    await _run_deck_view()
     print("\n==== inspect overlay: %d passed, %d failed ====" % [_passes, _fails])
     get_tree().quit(1 if _fails > 0 else 0)
 
@@ -264,6 +265,93 @@ func _run_shop() -> void:
     _check("G10 left-click still buys", target.is_sold())
     _check("G11 a sold slot drops out of the inspect list",
         shop._cards_on_offer().size() == 4, "-> %d" % shop._cards_on_offer().size())
+
+
+# --- deck view --------------------------------------------------------------------------------
+# Third entry point. This screen HIDES itself rather than freeing, which is the trap the other
+# two do not have: a CanvasLayer child ignores hide() on its Control parent.
+func _run_deck_view() -> void:
+    var picks: Array[Card] = _pick_cards(4)
+    if picks.size() < 4:
+        _check("H0 pool gave 4 upgradable cards", false)
+        return
+
+    var vp := SubViewport.new()
+    vp.size = VIEWPORT_SIZE
+    vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+    add_child(vp)
+    _viewport = vp
+
+    var pile := CardPile.new()
+    var pile_cards: Array[Card] = []
+    for c in picks:
+        pile_cards.append(c)
+    # An ALREADY upgraded card: can_be_upgraded() is false, so the toggle must hide itself.
+    pile_cards.append(picks[0].upgraded_version)
+    pile.cards = pile_cards
+
+    var view: CardPileView = (load("res://scenes/ui/card_pile_view.tscn") as PackedScene).instantiate()
+    vp.add_child(view)
+    view.card_pile = pile
+    view.show_current_view("Your Deck")
+    await _settle(30)
+
+    _check("H0 deck view listed the pile", view._displayed_cards.size() == 5,
+        "-> %d" % view._displayed_cards.size())
+    var hint: Label = view.get_node_or_null("InspectHint") as Label
+    _check("H1 deck view hint exists", hint != null and hint.visible)
+    # Measure the ScrollContainer, not the MarginContainer: the latter is full-rect and its
+    # margins are internal padding, so its rect trivially contains everything on screen.
+    var grid_rect: Rect2 = (view.get_node(
+        "MarginContainer/VBoxContainer/ScrollContainer") as Control).get_global_rect()
+    _check("H2 deck hint clears the card grid",
+        not hint.get_global_rect().intersects(grid_rect),
+        "-> hint %s vs grid %s" % [hint.get_global_rect(), grid_rect])
+    await _shot("08_deck_view")
+
+    # Right-click the THIRD card so a wrong index cannot hide behind a default of 0.
+    var right := InputEventMouseButton.new()
+    right.button_index = MOUSE_BUTTON_RIGHT
+    right.pressed = true
+    view._on_card_gui_input(right, 2)
+    await _settle(30)
+
+    var overlay: Node = view._inspect_overlay
+    _check("H3 right-click opened the overlay in the deck view",
+        overlay != null and is_instance_valid(overlay))
+    if overlay == null:
+        return
+    _check("H4 pages the whole pile", overlay.cards.size() == 5, "-> %d" % overlay.cards.size())
+    _check("H5 opened on the clicked index",
+        overlay.index == 2 and overlay._card_menu.card == picks[2],
+        "-> index %d, %s" % [overlay.index, overlay._card_menu.card.name])
+    overlay._on_toggle_pressed()
+    await _settle(20)
+    _check("H6 upgrade preview works in the deck view",
+        overlay._card_menu.card == picks[2].upgraded_version,
+        "-> %s" % overlay._card_menu.card.name)
+    await _shot("09_deck_view_inspect_upgraded")
+
+    # Page to the already-upgraded card: nothing left to preview, so the toggle hides.
+    overlay._page(1)
+    overlay._page(1)
+    await _settle(20)
+    _check("H7 toggle hides on an already-upgraded card",
+        overlay.index == 4 and not overlay._toggle_button.visible,
+        "-> index %d, toggle %s" % [overlay.index, overlay._toggle_button.visible])
+    _check("H8 and it fell back to showing that card itself",
+        overlay._card_menu.card == picks[0].upgraded_version,
+        "-> %s" % overlay._card_menu.card.name)
+
+    # THE TRAP: Back hides this Control, and a CanvasLayer child ignores its parent's hide().
+    # Without the explicit teardown the overlay would stay painted over whatever comes next.
+    view._on_back_pressed()
+    await _settle(25)
+    _check("H9 Back tears the overlay down (CanvasLayer ignores parent hide)",
+        not is_instance_valid(overlay) and view._inspect_overlay == null)
+    _check("H10 view is hidden and the hint is restored for next time",
+        not view.visible and hint.visible)
+    await _shot("10_deck_view_after_back")
 
 
 func _pick_cards(count: int) -> Array[Card]:
