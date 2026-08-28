@@ -220,6 +220,58 @@ func _get_targets(targets: Array[Node]) -> Array[Node]:
             return []
 
 
+# Collapses a SINGLE_ENEMY card's target list down to exactly one enemy.
+#
+# Enemy hitboxes are a fixed-size rectangle (enemy.tscn's CollisionShape2D, never resized per
+# fight), so two bodies standing close enough overlap - and while the cursor sits in that shared
+# band, the aim selector's 4x4 probe area enters BOTH of them, leaving both in `targets`. Before
+# this, play() passed that whole array straight through for single-target cards, so one play
+# resolved against two enemies and hit them both. The tie-break is "whichever body you are most
+# on top of": nearest hitbox centre to the cursor.
+#
+# Lives on Card rather than in the aim selector so every play path funnels through it - the
+# drag-release play, the forced aim after a Red socket roll, and anything added later.
+func pick_single_target(targets: Array[Node]) -> Array[Node]:
+    var valid: Array[Node] = []
+    for candidate in targets:
+        if is_instance_valid(candidate):
+            valid.append(candidate)
+    if valid.size() <= 1:
+        return valid
+
+    # Node2D-space mouse, so this accounts for the battle camera rather than comparing a
+    # viewport coordinate against world positions.
+    var mouse: Vector2 = Vector2.ZERO
+    var reference := valid[0] as Node2D
+    if reference != null:
+        mouse = reference.get_global_mouse_position()
+
+    var best: Node = valid[0]
+    var best_distance: float = INF
+    for candidate in valid:
+        var distance: float = (_target_hitbox_centre(candidate) - mouse).length_squared()
+        if distance < best_distance:
+            best_distance = distance
+            best = candidate
+
+    var picked: Array[Node] = []
+    picked.append(best)
+    return picked
+
+
+func _target_hitbox_centre(target: Node) -> Vector2:
+    var node_2d := target as Node2D
+    if node_2d == null:
+        return Vector2.ZERO
+    # The Enemy root sits well left of its art (the Sprite2D is baked at x=124), so its own
+    # global_position is a poor stand-in for "where the body is" - the collision shape is the
+    # thing the cursor actually overlapped.
+    var shape := node_2d.get_node_or_null("CollisionShape2D") as Node2D
+    if shape != null:
+        return shape.global_position
+    return node_2d.global_position
+
+
 func play(targets: Array[Node], char_stats: CharacterStats, modifiers: ModifierHandler) -> void:
 
     Global.cards_played_this_turn+=1
@@ -229,7 +281,7 @@ func play(targets: Array[Node], char_stats: CharacterStats, modifiers: ModifierH
     # card's targets. Events.card_played only carries the Card itself, and a relic guessing
     # "all enemies" instead of the real target would be a materially stronger relic than the
     # one that was designed.
-    var resolved_targets := targets if is_single_targeted() else _get_targets(targets)
+    var resolved_targets: Array[Node] = pick_single_target(targets) if is_single_targeted() else _get_targets(targets)
     Global.last_played_card_targets = resolved_targets
     Events.card_played.emit(self)
     Events.check_ink_status.emit()
@@ -240,10 +292,9 @@ func play(targets: Array[Node], char_stats: CharacterStats, modifiers: ModifierH
     # a body still wants its "magic happened here" bloom, and there's no slash there.
     if type != Type.ATTACK:
         var particles = preload("res://scenes/card_ui/card_particles.tscn").instantiate()
-        var target_array = targets if is_single_targeted() else _get_targets(targets)
-        if target_array.size() > 0:
-            target_array[0].get_parent().add_child(particles)
-            particles.global_position = target_array[0].get_viewport().get_mouse_position()
+        if resolved_targets.size() > 0:
+            resolved_targets[0].get_parent().add_child(particles)
+            particles.global_position = resolved_targets[0].get_viewport().get_mouse_position()
             particles.play_effect(Global.roll_value, Global.dice_type)
     
     # Berserker infusion (Red act-2 infusion): the card socketed on the Red die deals 50%

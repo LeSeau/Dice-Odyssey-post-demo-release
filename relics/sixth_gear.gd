@@ -1,12 +1,15 @@
 extends Relic
 
-# Every 6th die of the FIGHT, not of the turn (Julien, 2026-08-24). The old per-turn version
+# Every 8th die of the FIGHT, not of the turn (Julien, 2026-08-24). The old per-turn version
 # only ever paid on a turn that reached six rolls, which meant it did nothing at all in a
 # deck that spreads its rolls across several smaller turns. Counting across the fight makes
 # it pay the same total either way, and it keeps paying in long fights.
+#
+# Retuned 2026-08-28 (Julien): 6 dice for 4 Power -> 8 dice for 6 Power. Same shape, rarer and
+# chunkier - the payout is now worth planning a turn around instead of quietly topping up a roll.
 
-const POWER_BONUS := 4
-const EVERY := 6
+const POWER_BONUS := 6
+const EVERY := 8
 
 
 func initialize_relic(owner: RelicUI) -> void:
@@ -32,8 +35,9 @@ func _on_dice_rolled(_dice_type: String, _roll_value: int, owner: RelicUI) -> vo
     Events.change_current_power.emit()
 
 
-# Cycles 1..6 and pays on the 6, rather than echoing fight_dice_rolled % 6 raw - that would
-# show "0" on the very roll that triggers the bonus instead of the "6" the player expects.
+# Cycles 1..EVERY and pays on the last one, rather than echoing fight_dice_rolled % EVERY raw -
+# that would show "0" on the very roll that triggers the bonus instead of the "8" the player
+# expects.
 func _update_counter(owner: RelicUI) -> void:
     var n: int = Global.fight_dice_rolled
     owner.counter.text = "0" if n == 0 else str(((n - 1) % EVERY) + 1)
