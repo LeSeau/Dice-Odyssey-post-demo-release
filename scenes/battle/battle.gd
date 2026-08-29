@@ -215,6 +215,7 @@ func start_battle() -> void:
     Global.last_rolled_type = ""
     Global.reroll_types = {}
     Global.red_socket_capacity = 1
+    Global.red_roll_pending_report = false
     Global.power_kept_on_reset = 0
     Global.socketless_red = false
     Global.socketless_red_strength = 0

@@ -3,9 +3,8 @@ extends Card
 # Toss a conjured Pixie Dice (d3): when it LANDS you draw that many cards (delayed to the
 # landing so the tumbling die stays honest - no number spoiler while it's in the air).
 # SUPPORT flag + no reset by construction: it's a card-advantage setup card, it doesn't
-# consume Power so it never resets it. The landed value is NOT appended to roll_history
-# (it isn't a die from your pool - Recombobulate shouldn't refund it), but it DOES count
-# as a rolled die via report_thrown_die_landed (counters + opt-in triggers).
+# consume Power so it never resets it. A thrown die is not a roll (2026-08-29): the landed
+# value never reaches roll_history, any roll counter, or any roll-triggered relic.
 
 
 func apply_effects(targets: Array[Node], _modifiers: ModifierHandler) -> void:

@@ -24,8 +24,6 @@ func initialize_relic(owner: RelicUI) -> void:
     # that includes Red would otherwise never be counted.
     if not Events.red_dice_rolled.is_connected(_on_red_dice_rolled):
         Events.red_dice_rolled.connect(_on_red_dice_rolled.bind(owner))
-    if not Events.dice_thrown_landed.is_connected(_on_dice_thrown_landed):
-        Events.dice_thrown_landed.connect(_on_dice_thrown_landed.bind(owner))
     if not Events.player_turn_started.is_connected(_on_player_turn_started):
         Events.player_turn_started.connect(_on_player_turn_started.bind(owner))
     _update_counter(owner)
@@ -36,10 +34,6 @@ func _on_dice_rolled(_dice_type: String, _roll_value: int, owner: RelicUI) -> vo
 
 
 func _on_red_dice_rolled(owner: RelicUI) -> void:
-    _check(owner)
-
-
-func _on_dice_thrown_landed(_dice_type: String, _value: int, owner: RelicUI) -> void:
     _check(owner)
 
 
@@ -91,7 +85,5 @@ func deactivate_relic(_owner: RelicUI) -> void:
         Events.dice_rolled.disconnect(_on_dice_rolled)
     if Events.red_dice_rolled.is_connected(_on_red_dice_rolled):
         Events.red_dice_rolled.disconnect(_on_red_dice_rolled)
-    if Events.dice_thrown_landed.is_connected(_on_dice_thrown_landed):
-        Events.dice_thrown_landed.disconnect(_on_dice_thrown_landed)
     if Events.player_turn_started.is_connected(_on_player_turn_started):
         Events.player_turn_started.disconnect(_on_player_turn_started)
