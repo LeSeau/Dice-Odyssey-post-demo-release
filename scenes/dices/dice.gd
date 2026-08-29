@@ -2477,6 +2477,10 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
     if dice_type != "red":
         Events.dice_rolled.emit(Global.dice_type, Global.roll_value)
     else:
+        # Arm the one-shot report token BEFORE the emit: whichever socketed CardUI handles
+        # red_dice_rolled first consumes it and re-emits dice_rolled, so a Red roll produces
+        # exactly one dice_rolled no matter how many cards are socketed (Dual Cannon).
+        Global.red_roll_pending_report = true
         Events.red_dice_rolled.emit()
         _fire_socketless_red()
     _check_sigil_trigger()
@@ -4725,7 +4729,12 @@ func _fire_socketless_red() -> void:
     # so without this emit the die is rolled for free forever (Julien, 2026-08-16: "doesn't use
     # the red dice"). Emitting it here also feeds the per-roll relics (Crown, Metronome) that a
     # socketless roll should count towards, exactly like the socketed path already does.
-    Events.dice_rolled.emit("red", Global.roll_value)
+    # No CardUI can have consumed the token here (an empty socket means none passed the
+    # charged-id gate), but consume it explicitly so the "exactly one per Red roll" rule
+    # holds structurally rather than by coincidence.
+    if Global.red_roll_pending_report:
+        Global.red_roll_pending_report = false
+        Events.dice_rolled.emit("red", Global.roll_value)
     # The roll was spent on the board instead of on a card, so it still ends the chain.
     Events.dice_roll_reset.emit()
 

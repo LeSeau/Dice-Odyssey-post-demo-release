@@ -3,15 +3,9 @@ var _already_triggered := false
 
 func initialize_relic(owner: RelicUI) -> void:
     Events.dice_rolled.connect(_on_dice_rolled.bind(owner))
-    # Thrown dice count toward the 10 (Julien, 2026-07-23): each landing goes through
-    # Global.report_thrown_die_landed, which increments fight_dice_rolled before emitting -
-    # same ordering as a real roll, so the body below reads the counter identically.
-    Events.dice_thrown_landed.connect(_on_dice_thrown_landed.bind(owner))
     Events.battle_started.connect(_on_battle_started.bind(owner))
     _update_counter(owner)
 
-func _on_dice_thrown_landed(dice_type: String, value: int, owner: RelicUI) -> void:
-    _on_dice_rolled(dice_type, value, owner)
 
 func _on_dice_rolled(dice_type: String, roll_value: int, owner: RelicUI) -> void:
     _update_counter(owner)
@@ -48,7 +42,5 @@ func _on_battle_started(owner: RelicUI) -> void:
 func deactivate_relic(owner: RelicUI) -> void:
     if Events.dice_rolled.is_connected(_on_dice_rolled):
         Events.dice_rolled.disconnect(_on_dice_rolled)
-    if Events.dice_thrown_landed.is_connected(_on_dice_thrown_landed):
-        Events.dice_thrown_landed.disconnect(_on_dice_thrown_landed)
     if Events.battle_started.is_connected(_on_battle_started):
         Events.battle_started.disconnect(_on_battle_started)

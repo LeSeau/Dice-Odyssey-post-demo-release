@@ -32,9 +32,19 @@ signal dice_thrown(throws: Array, origin: Vector2)
 # One thrown/conjured die finished resolving at its landing (emitted by
 # Global.report_thrown_die_landed, once per die). Deliberately separate from dice_rolled:
 # dice_interface decrements your active pool on dice_rolled and dozens of card scripts arm
-# "your next roll" effects on it - thrown dice must never touch those. A thrown die counts
-# as a die you ROLLED (volume counters, face-value triggers) but never joins the Power
-# chain; every listener here is an explicit opt-in (Julien, 2026-07-23).
+# "your next roll" effects on it - thrown dice must never touch those.
+#
+# ⚠️ A THROW IS NOT A ROLL (Julien, 2026-08-29). This signal means "a thrown die resolved",
+# nothing more. It does NOT mean a die was rolled, and it must never be used to feed a
+# roll counter or a roll-triggered relic/status/card. Between 2026-07-23 and 2026-08-29
+# eighteen listeners opted into it on the opposite ruling (Crown, Metronome, Sixth Gear,
+# Hunting Bow, Needle Die, Snake Eyes Charm, Underdog Ring, The One, Giant's Signet,
+# House Money, Jackpot Pin, Consolation Chip, Prismatic Lens, Effigy, Ruptured, Hardened
+# Grip, Greedy, card_ui's description refresh) - all of them were disconnected.
+#
+# It is kept, with zero listeners, as the hook for content that is deliberately ABOUT
+# throwing (the way Trebuchet's flat per-throw bonus is). If you connect something here,
+# it must be a throw payoff, not a roll payoff.
 signal dice_thrown_landed(dice_type: String, value: int)
 # Double or Nothing: visual-only coin toss from `origin`. The card resolves the outcome after
 # Global.COIN_FLIP_TIME on its own timer; this just animates the flip + reveal.

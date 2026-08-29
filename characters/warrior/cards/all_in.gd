@@ -32,9 +32,11 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
         # pipeline as Meteor/Dice Avalanche (dice.gd's Events.dice_thrown handler), so
         # each die rises, locks its face and slams in turn. The whole total lands as ONE
         # hit synced to the FINAL die's impact. Deliberately NOT per-die damage: that
-        # would multiply Strength by the dice count (balance question for Julien), and
-        # these dice do NOT report as "rolled" either - they're spent, not thrown rolls
-        # (standing per-relic audit, 2026-07-23).
+        # would multiply Strength by the dice count.
+        #
+        # This lump IS the card's own damage, so unlike a thrown die's raw face value it
+        # still takes Strength - keep it that way. The spent dice themselves report nothing
+        # (they never did), which is now simply the same rule every throw follows.
         if Global.berserker_boost_active and target is Enemy:
             # The Berserker ×1.5 flag is cleared by card.gd right after play - the hit
             # now lands seconds later, so bake the boost into the number up front.

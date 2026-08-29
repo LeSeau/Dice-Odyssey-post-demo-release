@@ -1,16 +1,14 @@
 class_name BowRelic
 extends Relic
 
-# Deals 3 damage to a random enemy whenever you roll a 6 (was 5, nerfed 2026-08-24:
-# thrown 6s feed it too, so Cursed Toss's 75%-sixes Evil die was turning it into a
-# per-turn nuke rather than a trickle).
+# Deals 3 damage to a random enemy whenever you roll a 6 (was 5, nerfed 2026-08-24 back when
+# thrown 6s fed it too and Cursed Toss's 75%-sixes Evil die turned it into a per-turn nuke).
+# Thrown dice stopped counting on 2026-08-29 - if this now feels like a trickle, 3 is the
+# number to revisit.
 
 func initialize_relic(owner: RelicUI) -> void:
     # Connect to the dice rolled event when the relic is added
     Events.dice_rolled.connect(_on_dice_rolled.bind(owner))
-    # Thrown 6s fire the bow too (Julien, 2026-07-23) - Cursed Toss's Evil die (75% sixes)
-    # is the big feeder. The landed value rides the signal (thrown dice never set last_roll).
-    Events.dice_thrown_landed.connect(_on_dice_thrown_landed.bind(owner))
     print("BowRelic: Connected to dice_rolled signal")
     print("initialize_relic called for ", relic_name)
 func _on_dice_rolled(dice_type: String, roll_value: int, owner: RelicUI) -> void:
@@ -21,10 +19,6 @@ func _on_dice_rolled(dice_type: String, roll_value: int, owner: RelicUI) -> void
 
     _fire_arrow(owner)
 
-func _on_dice_thrown_landed(_dice_type: String, value: int, owner: RelicUI) -> void:
-    if value != 6:
-        return
-    _fire_arrow(owner)
 
 func _fire_arrow(owner: RelicUI) -> void:
 
@@ -49,6 +43,4 @@ func deactivate_relic(owner: RelicUI) -> void:
     # Disconnect the event when the relic is removed
     if Events.dice_rolled.is_connected(_on_dice_rolled):
         Events.dice_rolled.disconnect(_on_dice_rolled)
-    if Events.dice_thrown_landed.is_connected(_on_dice_thrown_landed):
-        Events.dice_thrown_landed.disconnect(_on_dice_thrown_landed)
     print("bow was deactivated")

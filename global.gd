@@ -119,23 +119,27 @@ func current_face_values(dice_type: String) -> Array:
 
 
 # Called once per thrown/conjured die at the moment it LANDS (card.gd::_on_thrown_die_landed
-# plus the air-land callbacks in windfall/rampart/kickstart). Design line (Julien,
-# 2026-07-23): a thrown die counts as a die you ROLLED - fight/turn dice counters, the run
-# scoreboard, and the per-die opt-in triggers on Events.dice_thrown_landed (Crown, Snake
-# Eyes Charm, Hardened Grip, Greedy...) - but it never joins the Power chain: roll_value,
-# roll_history, last_roll and next-roll modifiers stay untouched (Recombobulate must not
-# refund it, a throw must not eat a Scouted roll).
+# plus the air-land callbacks in windfall/rampart).
+#
+# ⚠️ DESIGN LINE REVERSED 2026-08-29 (Julien: "differentiate throw from roll"). A thrown die
+# is NOT a die you rolled. It used to bump five roll counters here and fan out to eighteen
+# opt-in listeners; all of that is gone. A throw now does exactly three things, none of them
+# routed through this function: it deals its RAW face value, it picks up Trebuchet's
+# Global.thrown_dice_bonus_fight, and it takes the target's own DMG_TAKEN (Exposed).
+#
+# So a throw touches NONE of:
+#   fight_dice_rolled           (Tsunami, Crown, Metronome, Sixth Gear, Greedy)
+#   dice_amount_rolled_this_turn (Assault, Stampede, Turbo Mode)
+#   dice_types_rolled_this_turn  (Spectrum, Prismatic Lens)
+#   sixes_rolled_this_fight      (Jackpot)
+#   run_stat_dice_rolled         (end-run "Dice Rolled" scoreboard row)
+# ...on top of the Power chain it already stayed out of (roll_value, roll_history,
+# last_roll, next_roll_modifier - Recombobulate must not refund a throw, a throw must not
+# eat a Scouted roll), and on top of Strength/DMG_DEALT, excluded since 2026-08-20.
+#
+# The emit survives so throw-SPECIFIC content has a hook to hang on. Nothing in the game
+# listens to it today - see the events.gd contract comment before wiring anything new to it.
 func report_thrown_die_landed(dice_type: String, value: int) -> void:
-    fight_dice_rolled += 1
-    dice_amount_rolled_this_turn += 1
-    dice_types_rolled_this_turn[dice_type] = true
-    # A thrown 6 counts for Jackpot/Effigy, same as it already counts for Hunting Bow.
-    if value == 6:
-        sixes_rolled_this_fight += 1
-    # Same ordering as dice.gd's real-roll path: counter first, then the report/emit, so
-    # listeners read the already-incremented counters (Turbo Mode counts thrown dice too).
-    AchievementManager.report_dice_rolled_this_turn(dice_amount_rolled_this_turn)
-    run_stat_dice_rolled += 1
     Events.dice_thrown_landed.emit(dice_type, value)
 
 
@@ -343,6 +347,14 @@ var charged_card_instance_id: int = 0
 # Second Socket card works by appending rather than by rewriting the socket system.
 var charged_card_instance_ids: Array[int] = []
 var playing_red_card = false
+# ⚠️ ONE dice_rolled per Red roll. dice.gd emits red_dice_rolled (never dice_rolled) for Red;
+# the dice_rolled that every per-roll relic listens to is re-emitted later, by whichever
+# socketed CardUI handles the roll (card_ui.gd) or by _fire_socketless_red for Armageddon.
+# With TWO cards socketed (Dual Cannon) both CardUIs passed that gate, so a single Red roll
+# fired Hunting Bow / Snake Eyes / Needle Die / Underdog Ring / Metronome / Sixth Gear TWICE
+# while fight_dice_rolled only moved by one (measured 2026-08-29, debug_red_roll_counts).
+# dice.gd arms this when the Red roll resolves; the first emitter consumes it.
+var red_roll_pending_report := false
 var dragging_card = false
 var fight_turn = 0
 var fight_dice_rolled = 0

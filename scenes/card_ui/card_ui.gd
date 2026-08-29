@@ -425,9 +425,6 @@ func _ready() -> void:
     Events.dice_rolled.connect(_on_dice_rolled_update_description)
     Events.dice_roll_reset.connect(_on_dice_rolled_update_description)
     Events.change_current_power.connect(_on_dice_rolled_update_description)
-    # Thrown-die landings bump fight/turn dice counters (Tsunami, Stampede...) - refresh
-    # dynamic descriptions as each one lands so the numbers in hand never lag the counter.
-    Events.dice_thrown_landed.connect(_on_dice_rolled_update_description)
     if card:
         card_instance_id = card.instance_id
     
@@ -906,7 +903,13 @@ func _on_red_dice_rolled() -> void:
             Global.playing_red_card = false
             queue_free()
         
-        Events.dice_rolled.emit(Global.dice_type, Global.roll_value)
+        # ⚠️ Exactly ONE dice_rolled per Red roll. dice.gd never emits it for Red, so this is
+        # what every per-roll relic actually hears - and with two cards socketed (Dual Cannon)
+        # BOTH CardUIs reach this line for a single roll. The token, armed by dice.gd just
+        # before red_dice_rolled, makes the first one here the only one that reports.
+        if Global.red_roll_pending_report:
+            Global.red_roll_pending_report = false
+            Events.dice_rolled.emit(Global.dice_type, Global.roll_value)
         #Global.roll_value=0
         
 
