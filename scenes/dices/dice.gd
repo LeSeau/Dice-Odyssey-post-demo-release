@@ -2959,6 +2959,22 @@ func _on_change_current_power():
     var old_power := _last_shown_power
     var power_changed := Global.roll_value != old_power
 
+    # Power the player GAINED without rolling (Reinforce, Blaze, mech +1, a relic that pays
+    # out on a roll...) counts toward the turn's total, exactly like a roll does. Before
+    # 2026-08-29 only _apply_roll_result credited power_generated_this_turn, so Parasite and
+    # Crescendo - both of which are written as "Power generated this turn" - silently saw
+    # rolls only, and playing Reinforce moved neither.
+    #
+    # ⚠️ This cannot double count rolls: _apply_roll_result credits its own value and then
+    # calls _set_power_text, which syncs _last_shown_power, and it never emits this signal.
+    # So any rise still visible here is by definition non-roll power.
+    #
+    # Only RISES count. A reset, a dice-type switch or a Ricochet rewind must not subtract
+    # (the rewind restores power_generated_this_turn from its snapshot and re-syncs the text
+    # before emitting, so it reaches this line as a zero delta anyway).
+    if Global.roll_value > old_power:
+        Global.power_generated_this_turn += Global.roll_value - old_power
+
     _set_power_text(Global.roll_value)
     _check_sigil_trigger()
     Events.hover_playable_cards.emit()
