@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bq7rdx2parapow"]
+
+[ext_resource type="Script" path="res://debug_parasite_power.gd" id="1_dbgpp"]
+
+[node name="DebugParasitePower" type="Node"]
+script = ExtResource("1_dbgpp")
