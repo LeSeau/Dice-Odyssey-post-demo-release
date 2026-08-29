@@ -73,15 +73,24 @@ func _param_f(mat: ShaderMaterial, param: String) -> float:
 
 
 # Polls the front every frame for `ms` of REAL time (wall clock, so the volley's hit-stop
-# cannot stall the loop) and reports when it first woke up plus how often it restarted.
-# A radius that jumps backwards is a NEW front: gust_radius is tweened .from(GUST_START)
-# each time, so a reset is unambiguous even while the previous front is still decaying.
+# cannot stall the loop) and reports when it first woke up, how many distinct TINTS lit up,
+# and how often the radius restarted.
+#
+# `tints` is the load-bearing one and `resets` is only diagnostic. Counting a backwards jump
+# in gust_radius as "a new front" is how this used to work, and it is FLAKY (measured: 1 run
+# in 3) now that the detonation carries the volley hit-stop: how far the first front has
+# travelled by the time the second fires depends on how much game time the freeze ate, which
+# is real-time-dependent and varies per run. gust_color is set once per _fire_gust and each
+# volley in a multi-type charge is a different die type, so counting tint changes tests the
+# thing the check is actually about - bam-bam in two colours - without depending on timing.
 func _watch_front(mat: ShaderMaterial, ms: int) -> Dictionary:
 	var t0 := Time.get_ticks_msec()
 	var first := -1
 	var peak := 0.0
 	var resets := 0
+	var tints := 0
 	var prev_r := _param_f(mat, "gust_radius")
+	var prev_c: Color = Color(-1, -1, -1)
 	while Time.get_ticks_msec() - t0 < ms:
 		await get_tree().process_frame
 		var g := _param_f(mat, "gust")
@@ -91,8 +100,13 @@ func _watch_front(mat: ShaderMaterial, ms: int) -> Dictionary:
 			first = Time.get_ticks_msec() - t0
 		if r < prev_r - 20.0:
 			resets += 1
+		if g > 0.05:
+			var c: Color = mat.get_shader_parameter("gust_color")
+			if c != null and (prev_c.r < 0.0 or not c.is_equal_approx(prev_c)):
+				tints += 1
+				prev_c = c
 		prev_r = r
-	return {"first_ms": first, "peak": peak, "resets": resets}
+	return {"first_ms": first, "peak": peak, "resets": resets, "tints": tints}
 
 
 func _check(name: String, ok: bool, detail: String = "") -> void:
@@ -314,16 +328,17 @@ func _ready() -> void:
 	# time, one frame apart, so the 110ms cooldown swallowed the second and one front was
 	# correct. Now the interface sequences volleys (>= CHARGE_STAGGER apart) and the pulse
 	# rides each LANDING, so a multi-type charge is MEANT to read as bam-bam in two colors.
-	# Restarts are counted off gust_radius jumping backwards: it is tweened .from(GUST_START)
-	# every pulse, so a reset is unambiguous even while the previous front is still decaying.
+	# Counted off gust_color changing, not off the radius restarting - see _watch_front for
+	# why the radius signal went flaky once the hit-stop moved onto the detonation.
 	_set_flights_enabled(true)
 	await _settle(60)
 	Events.dice_charged.emit("magma", 1)
 	Events.dice_charged.emit("evil", 1)
 	var c_watch: Dictionary = await _watch_front(mat, 2600)
 	_check("C1 sequenced volleys each fire their own front",
-			int(c_watch["resets"]) >= 2,
-			"fronts=%d peak=%.2f" % [int(c_watch["resets"]), float(c_watch["peak"])])
+			int(c_watch["tints"]) >= 2,
+			"tints=%d radius-resets=%d peak=%.2f" % [int(c_watch["tints"]),
+					int(c_watch["resets"]), float(c_watch["peak"])])
 
 	# ---------- D: the trigger itself - does the pulse WAIT for the delivery? ----------
 	# D1 is the whole point of the 2026-08-28 retiming. With 3 dice the last one lands at
@@ -359,6 +374,69 @@ func _ready() -> void:
 	_check("D3 no-flight fallback still cues the die", delivered_count == 1,
 			"emitted=%d" % delivered_count)
 	await _settle(40)
+
+	# ---------- E: the wind-up beat (round 3, 2026-08-29) ----------
+	# Julien: "it feels rushed... instantly after the charged dice goes to the dice
+	# interface we get a very fast pulse. I want dice goes to dice interface, very small
+	# anticipation, boom! pulse. And more of a strong shockwave than a fast pulse."
+	# So three separate things have to stay true, and each has its own way of silently
+	# regressing:
+	#   E1 the bang is NOT on the landing frame (delete the delay -> this drops to ~0 ms)
+	#   E2 the front and the absorb punch are ONE bang (they were 0.30s apart before, each
+	#      driven by its own timing constant - the whole reason it read as two events)
+	#   E3 the front HOLDS at peak instead of blinking (drop CHARGE_GUST_HOLD -> the
+	#      plateau collapses from ~0.13s to ~0.03s of game time)
+	# E3 is measured in GAME seconds, not wall clock: the detonation fires its own
+	# hit-stop, and in real time that freeze smears the decay curve enough that a
+	# hold-less front still lingers near peak for a couple of hundred ms. Measured against
+	# the clock the tween itself runs on, the plateau is unambiguous. (A first version of
+	# this check used wall clock and PASSED against the negative control - i.e. it proved
+	# nothing at all.)
+	# Flights stay disabled so delivery is immediate and t0 IS the landing frame.
+	_set_flights_enabled(false)
+	dice._on_active_dice_changed("blue")
+	_set_power(6, [4, 2])
+	await _settle(60)
+	var e_rest: Vector2 = dice.dice_display.scale
+	var e_gust_ms := -1
+	var e_punch_ms := -1
+	var e_samples: Array = []
+	var e_game_t := 0.0
+	Events.dice_charged.emit("blue", 2)
+	var e_t0 := Time.get_ticks_msec()
+	while Time.get_ticks_msec() - e_t0 < 1600:
+		await get_tree().process_frame
+		e_game_t += get_process_delta_time()  # scaled by the hit-stop, i.e. tween time
+		var ms := Time.get_ticks_msec() - e_t0
+		var g := _param_f(mat, "gust")
+		e_samples.append([ms, g, e_game_t])
+		if e_gust_ms < 0 and g > 0.05:
+			e_gust_ms = ms
+		if e_punch_ms < 0 and dice.dice_display.scale.x > e_rest.x * 1.10:
+			e_punch_ms = ms
+	var e_peak := 0.0
+	for sample in e_samples:
+		e_peak = maxf(e_peak, float(sample[1]))
+	var e_hold_first := -1.0
+	var e_hold_last := -1.0
+	for sample in e_samples:
+		# 0.995 and not 0.9: a QUAD ease-in decay leaves the value within 10% of peak for
+		# ~0.14s all by itself, so a loose threshold cannot tell a plateau from a curve.
+		if float(sample[1]) >= e_peak * 0.995:
+			if e_hold_first < 0.0:
+				e_hold_first = float(sample[2])
+			e_hold_last = float(sample[2])
+	var e_hold_span := (e_hold_last - e_hold_first) if e_hold_first >= 0.0 else 0.0
+	# Wall-clock, and the window is generous on the late side on purpose: the detonation
+	# fires its own hit-stop, so everything after it is stretched by the freeze.
+	_check("E1 the bang waits out a wind-up beat after the landing",
+			e_gust_ms > 120 and e_gust_ms < 450, "gust at %d ms" % e_gust_ms)
+	_check("E2 front and absorb punch are one bang",
+			e_punch_ms >= 0 and absf(float(e_punch_ms - e_gust_ms)) < 160.0,
+			"gust=%d ms punch=%d ms" % [e_gust_ms, e_punch_ms])
+	_check("E3 the front holds at peak instead of blinking",
+			e_hold_span >= 0.07,
+			"peak=%.2f plateau %.0f ms of game time" % [e_peak, e_hold_span * 1000.0])
 
 	print("[charge-pulse] done: %d checks, %d FAIL -> %s" % [checks, fails, out_dir])
 	get_tree().quit(1 if fails > 0 else 0)

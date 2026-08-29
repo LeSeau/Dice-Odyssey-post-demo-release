@@ -46,8 +46,10 @@ const CHARGE_TRAIL_INTERVAL_MS := 16  # real-time mote throttle along the arc
 # back to doing its actual job - saying precisely WHERE the dice landed - instead of shouting.
 const CHARGE_ARRIVAL_MOTES := 6         # per die; the final die of a volley gets ~1.8x
 const CHARGE_GHOST_BRIGHTNESS := 2.4    # >= ~1.9 or it is invisible at speed (documented)
-const CHARGE_HIT_STOP_SCALE := 0.05     # how HARD the freeze is (the visibility factor)
-const CHARGE_HIT_STOP_COOLDOWN_MS := 350  # keeps chained volleys from stuttering
+# NOTE: the volley hit-stop used to live here, on the arrival frame. It moved to dice.gd
+# (2026-08-29) because the eruption now happens a beat LATER than the landing, and two
+# freezes that close together read as stutter rather than weight. Its scale/cooldown
+# constants moved with it.
 const CHARGE_LAUNCH_SOUND := preload("res://chargedicesound.mp3")
 const CHARGE_ARRIVE_SOUND := preload("res://sfx/578807__nomiqbomi__pluck-1.mp3")
 const CHARGE_FINAL_SOUND := preload("res://sounds/dicerollsound3.mp3")
@@ -103,7 +105,6 @@ var _nudge_nodes: Array = []
 # update_selected_highlight must skip them or it would stomp the held alpha.
 var _materializing_slots: Array = []
 var _panel_kick_tween: Tween    # tracked: overlapping arrivals restart the kick, never stack
-var _last_hit_stop_ms := -99999
 var _charge_sound_frame := -1   # coalesce the launch sound across same-frame charge events
 var _charge_volley_frame := -1  # sequence same-frame volleys (multi-type charges) instead of
 var _charge_volley_delay := 0.0 # flying them on top of each other
@@ -965,11 +966,12 @@ func _on_charge_die_arrived(icon: TextureRect, charged_type: String, accent: Col
     var final_die := index == total - 1
     if final_die:
         SFXPlayer.play(CHARGE_FINAL_SOUND, false, 1.3, -8.0)
-        # THE beat (2026-08-28): the big die's gust/flash/absorb hangs off this, so the
-        # eruption lands on the same frame as the clack, the panel kick and the hit-stop
-        # below instead of firing at launch and being over before anything arrived.
-        # Emitted BEFORE the hit-stop so the listener's tweens are built in the same frame
-        # the freeze starts - the gust's bright rise then plays out inside it, on purpose.
+        # THE cue (2026-08-28): the big die's gust/flash/absorb hangs off this instead of
+        # firing at launch, where it was over before anything had arrived. Since 2026-08-29
+        # the listener does NOT bang on this frame - it winds up for
+        # CHARGE_PULSE_ANTICIPATION and detonates after, and it owns the volley's hit-stop
+        # too, so the freeze lands on the eruption rather than here (see dice.gd). This
+        # frame is still the impact of the DELIVERY: clack, panel kick, slot flash, motes.
         _emit_charge_delivered(charged_type, full_count, token)
     if reveal:
         _finish_slot_materialize(_slot_for_type(charged_type), charged_type)
@@ -994,16 +996,6 @@ func _on_charge_die_arrived(icon: TextureRect, charged_type: String, accent: Col
     # volley, which competes with the shockwave for "this is the big moment".
     if final_die:
         _kick_panel(0.04 + 0.01 * float(mini(total, 4)))
-    if final_die:
-        # Only the LAST arrival freezes - one hit-stop per volley, scaled by how much
-        # landed. Per-die freezes would read as stutter, not weight. The cooldown covers
-        # the other stutter source: a multi-type charge (Experiment, War Ritual) is N
-        # separate one-die volleys, which would otherwise chain N freezes back to back.
-        var now := Time.get_ticks_msec()
-        if now - _last_hit_stop_ms >= CHARGE_HIT_STOP_COOLDOWN_MS:
-            _last_hit_stop_ms = now
-            Shaker.hit_stop(clampf(0.05 + 0.012 * float(total), 0.05, 0.11),
-                    CHARGE_HIT_STOP_SCALE)
 
 
 # Die-silhouette flash over the slot (die_halo_texture follows the square die shape) -

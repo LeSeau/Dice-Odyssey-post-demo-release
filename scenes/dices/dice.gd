@@ -569,14 +569,50 @@ var _charge_flash_tween: Tween
 # Round 2 drives a CONSTANT-WIDTH front through the emanation shader instead, so the wave
 # is made of the die's own light field: the licks lean outward and flare as it passes
 # (the "gust"), and a bright front rides out along the die silhouette. Still contained -
-# it dies ~0.8 die-widths out - so the 2026-08-14 "too much intensity & too fast" verdict
+# it dies inside its own light pool, roughly half a die-width past the edge (see round 3
+# below for the current number) - so the 2026-08-14 "too much intensity & too fast" verdict
 # stays respected; what changed is that the travel is now legible at all.
-const CHARGE_GUST_TIME := 0.44        # die edge -> full extent
-const CHARGE_GUST_REACH := 62.0       # px beyond the silhouette (contained)
-const CHARGE_GUST_START := -10.0      # born just INSIDE the edge, so it emerges from the die
-const CHARGE_GUST_PEAK := 0.95
-const CHARGE_GUST_RISE := 0.05        # amplitude snap; the decay owns the rest of the travel
-const CHARGE_GUST_COUNT_STEP := 0.05  # ladder: Charge 4 reads a little heavier than Charge 1
+#
+# ROUND 3 (2026-08-29, Julien): "it feels rushed atm, like instantly after the charged dice
+# goes to the dice interface we get a very fast pulse. I want more dice goes to dice
+# interface, very small anticipation, boom! pulse. And more of a strong shockwave than a
+# fast pulse." Two separate fixes, and neither is a number tweak on its own:
+#   TIMING  - the front used to fire on the same frame the last die landed, so the clack,
+#             the panel kick and the eruption were one undifferentiated bang. There is now
+#             a wind-up beat (CHARGE_PULSE_ANTICIPATION) between the landing and the
+#             detonation: the converging particle ring collapses inward and the aura dips
+#             (an inhale) during it, then everything erupts on one later frame. The absorb
+#             ceremony already had exactly this shape internally (squash -> hold -> punch)
+#             and just happened to punch 0.3s AFTER the front - now both land together.
+#   WEIGHT  - the shipped variant used to be the FAST one (travel x0.78). That is the exact
+#             quality being complained about, so "punchy" now means heavier and wider, not
+#             quicker: longer travel, more reach, higher amplitude, and a HOLD at peak so
+#             the front has body instead of blinking. The width/travel ratio still respects
+#             the round-1 lesson (a front as thick as its travel reads as a breath).
+const CHARGE_PULSE_ANTICIPATION := 0.22  # landing -> detonation. The wind-up beat.
+# Roughly when the inward-converging particle ring reaches the die centre at speed_scale 1
+# (emission radius 85px under ~1500px/s^2 of inward accel). The ring is time-scaled so its
+# arrival always lands ON the detonation - it IS the visible anticipation, so it must not
+# still be falling in after the bang.
+const CHARGE_PARTICLE_CONVERGE := 0.33
+const CHARGE_AURA_INHALE := 0.78      # how far the aura dims during the wind-up
+const CHARGE_GUST_TIME := 0.50        # die edge -> full extent (was 0.34 shipped: too quick to read)
+const CHARGE_GUST_REACH := 78.0       # px beyond the silhouette (still contained, see rect note)
+const CHARGE_GUST_START := -14.0      # born just INSIDE the edge, so it emerges from the die
+const CHARGE_GUST_PEAK := 1.02
+const CHARGE_GUST_RISE := 0.045       # amplitude snap
+const CHARGE_GUST_HOLD := 0.10        # peak HOLD - this is what turns a blink into a wave front
+const CHARGE_GUST_COUNT_STEP := 0.06  # ladder: Charge 4 reads a little heavier than Charge 1
+const CHARGE_GUST_PEAK_CAP := 1.35    # under the uniform ceiling on purpose - a saturated
+                                      # front loses the lick texture that keeps it organic
+# The volley freeze moved here from dice_interface (2026-08-29). It belongs on the loudest
+# moment, and the loudest moment is now the detonation, not the landing 0.22s earlier. Two
+# freezes that close apart read as stutter, so the landing keeps its clack/kick/flash and
+# this owns the time distortion. Cooldown mirrors the one it replaced: a multi-type charge
+# is N separate one-die volleys and must not chain N freezes.
+const CHARGE_HIT_STOP_SCALE := 0.05
+const CHARGE_HIT_STOP_COOLDOWN_MS := 350
+var _last_charge_hit_stop_ms := -99999
 # Guard against N fronts stacking in one instant (the additive-overexposure trap). Since
 # 2026-08-28 the pulse fires on DELIVERY and same-frame multi-type volleys are sequenced by
 # the interface (>= CHARGE_STAGGER apart), so each volley legitimately gets its own tinted
@@ -3146,16 +3182,32 @@ func _on_charge_delivered(charged_type: String, count: int) -> void:
     # PLUS one contained wavefront (2026-08-25, _spawn_charge_pulse below - Julien asked
     # for the eruption to be felt). A big screen-crossing shockwave was tried in 2026-08
     # and rejected: "too much intensity & too fast". The wavefront must stay a contained
-    # pulse AT the die - do not grow its travel or stack more fronts.
-    animation_player.play("charge")  # aura scale kick (peak ~0.1s, settle ~0.55s)
-    _spawn_charge_pulse(charged_type, count)
+    # pulse AT the die - do not grow its travel far or stack more fronts.
+    #
+    # ---- WIND-UP: landing -> CHARGE_PULSE_ANTICIPATION ----
+    # The converging particle ring starts NOW and is the anticipation the player actually
+    # sees; the eruption is scheduled one beat later (see the round-3 note on the consts).
+    # Nothing here may be loud - if the wind-up competes with the bang there is no bang.
     var burst_material := gpu_particles_2d.process_material as ParticleProcessMaterial
     if burst_material:
         burst_material.color = DicePalette.burst(charged_type, 0.35)
+    # Time-scaled so the ring lands ON the detonation instead of still falling inward
+    # after it. speed_scale, not a lifetime edit: lifetime lives in the authored .tscn
+    # sub-resource and the emitter is re-used every volley.
+    gpu_particles_2d.speed_scale = CHARGE_PARTICLE_CONVERGE \
+            / maxf(CHARGE_PULSE_ANTICIPATION, 0.05)
     # restart(), not `emitting = true`: on a one_shot emitter that assignment is a no-op
     # while the previous burst is still alive (0.45s lifetime), so rapid multi-die
     # volleys were rendering ONE converging ring for the whole volley.
     gpu_particles_2d.restart()
+
+    # ---- DETONATION, scheduled ----
+    # Its own tween so a second volley landing during the wind-up simply queues its own
+    # bang; the gust cooldown is what protects the additive layer from stacked fronts.
+    # Tweens created on this node die with it, so nothing fires into a freed die.
+    var boom := create_tween()
+    boom.tween_interval(CHARGE_PULSE_ANTICIPATION)
+    boom.tween_callback(_detonate_charge.bind(charged_type, count))
 
     # Charge flash on the aura itself. charge_heat ALONE is invisible: the shader blends
     # it into rgb at 22% weight only (dice_glow.gdshader), never into alpha or reach, so
@@ -3172,6 +3224,22 @@ func _on_charge_delivered(charged_type: String, count: int) -> void:
         if _charge_flash_tween and _charge_flash_tween.is_valid():
             _charge_flash_tween.kill()
         _charge_flash_tween = create_tween()
+        # INHALE first (2026-08-29). A silent gap between the landing and the bang reads
+        # as lag; a gap in which the light visibly draws IN reads as a wind-up. Dimming
+        # also buys the flash its contrast back - it now rises from below the resting
+        # level instead of from wherever banked power had already parked it.
+        var intensity_now := _shader_f(aura_material, "power_intensity", AURA_INTENSITY_REST)
+        var reach_now := _shader_f(aura_material, "glow_reach", AURA_REACH_REST)
+        var dip := _charge_flash_tween.tween_property(
+            aura_material, "shader_parameter/power_intensity",
+            intensity_now * CHARGE_AURA_INHALE, CHARGE_PULSE_ANTICIPATION)
+        if dip:
+            dip.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+        var reach_dip := _charge_flash_tween.parallel().tween_property(
+            aura_material, "shader_parameter/glow_reach",
+            reach_now * 0.92, CHARGE_PULSE_ANTICIPATION)
+        if reach_dip:
+            reach_dip.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
         var heat_rise := _charge_flash_tween.tween_property(
             aura_material, "shader_parameter/charge_heat", 1.0, 0.12)
         if heat_rise:
@@ -3185,7 +3253,6 @@ func _on_charge_delivered(charged_type: String, count: int) -> void:
         # measured on round 1, the two merged into one fat halo and the wave was lost
         # inside it. The flash stays a brightness event at the SOURCE; spread belongs to
         # the front. (power_intensity above still goes to max - that part reads fine.)
-        var reach_now: float = aura_material.get_shader_parameter("glow_reach")
         var reach_rise := _charge_flash_tween.parallel().tween_property(
             aura_material, "shader_parameter/glow_reach",
             minf(reach_now + AURA_CHARGE_FLASH_REACH_BUMP, AURA_REACH_MAX), 0.12)
@@ -3203,6 +3270,8 @@ func _on_charge_delivered(charged_type: String, count: int) -> void:
         if _emanation_surge_tween and _emanation_surge_tween.is_valid():
             _emanation_surge_tween.kill()
         _emanation_surge_tween = create_tween()
+        # Same wind-up gap as the aura - the licks flare WITH the front, not before it.
+        _emanation_surge_tween.tween_interval(CHARGE_PULSE_ANTICIPATION)
         var em_rise := _emanation_surge_tween.tween_property(
             emanation_material, "shader_parameter/surge", 1.0, 0.12)
         if em_rise:
@@ -3226,7 +3295,12 @@ func _on_charge_delivered(charged_type: String, count: int) -> void:
     # particles reach its center: anticipation squash + hold while the ring collapses,
     # then a punch + flash + power pulse on impact, then settle. Tighter overall than the
     # old scattered fountain so the charge no longer upstages the hit that triggered it.
-    var converge_time := 0.30
+    #
+    # This IS the detonation instant now (2026-08-29). It always was a squash-then-punch,
+    # but its punch used to land 0.3s AFTER the wavefront had already come and gone, so
+    # the charge read as two unrelated events. Sharing one constant with the wavefront is
+    # what makes them a single bang - do not fork these two timings again.
+    var converge_time := CHARGE_PULSE_ANTICIPATION
 
     # --- Scale: anticipation squash -> hold while energy converges -> absorb-punch -> settle ---
     # The absorb punch scales with HOW MANY dice landed in the active pool (Charge 1 vs
@@ -3257,6 +3331,30 @@ func _on_charge_delivered(charged_type: String, count: int) -> void:
     power_tween.tween_property(current_power, "scale", Vector2(1.0, 1.0), 0.15) \
         .set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
     
+# Reading an unassigned uniform returns null, which throws when it lands in a typed float
+# (the documented "shader params must be seeded" trap) - so every read of a value we intend
+# to tween FROM goes through here.
+func _shader_f(mat: ShaderMaterial, param: String, fallback: float) -> float:
+    var v = mat.get_shader_parameter(param)
+    return fallback if v == null else float(v)
+
+
+# The bang itself, one CHARGE_PULSE_ANTICIPATION after the dice landed in the row. The aura
+# flash and the emanation surge are already scheduled tweens by the time this runs; what is
+# left here is everything that cannot be expressed as a delayed tweener.
+func _detonate_charge(charged_type: String, count: int) -> void:
+    animation_player.play("charge")  # aura scale kick (peak ~0.1s, settle ~0.55s)
+    _spawn_charge_pulse(charged_type, count)
+    # The volley freeze lives here rather than on the arrival (moved out of
+    # dice_interface, 2026-08-29): the freeze has to punctuate the loudest frame, and the
+    # loudest frame is this one. Landing keeps its clack, panel kick and slot flash.
+    var now := Time.get_ticks_msec()
+    if now - _last_charge_hit_stop_ms >= CHARGE_HIT_STOP_COOLDOWN_MS:
+        _last_charge_hit_stop_ms = now
+        Shaker.hit_stop(clampf(0.06 + 0.014 * float(count), 0.06, 0.13),
+                CHARGE_HIT_STOP_SCALE)
+
+
 # The wavefront half of the universal charge beat: the die's own light field getting blown
 # outward. Drives gust_radius (constant-width front, in px beyond the die silhouette) and
 # gust amplitude through dice_emanation.gdshader, so the licks lean/flare as it passes and
@@ -3269,14 +3367,18 @@ func _spawn_charge_pulse(charged_type: String, count: int) -> void:
     if now - _last_charge_pulse_ms < CHARGE_PULSE_COOLDOWN_MS:
         return
     _last_charge_pulse_ms = now
+    # "punchy" (the live mode) used to mean FASTER; since 2026-08-29 it means HEAVIER -
+    # wider reach and a stronger front over the same, longer travel. Mode 0 keeps a lighter,
+    # quicker version so the bake-off plate still shows two distinct weights.
     var punchy := charge_pulse_mode == 2
-    var travel_time := CHARGE_GUST_TIME * (0.78 if punchy else 1.0)
+    var travel_time := CHARGE_GUST_TIME * (1.0 if punchy else 0.85)
     var reach := CHARGE_GUST_REACH * (1.12 if punchy else 1.0)
     # Cap above 1.0 so the count ladder still has somewhere to go - see the gust uniform's
     # range note in dice_emanation.gdshader.
-    var peak := minf(CHARGE_GUST_PEAK * (1.15 if punchy else 1.0)
-            + CHARGE_GUST_COUNT_STEP * float(clampi(count, 1, 4) - 1), 1.25)
-    _fire_gust(DicePalette.burst(charged_type, 0.55), peak, reach, travel_time)
+    var peak := minf(CHARGE_GUST_PEAK * (1.12 if punchy else 1.0)
+            + CHARGE_GUST_COUNT_STEP * float(clampi(count, 1, 4) - 1), CHARGE_GUST_PEAK_CAP)
+    _fire_gust(DicePalette.burst(charged_type, 0.55), peak, reach, travel_time,
+            CHARGE_GUST_HOLD)
 
     if charge_pulse_mode == 1:
         _spawn_charge_ring_sprite(charged_type, count)
@@ -3285,7 +3387,8 @@ func _spawn_charge_pulse(charged_type: String, count: int) -> void:
 # The wavefront itself, shared by the charge beat and by the overcharge leaks so the two can
 # never drift apart in shape - only in colour, amplitude, reach and speed. Killing whatever is
 # already in flight is part of the contract: two live fronts on an additive layer overexpose.
-func _fire_gust(color: Color, peak: float, reach: float, travel_time: float) -> void:
+func _fire_gust(color: Color, peak: float, reach: float, travel_time: float,
+        hold: float = 0.0) -> void:
     var mat := emanation.material as ShaderMaterial
     if mat == null:
         return
@@ -3308,8 +3411,14 @@ func _fire_gust(color: Color, peak: float, reach: float, travel_time: float) -> 
     var amp_tween := create_tween()
     amp_tween.tween_property(mat, "shader_parameter/gust", peak, CHARGE_GUST_RISE) \
             .from(0.0).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+    # Optional HOLD at full amplitude before the decay starts. The radius keeps advancing
+    # underneath it (separate tween), so the front stays bright across the fast opening
+    # stretch of its travel - that is the difference between a shockwave and a flicker.
+    # Overcharge leaks pass hold = 0 and keep their old melting shape.
+    if hold > 0.0:
+        amp_tween.tween_interval(hold)
     amp_tween.tween_property(mat, "shader_parameter/gust", 0.0,
-            maxf(travel_time - CHARGE_GUST_RISE, 0.05)) \
+            maxf(travel_time - CHARGE_GUST_RISE - hold, 0.05)) \
             .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
     _charge_gust_tweens = [radius_tween, amp_tween]
 
