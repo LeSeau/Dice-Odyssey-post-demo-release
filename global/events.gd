@@ -32,9 +32,19 @@ signal dice_thrown(throws: Array, origin: Vector2)
 # One thrown/conjured die finished resolving at its landing (emitted by
 # Global.report_thrown_die_landed, once per die). Deliberately separate from dice_rolled:
 # dice_interface decrements your active pool on dice_rolled and dozens of card scripts arm
-# "your next roll" effects on it - thrown dice must never touch those. A thrown die counts
-# as a die you ROLLED (volume counters, face-value triggers) but never joins the Power
-# chain; every listener here is an explicit opt-in (Julien, 2026-07-23).
+# "your next roll" effects on it - thrown dice must never touch those.
+#
+# ⚠️ A THROW IS NOT A ROLL (Julien, 2026-08-29). This signal means "a thrown die resolved",
+# nothing more. It does NOT mean a die was rolled, and it must never be used to feed a
+# roll counter or a roll-triggered relic/status/card. Between 2026-07-23 and 2026-08-29
+# eighteen listeners opted into it on the opposite ruling (Crown, Metronome, Sixth Gear,
+# Hunting Bow, Needle Die, Snake Eyes Charm, Underdog Ring, The One, Giant's Signet,
+# House Money, Jackpot Pin, Consolation Chip, Prismatic Lens, Effigy, Ruptured, Hardened
+# Grip, Greedy, card_ui's description refresh) - all of them were disconnected.
+#
+# It is kept, with zero listeners, as the hook for content that is deliberately ABOUT
+# throwing (the way Trebuchet's flat per-throw bonus is). If you connect something here,
+# it must be a throw payoff, not a roll payoff.
 signal dice_thrown_landed(dice_type: String, value: int)
 # Double or Nothing: visual-only coin toss from `origin`. The card resolves the outcome after
 # Global.COIN_FLIP_TIME on its own timer; this just animates the flip + reveal.
@@ -130,6 +140,14 @@ signal charge_dice_animation
 # Multi-type sources (Experiment, War Ritual...) emit once PER die so each delivery flies in
 # its own type's color - that's what makes a random charge readable.
 signal dice_charged(dice_type: String, count: int)
+# Presentation-only companion to dice_charged: emitted by the DiceInterface exactly ONCE
+# per volley, at the moment the volley's LAST delivered die lands in its slot (or right
+# away when no flight is possible - no ui_layer - and via a failsafe timer if an arrival
+# callback is ever lost; see dice_interface.gd). dice.gd keys the big die's entire charge
+# response (gust + aura flash + absorb ceremony) on THIS signal, never on dice_charged:
+# the pulse is a landing receipt, not a launch announcement (Julien, 2026-08-28). Carries
+# the volley's FULL count, not the icon-capped visual count.
+signal dice_charge_delivered(dice_type: String, count: int)
 signal enemy_strength_changed
 signal display_next_roll_modifier
 signal card_removed(card)

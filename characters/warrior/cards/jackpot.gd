@@ -2,7 +2,7 @@ extends Card
 
 # The sixes CONCLUDER - the rare a sixes run becomes about. Counts natural 6s only (see
 # dice.gd, where Global.sixes_rolled_this_fight is incremented next to has_rolled_6_this_turn),
-# so it can't be inflated by Boost or Loaded.
+# so it can't be inflated by Boost or Surge.
 #
 # The cross-link that makes it exciting: the Evil die is 75% sixes, so buying Evil stops being
 # a gamble stat and becomes fuel for this card.

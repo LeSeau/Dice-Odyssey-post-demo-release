@@ -101,8 +101,8 @@ func _check_specs() -> void:
 		"card_smash_plus": {"target": Card.Target.ALL_ENEMIES},
 		"card_artillery": {"req": Card.Requirement.MIN, "reqn": 6},
 		"card_artillery_plus": {"req": Card.Requirement.MIN, "reqn": 4},
-		"card_loaded_dice": {"req": Card.Requirement.MIN, "reqn": 5},
-		"card_loaded_dice_plus": {"req": Card.Requirement.NONE},
+		"card_ringer": {"req": Card.Requirement.MIN, "reqn": 5},
+		"card_ringer_plus": {"req": Card.Requirement.NONE},
 		"card_quicksilver": {"rarity": 2, "req": Card.Requirement.MIN, "reqn": 6},
 		"card_quicksilver_plus": {"req": Card.Requirement.MIN, "reqn": 4},
 		"card_second_socket": {"req": Card.Requirement.MIN, "reqn": 6},
@@ -164,7 +164,7 @@ func _check_specs() -> void:
 func _check_upgrades() -> void:
 	var expected: Array[String] = ["card_hoard", "card_dead_weight", "card_weighted_dice", "card_blood_oath",
 			"card_effigy", "card_kaleidoscope", "card_red_edge", "card_spectrum",
-			"card_talisman", "card_jackpot_new", "card_artillery", "card_loaded_dice",
+			"card_talisman", "card_jackpot_new", "card_artillery", "card_ringer",
 			"card_quicksilver", "card_socketless_red", "card_second_socket", "card_greed",
 			"card_compound", "card_electrify", "card_smash", "card_corrode", "card_meteor",
 			"card_dicelord_gift", "card_cadence"]

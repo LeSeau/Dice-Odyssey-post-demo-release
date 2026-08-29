@@ -54,8 +54,23 @@ uniform vec4 gust_color : source_color = vec4(1.0, 0.95, 0.85, 1.0);
 // sprite band, so the front grew as fast as the ground it covered and never appeared to
 // travel at all (measured - it read as a breath). A wave is only legible when its
 // thickness stays well under the distance it crosses.
-const float GUST_WIDTH = 20.0;
+const float GUST_WIDTH = 25.0;
 const float GUST_LEAN_PX = 20.0;
+// The ColorRect is finite, so any light still bright at its border gets sliced by a
+// dead-straight rectangle - a seam that is invisible on the dim ambient licks and very
+// obvious on a bright travelling front (same failure family as the row_side notch below).
+// Fading the last few px of the field lets the wave DIE at the edge of its own light pool
+// instead of being cut off by one, which is also what lets the reach grow at all.
+const float EDGE_FADE_PX = 18.0;
+// A front born on the die silhouette has to ROUND OFF as it travels (2026-08-29). Far from
+// a square source a real shockwave is a circle, and keeping the rounded-box isoline all the
+// way out made the wave read as two vertical SLABS flanking the die rather than a ring:
+// the row clearance hides the top of the ring and the ROLL button covers the bottom, so the
+// box's straight left/right sides were the only part of it anyone ever saw. Blending toward
+// a radial distance as the radius grows keeps the birth hugging the die (which is the whole
+// "it came out of THIS object" read) and hands the travel back to an arc.
+const float GUST_ROUND_PX = 70.0;   // radius at which the blend is complete
+const float GUST_ROUND_MAX = 0.85;  // never fully radial - a trace of the die shape remains
 
 // Slot-row clearance, in die-centered px: light directly under the dice-type row is faded
 // out so the row stays readable. Driven from the row's REAL rect by dice.gd
@@ -103,7 +118,10 @@ void fragment() {
 	// The gust front, as a band around gust_radius. Slightly crisper on the LEADING
 	// (outer) side than the trail, so the wave has a direction rather than being a
 	// symmetric blob.
-	float gx = (d - gust_radius) / GUST_WIDTH;
+	float d_radial = length(p) - 0.5 * (die_half_px.x + die_half_px.y);
+	float round_t = clamp(gust_radius / GUST_ROUND_PX, 0.0, 1.0);
+	float d_gust = mix(d, d_radial, round_t * GUST_ROUND_MAX);
+	float gx = (d_gust - gust_radius) / GUST_WIDTH;
 	float gust_band = exp(-gx * gx) * gust;
 	float gust_front = exp(-gx * gx * (gx > 0.0 ? 2.6 : 0.9)) * gust;
 
@@ -163,18 +181,20 @@ void fragment() {
 	float row_side = 1.0 - smoothstep(row_half_width - 14.0, row_half_width + 6.0, abs(p.x));
 	float allowed = smoothstep(row_bottom_y - ROW_FADE_PX, row_bottom_y, p.y);
 	float row_cut = mix(1.0, allowed, row_side);
+	vec2 edge_px = min(UV, vec2(1.0) - UV) * rect_size;
+	float edge_fade = smoothstep(0.0, EDGE_FADE_PX, min(edge_px.x, edge_px.y));
 
 	// Energy gain deliberately front-loaded (0.74 base): low/mid power is clearly visible
 	// (Julien's call after approving the alive-light look), full charge tops out the same.
 	// Intensity scales here - SIZE stays governed by the late-blooming growth curve above.
 	float lum = halo * (0.27 + 1.25 * streaks) * (0.74 + 0.26 * energy);
 	lum *= (1.0 + gust_band * 1.5);
-	lum *= inside_cut * row_cut * master_alpha;
+	lum *= inside_cut * row_cut * edge_fade * master_alpha;
 
 	// The front's OWN light, partly modulated by the lick pattern so it reads as this
 	// die's energy being shoved outward rather than a clean UI ring drawn on top.
 	float front = gust_front * (0.34 + 0.50 * streaks);
-	front *= inside_cut * row_cut * master_alpha;
+	front *= inside_cut * row_cut * edge_fade * master_alpha;
 
 	// Accent-colored light, whitening slightly where streaks peak near the die (the
 	// energy source), with a whisper of the deep hue at the tips for color depth;

@@ -706,6 +706,16 @@ func _release_tutorial(closing_note: String = "") -> void:
     # AFTER that _apply_gate, which mirrors its own (hand-shaped, already-stale) allow-list onto
     # the Hand: from here on every card drawn or returned must come back fully interactive.
     hand.tutorial_card_gate = null
+    # An enemy action whose damage depends on tutorial_on has just changed what it will do -
+    # today that is the Skeleton, whose 35-damage finale is off the table from here. Its intent
+    # was computed while the script was still running, so without this redraw the number on
+    # screen would keep advertising a hit that can no longer land. Same intent-vs-reality
+    # divergence tutorial_skeleton_action.gd warns about in its header, just in the player
+    # favour. update_intent() re-reads the CURRENT action rather than picking a new one, so the
+    # enemy still does what it was telegraphing - only the number is refreshed.
+    for enemy in get_tree().get_nodes_in_group("enemies"):
+        if is_instance_valid(enemy):
+            enemy.update_intent()
     if closing_note.is_empty():
         overlay.shutdown()
         return

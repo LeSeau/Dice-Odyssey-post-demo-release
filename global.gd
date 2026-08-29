@@ -74,8 +74,8 @@ func in_hand_roll_bonus(dice_type: String) -> int:
             bonus += 2
         if in_hand(IN_HAND_RED_AURA_PLUS):
             bonus += 3
-    # Dead Weight is Loaded 1 while held, and Loaded applies to every type. The + keeps the
-    # same Loaded 1 and adds its Strength through in_hand_damage_bonus() instead.
+    # Dead Weight is Surge 1 while held, and Surge applies to every type. The + keeps the
+    # same Surge 1 and adds its Strength through in_hand_damage_bonus() instead.
     if in_hand(IN_HAND_DEAD_WEIGHT) or in_hand(IN_HAND_DEAD_WEIGHT_PLUS):
         bonus += 1
     return bonus
@@ -119,23 +119,27 @@ func current_face_values(dice_type: String) -> Array:
 
 
 # Called once per thrown/conjured die at the moment it LANDS (card.gd::_on_thrown_die_landed
-# plus the air-land callbacks in windfall/rampart/kickstart). Design line (Julien,
-# 2026-07-23): a thrown die counts as a die you ROLLED - fight/turn dice counters, the run
-# scoreboard, and the per-die opt-in triggers on Events.dice_thrown_landed (Crown, Snake
-# Eyes Charm, Hardened Grip, Greedy...) - but it never joins the Power chain: roll_value,
-# roll_history, last_roll and next-roll modifiers stay untouched (Recombobulate must not
-# refund it, a throw must not eat a Scouted roll).
+# plus the air-land callbacks in windfall/rampart).
+#
+# ⚠️ DESIGN LINE REVERSED 2026-08-29 (Julien: "differentiate throw from roll"). A thrown die
+# is NOT a die you rolled. It used to bump five roll counters here and fan out to eighteen
+# opt-in listeners; all of that is gone. A throw now does exactly three things, none of them
+# routed through this function: it deals its RAW face value, it picks up Trebuchet's
+# Global.thrown_dice_bonus_fight, and it takes the target's own DMG_TAKEN (Exposed).
+#
+# So a throw touches NONE of:
+#   fight_dice_rolled           (Tsunami, Crown, Metronome, Sixth Gear, Greedy)
+#   dice_amount_rolled_this_turn (Assault, Stampede, Turbo Mode)
+#   dice_types_rolled_this_turn  (Spectrum, Prismatic Lens)
+#   sixes_rolled_this_fight      (Jackpot)
+#   run_stat_dice_rolled         (end-run "Dice Rolled" scoreboard row)
+# ...on top of the Power chain it already stayed out of (roll_value, roll_history,
+# last_roll, next_roll_modifier - Recombobulate must not refund a throw, a throw must not
+# eat a Scouted roll), and on top of Strength/DMG_DEALT, excluded since 2026-08-20.
+#
+# The emit survives so throw-SPECIFIC content has a hook to hang on. Nothing in the game
+# listens to it today - see the events.gd contract comment before wiring anything new to it.
 func report_thrown_die_landed(dice_type: String, value: int) -> void:
-    fight_dice_rolled += 1
-    dice_amount_rolled_this_turn += 1
-    dice_types_rolled_this_turn[dice_type] = true
-    # A thrown 6 counts for Jackpot/Effigy, same as it already counts for Hunting Bow.
-    if value == 6:
-        sixes_rolled_this_fight += 1
-    # Same ordering as dice.gd's real-roll path: counter first, then the report/emit, so
-    # listeners read the already-incremented counters (Turbo Mode counts thrown dice too).
-    AchievementManager.report_dice_rolled_this_turn(dice_amount_rolled_this_turn)
-    run_stat_dice_rolled += 1
     Events.dice_thrown_landed.emit(dice_type, value)
 
 
@@ -151,12 +155,18 @@ func _ready() -> void:
     SettingsManager.load_and_apply()
     Input.set_custom_mouse_cursor(CURSOR_TEXTURE, Input.CURSOR_ARROW, CURSOR_HOTSPOT)
 
-    # Built as a child of this autoload rather than as its own autoload entry, so it needs no
-    # project.godot change (and therefore no editor restart); the script carries no class_name
-    # for the same reason. Debug builds only - a release build never constructs it.
-    if OS.is_debug_build():
-        debug_overlay = load("res://global/debug_overlay.gd").new()
-        add_child(debug_overlay)
+    # The debug A/B picker panel (global/debug_overlay.gd) used to be constructed here in
+    # debug builds. RETIRED 2026-08-28 at Julien's request ("remove the debug top left"): its
+    # SFX job is finished (dicecrush2 was picked off it on 08-27 and is now the shipped
+    # DEFAULT_HIGH_ROLL_SOUND below). It never reached players either way - it was always
+    # behind OS.is_debug_build() - this only clears it off the editor-run screen.
+    # The script is still on disk (cut content stays, per project convention): re-enable by
+    # restoring the two lines below. Everything downstream already tolerates its absence -
+    # debug_overlay stays null and both readers (dice.gd's F9, player.gd's hero swap) are
+    # null-guarded, so the shipped sound and shipped hero art are what you get.
+    #   if OS.is_debug_build():
+    #       debug_overlay = load("res://global/debug_overlay.gd").new()
+    #       add_child(debug_overlay)
 
 
 # Global left-click press/release swaps the whole cursor to a visually "active" variant -
@@ -337,6 +347,14 @@ var charged_card_instance_id: int = 0
 # Second Socket card works by appending rather than by rewriting the socket system.
 var charged_card_instance_ids: Array[int] = []
 var playing_red_card = false
+# ⚠️ ONE dice_rolled per Red roll. dice.gd emits red_dice_rolled (never dice_rolled) for Red;
+# the dice_rolled that every per-roll relic listens to is re-emitted later, by whichever
+# socketed CardUI handles the roll (card_ui.gd) or by _fire_socketless_red for Armageddon.
+# With TWO cards socketed (Dual Cannon) both CardUIs passed that gate, so a single Red roll
+# fired Hunting Bow / Snake Eyes / Needle Die / Underdog Ring / Metronome / Sixth Gear TWICE
+# while fight_dice_rolled only moved by one (measured 2026-08-29, debug_red_roll_counts).
+# dice.gd arms this when the Red roll resolves; the first emitter consumes it.
+var red_roll_pending_report := false
 var dragging_card = false
 var fight_turn = 0
 var fight_dice_rolled = 0
@@ -598,7 +616,7 @@ var no_reset: bool = false
 # reset_run_state() for run hygiene.
 var thrown_dice_bonus_fight := 0
 
-# LOADED: a flat Power bonus added to EVERY roll, unlike Boost (next_roll_modifier) which is
+# SURGE: a flat Power bonus added to EVERY roll, unlike Boost (next_roll_modifier) which is
 # consumed by one roll. The status badge is display only - the effect has to live here because
 # dice.gd reads it inside _apply_roll_result (same split as Emanation's fight-scoped global).
 # Fight-scoped: reset by battle.gd::start_battle() alongside ink_active AND in reset_run_state().
@@ -606,7 +624,7 @@ var thrown_dice_bonus_fight := 0
 # rainbow archetype - Spectrum reads its size, the Prismatic Lens relic fires at 4. Turn-scoped:
 # cleared by player_handler.gd::start_turn next to dice_amount_rolled_this_turn.
 var dice_types_rolled_this_turn := {}
-# Natural 6s rolled this FIGHT (the rolled face itself, never a Boosted/Loaded 5->6). Drives
+# Natural 6s rolled this FIGHT (the rolled face itself, never a Boosted/Surge 5->6). Drives
 # Jackpot and Effigy. Fight-scoped: reset by battle.gd::start_battle alongside ink_active.
 var sixes_rolled_this_fight := 0
 
@@ -642,7 +660,7 @@ const IN_HAND_DEAD_WEIGHT_PLUS := "card_dead_weight_plus"
 
 # Talisman, held: every NATURAL 6 you roll grants this much Block. Read by dice.gd at the
 # same `last_roll == 6` check Jackpot and Effigy already key off, so all three agree on what
-# a "6" is (a rolled face, never a Boosted or Loaded 5->6).
+# a "6" is (a rolled face, never a Boosted or Surge 5->6).
 const TALISMAN_SIX_BLOCK := 3
 const TALISMAN_PLUS_SIX_BLOCK := 5
 
@@ -654,10 +672,10 @@ var reroll_types := {}
 # plays every socketed card in order.
 var red_socket_capacity := 1
 
-var loaded_amount := 0
-# The slice of loaded_amount that expires at the start of the next turn ("Loaded N this turn").
-# LoadedStatus.apply_status() subtracts it and zeroes this - see statuses/loaded.gd.
-var loaded_expiring := 0
+var surge_amount := 0
+# The slice of surge_amount that expires at the start of the next turn ("Surge N this turn").
+# SurgeStatus.apply_status() subtracts it and zeroes this - see statuses/surge.gd.
+var surge_expiring := 0
 
 # Golem Dice (internal type "even"): unspent dice roll over into the next turn instead of
 # being lost. Captured from the leftover count on player_turn_ended and consumed by
@@ -802,8 +820,8 @@ func reset_run_state() -> void:
     power_generated_this_turn = 0
     no_reset = false
     thrown_dice_bonus_fight = 0
-    loaded_amount = 0
-    loaded_expiring = 0
+    surge_amount = 0
+    surge_expiring = 0
     dice_types_rolled_this_turn = {}
     sixes_rolled_this_fight = 0
     face_overrides = {}

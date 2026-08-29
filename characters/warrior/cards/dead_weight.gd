@@ -1,7 +1,7 @@
 extends Card
 
 # IN-HAND PASSIVE, and the "cursed blessing" of the family: while it clogs your hand it grants
-# Loaded 1 (every roll gains 1 Power), and it can never be played. It costs you a card slot
+# Surge 1 (every roll gains 1 Power), and it can never be played. It costs you a card slot
 # every turn you draw it - that IS the price.
 #
 # Deviation from the original spec ("exhausts at end of turn"): it discards normally instead,

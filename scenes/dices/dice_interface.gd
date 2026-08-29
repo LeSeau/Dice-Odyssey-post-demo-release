@@ -46,8 +46,10 @@ const CHARGE_TRAIL_INTERVAL_MS := 16  # real-time mote throttle along the arc
 # back to doing its actual job - saying precisely WHERE the dice landed - instead of shouting.
 const CHARGE_ARRIVAL_MOTES := 6         # per die; the final die of a volley gets ~1.8x
 const CHARGE_GHOST_BRIGHTNESS := 2.4    # >= ~1.9 or it is invisible at speed (documented)
-const CHARGE_HIT_STOP_SCALE := 0.05     # how HARD the freeze is (the visibility factor)
-const CHARGE_HIT_STOP_COOLDOWN_MS := 350  # keeps chained volleys from stuttering
+# NOTE: the volley hit-stop used to live here, on the arrival frame. It moved to dice.gd
+# (2026-08-29) because the eruption now happens a beat LATER than the landing, and two
+# freezes that close together read as stutter rather than weight. Its scale/cooldown
+# constants moved with it.
 const CHARGE_LAUNCH_SOUND := preload("res://chargedicesound.mp3")
 const CHARGE_ARRIVE_SOUND := preload("res://sfx/578807__nomiqbomi__pluck-1.mp3")
 const CHARGE_FINAL_SOUND := preload("res://sounds/dicerollsound3.mp3")
@@ -103,11 +105,14 @@ var _nudge_nodes: Array = []
 # update_selected_highlight must skip them or it would stomp the held alpha.
 var _materializing_slots: Array = []
 var _panel_kick_tween: Tween    # tracked: overlapping arrivals restart the kick, never stack
-var _last_hit_stop_ms := -99999
 var _charge_sound_frame := -1   # coalesce the launch sound across same-frame charge events
 var _charge_volley_frame := -1  # sequence same-frame volleys (multi-type charges) instead of
 var _charge_volley_delay := 0.0 # flying them on top of each other
 var _last_card_play_frame := -1 # "did a card play THIS frame" - picks the flight origin
+# Exactly-once bookkeeping for Events.dice_charge_delivered. The arrival callback and the
+# failsafe timer both race to fire it; the token is erased by whichever wins.
+var _charge_volley_seq := 0
+var _pending_charge_volleys := {}
 
 
 
@@ -570,10 +575,16 @@ func _on_dice_charged(charged_type: String, count: int) -> void:
     update_selected_highlight()
 
     if count <= 0 or slot == null:
-        return  # e.g. an empty Transmutation: refresh happened, nothing to deliver
+        # Nothing will fly: an empty Transmutation (count 0, which the die's listener
+        # filters anyway), or a type with no slot at all. In the latter case dice really
+        # were granted, so the die still owes an acknowledgement - and with no flight, the
+        # payoff moment is now (same reasoning as the no-ui_layer fallback below).
+        if count > 0:
+            _emit_charge_delivered(charged_type, count, _begin_charge_volley_token())
+        return
     _play_charge_launch_sound()
     _spawn_charge_volley(charged_type, count, _charge_origin(),
-            _next_volley_delay(count), newly_visible)
+            _next_volley_delay(count), newly_visible, _begin_charge_volley_token())
 
 func _on_temporary_dice_added(dice_type: String):
     initialize_dices()  # Refresh the interface
@@ -786,6 +797,25 @@ func _next_volley_delay(count: int) -> float:
     return my_delay
 
 
+# Opens a volley's exactly-once token. Every path that will eventually announce a delivery
+# takes one here, so _emit_charge_delivered stays the single door to the signal.
+func _begin_charge_volley_token() -> int:
+    _charge_volley_seq += 1
+    _pending_charge_volleys[_charge_volley_seq] = true
+    return _charge_volley_seq
+
+
+# Exactly-once per volley: the last arrival callback and the failsafe timer both funnel
+# through here, so whichever runs first wins and the other is a no-op (same shape as the
+# _finish_slot_materialize failsafe). dice.gd keys the big die's whole charge response on
+# this, so a double emit would double-pulse and a lost emit would silence the charge.
+func _emit_charge_delivered(charged_type: String, count: int, token: int) -> void:
+    if not _pending_charge_volleys.has(token):
+        return
+    _pending_charge_volleys.erase(token)
+    Events.dice_charge_delivered.emit(charged_type, count)
+
+
 func _charge_origin() -> Vector2:
     # Mirror of the power-orb origin rules (dice.gd): a card launches from where it was
     # released; the red-socket path and every non-card source (relics, statuses, the
@@ -807,7 +837,7 @@ func _active_die_center() -> Vector2:
 
 
 func _spawn_charge_volley(charged_type: String, count: int, origin: Vector2,
-        base_delay: float, reveal_slot: bool) -> void:
+        base_delay: float, reveal_slot: bool, token: int) -> void:
     # One frame so a slot that JUST went visible has been sorted by its container - its
     # global rect is stale until then and every flight would aim at the pre-sort position.
     await get_tree().process_frame
@@ -816,25 +846,32 @@ func _spawn_charge_volley(charged_type: String, count: int, origin: Vector2,
     var parent_layer := get_tree().get_first_node_in_group("ui_layer")
     var n := mini(count, CHARGE_MAX_ICONS)
     if parent_layer == null:
-        # No flight possible (harness/boot without BattleUI): never leave a slot dark.
+        # No flight possible (harness/boot without BattleUI): never leave a slot dark, and
+        # still hand the big die its cue - with nothing to fly, "delivered" is now.
         if reveal_slot:
             _finish_slot_materialize(_slot_for_type(charged_type), charged_type)
+        _emit_charge_delivered(charged_type, count, token)
         return
     var accent := DicePalette.accent(charged_type)
     for i in n:
         _animate_charge_die(parent_layer, charged_type, origin, accent,
                 base_delay + CHARGE_STAGGER * i + randf_range(0.0, 0.04),
-                i, n, reveal_slot and i == 0)
+                i, n, reveal_slot and i == 0, count, token)
+    var total := base_delay + CHARGE_STAGGER * n + CHARGE_BIRTH_TIME + CHARGE_FLIGHT_TIME
     if reveal_slot:
         # Failsafe: if the first arrival callback is ever lost, the slot must still bloom
         # in rather than sit invisible forever. Idempotent via the _materializing check.
-        var total := base_delay + CHARGE_STAGGER * n + CHARGE_BIRTH_TIME + CHARGE_FLIGHT_TIME
         get_tree().create_timer(total + 1.0, false).timeout.connect(
                 _finish_slot_materialize.bind(_slot_for_type(charged_type), charged_type))
+    # Same failsafe for the big die's cue: a lost last-arrival callback must not leave the
+    # charge with no pulse at all. Idempotent via the pending-token guard.
+    get_tree().create_timer(total + 1.0, false).timeout.connect(
+            _emit_charge_delivered.bind(charged_type, count, token))
 
 
 func _animate_charge_die(parent_layer: Node, charged_type: String, origin: Vector2,
-        accent: Color, delay: float, index: int, total: int, reveal_on_arrival: bool) -> void:
+        accent: Color, delay: float, index: int, total: int, reveal_on_arrival: bool,
+        full_count: int, token: int) -> void:
     var icon := TextureRect.new()
     icon.texture = _charge_die_texture(charged_type)
     icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -897,7 +934,7 @@ func _animate_charge_die(parent_layer: Node, charged_type: String, origin: Vecto
             0.0, 1.0, CHARGE_FLIGHT_TIME + randf_range(-0.05, 0.05)) \
         .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
     tween.tween_callback(_on_charge_die_arrived.bind(
-            icon, charged_type, accent, index, total, reveal_on_arrival))
+            icon, charged_type, accent, index, total, reveal_on_arrival, full_count, token))
 
 
 func _charge_flight_step(t: float, icon: TextureRect, p0: Vector2, p1: Vector2, p2: Vector2) -> void:
@@ -920,7 +957,7 @@ func _charge_flight_step(t: float, icon: TextureRect, p0: Vector2, p1: Vector2, 
 
 
 func _on_charge_die_arrived(icon: TextureRect, charged_type: String, accent: Color,
-        index: int, total: int, reveal: bool) -> void:
+        index: int, total: int, reveal: bool, full_count: int, token: int) -> void:
     if is_instance_valid(icon):
         icon.queue_free()
     # Rising pitch through the volley - the free "Charge 1 vs Charge 4" ladder - with a
@@ -929,6 +966,13 @@ func _on_charge_die_arrived(icon: TextureRect, charged_type: String, accent: Col
     var final_die := index == total - 1
     if final_die:
         SFXPlayer.play(CHARGE_FINAL_SOUND, false, 1.3, -8.0)
+        # THE cue (2026-08-28): the big die's gust/flash/absorb hangs off this instead of
+        # firing at launch, where it was over before anything had arrived. Since 2026-08-29
+        # the listener does NOT bang on this frame - it winds up for
+        # CHARGE_PULSE_ANTICIPATION and detonates after, and it owns the volley's hit-stop
+        # too, so the freeze lands on the eruption rather than here (see dice.gd). This
+        # frame is still the impact of the DELIVERY: clack, panel kick, slot flash, motes.
+        _emit_charge_delivered(charged_type, full_count, token)
     if reveal:
         _finish_slot_materialize(_slot_for_type(charged_type), charged_type)
     var slot_tex := _slot_texture_for_type(charged_type)
@@ -952,16 +996,6 @@ func _on_charge_die_arrived(icon: TextureRect, charged_type: String, accent: Col
     # volley, which competes with the shockwave for "this is the big moment".
     if final_die:
         _kick_panel(0.04 + 0.01 * float(mini(total, 4)))
-    if final_die:
-        # Only the LAST arrival freezes - one hit-stop per volley, scaled by how much
-        # landed. Per-die freezes would read as stutter, not weight. The cooldown covers
-        # the other stutter source: a multi-type charge (Experiment, War Ritual) is N
-        # separate one-die volleys, which would otherwise chain N freezes back to back.
-        var now := Time.get_ticks_msec()
-        if now - _last_hit_stop_ms >= CHARGE_HIT_STOP_COOLDOWN_MS:
-            _last_hit_stop_ms = now
-            Shaker.hit_stop(clampf(0.05 + 0.012 * float(total), 0.05, 0.11),
-                    CHARGE_HIT_STOP_SCALE)
 
 
 # Die-silhouette flash over the slot (die_halo_texture follows the square die shape) -

@@ -9,17 +9,10 @@ func initialize_status(_target: Node) -> void:
     target = _target
     if not Events.dice_rolled.is_connected(_on_dice_rolled):
         Events.dice_rolled.connect(_on_dice_rolled)
-    # A die is a die (Julien, 2026-07-23): thrown dice feed the per-6 counter too -
-    # counterplay texture against dice-flooding throw decks in this one fight. The landing
-    # report increments fight_dice_rolled before emitting, so the +1-step math below holds.
-    if not Events.dice_thrown_landed.is_connected(_on_dice_thrown_landed):
-        Events.dice_thrown_landed.connect(_on_dice_thrown_landed)
 
 func apply_status(_target: Node) -> void:
     status_applied.emit(self)
 
-func _on_dice_thrown_landed(dice_type: String, value: int) -> void:
-    _on_dice_rolled(dice_type, value)
 
 func _on_dice_rolled(_dice_type: String, _roll_value: int) -> void:
     if not is_instance_valid(target):

@@ -56,7 +56,7 @@ func get_tooltip_content(requirement):
         text += "You have 1 less Blue Dice next turn for each stack."
     elif requirement == "Energized":
         text += "You have 1 more Blue Dice next turn."
-    elif requirement == "Loaded":
+    elif requirement == "Surge":
         text += "Your Dice rolls gain that much bonus Power."
     elif requirement == "Exposed":
         text += "Take 50% more damage. Wears off by 1 each turn."
@@ -71,7 +71,10 @@ func get_tooltip_content(requirement):
     elif requirement == "Boost":
         text += "Adds that much Power to your next roll."
     elif requirement == "Throw":
-        text += "Rolls a bonus Dice without using any of your own."
+        # ⚠️ Must not say "roll". A thrown Dice is NOT one of your rolls (2026-08-29): it does
+        # not build Power and it does not count for anything that reacts to rolling a Dice.
+        # This one line is where the player learns that, so keep the distinction explicit.
+        text += "An extra Dice that resolves on its own. It builds no Power and never counts as a roll."
     elif requirement == "Reroll":
         # Ricochet's native ability, which Quicksilver grafts onto another type. Worded from
         # the player's side ("you may") because the choice is theirs and it is optional.

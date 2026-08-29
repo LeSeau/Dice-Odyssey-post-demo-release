@@ -1,7 +1,7 @@
 extends Node
 
 # Harness for the two 2026-08-25 die-cluster additions:
-#   A. Loaded motes  - sparks leaking off the central die while LOADED is up.
+#   A. Surge motes  - sparks leaking off the central die while SURGE is up.
 #   B. Armed socket  - the empty Red socket while the Armageddon blessing is up.
 #
 # The load-bearing checks are A3 and B3.
@@ -14,10 +14,10 @@ extends Node
 #      looking perfect in a screenshot.
 #
 # Run (checks + stills):
-#   Godot_v4.3-stable_win64_console.exe --path . res://debug_loaded_motes.tscn
+#   Godot_v4.3-stable_win64_console.exe --path . res://debug_surge_motes.tscn
 #       --rendering-driver opengl3 --position 2000,2000
 # Env:
-#   LOADED_MOTES_OUT   absolute output dir (default user://loaded_motes)
+#   SURGE_MOTES_OUT   absolute output dir (default user://surge_motes)
 
 const VIEW := Vector2i(1280, 720)
 const DIE_POS := Vector2(521, 294)
@@ -29,10 +29,10 @@ const ROW_SIZE := Vector2(160, 72)
 # well over 60fps, so an earlier frame-based window collapsed to ~1.3s of game time and only
 # ever caught 2-3 spawns - enough to pass a "denser?" check on noise alone.
 const SAMPLE_SECONDS := 4.5
-# Loaded 4 spawns every 0.28s against Loaded 1's 0.55s, so the honest expectation is ~1.95x.
+# Surge 4 spawns every 0.28s against Surge 1's 0.55s, so the honest expectation is ~1.95x.
 # Demanding a real ratio (not merely ">") is what makes this catch a silently capped multiplier.
 const DENSITY_RATIO_MIN := 1.5
-const LOADED_MOTE_ALPHA_FLOOR := 0.30  # dice.gd tweens each mote to at least 0.36
+const SURGE_MOTE_ALPHA_FLOOR := 0.30  # dice.gd tweens each mote to at least 0.36
 const LIT_THRESHOLD := 0.04  # summed |RGB| delta that counts a sampled pixel as lit
 # dice.gd clamps every rise so a mote tops out this far above the die art; the row it protects
 # sits further up still, and A4 asserts both halves of that.
@@ -50,7 +50,7 @@ func _check(cname: String, ok: bool, detail: String = "") -> void:
 	checks += 1
 	if not ok:
 		fails += 1
-	print("[loaded-motes] %s %s %s" % ["PASS" if ok else "FAIL", cname, detail])
+	print("[surge-motes] %s %s %s" % ["PASS" if ok else "FAIL", cname, detail])
 
 
 func _settle(frames: int) -> void:
@@ -69,7 +69,7 @@ func _save(img: Image, fname: String) -> void:
 
 func _live_motes() -> Array[Control]:
 	var out: Array[Control] = []
-	for node in get_tree().get_nodes_in_group("loaded_mote"):
+	for node in get_tree().get_nodes_in_group("surge_mote"):
 		if node is Control and is_instance_valid(node):
 			out.append(node)
 	return out
@@ -171,13 +171,13 @@ func _build_stage(parent: Node) -> void:
 
 func _ready() -> void:
 	Global.tutorial_on = true  # mute achievement toasts while the harness fakes game events
-	out_dir = OS.get_environment("LOADED_MOTES_OUT")
+	out_dir = OS.get_environment("SURGE_MOTES_OUT")
 	if out_dir == "":
-		out_dir = "user://loaded_motes"
+		out_dir = "user://surge_motes"
 	DirAccess.make_dir_recursive_absolute(out_dir)
 
-	Global.loaded_amount = 0
-	Global.loaded_expiring = 0
+	Global.surge_amount = 0
+	Global.surge_expiring = 0
 	Global.socketless_red = false
 	Global.socketless_red_strength = 0
 
@@ -194,12 +194,12 @@ func _ready() -> void:
 	await _section_motes()
 	await _section_armed_socket()
 
-	print("[loaded-motes] --- %d checks, %d fail ---" % [checks, fails])
+	print("[surge-motes] --- %d checks, %d fail ---" % [checks, fails])
 	get_tree().quit(1 if fails > 0 else 0)
 
 
 # ---------------------------------------------------------------------------------------
-# A. Loaded motes
+# A. Surge motes
 # ---------------------------------------------------------------------------------------
 func _section_motes() -> void:
 	var die_rect: Rect2 = dice._die_rest_rect
@@ -209,23 +209,23 @@ func _section_motes() -> void:
 	var region := Rect2i(int(DIE_POS.x + die_rect.position.x), int(DIE_POS.y + die_rect.position.y),
 			int(die_rect.size.x), int(die_rect.size.y))
 
-	# --- A1 negative control: nothing should spawn at Loaded 0 --------------------------
+	# --- A1 negative control: nothing should spawn at Surge 0 --------------------------
 	var idle := await _watch_motes(SAMPLE_SECONDS, region)
 	var base_lum: float = float(idle["peak_lum"])
-	_check("A1 no motes at Loaded 0", int(idle["count"]) == 0, "count=%d" % int(idle["count"]))
+	_check("A1 no motes at Surge 0", int(idle["count"]) == 0, "count=%d" % int(idle["count"]))
 
 	# --- A2/A3 density scales with the stack count --------------------------------------
-	Global.loaded_amount = 1
+	Global.surge_amount = 1
 	var one := await _watch_motes(SAMPLE_SECONDS, region)
-	_save(await _grab(), "motes_loaded1.png")
-	_check("A2 motes spawn at Loaded 1", int(one["count"]) > 0, "count=%d" % int(one["count"]))
+	_save(await _grab(), "motes_surge1.png")
+	_check("A2 motes spawn at Surge 1", int(one["count"]) > 0, "count=%d" % int(one["count"]))
 
-	Global.loaded_amount = 4
+	Global.surge_amount = 4
 	var four := await _watch_motes(SAMPLE_SECONDS, region)
-	_save(await _grab(), "motes_loaded4.png")
+	_save(await _grab(), "motes_surge4.png")
 	var ratio := float(four["count"]) / maxf(float(one["count"]), 1.0)
-	_check("A3 Loaded 4 is measurably denser than Loaded 1", ratio >= DENSITY_RATIO_MIN,
-			"loaded1=%d loaded4=%d ratio=%.2f (min %.2f)" % [
+	_check("A3 Surge 4 is measurably denser than Surge 1", ratio >= DENSITY_RATIO_MIN,
+			"surge1=%d surge4=%d ratio=%.2f (min %.2f)" % [
 					int(one["count"]), int(four["count"]), ratio, DENSITY_RATIO_MIN])
 
 	# --- A4 clearance, both halves of the contract --------------------------------------
@@ -262,19 +262,19 @@ func _section_motes() -> void:
 			all_ignore = false
 	_check("A6 motes are MOUSE_FILTER_IGNORE", all_ignore, "n=%d" % motes.size())
 
-	print("[loaded-motes] .. loaded4 window: concurrent=%d peak_alpha=%.2f mean_lum=%.4f" % [
+	print("[surge-motes] .. surge4 window: concurrent=%d peak_alpha=%.2f mean_lum=%.4f" % [
 			int(four["max_concurrent"]), float(four["peak_alpha"]), float(four["peak_lum"])])
-	_check("A6b motes reach a real alpha", float(four["peak_alpha"]) >= LOADED_MOTE_ALPHA_FLOOR,
+	_check("A6b motes reach a real alpha", float(four["peak_alpha"]) >= SURGE_MOTE_ALPHA_FLOOR,
 			"peak_alpha=%.2f" % float(four["peak_alpha"]))
 
 	# --- A7 they are actually VISIBLE, by lit AREA against a calm frame -----------------
 	# The noise floor is measured, not assumed: the emanation shader animates every frame, so
 	# a quiet die still differs from its own baseline a little. The signal has to clear that.
-	Global.loaded_amount = 0
+	Global.surge_amount = 0
 	await _settle(120)  # let every in-flight mote die before taking the calm frame
 	var calm := await _grab()
 	var noise := await _peak_lit_area(1.5, calm, region)
-	Global.loaded_amount = 4
+	Global.surge_amount = 4
 	# Ground truth before trusting any aggregate: find a live mote, and read the actual pixel
 	# under its centre against the calm frame. If this shows no change the mote is not drawing
 	# where its transform says it is, and every area metric downstream is measuring the shader.
@@ -296,16 +296,16 @@ func _section_motes() -> void:
 			now.get_region(Rect2i(px.x - 40, px.y - 40, 80, 80)) \
 					.save_png("%s/probe_mote_crop.png" % out_dir)
 			break
-	print("[loaded-motes] .. mote pixel probe: %s" % probe)
+	print("[surge-motes] .. mote pixel probe: %s" % probe)
 
 	var signal_area := await _peak_lit_area(SAMPLE_SECONDS, calm, region)
 	_check("A7 motes light a real area of the die region",
 			signal_area >= maxi(noise * 3, 25),
 			"lit=%d px  noise_floor=%d px (need >= %d)" % [
 					signal_area, noise, maxi(noise * 3, 25)])
-	_save(await _grab(), "motes_loaded4_lit.png")
+	_save(await _grab(), "motes_surge4_lit.png")
 
-	Global.loaded_amount = 0
+	Global.surge_amount = 0
 
 
 # ---------------------------------------------------------------------------------------
@@ -357,7 +357,7 @@ func _section_armed_socket() -> void:
 	if load("res://socketless_red.png") != null:
 		_check("B3b armed art overlay is shown", icon != null and icon.visible)
 	else:
-		print("[loaded-motes] SKIP B3b - socketless_red.png has no .ctex in this worktree")
+		print("[surge-motes] SKIP B3b - socketless_red.png has no .ctex in this worktree")
 
 	# --- B4 the description fits the slot -----------------------------------------------
 	var avail: float = dice.description_panel.size.y

@@ -5,7 +5,7 @@ extends Status
 # for its per-six damage. The sixes payoff aimed at a single target (Jackpot is the whole-fight
 # lump); buying an Evil die - 75% sixes - is what turns this into a machine gun.
 #
-# Keyed on Global.last_roll, the face actually rolled, so a Boosted or Loaded 5->6 never
+# Keyed on Global.last_roll, the face actually rolled, so a Boosted or Surge 5->6 never
 # counts - the same ruling Arcane and Critical Edge already follow. dice_rolled carries the
 # ACCUMULATED power, not the face, which is exactly why it can't be used for the check.
 
@@ -27,8 +27,6 @@ func initialize_status(_target: Node) -> void:
     # Red 6 would silently not count.
     if not Events.red_dice_rolled.is_connected(_on_red_dice_rolled):
         Events.red_dice_rolled.connect(_on_red_dice_rolled)
-    if not Events.dice_thrown_landed.is_connected(_on_thrown_die_landed):
-        Events.dice_thrown_landed.connect(_on_thrown_die_landed)
 
 
 func apply_status(_target: Node) -> void:
@@ -42,11 +40,6 @@ func _on_dice_rolled(_dice_type: String, _roll_value: int) -> void:
 
 func _on_red_dice_rolled() -> void:
     if Global.last_roll == 6:
-        _strike()
-
-
-func _on_thrown_die_landed(_dice_type: String, value: int) -> void:
-    if value == 6:
         _strike()
 
 
@@ -66,15 +59,13 @@ func _disconnect_all() -> void:
         Events.dice_rolled.disconnect(_on_dice_rolled)
     if Events.red_dice_rolled.is_connected(_on_red_dice_rolled):
         Events.red_dice_rolled.disconnect(_on_red_dice_rolled)
-    if Events.dice_thrown_landed.is_connected(_on_thrown_die_landed):
-        Events.dice_thrown_landed.disconnect(_on_thrown_die_landed)
 
 
 # ONE trigger per roll. dice.gd emits red_dice_rolled for a Red roll, and card_ui.gd:909 then
 # re-emits dice_rolled right after the socketed card plays - so a single Red roll reaches us
 # TWICE (Julien, 2026-08-16: "it triggers twice after I roll red"). Keyed on
-# Global.fight_dice_rolled, which increments exactly once per real roll and once per thrown
-# die landing, so every genuine die still counts exactly once.
+# Global.fight_dice_rolled, which increments exactly once per real roll (thrown dice do not
+# touch it since 2026-08-29), so every genuine roll still counts exactly once.
 func _consume_roll_token() -> bool:
     if Global.fight_dice_rolled == _last_roll_token:
         return false

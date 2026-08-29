@@ -20,8 +20,6 @@ func apply_effects(targets: Array[Node], _modifiers: ModifierHandler) -> void:
     var value: int = faces[randi() % faces.size()]
     var target: Node = targets[0]
     Events.dice_thrown.emit([{"type": thrown_type, "value": value, "target": target}], Global.last_played_card_position)
-    # Strength applies to thrown-die damage (Julien, 2026-07-21), consistent with the other
-    # throw cards - the die is a real hit, not raw.
     # Thrown dice deal their RAW face value: no Strength, no player DMG_DEALT modifier
     # (Julien, 2026-08-20 - a 9-die Avalanche multiplied Strength nine times). Trebuchet's
     # Global.thrown_dice_bonus_fight, applied in card.gd::_on_thrown_die_landed, is now the

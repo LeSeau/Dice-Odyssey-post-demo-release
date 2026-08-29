@@ -1,6 +1,6 @@
 extends Card
 
-const LOADED_STATUS = preload("res://statuses/loaded.tres")
+const SURGE_STATUS = preload("res://statuses/surge.tres")
 
 func apply_effects(targets: Array[Node], _modifiers: ModifierHandler) -> void:
     #Events.reset_charged_card.emit()
@@ -14,9 +14,9 @@ func apply_effects(targets: Array[Node], _modifiers: ModifierHandler) -> void:
     #status_effect.execute(targets)
     if Global.roll_value % 3 == 0:
         var status_effect := StatusEffect.new()
-        var loaded := LOADED_STATUS.duplicate()
-        loaded.stacks = 1
-        status_effect.status = loaded
+        var surge := SURGE_STATUS.duplicate()
+        surge.stacks = 1
+        status_effect.status = surge
         status_effect.execute(targets)
 
         

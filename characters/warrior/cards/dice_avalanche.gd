@@ -30,8 +30,6 @@ func apply_effects(targets: Array[Node], _modifiers: ModifierHandler) -> void:
     for i in throws.size():
         var entry: Dictionary = throws[i]
         var value: int = entry["value"]
-        # Strength applies per die (Julien, 2026-07-21) - up to 9 dice, so this is the
-        # single biggest Strength multiplier of any card in the pool. Watch in playtest.
         # Thrown dice deal their RAW face value: no Strength, no player DMG_DEALT modifier
         # (Julien, 2026-08-20 - a 9-die Avalanche multiplied Strength nine times). Trebuchet's
         # Global.thrown_dice_bonus_fight, applied in card.gd::_on_thrown_die_landed, is now the

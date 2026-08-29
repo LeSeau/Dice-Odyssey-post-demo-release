@@ -16,17 +16,10 @@ const THRESHOLD := 10
 
 func initialize_relic(owner: RelicUI) -> void:
     Events.dice_rolled.connect(_on_dice_rolled.bind(owner))
-    Events.dice_thrown_landed.connect(_on_dice_thrown_landed.bind(owner))
 
 
 func _on_dice_rolled(dice_type: String, _roll_value: int, owner: RelicUI) -> void:
     if dice_type != "giant" or Global.last_roll < THRESHOLD:
-        return
-    _grant_block(owner)
-
-
-func _on_dice_thrown_landed(dice_type: String, value: int, owner: RelicUI) -> void:
-    if dice_type != "giant" or value < THRESHOLD:
         return
     _grant_block(owner)
 
@@ -44,5 +37,3 @@ func _grant_block(owner: RelicUI) -> void:
 func deactivate_relic(_owner: RelicUI) -> void:
     if Events.dice_rolled.is_connected(_on_dice_rolled):
         Events.dice_rolled.disconnect(_on_dice_rolled)
-    if Events.dice_thrown_landed.is_connected(_on_dice_thrown_landed):
-        Events.dice_thrown_landed.disconnect(_on_dice_thrown_landed)

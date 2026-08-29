@@ -519,7 +519,7 @@ const AURA_REACH_MAX := 0.45
 const AURA_WAVE_SPEED_MULT_MAX := 1.9  # swirl runs ~90% faster at full charge
 const AURA_HEAT_MAX := 1.0  # shader's own 0.55 blend cap keeps each die's base hue visible
 # How far the on-charge flash may push glow_reach above its banked-power level. Small by
-# design - see the comment at the reach_rise tweener in _on_dice_charged().
+# design - see the comment at the reach_rise tweener in _on_charge_delivered().
 const AURA_CHARGE_FLASH_REACH_BUMP := 0.05
 const AURA_CHARGE_FULL_AT_POWER := 12.0  # used by the power-number crackle (_update_power_float), not the aura glow curve below
 # Aura glow curve shape: t = 1 - e^(-roll_value / AURA_CHARGE_SOFTNESS). ~10 lands power 5
@@ -569,16 +569,55 @@ var _charge_flash_tween: Tween
 # Round 2 drives a CONSTANT-WIDTH front through the emanation shader instead, so the wave
 # is made of the die's own light field: the licks lean outward and flare as it passes
 # (the "gust"), and a bright front rides out along the die silhouette. Still contained -
-# it dies ~0.8 die-widths out - so the 2026-08-14 "too much intensity & too fast" verdict
+# it dies inside its own light pool, roughly half a die-width past the edge (see round 3
+# below for the current number) - so the 2026-08-14 "too much intensity & too fast" verdict
 # stays respected; what changed is that the travel is now legible at all.
-const CHARGE_GUST_TIME := 0.44        # die edge -> full extent
-const CHARGE_GUST_REACH := 62.0       # px beyond the silhouette (contained)
-const CHARGE_GUST_START := -10.0      # born just INSIDE the edge, so it emerges from the die
-const CHARGE_GUST_PEAK := 0.95
-const CHARGE_GUST_RISE := 0.05        # amplitude snap; the decay owns the rest of the travel
-const CHARGE_GUST_COUNT_STEP := 0.05  # ladder: Charge 4 reads a little heavier than Charge 1
-# Same-frame multi-type volleys (Experiment, War Ritual) emit once per die - one front per
-# FRAME is plenty; N stacked fronts is the additive-overexposure trap.
+#
+# ROUND 3 (2026-08-29, Julien): "it feels rushed atm, like instantly after the charged dice
+# goes to the dice interface we get a very fast pulse. I want more dice goes to dice
+# interface, very small anticipation, boom! pulse. And more of a strong shockwave than a
+# fast pulse." Two separate fixes, and neither is a number tweak on its own:
+#   TIMING  - the front used to fire on the same frame the last die landed, so the clack,
+#             the panel kick and the eruption were one undifferentiated bang. There is now
+#             a wind-up beat (CHARGE_PULSE_ANTICIPATION) between the landing and the
+#             detonation: the converging particle ring collapses inward and the aura dips
+#             (an inhale) during it, then everything erupts on one later frame. The absorb
+#             ceremony already had exactly this shape internally (squash -> hold -> punch)
+#             and just happened to punch 0.3s AFTER the front - now both land together.
+#   WEIGHT  - the shipped variant used to be the FAST one (travel x0.78). That is the exact
+#             quality being complained about, so "punchy" now means heavier and wider, not
+#             quicker: longer travel, more reach, higher amplitude, and a HOLD at peak so
+#             the front has body instead of blinking. The width/travel ratio still respects
+#             the round-1 lesson (a front as thick as its travel reads as a breath).
+const CHARGE_PULSE_ANTICIPATION := 0.22  # landing -> detonation. The wind-up beat.
+# Roughly when the inward-converging particle ring reaches the die centre at speed_scale 1
+# (emission radius 85px under ~1500px/s^2 of inward accel). The ring is time-scaled so its
+# arrival always lands ON the detonation - it IS the visible anticipation, so it must not
+# still be falling in after the bang.
+const CHARGE_PARTICLE_CONVERGE := 0.33
+const CHARGE_AURA_INHALE := 0.78      # how far the aura dims during the wind-up
+const CHARGE_GUST_TIME := 0.50        # die edge -> full extent (was 0.34 shipped: too quick to read)
+const CHARGE_GUST_REACH := 78.0       # px beyond the silhouette (still contained, see rect note)
+const CHARGE_GUST_START := -14.0      # born just INSIDE the edge, so it emerges from the die
+const CHARGE_GUST_PEAK := 1.02
+const CHARGE_GUST_RISE := 0.045       # amplitude snap
+const CHARGE_GUST_HOLD := 0.10        # peak HOLD - this is what turns a blink into a wave front
+const CHARGE_GUST_COUNT_STEP := 0.06  # ladder: Charge 4 reads a little heavier than Charge 1
+const CHARGE_GUST_PEAK_CAP := 1.35    # under the uniform ceiling on purpose - a saturated
+                                      # front loses the lick texture that keeps it organic
+# The volley freeze moved here from dice_interface (2026-08-29). It belongs on the loudest
+# moment, and the loudest moment is now the detonation, not the landing 0.22s earlier. Two
+# freezes that close apart read as stutter, so the landing keeps its clack/kick/flash and
+# this owns the time distortion. Cooldown mirrors the one it replaced: a multi-type charge
+# is N separate one-die volleys and must not chain N freezes.
+const CHARGE_HIT_STOP_SCALE := 0.05
+const CHARGE_HIT_STOP_COOLDOWN_MS := 350
+var _last_charge_hit_stop_ms := -99999
+# Guard against N fronts stacking in one instant (the additive-overexposure trap). Since
+# 2026-08-28 the pulse fires on DELIVERY and same-frame multi-type volleys are sequenced by
+# the interface (>= CHARGE_STAGGER apart), so each volley legitimately gets its own tinted
+# front - that IS the multi-type reveal. This now only catches degenerate same-instant
+# deliveries, e.g. two no-flight fallbacks resolving in a single frame.
 const CHARGE_PULSE_COOLDOWN_MS := 110
 var _last_charge_pulse_ms := -10000
 var _charge_gust_tweens: Array[Tween] = []
@@ -789,7 +828,7 @@ func _ready():
     Events.reset_charged_card.connect(_on_reset_charged_card)
     Events.change_current_power.connect(_on_change_current_power)
     Events.next_roll_determined.connect(_on_next_roll_determined)
-    Events.dice_charged.connect(_on_dice_charged)
+    Events.dice_charge_delivered.connect(_on_charge_delivered)
     Events.put_ink_on_dice.connect(_on_put_ink_on_dice)
     Events.remove_ink_from_dice.connect(_on_remove_ink_from_dice)
     Events.display_next_roll_modifier.connect(_on_display_next_roll_modifier)
@@ -811,13 +850,13 @@ func _ready():
     # Bounds of the slot-row clearance come from the row's real rect, once layout settles.
     _sync_emanation_row_clearance.call_deferred()
 
-    # Loaded motes: the timer polls forever and spawns nothing while Loaded is 0, so there is
+    # Surge motes: the timer polls forever and spawns nothing while Surge is 0, so there is
     # no signal to hook and no way for a grant/expiry path to forget to switch it on.
-    _setup_loaded_motes()
+    _setup_surge_motes()
     _cache_die_rest_rect.call_deferred()
 
     # Overcharge: the ember timer polls forever and spawns nothing below its tier, same
-    # no-signal-to-forget design as the Loaded motes above.
+    # no-signal-to-forget design as the Surge motes above.
     _setup_overcharge()
 
     # Initialize the dice display with the correct texture based on dice_type
@@ -2358,7 +2397,7 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
     if Global.last_roll == 6:
         Global.has_rolled_6_this_turn = true
         # Fight-long tally for Jackpot/Effigy. Keyed on the NATURAL face like the flag above,
-        # so a Boosted or Loaded 5->6 never counts.
+        # so a Boosted or Surge 5->6 never counts.
         Global.sixes_rolled_this_fight += 1
 
         # Talisman, held in hand: every natural 6 grants Block (Julien, 2026-08-20). Sits
@@ -2406,16 +2445,16 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
         animation_player_power.play("power_change")
         next_roll_bonus_panel.hide()
 
-    # Loaded: flat Power on EVERY roll. Boost above is consumed by a single roll; this is not,
+    # Surge: flat Power on EVERY roll. Boost above is consumed by a single roll; this is not,
     # which is the whole point - it's the per-ROLL scaling axis (Strength being the per-HIT one).
     # Deliberately applied HERE, after every natural-face trigger above: Arcane's 6, Gnome's 1,
-    # Octet's 8 and Critical Edge's max face all read Global.last_roll, so a Loaded roll can
+    # Octet's 8 and Critical Edge's max face all read Global.last_roll, so a Surge roll can
     # never fake a natural face. Same ruling Boost already follows (Julien, 2026-07-14).
-    if Global.loaded_amount > 0:
-        Global.roll_value += Global.loaded_amount
+    if Global.surge_amount > 0:
+        Global.roll_value += Global.surge_amount
 
-    # Cards that buff rolls purely by being HELD (Blood Oath on Red, Dead Weight's Loaded 1).
-    # Same placement rule as Loaded: after every natural-face trigger, so a held card can never
+    # Cards that buff rolls purely by being HELD (Blood Oath on Red, Dead Weight's Surge 1).
+    # Same placement rule as Surge: after every natural-face trigger, so a held card can never
     # fake a natural 6/1/8.
     var held_bonus: int = Global.in_hand_roll_bonus(dice_type)
     if held_bonus > 0:
@@ -2438,6 +2477,10 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
     if dice_type != "red":
         Events.dice_rolled.emit(Global.dice_type, Global.roll_value)
     else:
+        # Arm the one-shot report token BEFORE the emit: whichever socketed CardUI handles
+        # red_dice_rolled first consumes it and re-emits dice_rolled, so a Red roll produces
+        # exactly one dice_rolled no matter how many cards are socketed (Dual Cannon).
+        Global.red_roll_pending_report = true
         Events.red_dice_rolled.emit()
         _fire_socketless_red()
     _check_sigil_trigger()
@@ -2952,6 +2995,22 @@ func _on_change_current_power():
     var old_power := _last_shown_power
     var power_changed := Global.roll_value != old_power
 
+    # Power the player GAINED without rolling (Reinforce, Blaze, mech +1, a relic that pays
+    # out on a roll...) counts toward the turn's total, exactly like a roll does. Before
+    # 2026-08-29 only _apply_roll_result credited power_generated_this_turn, so Parasite and
+    # Crescendo - both of which are written as "Power generated this turn" - silently saw
+    # rolls only, and playing Reinforce moved neither.
+    #
+    # ⚠️ This cannot double count rolls: _apply_roll_result credits its own value and then
+    # calls _set_power_text, which syncs _last_shown_power, and it never emits this signal.
+    # So any rise still visible here is by definition non-roll power.
+    #
+    # Only RISES count. A reset, a dice-type switch or a Ricochet rewind must not subtract
+    # (the rewind restores power_generated_this_turn from its snapshot and re-syncs the text
+    # before emitting, so it reaches this line as a zero delta anyway).
+    if Global.roll_value > old_power:
+        Global.power_generated_this_turn += Global.roll_value - old_power
+
     _set_power_text(Global.roll_value)
     _check_sigil_trigger()
     Events.hover_playable_cards.emit()
@@ -3081,7 +3140,7 @@ var _infused_aura_materials := {}
 
 # Infused dice get a recolored COPY of their type's aura material. NEVER mutate the
 # preloaded shared .tres directly - that's the exact bug the old "charge" animation had
-# (see _on_dice_charged): the 9 per-type ShaderMaterials are shared preloaded
+# (see _on_charge_delivered): the 9 per-type ShaderMaterials are shared preloaded
 # resources, so writing colors into one repaints it for the rest of the app session.
 func _resolve_aura_material(type: String, base_material: ShaderMaterial) -> ShaderMaterial:
     if not Global.is_dice_infused(type):
@@ -3097,7 +3156,18 @@ func _resolve_aura_material(type: String, base_material: ShaderMaterial) -> Shad
     return _infused_aura_materials[type]
 
 
-func _on_dice_charged(charged_type: String, count: int) -> void:
+# Fires on Events.dice_charge_delivered, i.e. when the volley's LAST delivered die LANDS
+# in its slot - not when the charge was cast (2026-08-28). Everything else in this game
+# that reads as impact follows "projectile lands -> receiver reacts" (the power orbs'
+# arrival reaction, the thrown-die bash); the charge pulse was the lone impact-sized effect
+# firing at LAUNCH, so it was an announcement with no payoff, over before the eye finished
+# following the flying dice to the row. Landing-timed, the phrase becomes a crescendo -
+# launch flare, flight, rising plinks, then clack + panel kick + hit-stop + THIS on one
+# beat - and the pulse now happens INSIDE the volley's hit-stop instead of being long dead
+# by it (the same freeze-frame miss the slash rework had to fix). Launch-time
+# responsiveness is carried by the delivery's own launch flare and sound (dice_interface).
+# The signal is emitted exactly once per volley, so nothing here needs its own de-dup.
+func _on_charge_delivered(charged_type: String, count: int) -> void:
     if count <= 0:
         return
     # Two DIFFERENT claims, deliberately split (Julien, 2026-08-14) - conflating them is
@@ -3116,16 +3186,32 @@ func _on_dice_charged(charged_type: String, count: int) -> void:
     # PLUS one contained wavefront (2026-08-25, _spawn_charge_pulse below - Julien asked
     # for the eruption to be felt). A big screen-crossing shockwave was tried in 2026-08
     # and rejected: "too much intensity & too fast". The wavefront must stay a contained
-    # pulse AT the die - do not grow its travel or stack more fronts.
-    animation_player.play("charge")  # aura scale kick (peak ~0.1s, settle ~0.55s)
-    _spawn_charge_pulse(charged_type, count)
+    # pulse AT the die - do not grow its travel far or stack more fronts.
+    #
+    # ---- WIND-UP: landing -> CHARGE_PULSE_ANTICIPATION ----
+    # The converging particle ring starts NOW and is the anticipation the player actually
+    # sees; the eruption is scheduled one beat later (see the round-3 note on the consts).
+    # Nothing here may be loud - if the wind-up competes with the bang there is no bang.
     var burst_material := gpu_particles_2d.process_material as ParticleProcessMaterial
     if burst_material:
         burst_material.color = DicePalette.burst(charged_type, 0.35)
+    # Time-scaled so the ring lands ON the detonation instead of still falling inward
+    # after it. speed_scale, not a lifetime edit: lifetime lives in the authored .tscn
+    # sub-resource and the emitter is re-used every volley.
+    gpu_particles_2d.speed_scale = CHARGE_PARTICLE_CONVERGE \
+            / maxf(CHARGE_PULSE_ANTICIPATION, 0.05)
     # restart(), not `emitting = true`: on a one_shot emitter that assignment is a no-op
     # while the previous burst is still alive (0.45s lifetime), so rapid multi-die
     # volleys were rendering ONE converging ring for the whole volley.
     gpu_particles_2d.restart()
+
+    # ---- DETONATION, scheduled ----
+    # Its own tween so a second volley landing during the wind-up simply queues its own
+    # bang; the gust cooldown is what protects the additive layer from stacked fronts.
+    # Tweens created on this node die with it, so nothing fires into a freed die.
+    var boom := create_tween()
+    boom.tween_interval(CHARGE_PULSE_ANTICIPATION)
+    boom.tween_callback(_detonate_charge.bind(charged_type, count))
 
     # Charge flash on the aura itself. charge_heat ALONE is invisible: the shader blends
     # it into rgb at 22% weight only (dice_glow.gdshader), never into alpha or reach, so
@@ -3142,6 +3228,22 @@ func _on_dice_charged(charged_type: String, count: int) -> void:
         if _charge_flash_tween and _charge_flash_tween.is_valid():
             _charge_flash_tween.kill()
         _charge_flash_tween = create_tween()
+        # INHALE first (2026-08-29). A silent gap between the landing and the bang reads
+        # as lag; a gap in which the light visibly draws IN reads as a wind-up. Dimming
+        # also buys the flash its contrast back - it now rises from below the resting
+        # level instead of from wherever banked power had already parked it.
+        var intensity_now := _shader_f(aura_material, "power_intensity", AURA_INTENSITY_REST)
+        var reach_now := _shader_f(aura_material, "glow_reach", AURA_REACH_REST)
+        var dip := _charge_flash_tween.tween_property(
+            aura_material, "shader_parameter/power_intensity",
+            intensity_now * CHARGE_AURA_INHALE, CHARGE_PULSE_ANTICIPATION)
+        if dip:
+            dip.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+        var reach_dip := _charge_flash_tween.parallel().tween_property(
+            aura_material, "shader_parameter/glow_reach",
+            reach_now * 0.92, CHARGE_PULSE_ANTICIPATION)
+        if reach_dip:
+            reach_dip.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
         var heat_rise := _charge_flash_tween.tween_property(
             aura_material, "shader_parameter/charge_heat", 1.0, 0.12)
         if heat_rise:
@@ -3155,7 +3257,6 @@ func _on_dice_charged(charged_type: String, count: int) -> void:
         # measured on round 1, the two merged into one fat halo and the wave was lost
         # inside it. The flash stays a brightness event at the SOURCE; spread belongs to
         # the front. (power_intensity above still goes to max - that part reads fine.)
-        var reach_now: float = aura_material.get_shader_parameter("glow_reach")
         var reach_rise := _charge_flash_tween.parallel().tween_property(
             aura_material, "shader_parameter/glow_reach",
             minf(reach_now + AURA_CHARGE_FLASH_REACH_BUMP, AURA_REACH_MAX), 0.12)
@@ -3173,6 +3274,8 @@ func _on_dice_charged(charged_type: String, count: int) -> void:
         if _emanation_surge_tween and _emanation_surge_tween.is_valid():
             _emanation_surge_tween.kill()
         _emanation_surge_tween = create_tween()
+        # Same wind-up gap as the aura - the licks flare WITH the front, not before it.
+        _emanation_surge_tween.tween_interval(CHARGE_PULSE_ANTICIPATION)
         var em_rise := _emanation_surge_tween.tween_property(
             emanation_material, "shader_parameter/surge", 1.0, 0.12)
         if em_rise:
@@ -3185,6 +3288,10 @@ func _on_dice_charged(charged_type: String, count: int) -> void:
             .set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
     # ---- Everything past here is the OWNERSHIP claim: this die really did gain dice. ----
+    # Evaluated at LANDING time, so switching the active die mid-flight decides which claim
+    # fires. That is deliberate and more honest than snapshotting the type at cast time:
+    # the absorb ceremony says "the die you are looking at just took these in", and if you
+    # walked away from that die before they arrived, it did not. Do not snapshot.
     if charged_type != dice_type:
         return
 
@@ -3192,7 +3299,12 @@ func _on_dice_charged(charged_type: String, count: int) -> void:
     # particles reach its center: anticipation squash + hold while the ring collapses,
     # then a punch + flash + power pulse on impact, then settle. Tighter overall than the
     # old scattered fountain so the charge no longer upstages the hit that triggered it.
-    var converge_time := 0.30
+    #
+    # This IS the detonation instant now (2026-08-29). It always was a squash-then-punch,
+    # but its punch used to land 0.3s AFTER the wavefront had already come and gone, so
+    # the charge read as two unrelated events. Sharing one constant with the wavefront is
+    # what makes them a single bang - do not fork these two timings again.
+    var converge_time := CHARGE_PULSE_ANTICIPATION
 
     # --- Scale: anticipation squash -> hold while energy converges -> absorb-punch -> settle ---
     # The absorb punch scales with HOW MANY dice landed in the active pool (Charge 1 vs
@@ -3223,6 +3335,30 @@ func _on_dice_charged(charged_type: String, count: int) -> void:
     power_tween.tween_property(current_power, "scale", Vector2(1.0, 1.0), 0.15) \
         .set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
     
+# Reading an unassigned uniform returns null, which throws when it lands in a typed float
+# (the documented "shader params must be seeded" trap) - so every read of a value we intend
+# to tween FROM goes through here.
+func _shader_f(mat: ShaderMaterial, param: String, fallback: float) -> float:
+    var v = mat.get_shader_parameter(param)
+    return fallback if v == null else float(v)
+
+
+# The bang itself, one CHARGE_PULSE_ANTICIPATION after the dice landed in the row. The aura
+# flash and the emanation surge are already scheduled tweens by the time this runs; what is
+# left here is everything that cannot be expressed as a delayed tweener.
+func _detonate_charge(charged_type: String, count: int) -> void:
+    animation_player.play("charge")  # aura scale kick (peak ~0.1s, settle ~0.55s)
+    _spawn_charge_pulse(charged_type, count)
+    # The volley freeze lives here rather than on the arrival (moved out of
+    # dice_interface, 2026-08-29): the freeze has to punctuate the loudest frame, and the
+    # loudest frame is this one. Landing keeps its clack, panel kick and slot flash.
+    var now := Time.get_ticks_msec()
+    if now - _last_charge_hit_stop_ms >= CHARGE_HIT_STOP_COOLDOWN_MS:
+        _last_charge_hit_stop_ms = now
+        Shaker.hit_stop(clampf(0.06 + 0.014 * float(count), 0.06, 0.13),
+                CHARGE_HIT_STOP_SCALE)
+
+
 # The wavefront half of the universal charge beat: the die's own light field getting blown
 # outward. Drives gust_radius (constant-width front, in px beyond the die silhouette) and
 # gust amplitude through dice_emanation.gdshader, so the licks lean/flare as it passes and
@@ -3235,14 +3371,18 @@ func _spawn_charge_pulse(charged_type: String, count: int) -> void:
     if now - _last_charge_pulse_ms < CHARGE_PULSE_COOLDOWN_MS:
         return
     _last_charge_pulse_ms = now
+    # "punchy" (the live mode) used to mean FASTER; since 2026-08-29 it means HEAVIER -
+    # wider reach and a stronger front over the same, longer travel. Mode 0 keeps a lighter,
+    # quicker version so the bake-off plate still shows two distinct weights.
     var punchy := charge_pulse_mode == 2
-    var travel_time := CHARGE_GUST_TIME * (0.78 if punchy else 1.0)
+    var travel_time := CHARGE_GUST_TIME * (1.0 if punchy else 0.85)
     var reach := CHARGE_GUST_REACH * (1.12 if punchy else 1.0)
     # Cap above 1.0 so the count ladder still has somewhere to go - see the gust uniform's
     # range note in dice_emanation.gdshader.
-    var peak := minf(CHARGE_GUST_PEAK * (1.15 if punchy else 1.0)
-            + CHARGE_GUST_COUNT_STEP * float(clampi(count, 1, 4) - 1), 1.25)
-    _fire_gust(DicePalette.burst(charged_type, 0.55), peak, reach, travel_time)
+    var peak := minf(CHARGE_GUST_PEAK * (1.12 if punchy else 1.0)
+            + CHARGE_GUST_COUNT_STEP * float(clampi(count, 1, 4) - 1), CHARGE_GUST_PEAK_CAP)
+    _fire_gust(DicePalette.burst(charged_type, 0.55), peak, reach, travel_time,
+            CHARGE_GUST_HOLD)
 
     if charge_pulse_mode == 1:
         _spawn_charge_ring_sprite(charged_type, count)
@@ -3251,7 +3391,8 @@ func _spawn_charge_pulse(charged_type: String, count: int) -> void:
 # The wavefront itself, shared by the charge beat and by the overcharge leaks so the two can
 # never drift apart in shape - only in colour, amplitude, reach and speed. Killing whatever is
 # already in flight is part of the contract: two live fronts on an additive layer overexpose.
-func _fire_gust(color: Color, peak: float, reach: float, travel_time: float) -> void:
+func _fire_gust(color: Color, peak: float, reach: float, travel_time: float,
+        hold: float = 0.0) -> void:
     var mat := emanation.material as ShaderMaterial
     if mat == null:
         return
@@ -3274,8 +3415,14 @@ func _fire_gust(color: Color, peak: float, reach: float, travel_time: float) -> 
     var amp_tween := create_tween()
     amp_tween.tween_property(mat, "shader_parameter/gust", peak, CHARGE_GUST_RISE) \
             .from(0.0).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+    # Optional HOLD at full amplitude before the decay starts. The radius keeps advancing
+    # underneath it (separate tween), so the front stays bright across the fast opening
+    # stretch of its travel - that is the difference between a shockwave and a flicker.
+    # Overcharge leaks pass hold = 0 and keep their old melting shape.
+    if hold > 0.0:
+        amp_tween.tween_interval(hold)
     amp_tween.tween_property(mat, "shader_parameter/gust", 0.0,
-            maxf(travel_time - CHARGE_GUST_RISE, 0.05)) \
+            maxf(travel_time - CHARGE_GUST_RISE - hold, 0.05)) \
             .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
     _charge_gust_tweens = [radius_tween, amp_tween]
 
@@ -4582,7 +4729,12 @@ func _fire_socketless_red() -> void:
     # so without this emit the die is rolled for free forever (Julien, 2026-08-16: "doesn't use
     # the red dice"). Emitting it here also feeds the per-roll relics (Crown, Metronome) that a
     # socketless roll should count towards, exactly like the socketed path already does.
-    Events.dice_rolled.emit("red", Global.roll_value)
+    # No CardUI can have consumed the token here (an empty socket means none passed the
+    # charged-id gate), but consume it explicitly so the "exactly one per Red roll" rule
+    # holds structurally rather than by coincidence.
+    if Global.red_roll_pending_report:
+        Global.red_roll_pending_report = false
+        Events.dice_rolled.emit("red", Global.roll_value)
     # The roll was spent on the board instead of on a card, so it still ends the chain.
     Events.dice_roll_reset.emit()
 
@@ -4794,59 +4946,59 @@ func _refresh_empty_socket_look() -> void:
     _set_socket_empty()
 
 
-# --- Loaded motes -----------------------------------------------------------------------------
-# Sparks leaking off the central die while LOADED is up (Julien, 2026-08-25, after liking the
+# --- Surge motes -----------------------------------------------------------------------------
+# Sparks leaking off the central die while SURGE is up (Julien, 2026-08-25, after liking the
 # motes on the infusion and dice-shop dice).
 #
-# GATED on Loaded rather than running all the time, deliberately. Those two screens use motes to
+# GATED on Surge rather than running all the time, deliberately. Those two screens use motes to
 # say "this die is special" about an otherwise static image; the combat die already has three
 # continuous systems saying "alive" (emanation tongues, aura ring, power orbs), so a permanent
 # fourth layer would be wallpaper by turn three - and it would spend clutter in the one region
-# this scene keeps having to fight for, the slot row sitting ~15px above the die art. Loaded, by
+# this scene keeps having to fight for, the slot row sitting ~15px above the die art. Surge, by
 # contrast, had NO presence on the die at all: its whole fantasy is "this die is weighted, every
 # roll pays extra", and the only tell was a badge over on the player, nowhere near the die.
 #
-# Density scales with Global.loaded_amount, so building the ladder (Sleight -> Ringer -> a held
+# Density scales with Global.surge_amount, so building the ladder (Sleight -> Ringer -> a held
 # Dead Weight) shows on the die itself instead of only in a badge number.
-const LOADED_MOTE_INTERVAL_BASE := 0.55   # spawn gap at Loaded 1; also the idle poll rate
-const LOADED_MOTE_INTERVAL_STEP := 0.09   # shaved off per extra stack
-const LOADED_MOTE_INTERVAL_FLOOR := 0.26  # never denser than the dice shop per-die rate
+const SURGE_MOTE_INTERVAL_BASE := 0.55   # spawn gap at Surge 1; also the idle poll rate
+const SURGE_MOTE_INTERVAL_STEP := 0.09   # shaved off per extra stack
+const SURGE_MOTE_INTERVAL_FLOOR := 0.26  # never denser than the dice shop per-die rate
 # Bigger and brighter than the shop/infusion motes (11-22px at 0.38-0.62), and not by taste:
 # those sit on a static die on a dark screen, while this one is already inside the emanation's
 # light pool. Measured at the shop's values here, the motes lit 99 sampled px against an 84px
 # noise floor from the emanation's own animation - i.e. they rendered and did not exist. Size
 # is the strongest lever because glow_texture() concentrates its brightness in a small core.
-const LOADED_MOTE_SIZE_MIN := 14.0
-const LOADED_MOTE_SIZE_MAX := 26.0
-const LOADED_MOTE_ALPHA_MIN := 0.50
-const LOADED_MOTE_ALPHA_MAX := 0.75
-const LOADED_MOTE_ALPHA_PER_STACK := 0.03
-const LOADED_MOTE_STACK_CAP := 4
+const SURGE_MOTE_SIZE_MIN := 14.0
+const SURGE_MOTE_SIZE_MAX := 26.0
+const SURGE_MOTE_ALPHA_MIN := 0.50
+const SURGE_MOTE_ALPHA_MAX := 0.75
+const SURGE_MOTE_ALPHA_PER_STACK := 0.03
+const SURGE_MOTE_STACK_CAP := 4
 # Spawn band measured UP from _mote_spawn_base_y, and how far a mote climbs.
-const LOADED_MOTE_SPAWN_BAND := 38.0
-const LOADED_MOTE_RISE_MIN := 55.0
-const LOADED_MOTE_RISE_MAX := 95.0
-const LOADED_MOTE_DRIFT_X := 14.0
+const SURGE_MOTE_SPAWN_BAND := 38.0
+const SURGE_MOTE_RISE_MIN := 55.0
+const SURGE_MOTE_RISE_MAX := 95.0
+const SURGE_MOTE_DRIFT_X := 14.0
 # Hard ceiling, as a gap above the die art's top edge. The dice-type slot row sits just above
 # the die and draws at z_index 5, so a spark that drifts into it does not overlap the tray - it
 # vanishes behind an opaque plate mid-flight. Every rise is clamped against this rather than
 # just being tuned to land short of it, so retuning the band above can never quietly reopen it.
-const LOADED_MOTE_HEADROOM := 18.0
+const SURGE_MOTE_HEADROOM := 18.0
 # Strongly warm-shifted, not merely tinted. A spark in the die's own accent is invisible inside
 # that die's light field - the way the charge gust failed on 2026-08-25 - and at a half lerp it
 # was still blue-on-blue, rendering as a pale smudge on the Blue die rather than an ember. This
 # lands close to burst()'s warm gold, which also happens to be the colour the card text already
-# teaches for the Loaded keyword, while keeping a trace of the die's hue.
-const LOADED_MOTE_WARMTH := 0.78
-const LOADED_MOTE_GROUP := "loaded_mote"
+# teaches for the Surge keyword, while keeping a trace of the die's hue.
+const SURGE_MOTE_WARMTH := 0.78
+const SURGE_MOTE_GROUP := "surge_mote"
 # ⚠️ Being a LATER SIBLING is not enough to draw in front here: dice.tscn gives DiceDisplay
 # z_index 1, and z_index beats tree order. At the default 0 these motes rendered perfectly -
 # behind the opaque die face, invisible, while every property probe (visible, alpha, texture,
 # rect) looked correct. 2 puts them just in front of the face and still under DiceInk (4), so
 # an inked die keeps hiding them, and far under the ROLL button (10) and socket panels (8).
-const LOADED_MOTE_Z_INDEX := 8
+const SURGE_MOTE_Z_INDEX := 8
 
-var _loaded_mote_timer: Timer
+var _surge_mote_timer: Timer
 # The die art's RESTING rect in root-local space. Motes are parented to the ROOT, never to
 # dice_display, so the hop cannot drag them along mid-flight - which is precisely why they need
 # the resting footprint rather than the live one.
@@ -4858,12 +5010,12 @@ var _die_rest_rect := Rect2()
 var _mote_spawn_base_y := 0.0
 
 
-func _setup_loaded_motes() -> void:
-    _loaded_mote_timer = Timer.new()
-    _loaded_mote_timer.wait_time = LOADED_MOTE_INTERVAL_BASE
-    _loaded_mote_timer.timeout.connect(_on_loaded_mote_timer_timeout)
-    add_child(_loaded_mote_timer)
-    _loaded_mote_timer.start()
+func _setup_surge_motes() -> void:
+    _surge_mote_timer = Timer.new()
+    _surge_mote_timer.wait_time = SURGE_MOTE_INTERVAL_BASE
+    _surge_mote_timer.timeout.connect(_on_surge_mote_timer_timeout)
+    add_child(_surge_mote_timer)
+    _surge_mote_timer.start()
 
 
 # Deferred from _ready so the anchored layout has resolved. Read once: the plinth dip moves
@@ -4877,28 +5029,28 @@ func _cache_die_rest_rect() -> void:
         _mote_spawn_base_y = minf(_mote_spawn_base_y, roll_button.position.y)
 
 
-func _loaded_mote_interval(loaded: int) -> float:
-    if loaded <= 1:
-        return LOADED_MOTE_INTERVAL_BASE
-    return maxf(LOADED_MOTE_INTERVAL_FLOOR,
-            LOADED_MOTE_INTERVAL_BASE - LOADED_MOTE_INTERVAL_STEP * float(loaded - 1))
+func _surge_mote_interval(surge: int) -> float:
+    if surge <= 1:
+        return SURGE_MOTE_INTERVAL_BASE
+    return maxf(SURGE_MOTE_INTERVAL_FLOOR,
+            SURGE_MOTE_INTERVAL_BASE - SURGE_MOTE_INTERVAL_STEP * float(surge - 1))
 
 
-func _on_loaded_mote_timer_timeout() -> void:
-    var loaded: int = Global.loaded_amount
+func _on_surge_mote_timer_timeout() -> void:
+    var surge: int = Global.surge_amount
     # start() rather than assigning wait_time: Timer re-arms itself with the OLD value before
     # emitting, so a mid-turn Sleight (or its expiry) would otherwise take a full extra cycle
     # to change the density.
-    _loaded_mote_timer.start(_loaded_mote_interval(loaded))
-    if loaded <= 0:
+    _surge_mote_timer.start(_surge_mote_interval(surge))
+    if surge <= 0:
         return
-    _spawn_loaded_mote(loaded)
+    _spawn_surge_mote(surge)
 
 
-func _spawn_loaded_mote(loaded: int) -> void:
+func _spawn_surge_mote(surge: int) -> void:
     if _die_rest_rect.size == Vector2.ZERO:
         return
-    var tint := DicePalette.burst(dice_type, LOADED_MOTE_WARMTH)
+    var tint := DicePalette.burst(dice_type, SURGE_MOTE_WARMTH)
     var mote := TextureRect.new()
     mote.texture = DicePalette.glow_texture()
     mote.material = DicePalette.additive_material()
@@ -4907,25 +5059,25 @@ func _spawn_loaded_mote(loaded: int) -> void:
     # IGNORE, not the Control default STOP: these sit over the die and would otherwise eat the
     # hovers belonging to the Power number's tooltip zone and the ROLL button.
     mote.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    mote.z_index = LOADED_MOTE_Z_INDEX
-    # Group, not a name prefix: Godot renames duplicate siblings to "@LoadedMote@2", which no
-    # begins_with("LoadedMote") test ever matches - debug_loaded_motes silently saw one mote at
+    mote.z_index = SURGE_MOTE_Z_INDEX
+    # Group, not a name prefix: Godot renames duplicate siblings to "@SurgeMote@2", which no
+    # begins_with("SurgeMote") test ever matches - debug_surge_motes silently saw one mote at
     # a time that way.
-    mote.name = "LoadedMote"
-    mote.add_to_group(LOADED_MOTE_GROUP)
-    var mote_size := randf_range(LOADED_MOTE_SIZE_MIN, LOADED_MOTE_SIZE_MAX)
+    mote.name = "SurgeMote"
+    mote.add_to_group(SURGE_MOTE_GROUP)
+    var mote_size := randf_range(SURGE_MOTE_SIZE_MIN, SURGE_MOTE_SIZE_MAX)
     mote.size = Vector2(mote_size, mote_size)
     mote.modulate = Color(tint.r, tint.g, tint.b, 0.0)
     mote.position = Vector2(
             _die_rest_rect.position.x + randf_range(0.0, _die_rest_rect.size.x - mote_size),
-            _mote_spawn_base_y - randf_range(0.0, LOADED_MOTE_SPAWN_BAND))
+            _mote_spawn_base_y - randf_range(0.0, SURGE_MOTE_SPAWN_BAND))
     add_child(mote)
 
-    var extra_stacks := float(mini(loaded, LOADED_MOTE_STACK_CAP) - 1)
-    var peak_alpha := randf_range(LOADED_MOTE_ALPHA_MIN, LOADED_MOTE_ALPHA_MAX) \
-            + extra_stacks * LOADED_MOTE_ALPHA_PER_STACK
-    var ceiling_y := _die_rest_rect.position.y - LOADED_MOTE_HEADROOM
-    var rise := minf(randf_range(LOADED_MOTE_RISE_MIN, LOADED_MOTE_RISE_MAX),
+    var extra_stacks := float(mini(surge, SURGE_MOTE_STACK_CAP) - 1)
+    var peak_alpha := randf_range(SURGE_MOTE_ALPHA_MIN, SURGE_MOTE_ALPHA_MAX) \
+            + extra_stacks * SURGE_MOTE_ALPHA_PER_STACK
+    var ceiling_y := _die_rest_rect.position.y - SURGE_MOTE_HEADROOM
+    var rise := minf(randf_range(SURGE_MOTE_RISE_MIN, SURGE_MOTE_RISE_MAX),
             maxf(mote.position.y - ceiling_y, 0.0))
     var duration := randf_range(1.0, 1.6)
     var t := create_tween()
@@ -4933,7 +5085,7 @@ func _spawn_loaded_mote(loaded: int) -> void:
     t.tween_property(mote, "position:y", mote.position.y - rise, duration) \
             .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
     t.tween_property(mote, "position:x",
-            mote.position.x + randf_range(-LOADED_MOTE_DRIFT_X, LOADED_MOTE_DRIFT_X), duration)
+            mote.position.x + randf_range(-SURGE_MOTE_DRIFT_X, SURGE_MOTE_DRIFT_X), duration)
     t.tween_property(mote, "modulate:a", peak_alpha, duration * 0.3)
     t.tween_property(mote, "modulate:a", 0.0, duration * 0.45).set_delay(duration * 0.55)
     t.chain().tween_callback(mote.queue_free)
@@ -4988,10 +5140,10 @@ const OVERCHARGE_EMBER_ALPHA_MAX := 0.70
 const OVERCHARGE_EMBER_RISE_MIN := 34.0
 const OVERCHARGE_EMBER_RISE_MAX := 62.0
 const OVERCHARGE_EMBER_DRIFT_X := 11.0
-# Same warmth as the Loaded sparks and for the same measured reason: an ember in the die's own
+# Same warmth as the Surge sparks and for the same measured reason: an ember in the die's own
 # accent vanishes inside the die's own light field.
 const OVERCHARGE_EMBER_WARMTH := 0.82
-# Matches LOADED_MOTE_Z_INDEX - in front of the die face (z 1), under DiceInk (4), the socket
+# Matches SURGE_MOTE_Z_INDEX - in front of the die face (z 1), under DiceInk (4), the socket
 # panels (8) and the ROLL button (10).
 const OVERCHARGE_EMBER_Z_INDEX := 2
 const OVERCHARGE_EMBER_GROUP := "overcharge_ember"
@@ -5318,7 +5470,7 @@ func _on_overcharge_ember_timer_timeout() -> void:
             else OVERCHARGE_EMBER_INTERVAL_T2
     # start() rather than assigning wait_time - a Timer re-arms with the OLD value before it
     # emits, so a tier change would otherwise take a full extra cycle to show up (same trap
-    # the Loaded mote timer documents).
+    # the Surge mote timer documents).
     _overcharge_ember_timer.start(interval)
     if _overcharge_tier < OVERCHARGE_EMBER_MIN_TIER:
         return

@@ -206,8 +206,8 @@ func start_battle() -> void:
     Global.gargantua_debuff_attack_done = false
     Global.ink_active = false
     Global.thrown_dice_bonus_fight = 0
-    Global.loaded_amount = 0
-    Global.loaded_expiring = 0
+    Global.surge_amount = 0
+    Global.surge_expiring = 0
     Global.dice_types_rolled_this_turn = {}
     Global.sixes_rolled_this_fight = 0
     Global.face_overrides = {}
@@ -215,6 +215,7 @@ func start_battle() -> void:
     Global.last_rolled_type = ""
     Global.reroll_types = {}
     Global.red_socket_capacity = 1
+    Global.red_roll_pending_report = false
     Global.power_kept_on_reset = 0
     Global.socketless_red = false
     Global.socketless_red_strength = 0

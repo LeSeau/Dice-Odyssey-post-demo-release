@@ -28,15 +28,15 @@ changed how socketed cards are tracked (`charged_card_instance_id` → a list).
 
 ## Tier 1 — could be silently broken
 
-### Loaded (Batch 2)
-1. Play **Weighted Dice** → badge shows 2, and every roll banks **+2 more than the face**.
+### Surge (Batch 2)
+1. Play **Sleight** → badge shows 2, and every roll banks **+2 more than the face**.
 2. End turn → next turn the badge is **gone**. (Turn-scoped slice expiring is the trickiest
    logic in the batch.)
-3. Play **Loaded Dice** (Min 5) → badge 1, and it **survives** into next turn.
+3. Play **Ringer** (Min 5) → badge 1, and it **survives** into next turn.
 4. Both in one turn → badge 3 this turn, **1 next turn**.
-5. ⚠️ With Loaded up, roll a natural 5 on an **Arcane-infused Blue** → Arcane must **NOT** fire.
+5. ⚠️ With Surge up, roll a natural 5 on an **Arcane-infused Blue** → Arcane must **NOT** fire.
    Same for Gnome (natural 1), Octet (natural 8), Critical Edge (natural max face).
-   *Loaded must never fake a natural face.*
+   *Surge must never fake a natural face.*
 
 ### Counters and their cards (Batch 3)
 6. **Spectrum** — roll 3 different types in one turn, play it → 12 damage to all. The
@@ -106,7 +106,7 @@ changed how socketed cards are tracked (`charged_card_instance_id` → a list).
 - **Kaleidoscope + Spectrum** — keep the chain *and* go rainbow.
 - **Blood Oath held permanently** — is never playing it the correct line? If so it needs a
   bigger play effect.
-- **Loaded vs Exact** — your original worry. Loaded 1–2 should still allow Exact play.
+- **Surge vs Exact** — your original worry. Surge 1–2 should still allow Exact play.
 - **Pool at 95, 13 rares.** Draft variety, and whether the 19 new cards actually show up.
 
 ## Tier 4 — quick sanity

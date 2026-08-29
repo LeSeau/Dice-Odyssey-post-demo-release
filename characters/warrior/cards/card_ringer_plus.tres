@@ -1,27 +1,27 @@
 [gd_resource type="Resource" script_class="Card" load_steps=4 format=3 uid="uid://cl04d3dd1c3p1"]
 
 [ext_resource type="Texture2D" path="res://loaded_dice.png" id="1_icon"]
-[ext_resource type="Script" path="res://characters/warrior/cards/ringer.gd" id="2_script"]
+[ext_resource type="Script" path="res://characters/warrior/cards/ringer_plus.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://df64e7qat73gs" path="res://art/block.ogg" id="3_sound"]
 
 [resource]
 script = ExtResource("2_script")
-id = "card_loaded_dice_plus"
+id = "card_ringer_plus"
 name = "Ringer+"
-type = 1
+type = 2
 target = 0
-description = "Gain Loaded 1 for the rest of combat"
+description = "Gain Surge 2 for the rest of combat"
 rarity = 0
 rarity_tier = 1
 red_only = false
 can_play_without_dice = false
-requirement = 0
-requirement_number = 0
-exhausts = false
+requirement = 1
+requirement_number = 6
+exhausts = true
 bonus_requirement = 0
 bonus_requirement_number = 0
 bonus_description_text = ""
-tags = "Loaded"
+tags = "Surge"
 upgraded = true
 icon = ExtResource("1_icon")
 tooltip_text = ""

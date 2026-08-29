@@ -1,11 +1,15 @@
 extends Card
 
-# "Min 5: Gain Surge 1 for the rest of combat" - the permanent half of the Surge ladder.
-# No surge_expiring here, so SurgeStatus never takes it back; it just accumulates.
-# See sleight.gd for the turn-scoped sibling and statuses/surge.gd for the split.
+# "Min 6: Gain Surge 2 for the rest of combat" - the permanent half of the Surge ladder,
+# doubled. Separate script from ringer.gd only because SURGE_AMOUNT is a const: a Card has no
+# payload field the way a Status has `stacks`, so the two amounts cannot share one script.
+# ⚠️ Keep the body in step with ringer.gd - only the constant differs.
+#
+# No surge_expiring here, so SurgeStatus never takes it back; it just accumulates. See
+# sleight.gd for the turn-scoped sibling and statuses/surge.gd for the split.
 
 const SURGE_STATUS = preload("res://statuses/surge.tres")
-const SURGE_AMOUNT := 1
+const SURGE_AMOUNT := 2
 
 
 func apply_effects(targets: Array[Node], _modifiers: ModifierHandler) -> void:

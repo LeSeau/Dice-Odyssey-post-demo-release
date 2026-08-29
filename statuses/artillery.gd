@@ -4,8 +4,11 @@ extends Status
 # START_OF_TURN, so StatusHandler drives it - no signal wiring and nothing to disconnect.
 #
 # Uses the same Events.dice_thrown -> Card._land_thrown_die plumbing every throw card uses, so
-# it inherits the flight visual, the volley timing, Trebuchet's bonus and the "a thrown die
-# counts as rolled" reporting for free.
+# it inherits the flight visual, the volley timing and Trebuchet's bonus for free.
+#
+# Since 2026-08-29 these throws are NOT rolls: they no longer advance any roll counter. That
+# also fixed a real bug - this blessing's start-of-turn die used to land as "die #1 of the
+# turn", which silently ate Assault's first-roll bonus and pre-seeded the rainbow set.
 
 # ⚠️ load() at call time, NOT preload(). This status and its card preload each other:
 #   statuses/artillery.gd -> card_artillery.tres -> cards/artillery.gd -> statuses/artillery.tres
