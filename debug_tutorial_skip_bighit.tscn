@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bq7rdx2tutskip"]
+
+[ext_resource type="Script" path="res://debug_tutorial_skip_bighit.gd" id="1_dbgts"]
+
+[node name="DebugTutorialSkipBigHit" type="Node"]
+script = ExtResource("1_dbgts")

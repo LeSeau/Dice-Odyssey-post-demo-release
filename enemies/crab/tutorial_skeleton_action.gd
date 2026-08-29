@@ -34,14 +34,27 @@ func is_performable() -> bool:
     return true
 
 
-# EXACTLY the nth attack, not ">=": if the player skips the tutorial, this Skeleton becomes a
-# normal fight, and an open-ended threshold would leave it hitting for 35 every turn forever.
-# One desperate last swing, then back to normal.
+# The big swing only exists as the payoff to a SCRIPTED turn 3, where the tutorial has just
+# handed the player the exact kill. Skip the tutorial (Skip button or the stuck guard) and that
+# setup is gone: the player has no guaranteed way to kill this Skeleton or block 35, so the hit
+# is simply not on the table any more and the fight falls back to its ordinary poke
+# (Julien, 2026-08-29). Capping it to one occurrence - the previous guard - was not enough:
+# one unblockable 35 is exactly the problem.
+#
+# Reading Global.tutorial_on here rather than snapshotting it means the change takes effect the
+# instant the player skips, mid-fight, which is the only moment it matters. TutorialDirector's
+# _release_tutorial() redraws enemy intents right after flipping the flag so a turn-3 intent
+# already showing 35 does not outlive the threat it describes.
+#
+# EXACTLY the nth attack, not ">=", so even inside the tutorial it is one desperate swing
+# rather than a new baseline.
 #
 # Reads the exports directly instead of caching one into a `base_damage` member the way the
 # other enemy actions do - that pattern snapshots the DEFAULT value before the scene's exported
 # override is applied, which is a live footgun elsewhere in this codebase.
 func _current_damage() -> int:
+    if not Global.tutorial_on:
+        return damage
     return big_hit_damage if _attacks_landed == big_hit_after_attacks else damage
 
 
