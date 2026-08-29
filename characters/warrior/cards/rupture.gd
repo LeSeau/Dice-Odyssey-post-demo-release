@@ -20,7 +20,7 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     damage_effect.sound = sound
     damage_effect.execute(targets)
     var status_effect := StatusEffect.new()
-    var ruptured := RUPTURED_STATUS.duplicate()
+    var ruptured: Status = RUPTURED_STATUS.duplicate()
     ruptured.duration = 1
     status_effect.status = ruptured
     status_effect.execute(targets)
@@ -28,8 +28,8 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
 
 
 func get_dynamic_description(modifiers: ModifierHandler, target: Node = null) -> String:
-    var tail := ". The enemy takes %d damage each time you roll a Dice this turn" \
-        % RupturedStatus.DAMAGE_PER_ROLL
+    var per_roll: int = RUPTURED_STATUS.stacks
+    var tail := ". The enemy takes %d damage each time you roll a Dice this turn" % per_roll
     if is_inked():
         return "Deal ? damage" + tail
     if not has_active_roll():

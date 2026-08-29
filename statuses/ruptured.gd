@@ -2,7 +2,7 @@ class_name RupturedStatus
 extends Status
 
 # Rupture's payload: for the REST OF THIS TURN, every Dice the player rolls also hits this
-# enemy for DAMAGE_PER_ROLL. Inverts the game's normal sequencing - every other card wants to
+# enemy for its per-roll damage. Inverts the game's normal sequencing - every other card wants to
 # be played after you've banked, this one wants to be played at 0 Power and rolled INTO.
 #
 # Three signals, not one, and each is load-bearing:
@@ -13,7 +13,11 @@ extends Status
 # Owner-bound like ParasiteStatus: the resource is duplicated per application, holds its own
 # target, and every handler re-validates it because the enemy can die mid-turn.
 
-const DAMAGE_PER_ROLL := 3
+# Damage per roll rides on `stacks` rather than a const so the base status (3) and
+# ruptured_plus.tres (4) can share this script - the same payload trick Effigy uses.
+# stack_type is NONE on both resources, so the number never renders as a badge.
+# DEFAULT_DAMAGE is only a floor for a resource that somehow arrives with stacks unset.
+const DEFAULT_DAMAGE := 3
 
 var target: Node
 var _last_roll_token := -1
@@ -53,7 +57,7 @@ func _bleed() -> void:
     if not _consume_roll_token():
         return
     var damage_effect := DamageEffect.new()
-    damage_effect.amount = DAMAGE_PER_ROLL
+    damage_effect.amount = maxi(stacks, DEFAULT_DAMAGE)
     damage_effect.execute([target])
 
 
