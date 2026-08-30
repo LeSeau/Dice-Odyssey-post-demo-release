@@ -119,6 +119,7 @@ func _ready() -> void:
     Events.player_hand_discarded.connect(enemy_handler.start_turn)
     Events.player_died.connect(_on_player_died)
     Events.scout_effect.connect(_on_scout_effect)
+    Events.card_played.connect(_on_card_played_track_frame)
     Events.stop_battle_music.connect(_on_stop_battle_music)
     Events.show_warning_message.connect(_on_show_warning_message)
     Events.player_turn_started.connect(_on_player_turn_started_dim)
@@ -489,8 +490,7 @@ const SCOUT_PANEL_SIDE_PADDING := 60.0
 # the active die into the panel as it unfolds, the roll options materialize one
 # by one where the motes land, and the picked die flies down into the next-roll
 # slot (trailing the die's accent color) while the panel folds back away.
-const SCOUT_OPEN_TIME := 0.18
-const SCOUT_FACE_REVEAL_START := 0.08   # delay before the first face starts materializing, lets the panel mostly land first
+const SCOUT_FACE_REVEAL_START := 0.2    # delay before the first face starts materializing; kept in step with SCOUT_UNFURL_TIME so the first flicker begins exactly as the panel reaches full height
 # Each option materializes with a couple of quick uncertain flickers before locking in -
 # NOT a plain instant pop (tried, read as "an orb just hit a static die" rather than the die
 # actually forming) and NOT the earlier long tease with a bigger "payoff" beat stacked onto
@@ -524,7 +524,53 @@ const SCOUT_HIGHLIGHT_ALPHA_LOW := 0.4
 const SCOUT_HIGHLIGHT_ALPHA_HIGH := 0.95
 const SCOUT_HIGHLIGHT_PULSE_TIME := 0.7
 
+# --- Scout summon (2026-08-29) -----------------------------------------------
+# Julien: "I'd like something from the moment you play the card and the panel appears. The panel
+# apparition itself should also be animated." Until now NOTHING tied the card to the panel - the
+# only motes rose from the DIE, and the panel itself just faded in over 0.18s - so the most
+# ceremonial card in the game resolved into a UI element popping up.
+#
+# The read is "the card asks the question, the die answers": one comet leaves the card's release
+# point and ACCELERATES into the panel's spot (EASE_IN - it is pulled toward the future, the
+# mirror of the pick flight being pulled back down), strikes, and the panel unfurls out of a
+# horizontal seam of light instead of scaling in. The die -> panel motes and the flicker/lock
+# reveal below then run UNCHANGED inside the opened window - that half is the part Julien already
+# likes, so only its start time moved (it is created at impact, so no offset bookkeeping).
+const SCOUT_SUMMON_FLIGHT := 0.35        # card -> panel; everything that used to happen at t=0 now happens after this
+const SCOUT_SUMMON_ARC_LIFT := 70.0      # sideways bow: ONE clean hero arc, never the power orbs' random wobble
+# Sized and spaced off a rendered strip, not by eye: at 30px with a sparse trail the comet was a
+# pale dot crossing bright act-1 stone - legible frame by frame, forgettable at speed. Same lesson
+# the slash rework landed on: the MASS reads, the shape doesn't.
+const SCOUT_SUMMON_COMET_SIZE := 42.0
+const SCOUT_SUMMON_FLARE_SIZE := 78.0    # cast pop at the release point
+const SCOUT_SUMMON_BLOOM_SIZE := 80.0    # impact pop at the panel; kept under the 104px panel height so it never becomes a lid over the faces
+const SCOUT_SUMMON_TRAIL_SPACING := 0.09 # eased-t gap, same recipe as the pick flight's trail
+# Released closer than this to the panel (a high release) and the flight would be a 3-frame
+# twitch that reads as a glitch - skip straight to the impact instead.
+const SCOUT_SUMMON_MIN_DISTANCE := 80.0
+const SCOUT_SEAM_HEIGHT := 7.0
+# CUBIC, not BACK. A first pass used TRANS_BACK/EASE_OUT here and the strip showed the panel at
+# full height TWO FRAMES after impact - back-out front-loads almost all of its travel, so what
+# shipped would have been a plain fade with no unfurl in it at all. Same trap the charge wave hit
+# with EXPO ("~90% of the trip in the first fifth"): for motion that must be SEEN to travel, use
+# a gentle curve and buy the overshoot with a separate settle step.
+const SCOUT_UNFURL_TIME := 0.22
+const SCOUT_UNFURL_OVERSHOOT := 1.07     # opens slightly past full height...
+const SCOUT_UNFURL_SETTLE := 0.09        # ...then settles back, which is where the "snap" lives
+const SCOUT_UNFURL_ALPHA_TIME := 0.08
+const SCOUT_UNFURL_START_SCALE_Y := 0.06 # a slit of a panel, not a small panel
+# PLACEHOLDER, swap once Julien picks one: the viola pizzicato is the unused sibling of the
+# violoncello pizzicato the scout cast already uses, so the two beats rhyme for free.
+const SCOUT_UNFURL_SFX := preload("res://sfx/374388__sgossner__viola-section-pizzicato-e4-violaens_pizz_f3_v2_rr2.wav")
+
 var _scout_tweens: Array[Tween] = []
+# Every summon/mote node spawned for the CURRENT scout. _kill_scout_tweens frees these outright:
+# they are driven by tweens in _scout_tweens, and killing a tween does NOT run the
+# tween_callback(queue_free) that would otherwise dispose of them - so a fast pick (or a second
+# scout mid-flight) would strand them on screen forever. That was already true of the open motes
+# before this pass; it only went unnoticed because they die within ~1s of their own accord.
+# NOT for the pick flight's flyer/trail: that flight deliberately outlives _kill_scout_tweens.
+var _scout_fx_nodes: Array[Node] = []
 var _scout_pick_in_progress := false
 var _scout_highlight: TextureRect = null
 var _scout_highlight_tween: Tween = null
@@ -559,6 +605,8 @@ func _on_scout_effect(amount: int) -> void:
     #audio_stream_player_2d.stream = load("res://sounds/fountainheal.wav")
     #audio_stream_player_2d.volume_db = 9
     #audio_stream_player_2d.play()
+    # The cast sound now fires with the comet leaving the card rather than with the panel: this
+    # IS the "you played it" beat, and t=0 must not go silent while the comet travels.
     var sfx_scout = preload("res://sfx/153724__carlos_vaquero__violoncello-snap-pizzicato-11.wav")
     SFXPlayer.play(sfx_scout)
     _kill_scout_tweens()
@@ -597,15 +645,94 @@ func _on_scout_effect(amount: int) -> void:
         for i in range(visible_count):
             selected_faces.append(faces[randi() % faces.size()])
 
-    # The panel unfolds up out of the dice area instead of snapping in (pivot set
-    # bottom-center by _resize_scout_panel above).
+    # The panel stays hidden until the summon comet reaches it - see _summon_scout_panel. Every
+    # path ends in _open_scout_panel; only the travel beat in front of it is conditional.
+    _summon_scout_panel(visible_count, selected_faces)
+
+
+# Beats 0-2 of the summon: cast flare at the card, comet flight, then hand off to the open. Falls
+# through to an immediate open whenever the flight would be meaningless or impossible - no
+# ui_layer to parent the FX to (bare harnesses, boot), or a release point so close to the panel
+# that the flight is a twitch. The panel apparition itself still animates in every case.
+func _summon_scout_panel(visible_count: int, selected_faces: Array) -> void:
+    var parent_layer: Node = get_tree().get_first_node_in_group("ui_layer")
+    var target := _scout_panel_center()
+    var origin := _scout_summon_origin()
+
+    if parent_layer == null or origin.distance_to(target) < SCOUT_SUMMON_MIN_DISTANCE:
+        _open_scout_panel(visible_count, selected_faces)
+        return
+
+    var accent := DicePalette.accent(Global.dice_type)
+    # Warmed toward white so it stays legible over bright act-1 stone, but only just: a first pass
+    # at 0.45 saturated additively into a plain white spark and threw away the "this is YOUR dice
+    # magic" read the whole effect exists to sell. The die's own colour has to survive the trip.
+    var comet_color: Color = accent.lerp(Color.WHITE, 0.32) * 1.75
+    comet_color.a = 1.0
+
+    _spawn_scout_flare(origin, accent * 1.5, SCOUT_SUMMON_FLARE_SIZE, 0.22, parent_layer)
+
+    var comet := _make_scout_fx_sprite(SCOUT_SUMMON_COMET_SIZE, comet_color, parent_layer, 150)
+    comet.global_position = origin - comet.size / 2.0
+    comet.scale = Vector2(0.45, 0.45)
+
+    # Deterministic sideways bow (never the orbs' random wobble - one die/comet squiggling reads
+    # as drunk). Bowed away from screen centre so the arc stays on screen from either side.
+    var dir := (target - origin).normalized()
+    var perp := Vector2(-dir.y, dir.x)
+    if perp.x * (origin.x - SCOUT_PANEL_CENTER_X) < 0.0:
+        perp = -perp
+    var control := origin.lerp(target, 0.45) + perp * SCOUT_SUMMON_ARC_LIFT
+
+    var trail_state := {"last_t": 0.0}
+    var flight := create_tween()
+    flight.tween_property(comet, "scale", Vector2.ONE, SCOUT_SUMMON_FLIGHT * 0.35) \
+        .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+    flight.parallel().tween_method(
+            _scout_summon_step.bind(comet, origin, control, target, trail_state, accent, parent_layer),
+            0.0, 1.0, SCOUT_SUMMON_FLIGHT) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+    flight.tween_callback(_open_scout_panel.bind(visible_count, selected_faces))
+    _scout_tweens.append(flight)
+
+
+func _scout_summon_step(t: float, comet: Control, p0: Vector2, p1: Vector2, p2: Vector2, trail_state: Dictionary, accent: Color, parent_layer: Node) -> void:
+    var pos := p0.lerp(p1, t).lerp(p1.lerp(p2, t), t)
+    comet.global_position = pos - comet.size / 2.0
+    # Spacing driven by the EASED t, so the trail is even along the PATH rather than in time.
+    if t - trail_state["last_t"] >= SCOUT_SUMMON_TRAIL_SPACING:
+        trail_state["last_t"] = t
+        _spawn_scout_trail_mote(pos, accent, parent_layer)
+
+
+# Beats 2-3: the comet's impact bloom and the seam of light it tears open, the panel unfurling out
+# of that seam, and then the untouched die -> panel motes + face reveals. Created here rather than
+# scheduled with offsets, so "impact" is simply when this runs.
+func _open_scout_panel(visible_count: int, selected_faces: Array) -> void:
+    var parent_layer: Node = get_tree().get_first_node_in_group("ui_layer")
+    var panel_width: float = scout_panel.size.x
+    if parent_layer:
+        var accent := DicePalette.accent(Global.dice_type)
+        var center := _scout_panel_center()
+        _spawn_scout_flare(center, accent.lerp(Color.WHITE, 0.5) * 1.8, SCOUT_SUMMON_BLOOM_SIZE, 0.26, parent_layer)
+        _spawn_scout_seam(center, panel_width, accent, parent_layer)
+    SFXPlayer.play(SCOUT_UNFURL_SFX, false, 1.15, -6.0)
+
+    # Unfurl from the middle, so the panel reads as a window being torn open along the seam
+    # rather than a UI element scaling in. The pivot has to be moved to the centre for that and
+    # then handed BACK to _resize_scout_panel's bottom-centre, which the close fold depends on -
+    # the two never overlap (_kill_scout_tweens runs before any new open).
+    scout_panel.pivot_offset = Vector2(panel_width / 2.0, scout_panel.size.y / 2.0)
     scout_panel.show()
-    scout_panel.scale = Vector2(0.7, 0.7)
+    scout_panel.scale = Vector2(1.0, SCOUT_UNFURL_START_SCALE_Y)
     scout_panel.modulate.a = 0.0
     var open_tween := create_tween()
-    open_tween.tween_property(scout_panel, "modulate:a", 1.0, SCOUT_OPEN_TIME * 0.6)
-    open_tween.parallel().tween_property(scout_panel, "scale", Vector2.ONE, SCOUT_OPEN_TIME) \
-        .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+    open_tween.tween_property(scout_panel, "modulate:a", 1.0, SCOUT_UNFURL_ALPHA_TIME)
+    open_tween.parallel().tween_property(scout_panel, "scale", Vector2(1.0, SCOUT_UNFURL_OVERSHOOT), SCOUT_UNFURL_TIME) \
+        .set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+    open_tween.tween_property(scout_panel, "scale", Vector2.ONE, SCOUT_UNFURL_SETTLE) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+    open_tween.tween_callback(_restore_scout_panel_pivot)
     _scout_tweens.append(open_tween)
 
     _spawn_scout_open_motes(visible_count)
@@ -656,6 +783,101 @@ func _on_scout_effect(amount: int) -> void:
         else:
             face.hide()
 
+# Written by _on_card_played_track_frame, read by _scout_summon_origin to tell a scout cast by a
+# CARD (fly from where the player released it) apart from one cast by anything else - a relic, a
+# status, a debug harness - which has no card on screen to fly from. Same frame-stamp trick as
+# dice.gd's support-card orbs: Card.play() emits card_played on its first line and then calls
+# apply_effects() synchronously, so scout_effect always lands on this very frame.
+var _last_card_played_frame := -1
+
+
+func _on_card_played_track_frame(_card: Card) -> void:
+    _last_card_played_frame = Engine.get_process_frames()
+
+
+# Where the summon comet is born. The release point for a normal card play; the die otherwise.
+# Red-socket plays are excluded on purpose: that card's visual never leaves the die, so the die IS
+# its release point (and last_played_card_position would be stale - that path never runs
+# CardUI.play()). Identical rule to dice.gd's support-card orbs.
+func _scout_summon_origin() -> Vector2:
+    var origin: Vector2 = Global.last_played_card_position
+    var from_card: bool = not Global.playing_red_card \
+        and origin != Vector2.ZERO \
+        and Engine.get_process_frames() == _last_card_played_frame
+    if from_card:
+        return origin
+    var die := get_node_or_null("ActiveDice/Panel/DiceDisplay") as Control
+    if die:
+        return die.get_global_rect().get_center()
+    # No die either (bare harness / boot): returning the destination makes the caller's distance
+    # check skip the flight, so the panel just unfurls on the spot.
+    return _scout_panel_center()
+
+
+# Derived from the layout offsets rather than get_global_rect(), for the same reason
+# _spawn_scout_open_motes computes its targets arithmetically: this runs while the panel is
+# hidden and mid-unfurl, so its rect is either stale or scaled.
+func _scout_panel_center() -> Vector2:
+    var height: float = scout_panel.size.y if scout_panel.size.y > 0.0 else 104.0
+    return Vector2(SCOUT_PANEL_CENTER_X, scout_panel.offset_top + height / 2.0)
+
+
+func _restore_scout_panel_pivot() -> void:
+    scout_panel.pivot_offset = Vector2(scout_panel.size.x / 2.0, scout_panel.size.y)
+
+
+# Shared constructor for the summon's light: the same soft-radial + additive recipe as the motes,
+# just bigger. Registered for cleanup - see _scout_fx_nodes.
+func _make_scout_fx_sprite(size: float, color: Color, parent_layer: Node, z: int) -> TextureRect:
+    var fx := TextureRect.new()
+    fx.texture = _get_scout_glow_texture()
+    fx.material = _get_scout_glow_material()
+    fx.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    fx.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+    fx.size = Vector2(size, size)
+    fx.pivot_offset = fx.size / 2.0
+    fx.modulate = color
+    fx.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    fx.z_index = z
+    parent_layer.add_child(fx)
+    _scout_fx_nodes.append(fx)
+    return fx
+
+
+# One-shot pop of light: the cast at the card, and the impact at the panel.
+func _spawn_scout_flare(pos: Vector2, color: Color, size: float, duration: float, parent_layer: Node) -> void:
+    var flare := _make_scout_fx_sprite(size, color, parent_layer, 149)
+    flare.global_position = pos - flare.size / 2.0
+    flare.scale = Vector2(0.3, 0.3)
+    var t := create_tween()
+    t.tween_property(flare, "scale", Vector2.ONE, duration) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    # Alpha gets its OWN shorter, front-loaded curve so this is a FLASH. Fading it EASE_IN across
+    # the full duration (the first pass) holds near-peak white for most of the expansion, and the
+    # strip showed exactly that: a fat white ball parked over the panel for ~5 frames, hiding the
+    # title and the first face. Identical to the charge-delivery ghost's held-peak bug.
+    t.parallel().tween_property(flare, "modulate:a", 0.0, duration * 0.6) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    t.tween_callback(flare.queue_free)
+
+
+# The seam the panel unfurls out of: a full-width streak of light on the panel's midline, gone by
+# the time the panel is half open. Stretched non-uniformly (STRETCH_SCALE), so the radial gradient
+# becomes a horizontal streak that is brightest at the centre and tapers off at both ends.
+func _spawn_scout_seam(center: Vector2, panel_width: float, accent: Color, parent_layer: Node) -> void:
+    var seam := _make_scout_fx_sprite(1.0, accent.lerp(Color.WHITE, 0.55) * 1.9, parent_layer, 149)
+    seam.stretch_mode = TextureRect.STRETCH_SCALE
+    seam.size = Vector2(panel_width * 0.5, SCOUT_SEAM_HEIGHT)
+    seam.pivot_offset = seam.size / 2.0
+    seam.global_position = center - seam.size / 2.0
+    var t := create_tween()
+    t.tween_property(seam, "scale", Vector2(2.1, 1.0), SCOUT_UNFURL_TIME * 0.55) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    t.parallel().tween_property(seam, "modulate:a", 0.0, SCOUT_UNFURL_TIME * 0.75) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+    t.tween_callback(seam.queue_free)
+
+
 # Finds the face texture whose filename encodes the given value (same convention
 # _on_scout_dice_clicked already parses picked faces with, e.g. "blue3.png" -> 3) -
 # used by the tutorial to force specific Scout faces instead of a random pick.
@@ -701,6 +923,13 @@ func _kill_scout_tweens() -> void:
         if t and t.is_valid():
             t.kill()
     _scout_tweens.clear()
+    # Killing a tween skips its tween_callback(queue_free), so the nodes it was driving have to be
+    # disposed of here or they hang on screen forever (see _scout_fx_nodes). Deliberately NOT
+    # touching the pick flight's flyer and its trail: that flight is supposed to outlive this.
+    for n in _scout_fx_nodes:
+        if is_instance_valid(n):
+            n.queue_free()
+    _scout_fx_nodes.clear()
 
 
 # Tutorial only: index of the ONE scout face the player may pick (-1 = all of them, i.e. every
@@ -805,6 +1034,7 @@ func _spawn_scout_open_motes(visible_count: int) -> void:
         mote.mouse_filter = Control.MOUSE_FILTER_IGNORE
         mote.z_index = 149
         parent_layer.add_child(mote)
+        _scout_fx_nodes.append(mote)  # its tween is killed on close/re-scout, so it can't free itself
         mote.global_position = start + Vector2(randf_range(-10.0, 10.0), randf_range(-6.0, 6.0)) - mote.size / 2.0
         mote.scale = Vector2(0.6, 0.6)
 
@@ -859,6 +1089,10 @@ func _finish_scout_close() -> void:
     scout_panel.hide()
     scout_panel.scale = Vector2.ONE
     scout_panel.modulate.a = 1.0
+    # Only matters when the panel was closed mid-unfurl (Exit clicked inside that 0.2s window),
+    # which kills the tween that would have handed the pivot back. Done here, after the hide, so
+    # a pivot change can never move a still-visible panel.
+    _restore_scout_panel_pivot()
 
 
 # The picked die pops out of the panel and is pulled down into the next-roll slot at the
