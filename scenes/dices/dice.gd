@@ -605,6 +605,26 @@ const CHARGE_GUST_HOLD := 0.10        # peak HOLD - this is what turns a blink i
 const CHARGE_GUST_COUNT_STEP := 0.06  # ladder: Charge 4 reads a little heavier than Charge 1
 const CHARGE_GUST_PEAK_CAP := 1.35    # under the uniform ceiling on purpose - a saturated
                                       # front loses the lick texture that keeps it organic
+# The bang's AUDIO, moved here for the same reason as the freeze (2026-08-29, Julien after
+# playtesting the wind-up: "the sfx should trigger when the dice pulse happens"). The charge
+# sound used to fire at LAUNCH at +4 dB - the loudest moment of the whole phrase, about a
+# second before anything visually erupted - while the detonation had nothing and the landing
+# only a soft clack. The biggest picture had the smallest sound. The heavy layer now lands on
+# the detonation; the launch keeps a light cue so playing the card still answers, and the
+# per-die arrival plinks are untouched because they ARE the wind-up.
+#
+# Pitch drops with the count, so a Charge 4 sounds heavier than a Charge 1 - the same ladder
+# the front's amplitude already walks. The low body clack is layered under it for weight, and
+# is gated on the hit-stop's cooldown rather than fired per detonation: a multi-type charge is
+# N separate volleys 0.16s apart, and each one SHOULD get its own tinted bang, but stacking N
+# copies of the heaviest layer that close together turns bam-bam into mud.
+const CHARGE_BOOM_SOUND := preload("res://chargedicesound.mp3")
+const CHARGE_BOOM_DB := 4.0
+const CHARGE_BOOM_PITCH_BASE := 0.98
+const CHARGE_BOOM_PITCH_PER_DIE := 0.04
+const CHARGE_BOOM_BODY_DB := -2.0
+const CHARGE_BOOM_BODY_PITCH := 0.85
+
 # The volley freeze moved here from dice_interface (2026-08-29). It belongs on the loudest
 # moment, and the loudest moment is now the detonation, not the landing 0.22s earlier. Two
 # freezes that close apart read as stutter, so the landing keeps its clack/kick/flash and
@@ -3352,11 +3372,16 @@ func _detonate_charge(charged_type: String, count: int) -> void:
     # The volley freeze lives here rather than on the arrival (moved out of
     # dice_interface, 2026-08-29): the freeze has to punctuate the loudest frame, and the
     # loudest frame is this one. Landing keeps its clack, panel kick and slot flash.
+    SFXPlayer.play(CHARGE_BOOM_SOUND, false,
+            CHARGE_BOOM_PITCH_BASE - CHARGE_BOOM_PITCH_PER_DIE * float(clampi(count, 1, 4)),
+            CHARGE_BOOM_DB)
     var now := Time.get_ticks_msec()
     if now - _last_charge_hit_stop_ms >= CHARGE_HIT_STOP_COOLDOWN_MS:
         _last_charge_hit_stop_ms = now
         Shaker.hit_stop(clampf(0.06 + 0.014 * float(count), 0.06, 0.13),
                 CHARGE_HIT_STOP_SCALE)
+        # Same cooldown as the freeze, same reason - see the CHARGE_BOOM_* note.
+        SFXPlayer.play(LAND_THUD_SOUND, false, CHARGE_BOOM_BODY_PITCH, CHARGE_BOOM_BODY_DB)
 
 
 # The wavefront half of the universal charge beat: the die's own light field getting blown

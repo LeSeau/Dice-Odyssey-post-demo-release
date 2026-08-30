@@ -52,7 +52,6 @@ const CHARGE_GHOST_BRIGHTNESS := 2.4    # >= ~1.9 or it is invisible at speed (d
 # constants moved with it.
 const CHARGE_LAUNCH_SOUND := preload("res://chargedicesound.mp3")
 const CHARGE_ARRIVE_SOUND := preload("res://sfx/578807__nomiqbomi__pluck-1.mp3")
-const CHARGE_FINAL_SOUND := preload("res://sounds/dicerollsound3.mp3")
 # Safety net only - the projectile normally borrows the slot's own texture, so the die
 # that flies in IS the die sitting in the slot. (green is a d3: never assume a 6 face.)
 const CHARGE_FALLBACK_FACE := {
@@ -782,7 +781,10 @@ func _play_charge_launch_sound() -> void:
     if f == _charge_sound_frame:
         return
     _charge_sound_frame = f
-    SFXPlayer.play(CHARGE_LAUNCH_SOUND, false, 1.0, 4.0)
+    # A light cue, not the headline: the heavy version of this sound now lands on the
+    # detonation (dice.gd, CHARGE_BOOM_*). Loud here, it made the launch the loudest moment
+    # of a phrase whose climax is a second later.
+    SFXPlayer.play(CHARGE_LAUNCH_SOUND, false, 1.12, -7.0)
 
 
 # Same-frame volleys (multi-type charges) queue one after another instead of overlapping,
@@ -960,18 +962,19 @@ func _on_charge_die_arrived(icon: TextureRect, charged_type: String, accent: Col
         index: int, total: int, reveal: bool, full_count: int, token: int) -> void:
     if is_instance_valid(icon):
         icon.queue_free()
-    # Rising pitch through the volley - the free "Charge 1 vs Charge 4" ladder - with a
-    # heavier clack layered on the last arrival.
+    # Rising pitch through the volley - the free "Charge 1 vs Charge 4" ladder. The clack
+    # that used to layer onto the last arrival moved to the detonation with the rest of the
+    # bang (2026-08-29); the plinks stay here because they are the wind-up, not the payoff.
     SFXPlayer.play(CHARGE_ARRIVE_SOUND, false, 1.15 + 0.09 * index, -6.0, -1)
     var final_die := index == total - 1
     if final_die:
-        SFXPlayer.play(CHARGE_FINAL_SOUND, false, 1.3, -8.0)
         # THE cue (2026-08-28): the big die's gust/flash/absorb hangs off this instead of
         # firing at launch, where it was over before anything had arrived. Since 2026-08-29
         # the listener does NOT bang on this frame - it winds up for
         # CHARGE_PULSE_ANTICIPATION and detonates after, and it owns the volley's hit-stop
         # too, so the freeze lands on the eruption rather than here (see dice.gd). This
-        # frame is still the impact of the DELIVERY: clack, panel kick, slot flash, motes.
+        # frame is still the impact of the DELIVERY: rising plink, panel kick, slot flash,
+        # motes - everything except the heavy layers, which belong to the bang.
         _emit_charge_delivered(charged_type, full_count, token)
     if reveal:
         _finish_slot_materialize(_slot_for_type(charged_type), charged_type)
