@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://c5c0u75umm0n1"]
+
+[ext_resource type="Script" path="res://debug_scout_summon.gd" id="1_scoutsummon"]
+
+[node name="DebugScoutSummon" type="Node"]
+script = ExtResource("1_scoutsummon")
