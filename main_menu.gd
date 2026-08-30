@@ -175,9 +175,26 @@ const MENU_THUD_PATH := "res://sounds/dicerollsound3.mp3"
 const MENU_PLUCK_PATH := "res://sfx/578807__nomiqbomi__pluck-1.mp3"
 
 # Layout (design space 1280x720). The plate is 1376x768 drawn 1:1, centered with
-# +-48/+-24 px hanging off every edge - drift + parallax must stay well inside that.
+# +-48/+-24 px of overscan on every edge (that crop IS the approved composition).
+#
+# THE PLATE DOES NOT MOVE, and both ways of moving it were removed on purpose
+# (2026-08-30, Julien: "the background is shaking a bit every few seconds" and
+# "moving the mouse makes you move a bit, i dont like that"):
+#
+#  - Ken Burns drift: the project renders with `default_texture_filter=0`
+#    (NEAREST), so a texture at a fractional position snaps to whole texels. The
+#    drift only moved ~0.4-0.9 px/sec, which means it crossed a pixel boundary
+#    every 1-2.5 seconds and JUMPED a full pixel each time - read as a periodic
+#    twitch, not as motion. Smoothing it would mean forcing LINEAR filtering on
+#    this node, i.e. resampling a crisp painterly plate for a drift nobody asked
+#    for. Not worth it.
+#  - Mouse parallax: explicitly disliked. A menu background that chases the
+#    cursor makes the whole screen feel loose.
+#
+# All the life now lives in the FOREGROUND (dice breathing/hopping/motes, sun
+# glow, logo sweep), which is the half that was praised. Anything re-added here
+# must clear the nearest-filter trap above: whole-pixel steps only, or LINEAR.
 const PLATE_BASE_POS := Vector2(-48, -24)
-const PLATE_DRIFT := Vector2(7.0, 4.0)
 const PLATE_SUN_LOCAL := Vector2(1128, 218)  # sun centre, in plate pixels
 const LOGO_POS := Vector2(58, 25)
 const LOGO_WIDTH := 428.0
@@ -201,10 +218,6 @@ const UNDER_DIM_ALPHA := 0.34
 # How far each die's motes are lifted toward white - crimson needs more than
 # cobalt to survive additive blending over the warm bright path.
 const MOTE_WHITE_LIFT := [0.35, 0.5]
-# Camera-pan parallax: every layer moves opposite the mouse, foreground most.
-const PARALLAX_PLATE := 4.0
-const PARALLAX_DICE := 8.5
-const PARALLAX_LOGO := 1.5
 
 const ENTRANCE_COVER_FADE := 0.7
 const ENTRANCE_LOGO_AT := 0.35
@@ -222,7 +235,6 @@ const SWEEP_INTERVAL_MAX := 13.0
 
 var _menu_time := 0.0
 var _entrance_done := false
-var _parallax_current := Vector2.ZERO
 var _scene_layer: Control
 var _logo_layer: Control
 var _logo: TextureRect
@@ -245,6 +257,9 @@ var _cta_flare := 0.0
 
 
 func _build_menu_scene() -> void:
+    # Pinned once, at whole pixels, and never written again (see PLATE_BASE_POS).
+    background.position = PLATE_BASE_POS
+
     # Warm breathing glow pinned on the painted sun - parented to the plate so it
     # drifts with the painting instead of sliding across it.
     _sun_glow = _make_glow_rect(360.0, Color(1.0, 0.82, 0.55, 0.16))
@@ -496,24 +511,9 @@ func _finish_entrance() -> void:
 func _process(delta: float) -> void:
     _menu_time += delta
 
-    # Mouse parallax, smoothed - every layer slides opposite the cursor.
-    var viewport_size := get_viewport_rect().size
-    var mouse := get_viewport().get_mouse_position()
-    var normalized := Vector2.ZERO
-    if viewport_size.x > 0 and viewport_size.y > 0:
-        normalized = (mouse - viewport_size / 2.0) / (viewport_size / 2.0)
-        normalized = normalized.clamp(Vector2(-1, -1), Vector2(1, 1))
-    _parallax_current = _parallax_current.lerp(normalized, 1.0 - exp(-4.0 * delta))
-
-    if background != null:
-        var drift := Vector2(
-            sin(_menu_time * TAU / 47.0) * PLATE_DRIFT.x,
-            sin(_menu_time * TAU / 61.0 + 1.3) * PLATE_DRIFT.y)
-        background.position = PLATE_BASE_POS + drift + _parallax_current * -PARALLAX_PLATE
-    if _scene_layer != null:
-        _scene_layer.position = _parallax_current * -PARALLAX_DICE
-    if _logo_layer != null:
-        _logo_layer.position = _parallax_current * -PARALLAX_LOGO
+    # No plate drift and no mouse parallax on purpose - see PLATE_BASE_POS. The
+    # background and both layers stay pinned at whole-pixel positions, which is
+    # what keeps the painting rock steady under NEAREST filtering.
 
     # CTA flare: hovering Start New Run makes the dice answer.
     var flare_target := 1.0 if _cta_hovered else 0.0
