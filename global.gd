@@ -561,11 +561,21 @@ var debug_battle_entry := false
 # smash, and the player sprite. Both selections live here rather than on the node that uses
 # them so they survive scene changes and battle restarts - and are deliberately kept OUT of
 # reset_run_state() and the save dict: they are a dev preference, not run state.
-# dicecrush2 is the shipped max-roll smash (Julien, 2026-08-27, picked off the in-game A/B -
-# it supersedes dicecrush3, the 08-26 pick from the same candidate list). NOT impact1.ogg any
-# more - note that file stays where it is, it is still the card sound on ~40 .tres files and
-# deleting it would silence them.
-const DEFAULT_HIGH_ROLL_SOUND := preload("res://dicecrush2.mp3")
+# detonationsound is the shipped max-roll smash since 2026-08-29 (Julien: "my dice crush sfx
+# is too aggressive"). It supersedes dicecrush2 (the 08-27 in-game A/B pick), which itself
+# superseded dicecrush3 and, before that, impact1.ogg - that file stays where it is either
+# way, it is still the card sound on ~40 .tres files and deleting it would silence them.
+#
+# The two samples are not interchangeable at the same gain, so the play gain at the call site
+# moved with this: measured, dicecrush2 is mean -8.1 dB / peak 0.0 dB over 3.24s (a hot,
+# clipped, long crunch) while detonationsound is mean -16.2 dB / peak -1.0 dB over 2.16s. A
+# straight swap would have dropped the celebration ~8 dB and buried it. See dice.gd's
+# is_max_roll branch.
+#
+# Note it is also statuses/status_earthquake.gd's HIT_SOUND. The two rarely coincide (one is
+# a lucky roll, the other a start-of-turn payout) but it is now a shared boom, not a sound
+# that means one thing.
+const DEFAULT_HIGH_ROLL_SOUND := preload("res://detonationsound.mp3")
 var debug_high_roll_sound: AudioStream = null  # null = shipped default
 var debug_player_texture: Texture2D = null  # null = the shipped CharacterStats.art
 # Untyped on purpose: typing it as Node would make dice.gd's call to cycle_sfx() a compile

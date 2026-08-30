@@ -1635,7 +1635,11 @@ func _on_roll_landed(roll_index: int, values: Array, faces: Array) -> void:
     if is_max_roll:
         # The heavier smash rides on top of (not instead of) the thud, so the max landing
         # keeps its place at the top of the same ladder rather than sounding unrelated.
-        SFXPlayer.play(Global.high_roll_sound(), false, randf_range(0.92, 1.0), -2.0)
+        # +2.0, not the old -2.0: the shipped stream changed to a sample measuring ~8 dB
+        # quieter (see Global.DEFAULT_HIGH_ROLL_SOUND). Half of that gap is deliberately NOT
+        # given back - the point of the swap was that the old one was too aggressive - so the
+        # celebration lands about 4 dB softer than before, with a far gentler envelope.
+        SFXPlayer.play(Global.high_roll_sound(), false, randf_range(0.92, 1.0), 2.0)
 
     # Landing rattle, every roll, value^2 so the low end stays quiet (a d6 1-3 computes
     # under LAND_SHAKE_MIN and doesn't shake at all). Skipped when the builder's double
