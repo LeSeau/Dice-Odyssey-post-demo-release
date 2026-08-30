@@ -693,6 +693,12 @@ func _summon_scout_panel(visible_count: int, selected_faces: Array) -> void:
             _scout_summon_step.bind(comet, origin, control, target, trail_state, accent, parent_layer),
             0.0, 1.0, SCOUT_SUMMON_FLIGHT) \
         .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+    # Hand the comet off to the impact: it is consumed by the bloom _open_scout_panel spawns in
+    # the same frame. WITHOUT this free the comet simply PARKS at the panel centre at full
+    # brightness until the next _kill_scout_tweens - a halo sitting inside the middle scout die,
+    # which is exactly what shipped and what Julien caught in play. The pick flight always freed
+    # its flyer the same way; this one just never did.
+    flight.tween_callback(comet.queue_free)
     flight.tween_callback(_open_scout_panel.bind(visible_count, selected_faces))
     _scout_tweens.append(flight)
 

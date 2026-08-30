@@ -38,6 +38,7 @@ func _ready() -> void:
         await _section_c_origins()
         await _section_d_no_stranded_fx()
         await _section_e_tutorial_faces()
+        await _section_f_self_clearing()
         _report()
     get_tree().quit()
 
@@ -165,6 +166,22 @@ func _section_e_tutorial_faces() -> void:
     _check("E1 forced faces consumed on the delayed open (got %s)" % str(got), got == [4, 3, 5])
     _close()
     await _settle(0.4)
+
+
+# --- F. the summon cleans up after ITSELF, with no pick and no close ---------------------------
+# THE GAP THAT LET A PARKED COMET SHIP. Section D only ever counted FX *after* a pick, and a pick
+# runs _kill_scout_tweens, which frees everything by hand - so a node that never freed ITSELF was
+# invisible to it. The comet had no queue_free callback at all and sat at the panel centre at full
+# brightness until the next kill; Julien caught it in play as "a halo inside the middle dice".
+func _section_f_self_clearing() -> void:
+    print("\n[F] summon FX self-clear (no pick, no close)")
+    Global.next_guaranteed_roll = -1
+    _cast_scout(3)
+    await _settle(2.6)  # flight + unfurl + all three reveals, with room to spare
+    _check("F1 panel still open", _panel().visible)
+    _check("F2 every summon FX freed itself (got %d still live)" % _fx_count(), _fx_count() == 0)
+    _close()
+    await _settle(0.5)
 
 
 # --- movie mode -------------------------------------------------------------------------------
