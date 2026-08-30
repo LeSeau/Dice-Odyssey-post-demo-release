@@ -153,17 +153,20 @@ func _on_settings_button_mouse_exited() -> void:
 # DAWN MENU SCENE (2026-08-30) - the layered, animated main menu.
 #
 # The old menu was one flat painting (main_menu_v4.png, logo baked in) with zero
-# motion. This build layers it: dawn landscape plate (drifts + mouse parallax) ->
-# two 3/4 dice resting on the painted ritual circle, wearing live additive halos and
-# rising motes -> extracted logo with a periodic gold light-sweep -> the existing
-# buttons/panels untouched on top.
+# motion. This build layers it: a STATIC cel-shaded dawn plate -> two 3/4 dice
+# resting on the painted ritual circle, wearing live additive halos and rising
+# motes -> extracted logo with a periodic gold light-sweep -> the existing
+# buttons/panels untouched on top. All motion lives in the foreground.
+#
+# The plate is cel-shaded on purpose: the shipped combat backgrounds
+# (assets/backgrounds/combat_bg_act1_*.png) are flat-filled with thick black
+# linework, so an earlier photoreal plate read as a different game behind the
+# same dice. Any replacement must match THAT, not concept-art realism.
 #
 # Rules baked in from the project's VFX lessons:
 #  - all new art is load()ed at runtime and null-guarded, never preload()ed - a stale
 #    import cache must degrade the menu, not kill the whole script (documented trap).
 #  - breathing is sine-in-_process with golden-ratio phases, never looped tweens.
-#  - parallax moves LAYER nodes, while tweens (drop, hop) animate the dice inside
-#    their layer - the two never write the same property.
 #  - dice glows use the canonical DicePalette glow recipe (accent colors follow any
 #    future palette change for free).
 # =====================================================================================
@@ -195,26 +198,28 @@ const MENU_PLUCK_PATH := "res://sfx/578807__nomiqbomi__pluck-1.mp3"
 # glow, logo sweep), which is the half that was praised. Anything re-added here
 # must clear the nearest-filter trap above: whole-pixel steps only, or LINEAR.
 const PLATE_BASE_POS := Vector2(-48, -24)
-const PLATE_SUN_LOCAL := Vector2(1128, 218)  # sun centre, in plate pixels
+const PLATE_SUN_LOCAL := Vector2(1315, 220)  # sun centre, in plate pixels
 const LOGO_POS := Vector2(58, 25)
 const LOGO_WIDTH := 428.0
 # V1 "cast on the circle": near die big and low, far die smaller and higher.
-const BLUE_DIE_CENTER := Vector2(557, 572)
-const BLUE_DIE_WIDTH := 173.0
-const RED_DIE_CENTER := Vector2(723, 515)
-const RED_DIE_WIDTH := 134.0
+const BLUE_DIE_CENTER := Vector2(548, 578)
+const BLUE_DIE_WIDTH := 182.0
+const RED_DIE_CENTER := Vector2(722, 518)
+const RED_DIE_WIDTH := 140.0
 const DIE_HALO_SCALE := 2.6
-# Two-layer glow per die (wide wash + tight core) - a single wide additive halo
-# reads as almost nothing on plate D's bright platform. The glow texture's soft
-# falloff thins the energy fast, so these run hot: overbright rgb (>1 modulate,
-# the established trick) plus high alphas measured against a render, not guessed.
-const HALO_BASE_ALPHA := [0.9, 0.85]
-const HALO_CORE_ALPHA := [0.85, 0.8]
-const HALO_OVERBRIGHT := 1.35
+# Two-layer glow per die (wide wash + tight core): the glow texture's soft falloff
+# thins the energy fast, so one wide halo alone reads as almost nothing. Values are
+# measured against a render, never guessed - and they are PLATE-DEPENDENT. These are
+# tuned for the current cel plate, whose foreground is dark; the earlier photoreal
+# plate was bright enough to need roughly 1.5x these alphas plus a heavier ground
+# dim. Re-check them against a capture whenever the plate changes.
+const HALO_BASE_ALPHA := [0.62, 0.58]
+const HALO_CORE_ALPHA := [0.55, 0.5]
+const HALO_OVERBRIGHT := 1.15
 const HALO_WHITE_LIFT := [0.15, 0.28]
 # Soft local darkening under each die (normal blend) - gives the additive light
 # darker ground to stand on, same trick as the combat background dim.
-const UNDER_DIM_ALPHA := 0.34
+const UNDER_DIM_ALPHA := 0.18
 # How far each die's motes are lifted toward white - crimson needs more than
 # cobalt to survive additive blending over the warm bright path.
 const MOTE_WHITE_LIFT := [0.35, 0.5]
