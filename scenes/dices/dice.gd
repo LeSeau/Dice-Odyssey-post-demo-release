@@ -614,16 +614,17 @@ const CHARGE_GUST_PEAK_CAP := 1.35    # under the uniform ceiling on purpose - a
 # per-die arrival plinks are untouched because they ARE the wind-up.
 #
 # Pitch drops with the count, so a Charge 4 sounds heavier than a Charge 1 - the same ladder
-# the front's amplitude already walks. The low body clack is layered under it for weight, and
-# is gated on the hit-stop's cooldown rather than fired per detonation: a multi-type charge is
-# N separate volleys 0.16s apart, and each one SHOULD get its own tinted bang, but stacking N
-# copies of the heaviest layer that close together turns bam-bam into mud.
+# the front's amplitude already walks.
+#
+# ONE sample, deliberately. A pitched-down clack was layered under this for body and had to
+# come straight back out (Julien, same evening: "there is also a dice roll sfx when the pulse
+# happens, not sure why") - the only low clack in the project is dicerollsound3, which is
+# exactly what it says it is, and slowing it down does not stop it reading as a die being
+# rolled. Anything layered here in future has to be a sample that is not a die.
 const CHARGE_BOOM_SOUND := preload("res://chargedicesound.mp3")
 const CHARGE_BOOM_DB := 4.0
 const CHARGE_BOOM_PITCH_BASE := 0.98
 const CHARGE_BOOM_PITCH_PER_DIE := 0.04
-const CHARGE_BOOM_BODY_DB := -2.0
-const CHARGE_BOOM_BODY_PITCH := 0.85
 
 # The volley freeze moved here from dice_interface (2026-08-29). It belongs on the loudest
 # moment, and the loudest moment is now the detonation, not the landing 0.22s earlier. Two
@@ -3380,8 +3381,6 @@ func _detonate_charge(charged_type: String, count: int) -> void:
         _last_charge_hit_stop_ms = now
         Shaker.hit_stop(clampf(0.06 + 0.014 * float(count), 0.06, 0.13),
                 CHARGE_HIT_STOP_SCALE)
-        # Same cooldown as the freeze, same reason - see the CHARGE_BOOM_* note.
-        SFXPlayer.play(LAND_THUD_SOUND, false, CHARGE_BOOM_BODY_PITCH, CHARGE_BOOM_BODY_DB)
 
 
 # The wavefront half of the universal charge beat: the die's own light field getting blown
