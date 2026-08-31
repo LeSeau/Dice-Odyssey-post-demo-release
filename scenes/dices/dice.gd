@@ -2805,8 +2805,8 @@ func _on_player_turn_started() -> void:
     # socketed card was still being aimed) it makes the next card dropped on Red play outright
     # instead of socketing.
     Global.playing_red_card = false
-    if socketed_card_ui != null:
-        _on_cancel_red_card_pressed()
+    if socketed_card_ui != null or socketed_card_ui_2 != null:
+        _empty_both_sockets()
     if Global.starting_power_next_turn!=0:
         Global.roll_value = Global.starting_power_next_turn
         Global.starting_power_next_turn = 0
@@ -2905,6 +2905,20 @@ func _on_card_charged(card_ui):
     # evicting socket 1. Returns early - the rest of this function styles socket 1.
     if socketed_card_ui != null and Global.red_socket_capacity >= 2 \
             and socketed_card_ui_2 == null and socketed_card_ui != card_ui:
+        _fill_socket_2(card_ui)
+        _socketing_in_progress = false
+        return
+
+    # Both sockets already full: the new card replaces the SECOND one, so the card that has
+    # been waiting longest keeps the "played first" slot its caption promises. (Evicting
+    # socket 1 here would also re-enter this function while _socketing_in_progress is set,
+    # which would strand the promoted card - hidden, disabled and in neither socket.)
+    if socketed_card_ui != null and Global.red_socket_capacity >= 2 \
+            and socketed_card_ui_2 != null and socketed_card_ui != card_ui \
+            and socketed_card_ui_2 != card_ui:
+        var evicted: CardUI = socketed_card_ui_2
+        socketed_card_ui_2 = null
+        _return_socket_card_to_hand(evicted)
         _fill_socket_2(card_ui)
         _socketing_in_progress = false
         return
@@ -3564,37 +3578,89 @@ func _on_display_next_roll_modifier():
 
     
 
-func _on_cancel_red_card_pressed() -> void:
-    # Check if there's actually a card socketed
-    if socketed_card_ui == null:
-        print("No card to cancel")
+# One card leaves a socket and goes back to the hand. Dropping its id is what actually stops
+# it playing on the next roll - the socket display is only the picture of that.
+func _return_socket_card_to_hand(card_ui: CardUI) -> void:
+    if not is_instance_valid(card_ui):
         return
-    
-    # Clear the socket display
+    card_ui.show()
+    card_ui.disabled = false
+    if card_ui.card:
+        Global.charged_card_instance_ids.erase(card_ui.card.instance_id)
+    Events.fan_hand_requested.emit()
+
+
+func _empty_socket_1() -> void:
     _set_socket_empty()
-    
-    # Re-enable the card in the hand
-    if is_instance_valid(socketed_card_ui):
-        socketed_card_ui.show()
-        socketed_card_ui.disabled = false
-        print("Card returned to hand: ", socketed_card_ui.card.name)
-        Events.fan_hand_requested.emit()
-    
-    # CRITICAL: Reset the global flags so new cards can be socketed
+    _return_socket_card_to_hand(socketed_card_ui)
+    socketed_card_ui = null
+    Global.playing_red_card = false
+    Global.charged_card_instance_id = 0
+
+
+# Both sockets emptied and both cards handed back - end of turn, turn start, leaving Red.
+# Never promotes: nothing should still be socketed once the turn is over.
+func _empty_both_sockets() -> void:
+    var second: CardUI = socketed_card_ui_2
+    socketed_card_ui_2 = null
+    if is_instance_valid(_socket_2):
+        _socket_2.hide()
+    _return_socket_card_to_hand(second)
+    if socketed_card_ui != null:
+        _empty_socket_1()
     Global.playing_red_card = false
     Global.charged_card_instance_id = 0
     Global.charged_card_instance_ids.clear()
-    _clear_socket_2()
-    
-    # Clear our reference
-    socketed_card_ui = null
-    
-    # Play feedback sound
+    _refresh_socket_2_slot.call_deferred()
+
+
+# Socket 1's X. Socket 2's card slides UP into socket 1 rather than being dumped out with it:
+# each X now removes its own card, and the remaining card genuinely becomes the one that plays
+# first, which is what its caption then says.
+func _on_cancel_red_card_pressed() -> void:
+    if socketed_card_ui == null:
+        print("No card to cancel")
+        return
+    var promoted: CardUI = socketed_card_ui_2
+    socketed_card_ui_2 = null
+    if is_instance_valid(_socket_2):
+        _socket_2.hide()
+    _empty_socket_1()
+    if is_instance_valid(promoted) and Global.red_dice_current_amount > 0:
+        _promote_to_socket_1(promoted)
+    else:
+        _return_socket_card_to_hand(promoted)
+    _refresh_socket_2_slot.call_deferred()
     SFXPlayer.play(Global.sfx_click)
 
-func _on_clear_socket():
-    _on_cancel_red_card_pressed()
 
+# Socket 2's own X. Only ever touches socket 2 - socket 1 keeps its card and its turn order.
+func _on_cancel_socket_2_pressed() -> void:
+    if socketed_card_ui_2 == null:
+        return
+    var card_ui: CardUI = socketed_card_ui_2
+    socketed_card_ui_2 = null
+    if is_instance_valid(_socket_2):
+        _socket_2.hide()
+    _return_socket_card_to_hand(card_ui)
+    _refresh_socket_2_slot.call_deferred()
+    SFXPlayer.play(Global.sfx_click)
+
+
+# Reuses the ordinary socket-1 fill (socketed_card_ui is null by now, so _on_card_charged takes
+# its main path and does not await). The id has to be re-added by hand: card_released_state.gd
+# is what normally appends it, and nothing is being released here.
+func _promote_to_socket_1(card_ui: CardUI) -> void:
+    if not is_instance_valid(card_ui) or card_ui.card == null:
+        return
+    _on_card_charged(card_ui)
+    Global.charged_card_instance_id = card_ui.card.instance_id
+    if not Global.charged_card_instance_ids.has(card_ui.card.instance_id):
+        Global.charged_card_instance_ids.append(card_ui.card.instance_id)
+
+
+func _on_clear_socket():
+    _empty_both_sockets()
 func update_roll_history_ui():
     if Global.roll_history.is_empty() or ink_is_on:
         roll_history.text = ""
@@ -4816,9 +4882,18 @@ func _ensure_socket_2() -> Control:
     _socket_2.name = "CardDropArea2"
     add_child(_socket_2)
     _socket_2.position = card_drop_area.position + SOCKET_2_OFFSET
-    var cancel := _socket_2.get_node_or_null("CancelRedCardPanel")
+    var cancel := _socket_2.get_node_or_null("CancelRedCardPanel") as Control
     if cancel:
         cancel.hide()
+    var cancel_button := _socket_2.get_node_or_null(
+            "CancelRedCardPanel/CancelRedCard") as BaseButton
+    if cancel_button:
+        # duplicate() copies the connection authored in dice.tscn, which points at socket 1's
+        # handler - left alone, socket 2's X would cancel the OTHER socket.
+        if cancel_button.pressed.is_connected(_on_cancel_red_card_pressed):
+            cancel_button.pressed.disconnect(_on_cancel_red_card_pressed)
+        if not cancel_button.pressed.is_connected(_on_cancel_socket_2_pressed):
+            cancel_button.pressed.connect(_on_cancel_socket_2_pressed)
     _socket_2.hide()
     return _socket_2
 
@@ -4856,6 +4931,9 @@ func _fill_socket_2(card_ui: CardUI) -> void:
         socket_desc_panel.offset_bottom = (CardUI.DESC_PANEL_TOP
                 + CardUI.DESC_PANEL_HEIGHT_WITH_BONUS)
     _apply_socket_order(socket, 2, false)
+    var cancel := socket.get_node_or_null("CancelRedCardPanel") as Control
+    if cancel:
+        cancel.show()
     socket.show()
     card_ui.hide()
 
@@ -4939,6 +5017,9 @@ func _paint_socket_2_empty(socket: Control) -> void:
             "CardBackground/CardFrame/BonusSeparator") as Control
     if separator:
         separator.hide()
+    var cancel := socket.get_node_or_null("CancelRedCardPanel") as Control
+    if cancel:
+        cancel.hide()
     _apply_socket_order(socket, 2, false)
 
 
@@ -4985,6 +5066,9 @@ func _resolve_second_socket(card_ui: CardUI) -> void:
 # overlapping the two.
 const SOCKET_ORDER_TEXT := {1: "Played first", 2: "Played second"}
 const SOCKET_ORDER_FONT_SIZE := 9
+# Left edge of CancelRedCardPanel in card-local space (authored in dice.tscn). The caption
+# shares the band with it, so it has to stop here.
+const CANCEL_PANEL_LEFT := 93.6663
 const SOCKET_ORDER_COLOR := Color(0.85, 0.78, 0.55, 0.85)
 
 
@@ -5011,8 +5095,10 @@ func _apply_socket_order(socket: Control, order_index: int, has_bonus_row: bool)
         label.add_theme_color_override("font_color", SOCKET_ORDER_COLOR)
         label.set_anchors_preset(Control.PRESET_TOP_LEFT)
         frame.add_child(label)
-    label.offset_left = 0.0
-    label.offset_right = 140.0
+    # Stops short of the cancel button (CardDropArea/CancelRedCardPanel starts at x93.7 in
+    # this same 22px band) instead of spanning the card - it was rendering underneath it.
+    label.offset_left = 4.0
+    label.offset_right = CANCEL_PANEL_LEFT - 2.0
     label.offset_top = CardUI.DESC_PANEL_TOP + CardUI.DESC_PANEL_HEIGHT_WITH_BONUS
     label.offset_bottom = 210.0
     label.text = SOCKET_ORDER_TEXT.get(order_index, "")
