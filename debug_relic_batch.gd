@@ -350,22 +350,23 @@ func _scenario_low_rolls() -> void:
 	check("Underdog Ring: 3 grants nothing", _block() == before)
 	await _remove("underdog_ring")
 
-	# Snake Eyes Charm was uncapped until 2026-08-31; the cap IS the change, so the second 1
-	# in the same turn is the assertion that matters.
+	# ⚠️ UNCAPPED on purpose. A once-per-turn cap was added and reverted the same day
+	# (Julien, 2026-08-31), so the THREE-IN-A-TURN case is the assertion that pins the
+	# decision: if someone re-adds triggered_this_turn, this check goes red.
 	_add("snake_eyes_charm")
 	var str_before := _strength()
 	_fake_roll("blue", 1)
-	check("Snake Eyes Charm: first 1 grants 1 Strength", _strength() == str_before + 1,
+	check("Snake Eyes Charm: a 1 grants 1 Strength", _strength() == str_before + 1,
 			str(_strength() - str_before))
 	str_before = _strength()
 	_fake_roll("blue", 1)
-	check("Snake Eyes Charm: second 1 in the same turn grants nothing",
-			_strength() == str_before, str(_strength() - str_before))
-	Events.player_turn_started.emit()
-	str_before = _strength()
 	_fake_roll("blue", 1)
-	check("Snake Eyes Charm: rearms next turn", _strength() == str_before + 1,
-			str(_strength() - str_before))
+	_fake_roll("blue", 1)
+	check("Snake Eyes Charm: every 1 in the same turn pays, uncapped",
+			_strength() == str_before + 3, str(_strength() - str_before))
+	str_before = _strength()
+	_fake_roll("blue", 4)
+	check("Snake Eyes Charm: a 4 grants nothing", _strength() == str_before)
 	await _remove("snake_eyes_charm")
 
 
