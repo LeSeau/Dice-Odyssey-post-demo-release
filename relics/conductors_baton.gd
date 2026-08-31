@@ -1,45 +1,40 @@
 extends Relic
 
-# Rewards chain LENGTH, which nothing else does - Crown and Metronome both count dice
-# regardless of whether they were part of one unbroken run. Global.roll_history is exactly
-# that chain: it is cleared on a Power reset and on a dice-type switch, so its size is the
-# number of consecutive rolls banked on the current type.
+# Hunting Bow's mirror at the bottom of the die: that one pays on 6s, this one on 1s. Pairs
+# with Snake Eyes Charm (Strength on a 1) without overlapping it - one scales, this one is
+# immediate chip damage, which is what a Low Roll deck otherwise lacks entirely.
 #
-# Thrown dice deliberately do NOT count: they never join the Power chain (they don't touch
-# roll_history), so counting them would contradict the chain this relic is reading.
+# This effect used to live on Needle Die, which was cut on 2026-08-31 (Julien); the Baton
+# inherited it rather than the pool losing a low-roll payoff. The Baton's own former effect
+# (a Charge for chaining the same die four times) is gone with it.
+#
+# Reads Global.last_roll, not the signal's roll_value: that argument is the running Power
+# total, whereas the face that just landed is what "roll a 1" means. Thrown dice never reach
+# here - they do not emit dice_rolled - which is the intended contract for a roll payoff.
 
-const CHAIN_LENGTH := 4
-
-var triggered_this_turn := false
+const DAMAGE := 3
 
 
 func initialize_relic(owner: RelicUI) -> void:
-    triggered_this_turn = false
     Events.dice_rolled.connect(_on_dice_rolled.bind(owner))
-    Events.player_turn_started.connect(_on_player_turn_started)
 
 
 func _on_dice_rolled(_dice_type: String, _roll_value: int, owner: RelicUI) -> void:
-    if triggered_this_turn or Global.roll_history.size() < CHAIN_LENGTH:
+    if Global.last_roll != 1:
         return
-    triggered_this_turn = true
+    _fire(owner)
+
+
+func _fire(owner: RelicUI) -> void:
+    var enemies := owner.get_tree().get_nodes_in_group("enemies")
+    if enemies.is_empty():
+        return
     owner.flash()
-    # Charges the die you are actually chaining on, not a random one - the reward for
-    # committing to a type should feed that commitment.
-    var dice_type: String = Global.dice_type
-    var amount_field := dice_type + "_dice_current_amount"
-    Global.set(amount_field, Global.get(amount_field) + 1)
-    Events.dice_amount_changed.emit()
-    Events.dice_charged.emit(dice_type, 1)
-    Events.temporary_dice_added.emit(dice_type)
-
-
-func _on_player_turn_started() -> void:
-    triggered_this_turn = false
+    var damage_effect := DamageEffect.new()
+    damage_effect.amount = DAMAGE
+    damage_effect.execute([enemies[randi() % enemies.size()]])
 
 
 func deactivate_relic(_owner: RelicUI) -> void:
     if Events.dice_rolled.is_connected(_on_dice_rolled):
         Events.dice_rolled.disconnect(_on_dice_rolled)
-    if Events.player_turn_started.is_connected(_on_player_turn_started):
-        Events.player_turn_started.disconnect(_on_player_turn_started)

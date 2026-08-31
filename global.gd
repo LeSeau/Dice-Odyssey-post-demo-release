@@ -492,6 +492,12 @@ var run_stat_highest_floor := 1
 # same lifecycle as any other per-battle relic effect):
 var scout_bonus_amount: int = 0  # Cartographer's Quill - extra Scout face shown, capped by the panel's 6 slots
 var blessing_cast_any_roll: bool = false  # Prayer Beads - bypasses every Blessing card's roll-threshold gate
+# Spyglass - a Scout draws its faces WITHOUT replacement, so no outcome is ever offered
+# twice. Read by battle.gd::_on_scout_effect(). Only applies while there are still unseen
+# faces left: a Scout wider than the die's face count (Green d3, or Repented Evil, whose
+# 6/6/6 collapse to a single distinct face) fills the remainder at random, and the tutorial's
+# forced faces bypass the whole draw.
+var scout_unique_faces: bool = false
 
 # One-shot flag consumed by battle_reward.gd::_show_card_rewards() - swaps each drawn
 # card for its upgraded_version when available, then resets itself. Set by
@@ -735,6 +741,11 @@ var block_carryover_cap := 0
 var dice_price_discount := 0.0
 # Golem Heart: makes the "keep your dice" stash permanent instead of a one-shot.
 var keep_all_dice_always := false
+# Gambler's Fan: extra cards folded into the FIRST hand of a fight. Set by the relic during
+# the START_OF_COMBAT cascade - which finishes before player_handler.start_battle() runs, so
+# the value is already in place when the opening hand is dealt - and consumed (zeroed) by
+# player_handler the moment that hand is drawn, so later turns deal a normal hand.
+var bonus_cards_first_hand := 0
 # Wayfinder Compass / Diplomat's Seal: Power the player was holding when they last switched
 # dice type. Captured by dice_interface BEFORE it emits active_dice_changed, because the
 # handler that zeroes the bank also listens to that signal - reading roll_value from inside
@@ -854,6 +865,8 @@ func reset_run_state() -> void:
     block_carryover_cap = 0
     dice_price_discount = 0.0
     keep_all_dice_always = false
+    scout_unique_faces = false
+    bonus_cards_first_hand = 0
     power_at_last_switch = 0
     acting_enemy = null
 
