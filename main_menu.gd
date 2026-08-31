@@ -236,6 +236,38 @@ const ENTRANCE_DONE_AT := 1.95
 const DIE_DROP_HEIGHT := 240.0
 const DIE_DROP_TIME := 0.3
 
+# --- drifting clouds ----------------------------------------------------------
+# The one piece of large-scale motion the scene can safely have. The plate itself
+# must stay pinned (NEAREST filtering makes slow movement of a big crisp image
+# snap - see PLATE_BASE_POS), but these are separate soft sprites and they get
+# TEXTURE_FILTER_LINEAR individually, so sub-pixel movement interpolates instead
+# of stepping. Linear costs a crisp plate its edges; it costs a cloud nothing.
+#
+# They travel only across the LEFT/CENTRE indigo, fading out well before the
+# sunrise glow and the ruins - a mauve cloud drifting over a gold sky or in front
+# of a distant ruin would read as a sticker. They pass BEHIND the logo, which is
+# drawn in a later layer and stays legible.
+const CLOUD_TEXTURES := [
+    "res://assets/images/ui/menu_cloud_1.png",
+    "res://assets/images/ui/menu_cloud_2.png",
+    "res://assets/images/ui/menu_cloud_3.png",
+    "res://assets/images/ui/menu_cloud_4.png",
+]
+const CLOUD_COUNT := 3
+# Band is the cloud's TOP edge, not its centre - with the scale below, bottoms
+# land around y 300-400. Tuned so clouds clear the big gold DICE letters (y
+# 60-190) and stay above the hills, while still passing near ODYSSEY.
+const CLOUD_BAND_Y := Vector2(150.0, 252.0)
+const CLOUD_TRAVEL := Vector2(-380.0, 980.0)
+const CLOUD_SPEED := Vector2(8.0, 16.0)
+const CLOUD_SCALE := Vector2(0.26, 0.46)
+const CLOUD_ALPHA := Vector2(0.34, 0.58)
+# Multiplied over the art: knocks the gold back so the clouds sit in the indigo
+# instead of glowing like the sunrise side of the sky.
+const CLOUD_TINT := Color(0.76, 0.70, 0.88)
+const CLOUD_FADE_IN := 0.14
+const CLOUD_FADE_OUT := 0.26
+
 # --- ambient life -------------------------------------------------------------
 # Motion the plate itself must not have (see PLATE_BASE_POS): soft, small, and
 # either fast enough or blurry enough that NEAREST texel snapping cannot read as
@@ -259,6 +291,7 @@ const SWEEP_INTERVAL_MAX := 13.0
 
 var _menu_time := 0.0
 var _entrance_done := false
+var _cloud_reveal := 0.0
 var _scene_layer: Control
 var _logo_layer: Control
 var _logo: TextureRect
@@ -274,6 +307,8 @@ var _halo_on := [false, false]
 var _halo_ramp := [0.0, 0.0]
 var _mote_clock := [0.0, 0.0]
 var _mote_next := [0.5, 0.8]
+var _cloud_layer: Control
+var _clouds: Array = []
 var _ambient_layer: Control
 var _ambient_clock := 0.0
 var _ambient_next := 1.0
@@ -294,6 +329,15 @@ func _build_menu_scene() -> void:
     _sun_glow.position = PLATE_SUN_LOCAL - Vector2(180, 180)
     background.add_child(_sun_glow)
 
+    # Clouds sit furthest back - directly over the plate, behind everything else.
+    _cloud_layer = Control.new()
+    _cloud_layer.name = "MenuCloudLayer"
+    _cloud_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
+    _cloud_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    add_child(_cloud_layer)
+    move_child(_cloud_layer, background.get_index() + 1)
+    _build_clouds()
+
     # Ambient layer sits BEHIND the dice so dust and birds read as part of the
     # world rather than as something floating over the UI.
     _ambient_layer = Control.new()
@@ -301,7 +345,7 @@ func _build_menu_scene() -> void:
     _ambient_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
     _ambient_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
     add_child(_ambient_layer)
-    move_child(_ambient_layer, background.get_index() + 1)
+    move_child(_ambient_layer, _cloud_layer.get_index() + 1)
 
     # Dice layer - the dice tween their own local position (drop/hop) inside it.
     _scene_layer = Control.new()
@@ -395,6 +439,66 @@ func _build_menu_scene() -> void:
     new_run_button.mouse_entered.connect(_on_new_run_hover_entered)
     new_run_button.mouse_exited.connect(_on_new_run_hover_exited)
     load_run_button.mouse_entered.connect(_play_hover_pluck)
+
+
+func _build_clouds() -> void:
+    var textures: Array = []
+    for path: String in CLOUD_TEXTURES:
+        var tex: Texture2D = load(path) as Texture2D
+        if tex != null:
+            textures.append(tex)
+    if textures.is_empty():
+        return
+    for i in CLOUD_COUNT:
+        var node := TextureRect.new()
+        node.texture = textures[i % textures.size()]
+        node.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+        node.stretch_mode = TextureRect.STRETCH_SCALE
+        # Per-node LINEAR: the project default is NEAREST, which would make this
+        # slow drift step a whole texel at a time (the exact fault that got the
+        # plate pinned). Soft art loses nothing to interpolation.
+        node.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+        node.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        _cloud_layer.add_child(node)
+        var entry := {"node": node, "speed": 0.0, "alpha": 0.0}
+        _clouds.append(entry)
+        # Stagger the initial progress so the sky is already populated on frame 1
+        # instead of filling up from the left edge.
+        _respawn_cloud(entry, randf())
+
+
+func _respawn_cloud(entry: Dictionary, progress: float) -> void:
+    var node: TextureRect = entry["node"]
+    var tex: Texture2D = node.texture
+    var scale_f := randf_range(CLOUD_SCALE.x, CLOUD_SCALE.y)
+    node.size = Vector2(tex.get_width(), tex.get_height()) * scale_f
+    entry["speed"] = randf_range(CLOUD_SPEED.x, CLOUD_SPEED.y)
+    # Smaller clouds read as further away, so they are fainter and slower.
+    var depth := inverse_lerp(CLOUD_SCALE.x, CLOUD_SCALE.y, scale_f)
+    entry["alpha"] = lerpf(CLOUD_ALPHA.x, CLOUD_ALPHA.y, depth)
+    entry["speed"] = lerpf(CLOUD_SPEED.x, CLOUD_SPEED.y, depth)
+    node.position = Vector2(
+        lerpf(CLOUD_TRAVEL.x, CLOUD_TRAVEL.y, progress),
+        randf_range(CLOUD_BAND_Y.x, CLOUD_BAND_Y.y))
+
+
+func _process_clouds(delta: float) -> void:
+    for entry: Dictionary in _clouds:
+        var node: TextureRect = entry["node"]
+        if not is_instance_valid(node):
+            continue
+        node.position.x += float(entry["speed"]) * delta
+        var progress := inverse_lerp(CLOUD_TRAVEL.x, CLOUD_TRAVEL.y, node.position.x)
+        if progress >= 1.0:
+            _respawn_cloud(entry, 0.0)
+            progress = 0.0
+        var fade := 1.0
+        if progress < CLOUD_FADE_IN:
+            fade = progress / CLOUD_FADE_IN
+        elif progress > 1.0 - CLOUD_FADE_OUT:
+            fade = (1.0 - progress) / CLOUD_FADE_OUT
+        node.modulate = Color(CLOUD_TINT.r, CLOUD_TINT.g, CLOUD_TINT.b,
+                float(entry["alpha"]) * clampf(fade, 0.0, 1.0) * _cloud_reveal)
 
 
 func _make_glow_rect(width: float, color: Color, additive: bool = true) -> TextureRect:
@@ -546,6 +650,11 @@ func _finish_entrance() -> void:
 
 func _process(delta: float) -> void:
     _menu_time += delta
+
+    # Clouds run from the first frame (they are the scene's only large-scale
+    # motion); _cloud_reveal just ramps them in with the entrance fade.
+    _cloud_reveal = minf(_cloud_reveal + delta * 0.9, 1.0)
+    _process_clouds(delta)
 
     # No plate drift and no mouse parallax on purpose - see PLATE_BASE_POS. The
     # background and both layers stay pinned at whole-pixel positions, which is
