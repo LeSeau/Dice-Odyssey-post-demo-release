@@ -916,6 +916,31 @@ func _on_red_dice_rolled() -> void:
     
    
     
+# Dual Cannon's second socket. dice.gd calls this once socket 1's card has fully resolved,
+# instead of this CardUI reacting to red_dice_rolled on its own: the first card to handle that
+# signal emits reset_charged_card, which clears Global.charged_card_instance_ids before the
+# second CardUI's handler is dispatched - so the second card silently never played and its
+# CardUI stayed hidden and disabled in the hand. The signal is NOT re-emitted for card 2
+# (Blood Sword / House Money / Jackpot Pin / Effigy / Ruptured all listen to it and would
+# fire twice on one roll), and red_roll_pending_report is deliberately left alone so the
+# "exactly one dice_rolled per Red roll" rule still holds.
+func begin_second_socket_play() -> void:
+    if not card:
+        return
+    show()
+    disabled = false
+    if card.target == Card.Target.SINGLE_ENEMY:
+        # Same forced aim socket 1 gets: the roll is already spent, so the card must be
+        # played - card_aiming_state refuses to cancel while playing_red_card is true.
+        card_state_machine._on_transition_requested(
+                card_state_machine.current_state, CardState.State.AIMING)
+        return
+    _prune_stale_targets()
+    play()
+    Events.reset_charged_card.emit()
+    Global.playing_red_card = false
+
+
 func _setup_card_style() -> void:
     # Setup Card Background
     var bg_style = StyleBoxFlat.new()
