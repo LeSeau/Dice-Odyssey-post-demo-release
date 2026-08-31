@@ -200,7 +200,10 @@ const MENU_PLUCK_PATH := "res://sfx/578807__nomiqbomi__pluck-1.mp3"
 const PLATE_BASE_POS := Vector2(-48, -24)
 const PLATE_SUN_LOCAL := Vector2(1315, 220)  # sun centre, in plate pixels
 const LOGO_POS := Vector2(58, 25)
-const LOGO_WIDTH := 428.0
+# 460, not 428: the logo canvas grew 463->498px when the left flourishes were
+# rebuilt as mirrors of the (longer) right ones, so the width scales with it to
+# keep the lettering the same size on screen.
+const LOGO_WIDTH := 460.0
 # V1 "cast on the circle": near die big and low, far die smaller and higher.
 const BLUE_DIE_CENTER := Vector2(548, 578)
 const BLUE_DIE_WIDTH := 182.0
@@ -233,6 +236,22 @@ const ENTRANCE_DONE_AT := 1.95
 const DIE_DROP_HEIGHT := 240.0
 const DIE_DROP_TIME := 0.3
 
+# --- ambient life -------------------------------------------------------------
+# Motion the plate itself must not have (see PLATE_BASE_POS): soft, small, and
+# either fast enough or blurry enough that NEAREST texel snapping cannot read as
+# a twitch. Dust and birds move px/frame, not px/second, and the rune ring only
+# animates ALPHA - it never moves at all.
+const AMBIENT_MOTE_INTERVAL := Vector2(0.5, 1.3)
+const AMBIENT_MOTE_BAND := Rect2(40, 250, 1200, 400)
+const BIRD_INTERVAL := Vector2(13.0, 24.0)
+const BIRD_SPEED := Vector2(46.0, 78.0)
+const BIRD_Y_BAND := Vector2(90.0, 250.0)
+# TRIED AND CUT: a pulsing ring overlay on the painted ritual circle. An amplified
+# frame diff showed it reading as a rounder, higher ellipse floating over the
+# scene rather than as the plate's perspective circle lighting up - the painted
+# circle is far flatter and runs off the bottom of the frame, so a radial ring
+# texture cannot match it. Would need a bespoke ellipse matched to the art.
+
 const HOP_INTERVAL_MIN := 8.0
 const HOP_INTERVAL_MAX := 14.0
 const SWEEP_INTERVAL_MIN := 9.0
@@ -255,6 +274,10 @@ var _halo_on := [false, false]
 var _halo_ramp := [0.0, 0.0]
 var _mote_clock := [0.0, 0.0]
 var _mote_next := [0.5, 0.8]
+var _ambient_layer: Control
+var _ambient_clock := 0.0
+var _ambient_next := 1.0
+var _next_bird_at := 0.0
 var _next_hop_at := 0.0
 var _next_sweep_at := 0.0
 var _cta_hovered := false
@@ -271,14 +294,22 @@ func _build_menu_scene() -> void:
     _sun_glow.position = PLATE_SUN_LOCAL - Vector2(180, 180)
     background.add_child(_sun_glow)
 
-    # Dice layer - moved as a whole for parallax; the dice tween their own local
-    # position (drop/hop) inside it, so the two motions never fight.
+    # Ambient layer sits BEHIND the dice so dust and birds read as part of the
+    # world rather than as something floating over the UI.
+    _ambient_layer = Control.new()
+    _ambient_layer.name = "MenuAmbientLayer"
+    _ambient_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
+    _ambient_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    add_child(_ambient_layer)
+    move_child(_ambient_layer, background.get_index() + 1)
+
+    # Dice layer - the dice tween their own local position (drop/hop) inside it.
     _scene_layer = Control.new()
     _scene_layer.name = "MenuSceneLayer"
     _scene_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
     _scene_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
     add_child(_scene_layer)
-    move_child(_scene_layer, background.get_index() + 1)
+    move_child(_scene_layer, _ambient_layer.get_index() + 1)
 
     var die_textures: Array[Texture2D] = []
     die_textures.append(load(MENU_DIE_BLUE_PATH) as Texture2D)
@@ -554,6 +585,14 @@ func _process(delta: float) -> void:
                 _mote_clock[i] = 0.0
                 _mote_next[i] = randf_range(0.55, 0.9)
                 _spawn_mote(i)
+        _ambient_clock += delta
+        if _ambient_clock >= _ambient_next:
+            _ambient_clock = 0.0
+            _ambient_next = randf_range(AMBIENT_MOTE_INTERVAL.x, AMBIENT_MOTE_INTERVAL.y)
+            _spawn_ambient_mote()
+        if _menu_time >= _next_bird_at:
+            _next_bird_at = _menu_time + randf_range(BIRD_INTERVAL.x, BIRD_INTERVAL.y)
+            _spawn_bird_flock()
         if _menu_time >= _next_hop_at:
             _next_hop_at = _menu_time + randf_range(HOP_INTERVAL_MIN, HOP_INTERVAL_MAX)
             _hop_die(randi() % maxi(_dice.size(), 1), false)
@@ -583,6 +622,67 @@ func _spawn_mote(i: int) -> void:
     tween.parallel().tween_property(mote, "position:x", mote.position.x + randf_range(-14.0, 14.0), life)
     tween.parallel().tween_property(mote, "modulate:a", 0.0, life).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
     tween.tween_callback(mote.queue_free)
+
+
+# Slow warm dust drifting through the shaded foreground - the cheapest possible
+# "the air is alive" signal, and immune to the plate's snapping problem because
+# each mote is a small soft additive blob rather than a large crisp image.
+func _spawn_ambient_mote() -> void:
+    if _ambient_layer == null:
+        return
+    var size := randf_range(5.0, 12.0)
+    var mote := _make_glow_rect(size, Color(1.0, 0.93, 0.76, randf_range(0.16, 0.34)))
+    mote.position = Vector2(
+        randf_range(AMBIENT_MOTE_BAND.position.x, AMBIENT_MOTE_BAND.end.x),
+        randf_range(AMBIENT_MOTE_BAND.position.y, AMBIENT_MOTE_BAND.end.y))
+    _ambient_layer.add_child(mote)
+    var life := randf_range(5.0, 9.0)
+    var tween := mote.create_tween()
+    tween.tween_property(mote, "position:y", mote.position.y - randf_range(60.0, 130.0), life)
+    tween.parallel().tween_property(mote, "position:x", mote.position.x + randf_range(-70.0, 70.0), life)
+    tween.parallel().tween_property(mote, "modulate:a", 0.0, life).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+    tween.tween_callback(mote.queue_free)
+
+
+# A few distant birds cross the sky now and then. Drawn as Line2D chevrons rather
+# than a sprite so there is no asset to import, and they travel fast enough that
+# whole-pixel stepping is invisible.
+func _spawn_bird_flock() -> void:
+    if _ambient_layer == null:
+        return
+    var from_left := randf() < 0.5
+    var speed := randf_range(BIRD_SPEED.x, BIRD_SPEED.y)
+    var base_y := randf_range(BIRD_Y_BAND.x, BIRD_Y_BAND.y)
+    var count := randi_range(2, 4)
+    for i in count:
+        var bird := Line2D.new()
+        var s := randf_range(3.4, 5.2)
+        bird.points = PackedVector2Array([
+            Vector2(-2.0 * s, 0.0), Vector2(-s, -0.62 * s),
+            Vector2(0.0, -0.1 * s), Vector2(s, -0.62 * s), Vector2(2.0 * s, 0.0)])
+        bird.width = maxf(1.5, s * 0.34)
+        bird.default_color = Color(0.10, 0.09, 0.16, randf_range(0.5, 0.75))
+        bird.joint_mode = Line2D.LINE_JOINT_ROUND
+        bird.begin_cap_mode = Line2D.LINE_CAP_ROUND
+        bird.end_cap_mode = Line2D.LINE_CAP_ROUND
+        var start_x := -60.0 - i * randf_range(26.0, 52.0)
+        var end_x := 1340.0
+        if not from_left:
+            start_x = 1340.0 + i * randf_range(26.0, 52.0)
+            end_x = -60.0
+            bird.scale.x = -1.0
+        var y := base_y + randf_range(-26.0, 26.0)
+        bird.position = Vector2(start_x, y)
+        _ambient_layer.add_child(bird)
+        var dur := absf(end_x - start_x) / speed
+        var tween := bird.create_tween()
+        tween.tween_property(bird, "position:x", end_x, dur)
+        tween.parallel().tween_method(
+            func(t: float) -> void:
+                if is_instance_valid(bird):
+                    bird.position.y = y + sin(t * TAU * 2.6) * 9.0,
+            0.0, 1.0, dur)
+        tween.tween_callback(bird.queue_free)
 
 
 func _burst_motes(i: int, count: int) -> void:
