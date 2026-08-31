@@ -346,6 +346,13 @@ var charged_card_instance_id: int = 0
 # as socket 1 (a lot of code reads it); this is what the roll actually plays, so the
 # Second Socket card works by appending rather than by rewriting the socket system.
 var charged_card_instance_ids: Array[int] = []
+# WHICH socketed card the current Red roll is resolving right now. Every CardUI listens to
+# red_dice_rolled, so with Dual Cannon's second socket the id LIST is the wrong gate: both cards
+# match it and whichever the signal happens to dispatch first wins - a self-targeted card in
+# socket 2 would resolve instantly and tear the socket down while socket 1's single-target card
+# was still waiting to be aimed. dice.gd arms this with socket 1's id only; socket 2 is handed
+# off explicitly afterwards (dice.gd::_resolve_second_socket).
+var red_roll_active_socket_id: int = 0
 var playing_red_card = false
 # ⚠️ ONE dice_rolled per Red roll. dice.gd emits red_dice_rolled (never dice_rolled) for Red;
 # the dice_rolled that every per-roll relic listens to is re-emitted later, by whichever
@@ -888,6 +895,7 @@ func reset_run_state() -> void:
     current_card = null
     charged_card_instance_id = 0
     charged_card_instance_ids = []
+    red_roll_active_socket_id = 0
     playing_red_card = false
     dragging_card = false
     fight_turn = 0

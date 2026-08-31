@@ -879,8 +879,12 @@ func _on_char_stats_changed() -> void:
     self.playable = char_stats.can_play_card(card)
 
 func _on_red_dice_rolled() -> void:
-    # Check if this specific card instance is the charged card
-    if Global.charged_card_instance_ids.has(card.instance_id):
+    # Only the card in socket ONE resolves off the signal. The charged-id LIST holds both
+    # socketed cards (Dual Cannon), so gating on it let whichever CardUI the signal reached
+    # first win the roll: a self-targeted card in socket 2 played immediately and its
+    # reset_charged_card tore down socket 1's card while it was still waiting to be aimed.
+    # dice.gd hands socket 2 off itself once socket 1 is done.
+    if card.instance_id != 0 and Global.red_roll_active_socket_id == card.instance_id:
         Global.dice_type = "red"
         if card.target == Card.Target.SINGLE_ENEMY:
             print("single enemy card")
