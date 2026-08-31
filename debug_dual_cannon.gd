@@ -64,6 +64,9 @@ func _ready() -> void:
 	await _scenario_h_two_single_target()
 	await _scenario_f_socket_on_red_then_roll()
 	await _scenario_j_order_caption()
+	await _scenario_k_socket_2_cancel()
+	await _scenario_l_cancel_promotes()
+	await _scenario_m_third_card()
 
 	print("\n==== DUAL CANNON: %d checks, %d fail(s) ====" % [checks, fails])
 	print("ALL PASS" if fails == 0 else "FAILURES PRESENT")
@@ -547,7 +550,20 @@ func _scenario_j_order_caption() -> void:
 	for label: Label in [one, two]:
 		var w: float = font.get_string_size(label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
 		print("      \"%s\" renders %.1fpx of the 140px band" % [label.text, w])
-		check("caption fits the socket width", w <= 136.0, "%.1f" % w)
+		var budget: float = label.offset_right - label.offset_left
+		check("caption fits the space left of the cancel button", w <= budget,
+				"%.1f in %.1f" % [w, budget])
+	var cancel_panel := _dice.card_drop_area.get_node_or_null(
+			"CancelRedCardPanel") as Control
+	if cancel_panel:
+		var cap_rect := Rect2(one.offset_left, one.offset_top,
+				one.offset_right - one.offset_left, one.offset_bottom - one.offset_top)
+		var x_rect := Rect2(cancel_panel.offset_left, cancel_panel.offset_top,
+				cancel_panel.offset_right - cancel_panel.offset_left,
+				cancel_panel.offset_bottom - cancel_panel.offset_top)
+		print("      caption %s vs cancel button %s" % [str(cap_rect), str(x_rect)])
+		check("caption does not run under the cancel button",
+				not cap_rect.intersects(x_rect))
 	check("caption clears the description panel",
 			one.offset_top >= _dice.description_panel.offset_bottom,
 			"%.0f vs %.0f" % [one.offset_top, _dice.description_panel.offset_bottom])
@@ -565,6 +581,129 @@ func _order_caption(socket: Control) -> Label:
 		return null
 	return socket.get_node_or_null(
 			"CardBackground/CardFrame/SocketOrderLabel") as Label
+
+
+# ---------------------------------------------------------------------------------------
+# K. Socket 2 has its own X, and it only removes socket 2's card.
+# ---------------------------------------------------------------------------------------
+func _scenario_k_socket_2_cancel() -> void:
+	_section("K. Socket 2's own cancel button")
+	var pair := await _socket_two_cards()
+	if pair.is_empty():
+		return
+	var first: CardUI = pair[0]
+	var second: CardUI = pair[1]
+	var socket: Control = _dice.get("_socket_2") as Control
+	var cancel := socket.get_node_or_null("CancelRedCardPanel") as Control
+	check("socket 2 shows a cancel button when filled", cancel != null and cancel.visible)
+
+	var button := socket.get_node_or_null(
+			"CancelRedCardPanel/CancelRedCard") as BaseButton
+	check("socket 2's X is not wired to socket 1's handler",
+			button != null
+			and not button.pressed.is_connected(_dice._on_cancel_red_card_pressed))
+
+	button.pressed.emit()
+	await _settle(0.6)
+	check("socket 2 emptied", _dice.socketed_card_ui_2 == null)
+	check("socket 1 untouched", _dice.socketed_card_ui == first)
+	check("the cancelled card is back in hand", second.visible and not second.disabled)
+	check("only socket 1's card is still charged",
+			Global.charged_card_instance_ids == [first.card.instance_id],
+			str(Global.charged_card_instance_ids.size()))
+	check("socket 2 falls back to the empty slot",
+			socket.visible and not (cancel.visible))
+
+
+# ---------------------------------------------------------------------------------------
+# L. Socket 1's X hands back only its own card; socket 2's slides up and still plays.
+# ---------------------------------------------------------------------------------------
+func _scenario_l_cancel_promotes() -> void:
+	_section("L. Cancelling socket 1 promotes socket 2")
+	var pair := await _socket_two_cards()
+	if pair.is_empty():
+		return
+	var first: CardUI = pair[0]
+	var second: CardUI = pair[1]
+	var second_id: String = second.card.id
+
+	_dice._on_cancel_red_card_pressed()
+	await _settle(0.8)
+	check("socket 1's card is back in hand", first.visible and not first.disabled)
+	check("socket 2's card moved into socket 1", _dice.socketed_card_ui == second,
+			"holds %s" % (_dice.socketed_card_ui.card.id
+					if is_instance_valid(_dice.socketed_card_ui) else "<null>"))
+	check("socket 2 is empty again", _dice.socketed_card_ui_2 == null)
+	check("only the promoted card is charged",
+			Global.charged_card_instance_ids == [second.card.instance_id],
+			str(Global.charged_card_instance_ids))
+
+	# And it still resolves - a promoted card whose id was dropped would silently no-op.
+	_played_ids.clear()
+	Global.roll_value = 0
+	Global.roll_history = []
+	_dice.roll_dice()
+	await _settle(2.2)
+	check("the promoted card plays on the roll", _played_ids == [second_id],
+			str(_played_ids))
+
+
+# ---------------------------------------------------------------------------------------
+# M. A third card replaces socket 2, so the longest-waiting card keeps "played first".
+# ---------------------------------------------------------------------------------------
+func _scenario_m_third_card() -> void:
+	_section("M. Dropping a third card")
+	var pair := await _socket_two_cards()
+	if pair.is_empty():
+		return
+	var first: CardUI = pair[0]
+	var second: CardUI = pair[1]
+	await _refill_hand(0, 1)
+	var spare: Array = []
+	for cu: CardUI in _socketable_cards():
+		if cu != first and cu != second and cu.visible:
+			spare.append(cu)
+	if spare.is_empty():
+		check("a third card to drop", false)
+		return
+	var third: CardUI = spare[0] as CardUI
+
+	Events.card_charged.emit(third)
+	await _settle(0.7)
+	check("socket 1 still holds the first card", _dice.socketed_card_ui == first,
+			"holds %s" % (_dice.socketed_card_ui.card.id
+					if is_instance_valid(_dice.socketed_card_ui) else "<null>"))
+	check("the third card took socket 2", _dice.socketed_card_ui_2 == third)
+	check("the displaced card is back in hand", second.visible and not second.disabled)
+	check("the displaced card is no longer charged",
+			not Global.charged_card_instance_ids.has(second.card.instance_id))
+
+
+# Socket two fresh cards and hand them back. Returns [] (after logging a fail) if the hand
+# cannot supply them, so the caller can bail instead of asserting against nulls.
+func _socket_two_cards() -> Array:
+	Events.clear_socket.emit()
+	await _settle(0.5)
+	Events.active_dice_changed.emit("red")
+	Global.red_dice_current_amount = 3
+	Global.charged_card_instance_ids.clear()
+	await _refill_hand(1, 1)
+	var cards := _socketable_cards()
+	if cards.size() < 2:
+		check("two cards to socket", false, str(cards.size()))
+		return []
+	var out: Array = []
+	for cu: CardUI in cards.slice(0, 2):
+		Events.card_charged.emit(cu)
+		Global.charged_card_instance_id = cu.card.instance_id
+		if not Global.charged_card_instance_ids.has(cu.card.instance_id):
+			Global.charged_card_instance_ids.append(cu.card.instance_id)
+		await _settle(0.5)
+		out.append(cu)
+	if _dice.socketed_card_ui != out[0] or _dice.socketed_card_ui_2 != out[1]:
+		check("both sockets filled for the test", false)
+		return []
+	return out
 
 
 # ---------------------------------------------------------------------------------------
