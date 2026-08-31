@@ -5203,10 +5203,16 @@ const OVERCHARGE_WORLD_TWEEN_TIME := 0.6
 # whole of dice.gd down with it, and gdtoolkit does not catch it (documented, cost 3 runs).
 const OVERCHARGE_HUM_PATH := "res://sounds/overcharge_hum.wav"
 const OVERCHARGE_HUM_MIN_DB := -30.0
-# -9, not -13: this is a texture meant to be FELT under the other SFX, and the first pass
-# was quiet enough to miss entirely (compounded by the v1 asset being nearly all sub-bass).
-# This is the first dial to turn down if it crowds the mix.
-const OVERCHARGE_HUM_MAX_DB := -9.0
+# -4, not -9: Julien asked for more weight at the absurd end SPECIFICALLY. Raising this on its
+# own would have lifted the whole ramp, because the volume was a straight lerp on `level` - so
+# OVERCHARGE_HUM_DB_CURVE below does the shaping and this only sets the ceiling that a maxed
+# bank reaches. This is still the first dial to turn down if it crowds the mix.
+const OVERCHARGE_HUM_MAX_DB := -4.0
+# Bias the ramp so the added loudness lands at the TOP rather than across the board. At 1.35 the
+# T1/T2 range stays within about a decibel of where it was (level 0.25 -> -26.0 dB against the
+# old -24.8, level 0.5 -> -19.8 against -19.5) while level 1.0 gains a full 5 dB. Lower it
+# toward 1.0 to make the whole ramp louder again; raise it to push the lift further up still.
+const OVERCHARGE_HUM_DB_CURVE := 1.35
 const OVERCHARGE_HUM_FADE_IN := 0.7
 const OVERCHARGE_HUM_FADE_OUT := 0.45
 const OVERCHARGE_HUM_PITCH_MAX := 1.16
@@ -5391,8 +5397,12 @@ func _apply_overcharge_hum(level: float) -> void:
         _overcharge_hum.volume_db = OVERCHARGE_HUM_MIN_DB
         _overcharge_hum.play()
     _overcharge_hum.pitch_scale = lerpf(1.0, OVERCHARGE_HUM_PITCH_MAX, level)
+    # Curved, not linear: see OVERCHARGE_HUM_DB_CURVE. Pitch stays linear on purpose - the
+    # rising pitch is what reads as "climbing", and bending it too would drop the mid-range
+    # tell that something is building well before the bank gets absurd.
+    var loudness: float = pow(clampf(level, 0.0, 1.0), OVERCHARGE_HUM_DB_CURVE)
     _overcharge_hum_tween.tween_property(_overcharge_hum, "volume_db",
-            lerpf(OVERCHARGE_HUM_MIN_DB, OVERCHARGE_HUM_MAX_DB, level), OVERCHARGE_HUM_FADE_IN)
+            lerpf(OVERCHARGE_HUM_MIN_DB, OVERCHARGE_HUM_MAX_DB, loudness), OVERCHARGE_HUM_FADE_IN)
 
 
 # Resolved lazily and ONCE, and by group rather than by path, because this node also lives in
