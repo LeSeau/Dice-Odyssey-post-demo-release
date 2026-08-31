@@ -773,8 +773,10 @@ func _set_charged_description(card: Card, text: String) -> void:
     # (its bg matches the card body), so it can eat the dead space below whenever the BonusEffect
     # row is hidden. Must run before the measuring loop below.
     description_panel.offset_top = CardUI.DESC_PANEL_TOP
+    var band_taken: bool = (card.bonus_requirement != Card.Requirement.NONE
+            or _socket_order_visible())
     description_panel.offset_bottom = CardUI.DESC_PANEL_TOP + (
-        CardUI.DESC_PANEL_HEIGHT_WITH_BONUS if card.bonus_requirement != Card.Requirement.NONE
+        CardUI.DESC_PANEL_HEIGHT_WITH_BONUS if band_taken
         else CardUI.DESC_PANEL_HEIGHT)
     var available := description_panel.size.y
     for font_size: int in CHARGED_DESC_FONT_SIZE_CANDIDATES:
@@ -2507,7 +2509,13 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
         # red_dice_rolled first consumes it and re-emits dice_rolled, so a Red roll produces
         # exactly one dice_rolled no matter how many cards are socketed (Dual Cannon).
         Global.red_roll_pending_report = true
+        # Socket 1 only - see Global.red_roll_active_socket_id. Cleared straight after the
+        # dispatch: a single-target card resolves later through card_released_state (gated on
+        # playing_red_card), never off this signal again.
+        Global.red_roll_active_socket_id = (socketed_card_ui.card.instance_id
+                if is_instance_valid(socketed_card_ui) and socketed_card_ui.card else 0)
         Events.red_dice_rolled.emit()
+        Global.red_roll_active_socket_id = 0
         _fire_socketless_red()
     _check_sigil_trigger()
     Events.hover_playable_cards.emit()
@@ -2983,6 +2991,8 @@ func _on_card_charged(card_ui):
             bonus_requirement_panel.add_theme_stylebox_override("panel", CardUI.BONUS_MULTIPLE_STYLEBOX)
             bonus_requirement_label.text = "Mult %d" % card_ui.card.bonus_requirement_number
 
+    _apply_socket_order(card_drop_area, 1,
+            card_ui.card.bonus_requirement != Card.Requirement.NONE)
     card_ui.hide()
     card_ui.disabled = true
 
@@ -4700,12 +4710,15 @@ func _set_socket_empty() -> void:
     charged_card_description.add_theme_font_size_override(
         "normal_font_size", CHARGED_DESC_FONT_SIZE_CANDIDATES[0])
     description_panel.offset_top = CardUI.DESC_PANEL_TOP
-    description_panel.offset_bottom = CardUI.DESC_PANEL_TOP + CardUI.DESC_PANEL_HEIGHT
+    description_panel.offset_bottom = CardUI.DESC_PANEL_TOP + (
+        CardUI.DESC_PANEL_HEIGHT_WITH_BONUS if _socket_order_visible()
+        else CardUI.DESC_PANEL_HEIGHT)
     charged_card_description.text = "[center]Place a card here[/center]"
     description_panel.modulate.a = 0.6
     bonus_effect.hide()
     bonus_separator.hide()
     cancel_red_card_panel.hide()
+    _apply_socket_order(card_drop_area, 1, false)
     # Everything above is the INERT empty socket. With Armageddon up it is not inert, and every
     # word of it is wrong - so the armed look overwrites it wholesale (see _apply_armed_socket).
     if _socket_is_armed():
@@ -4836,6 +4849,13 @@ func _fill_socket_2(card_ui: CardUI) -> void:
             "CardBackground/CardFrame/RequirementPanel/RequirementLabel") as Label
     if req:
         req.text = _requirement_text(card_ui.card)
+    var socket_desc_panel := socket.get_node_or_null(
+            "CardBackground/CardFrame/DescriptionPanel") as Control
+    if socket_desc_panel:
+        socket_desc_panel.offset_top = CardUI.DESC_PANEL_TOP
+        socket_desc_panel.offset_bottom = (CardUI.DESC_PANEL_TOP
+                + CardUI.DESC_PANEL_HEIGHT_WITH_BONUS)
+    _apply_socket_order(socket, 2, false)
     socket.show()
     card_ui.hide()
 
@@ -4855,9 +4875,12 @@ func _refresh_socket_2_slot() -> void:
     if Global.red_socket_capacity < 2 or dice_type != "red":
         if is_instance_valid(_socket_2):
             _socket_2.hide()
+        _apply_socket_order(card_drop_area, 1, bonus_effect.visible)
         return
     var socket := _ensure_socket_2()
+    _apply_socket_order(card_drop_area, 1, bonus_effect.visible)
     if is_instance_valid(socketed_card_ui_2):
+        _apply_socket_order(socket, 2, false)
         socket.show()
         return
     _paint_socket_2_empty(socket)
@@ -4901,6 +4924,10 @@ func _paint_socket_2_empty(socket: Control) -> void:
             "CardBackground/CardFrame/DescriptionPanel") as Control
     if desc_panel:
         desc_panel.modulate.a = 0.6
+        desc_panel.offset_top = CardUI.DESC_PANEL_TOP
+        desc_panel.offset_bottom = CardUI.DESC_PANEL_TOP + (
+            CardUI.DESC_PANEL_HEIGHT_WITH_BONUS if _socket_order_visible()
+            else CardUI.DESC_PANEL_HEIGHT)
     var desc := socket.get_node_or_null(
             "CardBackground/CardFrame/DescriptionPanel/ChargedCardDescriptionCenter/ChargedCardDescription") as RichTextLabel
     if desc:
@@ -4912,6 +4939,7 @@ func _paint_socket_2_empty(socket: Control) -> void:
             "CardBackground/CardFrame/BonusSeparator") as Control
     if separator:
         separator.hide()
+    _apply_socket_order(socket, 2, false)
 
 
 func _paint_socket_2_filled(socket: Control) -> void:
@@ -4944,6 +4972,51 @@ func _resolve_second_socket(card_ui: CardUI) -> void:
     if not Global.charged_card_instance_ids.has(card_ui.card.instance_id):
         Global.charged_card_instance_ids.append(card_ui.card.instance_id)
     card_ui.begin_second_socket_play()
+
+
+# --- "which one goes first" caption ------------------------------------------------------------
+# The two sockets resolve in the order they were filled, but they are laid out RIGHT to LEFT
+# (socket 2 sits 126px to the LEFT of socket 1, because the die and the ROLL button own the space
+# on the right), so reading them left-to-right gives the reverse of the play order. Hence a
+# caption rather than relying on position.
+#
+# It lives in the 22px band under the description panel - the same dead space the BonusEffect row
+# uses - so a socketed card that HAS a bonus row keeps that row and drops the caption rather than
+# overlapping the two.
+const SOCKET_ORDER_TEXT := {1: "Played first", 2: "Played second"}
+const SOCKET_ORDER_FONT_SIZE := 9
+const SOCKET_ORDER_COLOR := Color(0.85, 0.78, 0.55, 0.85)
+
+
+func _socket_order_visible() -> bool:
+    return Global.red_socket_capacity >= 2
+
+
+func _apply_socket_order(socket: Control, order_index: int, has_bonus_row: bool) -> void:
+    var frame := socket.get_node_or_null("CardBackground/CardFrame") as Control
+    if frame == null:
+        return
+    var label := frame.get_node_or_null("SocketOrderLabel") as Label
+    if not _socket_order_visible() or has_bonus_row:
+        if label:
+            label.hide()
+        return
+    if label == null:
+        label = Label.new()
+        label.name = "SocketOrderLabel"
+        label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+        label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+        label.add_theme_font_size_override("font_size", SOCKET_ORDER_FONT_SIZE)
+        label.add_theme_color_override("font_color", SOCKET_ORDER_COLOR)
+        label.set_anchors_preset(Control.PRESET_TOP_LEFT)
+        frame.add_child(label)
+    label.offset_left = 0.0
+    label.offset_right = 140.0
+    label.offset_top = CardUI.DESC_PANEL_TOP + CardUI.DESC_PANEL_HEIGHT_WITH_BONUS
+    label.offset_bottom = 210.0
+    label.text = SOCKET_ORDER_TEXT.get(order_index, "")
+    label.show()
 
 
 # Same wording the socket 1 badge uses (card_ui.gd is the source for the real card face).

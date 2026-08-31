@@ -55,6 +55,7 @@ func _ready() -> void:
 
 	await _boot_battle()
 	await _scenario_a_play_on_blue()
+	await _scenario_i_mixed_pair()
 	await _scenario_b_two_sockets_real_path()
 	await _scenario_c_socket2_geometry()
 	await _scenario_e_both_cards_play()
@@ -62,6 +63,7 @@ func _ready() -> void:
 	await _scenario_g_empty_second_socket()
 	await _scenario_h_two_single_target()
 	await _scenario_f_socket_on_red_then_roll()
+	await _scenario_j_order_caption()
 
 	print("\n==== DUAL CANNON: %d checks, %d fail(s) ====" % [checks, fails])
 	print("ALL PASS" if fails == 0 else "FAILURES PRESENT")
@@ -138,6 +140,7 @@ func _scenario_a_play_on_blue() -> void:
 # ---------------------------------------------------------------------------------------
 func _scenario_b_two_sockets_real_path() -> void:
 	_section("B. Socket two cards on Red (real card_charged path)")
+	await _refill_hand(0, 2)
 	Events.clear_socket.emit()
 	await _settle(0.4)
 	Global.dice_type = "red"
@@ -225,6 +228,7 @@ func _scenario_c_socket2_geometry() -> void:
 # ---------------------------------------------------------------------------------------
 func _scenario_d_switch_away_from_red() -> void:
 	_section("D. Switching away from Red")
+	await _refill_hand(0, 2)
 	# Re-fill both sockets: scenario E spent the previous pair, and an already-empty socket 2
 	# would make this test pass for the wrong reason.
 	Events.clear_socket.emit()
@@ -389,6 +393,7 @@ func _scenario_g_empty_second_socket() -> void:
 # ---------------------------------------------------------------------------------------
 func _scenario_h_two_single_target() -> void:
 	_section("H. Two single-target cards socketed on one Red roll")
+	await _refill_hand(2, 0)
 	Events.clear_socket.emit()
 	await _settle(0.4)
 	Global.charged_card_instance_ids.clear()
@@ -448,6 +453,121 @@ func _scenario_h_two_single_target() -> void:
 
 
 # ---------------------------------------------------------------------------------------
+# I. Julien's report: Strike in socket 1, Block in socket 2, one roll -> "it just blocked".
+#    The mixed pair is the case the same-target pairs above cannot catch: socket 1's card is
+#    single-target (parks in AIMING, emits nothing) while socket 2's is self-targeted, so if
+#    socket 2 still resolves off red_dice_rolled it fires FIRST and its reset_charged_card
+#    tears down the Strike that is still waiting to be aimed.
+# ---------------------------------------------------------------------------------------
+func _scenario_i_mixed_pair() -> void:
+	_section("I. Strike in socket 1 + Block in socket 2, one Red roll")
+	Events.clear_socket.emit()
+	await _settle(0.4)
+	Global.charged_card_instance_ids.clear()
+	Global.dice_type = "red"
+	Global.red_dice_current_amount = 3
+
+	var strikes := _socketable_cards(Card.Target.SINGLE_ENEMY)
+	var blocks := _socketable_cards(Card.Target.SELF)
+	if strikes.is_empty() or blocks.is_empty():
+		check("a single-target and a self-target card in hand", false,
+				"%d / %d" % [strikes.size(), blocks.size()])
+		return
+	var strike: CardUI = strikes[0] as CardUI
+	var block: CardUI = blocks[0] as CardUI
+
+	for cu: CardUI in [strike, block]:
+		Events.card_charged.emit(cu)
+		Global.charged_card_instance_id = cu.card.instance_id
+		if not Global.charged_card_instance_ids.has(cu.card.instance_id):
+			Global.charged_card_instance_ids.append(cu.card.instance_id)
+		await _settle(0.5)
+	check("Strike in socket 1, Block in socket 2",
+			_dice.socketed_card_ui == strike and _dice.socketed_card_ui_2 == block)
+
+	_played_ids.clear()
+	_rolled_emits.clear()
+	Global.roll_value = 0
+	Global.roll_history = []
+	_dice.roll_dice()
+	await _settle(2.2)
+	print("      right after the roll: played=%s strike.visible=%s playing_red=%s" % [
+			str(_played_ids), str(strike.visible), str(Global.playing_red_card)])
+	# THE BUG: the Block resolved on its own and nothing is waiting to be aimed.
+	check("nothing resolved before the player aims", _played_ids.is_empty(),
+			str(_played_ids))
+	check("the Strike is still the one in socket 1, waiting to be aimed",
+			_dice.socketed_card_ui == strike)
+	check("the roll is still held for the aim", Global.playing_red_card)
+
+	var enemies := get_tree().get_nodes_in_group("enemies")
+	if enemies.is_empty():
+		check("an enemy to aim at", false)
+		return
+	var strike_card_id: String = strike.card.id
+	strike.targets.clear()
+	strike.targets.append(enemies[0])
+	strike.play()
+	Events.reset_charged_card.emit()
+	Global.playing_red_card = false
+	await _settle(1.4)
+	print("      after aiming the Strike: played=%s" % str(_played_ids))
+	check("both the Strike and the Block resolved", _played_ids.size() == 2,
+			str(_played_ids))
+	check("the Strike went first", not _played_ids.is_empty()
+			and _played_ids[0] == strike_card_id, str(_played_ids))
+	check("one dice_rolled for the whole roll", _rolled_emits.size() == 1,
+			str(_rolled_emits))
+
+
+# ---------------------------------------------------------------------------------------
+# J. The captions that say which socket resolves first.
+# ---------------------------------------------------------------------------------------
+func _scenario_j_order_caption() -> void:
+	_section("J. Play-order captions")
+	Events.clear_socket.emit()
+	await _settle(0.4)
+	Events.active_dice_changed.emit("red")
+	Global.red_dice_current_amount = 3
+	await _settle(0.8)
+
+	var one := _order_caption(_dice.card_drop_area)
+	var socket2: Control = _dice.get("_socket_2") as Control
+	var two := _order_caption(socket2) if socket2 != null else null
+	print("      socket1 caption: %s | socket2 caption: %s" % [
+			one.text if one else "<none>", two.text if two else "<none>"])
+	check("socket 1 is captioned", one != null and one.visible and one.text != "")
+	check("socket 2 is captioned", two != null and two.visible and two.text != "")
+	if one == null or two == null:
+		return
+	check("the captions differ", one.text != two.text)
+	# Measured, not eyeballed: the band is 140px wide and the caption must not wrap out of it.
+	var font := one.get_theme_font("font")
+	var size := one.get_theme_font_size("font_size")
+	for label: Label in [one, two]:
+		var w: float = font.get_string_size(label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
+		print("      \"%s\" renders %.1fpx of the 140px band" % [label.text, w])
+		check("caption fits the socket width", w <= 136.0, "%.1f" % w)
+	check("caption clears the description panel",
+			one.offset_top >= _dice.description_panel.offset_bottom,
+			"%.0f vs %.0f" % [one.offset_top, _dice.description_panel.offset_bottom])
+
+	# And it must disappear when the blessing is not up.
+	Global.red_socket_capacity = 1
+	Events.active_dice_changed.emit("red")
+	await _settle(0.7)
+	check("caption hidden without Dual Cannon", not _order_caption(_dice.card_drop_area).visible)
+	Global.red_socket_capacity = 2
+
+
+func _order_caption(socket: Control) -> Label:
+	if socket == null:
+		return null
+	return socket.get_node_or_null(
+			"CardBackground/CardFrame/SocketOrderLabel") as Label
+
+
+# ---------------------------------------------------------------------------------------
 # helpers
 # ---------------------------------------------------------------------------------------
 func _player_has_status(status_id: String) -> bool:
@@ -477,6 +597,25 @@ func _socketable_cards(only_target: int = -1) -> Array:
 			continue
 		out.append(cu)
 	return out
+
+
+# Scenarios consume cards, and a scenario that silently runs out tests nothing. Top the hand
+# back up through the real Hand.add_card() path (fresh Card duplicates, so fresh instance_ids).
+func _refill_hand(single_target: int, self_target: int) -> void:
+	var wanted: Array[String] = []
+	for i: int in range(single_target):
+		wanted.append("res://characters/warrior/cards/warrior_axe_attack1.tres")
+	for i: int in range(self_target):
+		wanted.append("res://characters/warrior/cards/warrior_block1.tres")
+	for path: String in wanted:
+		var src: Card = load(path) as Card
+		if src == null:
+			continue
+		var copy: Card = src.duplicate()
+		copy.instance_id = randi()
+		_hand.add_card(copy)
+		await get_tree().process_frame
+	await _settle(0.5)
 
 
 func _settle(seconds: float) -> void:
