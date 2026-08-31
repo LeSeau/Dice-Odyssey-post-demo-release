@@ -12,5 +12,5 @@ has_counter = false
 counter = 0
 starter_relic = false
 icon = ExtResource("2_consola")
-tooltip = "Whenever a Red Dice rolls 2 or less, Charge 1 Red Dice"
+tooltip = "Whenever a Red Dice rolls 2 or less, Charge a random Dice"
 tags = "Red Dice, Charge"

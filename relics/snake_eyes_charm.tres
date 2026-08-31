@@ -8,6 +8,7 @@ script = ExtResource("1_snake")
 relic_name = "Snake Eyes Charm"
 id = "snake_eyes_charm"
 type = 4
+rarity_tier = 1
 has_counter = false
 counter = 0
 starter_relic = false

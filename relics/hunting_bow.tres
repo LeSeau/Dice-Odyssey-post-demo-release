@@ -5,7 +5,7 @@
 
 [resource]
 script = ExtResource("1_f0t73")
-relic_name = "Hunting Bow"
+relic_name = "Six Sauer"
 id = "hunting_bow"
 type = 4
 rarity_tier = 0

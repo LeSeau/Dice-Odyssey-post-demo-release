@@ -879,8 +879,12 @@ func _on_char_stats_changed() -> void:
     self.playable = char_stats.can_play_card(card)
 
 func _on_red_dice_rolled() -> void:
-    # Check if this specific card instance is the charged card
-    if Global.charged_card_instance_ids.has(card.instance_id):
+    # Only the card in socket ONE resolves off the signal. The charged-id LIST holds both
+    # socketed cards (Dual Cannon), so gating on it let whichever CardUI the signal reached
+    # first win the roll: a self-targeted card in socket 2 played immediately and its
+    # reset_charged_card tore down socket 1's card while it was still waiting to be aimed.
+    # dice.gd hands socket 2 off itself once socket 1 is done.
+    if card.instance_id != 0 and Global.red_roll_active_socket_id == card.instance_id:
         Global.dice_type = "red"
         if card.target == Card.Target.SINGLE_ENEMY:
             print("single enemy card")
@@ -916,6 +920,31 @@ func _on_red_dice_rolled() -> void:
     
    
     
+# Dual Cannon's second socket. dice.gd calls this once socket 1's card has fully resolved,
+# instead of this CardUI reacting to red_dice_rolled on its own: the first card to handle that
+# signal emits reset_charged_card, which clears Global.charged_card_instance_ids before the
+# second CardUI's handler is dispatched - so the second card silently never played and its
+# CardUI stayed hidden and disabled in the hand. The signal is NOT re-emitted for card 2
+# (Blood Sword / House Money / Jackpot Pin / Effigy / Ruptured all listen to it and would
+# fire twice on one roll), and red_roll_pending_report is deliberately left alone so the
+# "exactly one dice_rolled per Red roll" rule still holds.
+func begin_second_socket_play() -> void:
+    if not card:
+        return
+    show()
+    disabled = false
+    if card.target == Card.Target.SINGLE_ENEMY:
+        # Same forced aim socket 1 gets: the roll is already spent, so the card must be
+        # played - card_aiming_state refuses to cancel while playing_red_card is true.
+        card_state_machine._on_transition_requested(
+                card_state_machine.current_state, CardState.State.AIMING)
+        return
+    _prune_stale_targets()
+    play()
+    Events.reset_charged_card.emit()
+    Global.playing_red_card = false
+
+
 func _setup_card_style() -> void:
     # Setup Card Background
     var bg_style = StyleBoxFlat.new()

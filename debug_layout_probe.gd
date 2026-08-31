@@ -19,8 +19,10 @@ func _ready() -> void:
 
 	Global.dice_type = "blue"
 	battle._on_scout_effect(6)
-	for i in 70:
-		await get_tree().process_frame
+	# Wait in GAME TIME, not frames: since the 2026-08-29 summon pass the panel only unfurls once
+	# the comet reaches it, and a frame count means wildly different amounts of time depending on
+	# how fast this machine renders. 1.6s clears flight + unfurl with room to spare.
+	await get_tree().create_timer(1.6).timeout
 	var sp: Control = battle.get_node("ScoutPanel")
 	var r: Rect2 = sp.get_global_rect()
 	print("[layout] SCOUT frame %d %s topGap=%.0f rowGap=%.0f"

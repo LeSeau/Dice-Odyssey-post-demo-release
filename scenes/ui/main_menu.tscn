@@ -1,7 +1,7 @@
 [gd_scene load_steps=35 format=3 uid="uid://btktlydklchb4"]
 
 [ext_resource type="Script" path="res://main_menu.gd" id="1_vi5tj"]
-[ext_resource type="Texture2D" uid="uid://crd5hg4i57lek" path="res://main_menu_v4.png" id="2_2uw4g"]
+[ext_resource type="Texture2D" path="res://assets/images/ui/menu_bg_dawn.png" id="2_2uw4g"]
 [ext_resource type="FontFile" uid="uid://c4mfyi0ta8qeq" path="res://fonts/MinionPro-Semibold.otf" id="3_lj8do"]
 [ext_resource type="Texture2D" uid="uid://bbhk8pdh4refe" path="res://assets/images/pause_menu_icon.png" id="4_gearicon"]
 [ext_resource type="PackedScene" uid="uid://c2mvqx4n1p0a1" path="res://scenes/ui/pause_menu.tscn" id="5_pausemenu"]
@@ -273,14 +273,13 @@ grow_vertical = 2
 script = ExtResource("1_vi5tj")
 
 [node name="Background" type="TextureRect" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+layout_mode = 0
+offset_left = -48.0
+offset_top = -24.0
+offset_right = 1328.0
+offset_bottom = 744.0
+mouse_filter = 2
 texture = ExtResource("2_2uw4g")
-expand_mode = 2
 
 [node name="SettingsButton" type="TextureButton" parent="."]
 unique_name_in_owner = true

@@ -773,8 +773,10 @@ func _set_charged_description(card: Card, text: String) -> void:
     # (its bg matches the card body), so it can eat the dead space below whenever the BonusEffect
     # row is hidden. Must run before the measuring loop below.
     description_panel.offset_top = CardUI.DESC_PANEL_TOP
+    var band_taken: bool = (card.bonus_requirement != Card.Requirement.NONE
+            or _socket_order_visible())
     description_panel.offset_bottom = CardUI.DESC_PANEL_TOP + (
-        CardUI.DESC_PANEL_HEIGHT_WITH_BONUS if card.bonus_requirement != Card.Requirement.NONE
+        CardUI.DESC_PANEL_HEIGHT_WITH_BONUS if band_taken
         else CardUI.DESC_PANEL_HEIGHT)
     var available := description_panel.size.y
     for font_size: int in CHARGED_DESC_FONT_SIZE_CANDIDATES:
@@ -2507,7 +2509,13 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
         # red_dice_rolled first consumes it and re-emits dice_rolled, so a Red roll produces
         # exactly one dice_rolled no matter how many cards are socketed (Dual Cannon).
         Global.red_roll_pending_report = true
+        # Socket 1 only - see Global.red_roll_active_socket_id. Cleared straight after the
+        # dispatch: a single-target card resolves later through card_released_state (gated on
+        # playing_red_card), never off this signal again.
+        Global.red_roll_active_socket_id = (socketed_card_ui.card.instance_id
+                if is_instance_valid(socketed_card_ui) and socketed_card_ui.card else 0)
         Events.red_dice_rolled.emit()
+        Global.red_roll_active_socket_id = 0
         _fire_socketless_red()
     _check_sigil_trigger()
     Events.hover_playable_cards.emit()
@@ -2630,6 +2638,10 @@ func _on_active_dice_changed(new_dice_type):
     switch_tween.tween_property(dice_display, "scale", Vector2(1.0, 1.0), 0.12) \
         .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
+    # Socket 2 is a runtime duplicate that nothing else lays out, so it has to be told about
+    # every show/hide of socket 1 - otherwise a filled second socket kept floating over the
+    # dice cluster while the player was on Blue.
+    _refresh_socket_2_slot.call_deferred()
     if(dice_type == "red"):
         card_drop_area.show()
         mech_section.hide()
@@ -2789,8 +2801,12 @@ func _on_player_turn_started() -> void:
     Global.roll_history = []
     Global.power_generated_this_turn = 0
     _magma_burned_this_turn = false
-    if socketed_card_ui != null:
-        _on_cancel_red_card_pressed()
+    # A Red play never spans a turn boundary. Left stuck true (e.g. ending the turn while a
+    # socketed card was still being aimed) it makes the next card dropped on Red play outright
+    # instead of socketing.
+    Global.playing_red_card = false
+    if socketed_card_ui != null or socketed_card_ui_2 != null:
+        _empty_both_sockets()
     if Global.starting_power_next_turn!=0:
         Global.roll_value = Global.starting_power_next_turn
         Global.starting_power_next_turn = 0
@@ -2893,6 +2909,20 @@ func _on_card_charged(card_ui):
         _socketing_in_progress = false
         return
 
+    # Both sockets already full: the new card replaces the SECOND one, so the card that has
+    # been waiting longest keeps the "played first" slot its caption promises. (Evicting
+    # socket 1 here would also re-enter this function while _socketing_in_progress is set,
+    # which would strand the promoted card - hidden, disabled and in neither socket.)
+    if socketed_card_ui != null and Global.red_socket_capacity >= 2 \
+            and socketed_card_ui_2 != null and socketed_card_ui != card_ui \
+            and socketed_card_ui_2 != card_ui:
+        var evicted: CardUI = socketed_card_ui_2
+        socketed_card_ui_2 = null
+        _return_socket_card_to_hand(evicted)
+        _fill_socket_2(card_ui)
+        _socketing_in_progress = false
+        return
+
     # CRITICAL FIX: If a card is already socketed, auto-cancel it first
     if socketed_card_ui != null:
         print("Socket already occupied - auto-canceling previous card")
@@ -2975,6 +3005,8 @@ func _on_card_charged(card_ui):
             bonus_requirement_panel.add_theme_stylebox_override("panel", CardUI.BONUS_MULTIPLE_STYLEBOX)
             bonus_requirement_label.text = "Mult %d" % card_ui.card.bonus_requirement_number
 
+    _apply_socket_order(card_drop_area, 1,
+            card_ui.card.bonus_requirement != Card.Requirement.NONE)
     card_ui.hide()
     card_ui.disabled = true
 
@@ -2985,6 +3017,10 @@ func _on_card_charged(card_ui):
 
 
 func _on_reset_charged_card():
+    # Deferred and unconditional so it also runs on the early-return paths below - and so that
+    # playing Dual Cannon itself (which emits this signal right after raising the capacity)
+    # makes the empty second slot appear straight away.
+    _refresh_socket_2_slot.call_deferred()
     # This same signal fires from inside virtually every card's apply_effects() (a generic
     # cleanup call unrelated to red-dice sockets) AND explicitly right after a socketed card
     # is actually played (card_released_state.gd's Global.playing_red_card branch) - only the
@@ -3002,8 +3038,17 @@ func _on_reset_charged_card():
         socketed_card_ui = null
         Global.charged_card_instance_id = 0
         Global.charged_card_instance_ids.clear()
+        # Dual Cannon: socket 2's card has NOT played yet. Every CardUI listens to
+        # red_dice_rolled, but the first one to handle it lands here and wipes the charged-id
+        # list above, so by the time socket 2's own handler is dispatched its id is gone and it
+        # silently never plays - it just stays hidden and disabled in the hand. Take the card
+        # out of the socket now and resolve it explicitly instead. Deferred because the caller
+        # sets Global.playing_red_card = false and frees its own CardUI right after we return.
+        var pending_second: CardUI = socketed_card_ui_2
         _clear_socket_2()
         _fly_charged_card_to_discard()
+        if is_instance_valid(pending_second):
+            _resolve_second_socket.call_deferred(pending_second)
         return
 
     # Generic-cleanup emits must NOT wipe a socket that's still legitimately occupied -
@@ -3533,37 +3578,89 @@ func _on_display_next_roll_modifier():
 
     
 
-func _on_cancel_red_card_pressed() -> void:
-    # Check if there's actually a card socketed
-    if socketed_card_ui == null:
-        print("No card to cancel")
+# One card leaves a socket and goes back to the hand. Dropping its id is what actually stops
+# it playing on the next roll - the socket display is only the picture of that.
+func _return_socket_card_to_hand(card_ui: CardUI) -> void:
+    if not is_instance_valid(card_ui):
         return
-    
-    # Clear the socket display
+    card_ui.show()
+    card_ui.disabled = false
+    if card_ui.card:
+        Global.charged_card_instance_ids.erase(card_ui.card.instance_id)
+    Events.fan_hand_requested.emit()
+
+
+func _empty_socket_1() -> void:
     _set_socket_empty()
-    
-    # Re-enable the card in the hand
-    if is_instance_valid(socketed_card_ui):
-        socketed_card_ui.show()
-        socketed_card_ui.disabled = false
-        print("Card returned to hand: ", socketed_card_ui.card.name)
-        Events.fan_hand_requested.emit()
-    
-    # CRITICAL: Reset the global flags so new cards can be socketed
+    _return_socket_card_to_hand(socketed_card_ui)
+    socketed_card_ui = null
+    Global.playing_red_card = false
+    Global.charged_card_instance_id = 0
+
+
+# Both sockets emptied and both cards handed back - end of turn, turn start, leaving Red.
+# Never promotes: nothing should still be socketed once the turn is over.
+func _empty_both_sockets() -> void:
+    var second: CardUI = socketed_card_ui_2
+    socketed_card_ui_2 = null
+    if is_instance_valid(_socket_2):
+        _socket_2.hide()
+    _return_socket_card_to_hand(second)
+    if socketed_card_ui != null:
+        _empty_socket_1()
     Global.playing_red_card = false
     Global.charged_card_instance_id = 0
     Global.charged_card_instance_ids.clear()
-    _clear_socket_2()
-    
-    # Clear our reference
-    socketed_card_ui = null
-    
-    # Play feedback sound
+    _refresh_socket_2_slot.call_deferred()
+
+
+# Socket 1's X. Socket 2's card slides UP into socket 1 rather than being dumped out with it:
+# each X now removes its own card, and the remaining card genuinely becomes the one that plays
+# first, which is what its caption then says.
+func _on_cancel_red_card_pressed() -> void:
+    if socketed_card_ui == null:
+        print("No card to cancel")
+        return
+    var promoted: CardUI = socketed_card_ui_2
+    socketed_card_ui_2 = null
+    if is_instance_valid(_socket_2):
+        _socket_2.hide()
+    _empty_socket_1()
+    if is_instance_valid(promoted) and Global.red_dice_current_amount > 0:
+        _promote_to_socket_1(promoted)
+    else:
+        _return_socket_card_to_hand(promoted)
+    _refresh_socket_2_slot.call_deferred()
     SFXPlayer.play(Global.sfx_click)
 
-func _on_clear_socket():
-    _on_cancel_red_card_pressed()
 
+# Socket 2's own X. Only ever touches socket 2 - socket 1 keeps its card and its turn order.
+func _on_cancel_socket_2_pressed() -> void:
+    if socketed_card_ui_2 == null:
+        return
+    var card_ui: CardUI = socketed_card_ui_2
+    socketed_card_ui_2 = null
+    if is_instance_valid(_socket_2):
+        _socket_2.hide()
+    _return_socket_card_to_hand(card_ui)
+    _refresh_socket_2_slot.call_deferred()
+    SFXPlayer.play(Global.sfx_click)
+
+
+# Reuses the ordinary socket-1 fill (socketed_card_ui is null by now, so _on_card_charged takes
+# its main path and does not await). The id has to be re-added by hand: card_released_state.gd
+# is what normally appends it, and nothing is being released here.
+func _promote_to_socket_1(card_ui: CardUI) -> void:
+    if not is_instance_valid(card_ui) or card_ui.card == null:
+        return
+    _on_card_charged(card_ui)
+    Global.charged_card_instance_id = card_ui.card.instance_id
+    if not Global.charged_card_instance_ids.has(card_ui.card.instance_id):
+        Global.charged_card_instance_ids.append(card_ui.card.instance_id)
+
+
+func _on_clear_socket():
+    _empty_both_sockets()
 func update_roll_history_ui():
     if Global.roll_history.is_empty() or ink_is_on:
         roll_history.text = ""
@@ -4679,12 +4776,15 @@ func _set_socket_empty() -> void:
     charged_card_description.add_theme_font_size_override(
         "normal_font_size", CHARGED_DESC_FONT_SIZE_CANDIDATES[0])
     description_panel.offset_top = CardUI.DESC_PANEL_TOP
-    description_panel.offset_bottom = CardUI.DESC_PANEL_TOP + CardUI.DESC_PANEL_HEIGHT
+    description_panel.offset_bottom = CardUI.DESC_PANEL_TOP + (
+        CardUI.DESC_PANEL_HEIGHT_WITH_BONUS if _socket_order_visible()
+        else CardUI.DESC_PANEL_HEIGHT)
     charged_card_description.text = "[center]Place a card here[/center]"
     description_panel.modulate.a = 0.6
     bonus_effect.hide()
     bonus_separator.hide()
     cancel_red_card_panel.hide()
+    _apply_socket_order(card_drop_area, 1, false)
     # Everything above is the INERT empty socket. With Armageddon up it is not inert, and every
     # word of it is wrong - so the armed look overwrites it wholesale (see _apply_armed_socket).
     if _socket_is_armed():
@@ -4782,15 +4882,26 @@ func _ensure_socket_2() -> Control:
     _socket_2.name = "CardDropArea2"
     add_child(_socket_2)
     _socket_2.position = card_drop_area.position + SOCKET_2_OFFSET
-    var cancel := _socket_2.get_node_or_null("CancelRedCardPanel")
+    var cancel := _socket_2.get_node_or_null("CancelRedCardPanel") as Control
     if cancel:
         cancel.hide()
+    var cancel_button := _socket_2.get_node_or_null(
+            "CancelRedCardPanel/CancelRedCard") as BaseButton
+    if cancel_button:
+        # duplicate() copies the connection authored in dice.tscn, which points at socket 1's
+        # handler - left alone, socket 2's X would cancel the OTHER socket.
+        if cancel_button.pressed.is_connected(_on_cancel_red_card_pressed):
+            cancel_button.pressed.disconnect(_on_cancel_red_card_pressed)
+        if not cancel_button.pressed.is_connected(_on_cancel_socket_2_pressed):
+            cancel_button.pressed.connect(_on_cancel_socket_2_pressed)
     _socket_2.hide()
     return _socket_2
 
 
 func _fill_socket_2(card_ui: CardUI) -> void:
     var socket := _ensure_socket_2()
+    # The slot may be sitting in its dimmed "Drop a card" state - restore full opacity first.
+    _paint_socket_2_filled(socket)
     socketed_card_ui_2 = card_ui
     if not Global.charged_card_instance_ids.has(card_ui.card.instance_id):
         Global.charged_card_instance_ids.append(card_ui.card.instance_id)
@@ -4813,6 +4924,16 @@ func _fill_socket_2(card_ui: CardUI) -> void:
             "CardBackground/CardFrame/RequirementPanel/RequirementLabel") as Label
     if req:
         req.text = _requirement_text(card_ui.card)
+    var socket_desc_panel := socket.get_node_or_null(
+            "CardBackground/CardFrame/DescriptionPanel") as Control
+    if socket_desc_panel:
+        socket_desc_panel.offset_top = CardUI.DESC_PANEL_TOP
+        socket_desc_panel.offset_bottom = (CardUI.DESC_PANEL_TOP
+                + CardUI.DESC_PANEL_HEIGHT_WITH_BONUS)
+    _apply_socket_order(socket, 2, false)
+    var cancel := socket.get_node_or_null("CancelRedCardPanel") as Control
+    if cancel:
+        cancel.show()
     socket.show()
     card_ui.hide()
 
@@ -4821,6 +4942,167 @@ func _clear_socket_2() -> void:
     socketed_card_ui_2 = null
     if is_instance_valid(_socket_2):
         _socket_2.hide()
+    _refresh_socket_2_slot.call_deferred()
+
+
+# Socket 2 only ever existed once a card had been dropped into it, so with the blessing up but
+# no second card yet the Red die looked EXACTLY like it does without Dual Cannon - which is what
+# "it didn't add a second card socket" describes. Paint the empty slot whenever the blessing is
+# live and Red is the active die, the same way socket 1 advertises itself.
+func _refresh_socket_2_slot() -> void:
+    if Global.red_socket_capacity < 2 or dice_type != "red":
+        if is_instance_valid(_socket_2):
+            _socket_2.hide()
+        _apply_socket_order(card_drop_area, 1, bonus_effect.visible)
+        return
+    var socket := _ensure_socket_2()
+    _apply_socket_order(card_drop_area, 1, bonus_effect.visible)
+    if is_instance_valid(socketed_card_ui_2):
+        _apply_socket_order(socket, 2, false)
+        socket.show()
+        return
+    _paint_socket_2_empty(socket)
+    socket.show()
+
+
+# The empty/filled looks socket 1 gets from _set_socket_empty()/_set_socket_filled(), applied to
+# the duplicated subtree by path. Kept as two small painters rather than reusing those two
+# functions, which address socket 1's nodes through @onready refs and $-paths.
+func _paint_socket_2_empty(socket: Control) -> void:
+    socket.scale = SOCKET_REST_SCALE
+    var banner := socket.get_node_or_null(
+            "CardBackground/CardFrame/CardBanner") as Control
+    if banner:
+        banner.modulate.a = 0.7
+    var art_panel := socket.get_node_or_null("CardBackground/CardFrame/Panel") as Control
+    if art_panel:
+        art_panel.modulate.a = 0.35
+    var socket_title := socket.get_node_or_null(
+            "CardBackground/CardFrame/CardBanner/Title") as Label
+    if socket_title:
+        socket_title.text = "?"
+        socket_title.modulate.a = 0.7
+        socket_title.show()
+    var texture := socket.get_node_or_null(
+            "CardBackground/CardFrame/Panel/ChargedCardTexture") as TextureRect
+    if texture:
+        texture.texture = null
+        texture.hide()
+    var req_panel := socket.get_node_or_null(
+            "CardBackground/CardFrame/RequirementPanel") as Panel
+    if req_panel:
+        req_panel.show()
+        req_panel.add_theme_stylebox_override("panel", CardUI.NONE_STYLEBOX)
+        req_panel.modulate.a = 0.5
+    var req := socket.get_node_or_null(
+            "CardBackground/CardFrame/RequirementPanel/RequirementLabel") as Label
+    if req:
+        req.text = "Drop a card"
+    var desc_panel := socket.get_node_or_null(
+            "CardBackground/CardFrame/DescriptionPanel") as Control
+    if desc_panel:
+        desc_panel.modulate.a = 0.6
+        desc_panel.offset_top = CardUI.DESC_PANEL_TOP
+        desc_panel.offset_bottom = CardUI.DESC_PANEL_TOP + (
+            CardUI.DESC_PANEL_HEIGHT_WITH_BONUS if _socket_order_visible()
+            else CardUI.DESC_PANEL_HEIGHT)
+    var desc := socket.get_node_or_null(
+            "CardBackground/CardFrame/DescriptionPanel/ChargedCardDescriptionCenter/ChargedCardDescription") as RichTextLabel
+    if desc:
+        desc.text = "[center]Place a card here[/center]"
+    var bonus := socket.get_node_or_null("CardBackground/CardFrame/BonusEffect") as Control
+    if bonus:
+        bonus.hide()
+    var separator := socket.get_node_or_null(
+            "CardBackground/CardFrame/BonusSeparator") as Control
+    if separator:
+        separator.hide()
+    var cancel := socket.get_node_or_null("CancelRedCardPanel") as Control
+    if cancel:
+        cancel.hide()
+    _apply_socket_order(socket, 2, false)
+
+
+func _paint_socket_2_filled(socket: Control) -> void:
+    socket.scale = SOCKET_REST_SCALE
+    for path: String in ["CardBackground/CardFrame/CardBanner",
+            "CardBackground/CardFrame/Panel",
+            "CardBackground/CardFrame/DescriptionPanel",
+            "CardBackground/CardFrame/RequirementPanel",
+            "CardBackground/CardFrame/CardBanner/Title"]:
+        var node := socket.get_node_or_null(path) as CanvasItem
+        if node:
+            node.modulate.a = 1.0
+
+
+# Called (deferred) once socket 1's card has fully resolved. Mirrors what card_ui.gd does for
+# socket 1: single-target cards get the same forced aim, everything else resolves immediately.
+# red_dice_rolled is NOT re-emitted - its relic/status listeners must fire once per roll.
+func _resolve_second_socket(card_ui: CardUI) -> void:
+    _clear_socket_2()
+    if not is_instance_valid(card_ui) or card_ui.card == null:
+        return
+    # Card 1's play emitted dice_roll_reset, and on Red that schedules a 1s DELAYED wipe of
+    # roll_value + playing_red_card. Card 2 has not spent the roll yet, so that wipe is stale
+    # by definition: left alone it lands mid-aim, blanking the roll card 2 was socketed for and
+    # dropping playing_red_card - after which releasing card 2 re-sockets it instead of playing
+    # it. Bumping the generation token is exactly how this file already cancels a stale wipe.
+    _power_reset_generation += 1
+    Global.playing_red_card = true
+    Global.charged_card_instance_id = card_ui.card.instance_id
+    if not Global.charged_card_instance_ids.has(card_ui.card.instance_id):
+        Global.charged_card_instance_ids.append(card_ui.card.instance_id)
+    card_ui.begin_second_socket_play()
+
+
+# --- "which one goes first" caption ------------------------------------------------------------
+# The two sockets resolve in the order they were filled, but they are laid out RIGHT to LEFT
+# (socket 2 sits 126px to the LEFT of socket 1, because the die and the ROLL button own the space
+# on the right), so reading them left-to-right gives the reverse of the play order. Hence a
+# caption rather than relying on position.
+#
+# It lives in the 22px band under the description panel - the same dead space the BonusEffect row
+# uses - so a socketed card that HAS a bonus row keeps that row and drops the caption rather than
+# overlapping the two.
+const SOCKET_ORDER_TEXT := {1: "Played first", 2: "Played second"}
+const SOCKET_ORDER_FONT_SIZE := 9
+# Left edge of CancelRedCardPanel in card-local space (authored in dice.tscn). The caption
+# shares the band with it, so it has to stop here.
+const CANCEL_PANEL_LEFT := 93.6663
+const SOCKET_ORDER_COLOR := Color(0.85, 0.78, 0.55, 0.85)
+
+
+func _socket_order_visible() -> bool:
+    return Global.red_socket_capacity >= 2
+
+
+func _apply_socket_order(socket: Control, order_index: int, has_bonus_row: bool) -> void:
+    var frame := socket.get_node_or_null("CardBackground/CardFrame") as Control
+    if frame == null:
+        return
+    var label := frame.get_node_or_null("SocketOrderLabel") as Label
+    if not _socket_order_visible() or has_bonus_row:
+        if label:
+            label.hide()
+        return
+    if label == null:
+        label = Label.new()
+        label.name = "SocketOrderLabel"
+        label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+        label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+        label.add_theme_font_size_override("font_size", SOCKET_ORDER_FONT_SIZE)
+        label.add_theme_color_override("font_color", SOCKET_ORDER_COLOR)
+        label.set_anchors_preset(Control.PRESET_TOP_LEFT)
+        frame.add_child(label)
+    # Stops short of the cancel button (CardDropArea/CancelRedCardPanel starts at x93.7 in
+    # this same 22px band) instead of spanning the card - it was rendering underneath it.
+    label.offset_left = 4.0
+    label.offset_right = CANCEL_PANEL_LEFT - 2.0
+    label.offset_top = CardUI.DESC_PANEL_TOP + CardUI.DESC_PANEL_HEIGHT_WITH_BONUS
+    label.offset_bottom = 210.0
+    label.text = SOCKET_ORDER_TEXT.get(order_index, "")
+    label.show()
 
 
 # Same wording the socket 1 badge uses (card_ui.gd is the source for the real card face).
@@ -5203,10 +5485,16 @@ const OVERCHARGE_WORLD_TWEEN_TIME := 0.6
 # whole of dice.gd down with it, and gdtoolkit does not catch it (documented, cost 3 runs).
 const OVERCHARGE_HUM_PATH := "res://sounds/overcharge_hum.wav"
 const OVERCHARGE_HUM_MIN_DB := -30.0
-# -9, not -13: this is a texture meant to be FELT under the other SFX, and the first pass
-# was quiet enough to miss entirely (compounded by the v1 asset being nearly all sub-bass).
-# This is the first dial to turn down if it crowds the mix.
-const OVERCHARGE_HUM_MAX_DB := -9.0
+# -4, not -9: Julien asked for more weight at the absurd end SPECIFICALLY. Raising this on its
+# own would have lifted the whole ramp, because the volume was a straight lerp on `level` - so
+# OVERCHARGE_HUM_DB_CURVE below does the shaping and this only sets the ceiling that a maxed
+# bank reaches. This is still the first dial to turn down if it crowds the mix.
+const OVERCHARGE_HUM_MAX_DB := -4.0
+# Bias the ramp so the added loudness lands at the TOP rather than across the board. At 1.35 the
+# T1/T2 range stays within about a decibel of where it was (level 0.25 -> -26.0 dB against the
+# old -24.8, level 0.5 -> -19.8 against -19.5) while level 1.0 gains a full 5 dB. Lower it
+# toward 1.0 to make the whole ramp louder again; raise it to push the lift further up still.
+const OVERCHARGE_HUM_DB_CURVE := 1.35
 const OVERCHARGE_HUM_FADE_IN := 0.7
 const OVERCHARGE_HUM_FADE_OUT := 0.45
 const OVERCHARGE_HUM_PITCH_MAX := 1.16
@@ -5391,8 +5679,12 @@ func _apply_overcharge_hum(level: float) -> void:
         _overcharge_hum.volume_db = OVERCHARGE_HUM_MIN_DB
         _overcharge_hum.play()
     _overcharge_hum.pitch_scale = lerpf(1.0, OVERCHARGE_HUM_PITCH_MAX, level)
+    # Curved, not linear: see OVERCHARGE_HUM_DB_CURVE. Pitch stays linear on purpose - the
+    # rising pitch is what reads as "climbing", and bending it too would drop the mid-range
+    # tell that something is building well before the bank gets absurd.
+    var loudness: float = pow(clampf(level, 0.0, 1.0), OVERCHARGE_HUM_DB_CURVE)
     _overcharge_hum_tween.tween_property(_overcharge_hum, "volume_db",
-            lerpf(OVERCHARGE_HUM_MIN_DB, OVERCHARGE_HUM_MAX_DB, level), OVERCHARGE_HUM_FADE_IN)
+            lerpf(OVERCHARGE_HUM_MIN_DB, OVERCHARGE_HUM_MAX_DB, loudness), OVERCHARGE_HUM_FADE_IN)
 
 
 # Resolved lazily and ONCE, and by group rather than by path, because this node also lives in

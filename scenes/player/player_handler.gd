@@ -236,7 +236,14 @@ func _on_card_played(card: Card) -> void:
 func _on_statuses_applied(type: Status.Type) -> void:
     match type:
         Status.Type.START_OF_TURN:
-            draw_cards(character.cards_per_turn)
+            # Gambler's Fan folds its extra cards into THIS deal rather than emitting a
+            # second draw_card burst: one tween means one player_hand_drawn at the true end
+            # of the deal, and the tutorial's forced opening hand still comes off the front
+            # of the pile in order. Zeroed on consumption, so only the fight's first hand is
+            # widened however many turns follow.
+            var bonus: int = Global.bonus_cards_first_hand
+            Global.bonus_cards_first_hand = 0
+            draw_cards(character.cards_per_turn + bonus)
         Status.Type.END_OF_TURN:
             discard_cards()
             
