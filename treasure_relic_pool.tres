@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="RelicPool" load_steps=45 format=3 uid="uid://2if2rhy1aktn"]
+[gd_resource type="Resource" script_class="RelicPool" load_steps=46 format=3 uid="uid://2if2rhy1aktn"]
 
 [ext_resource type="Script" path="res://custom_resources/relic.gd" id="1_3cua4"]
 [ext_resource type="Resource" uid="uid://d1hg48cey4d5d" path="res://relics/arcane_hat.tres" id="2_fqptj"]
@@ -26,7 +26,6 @@
 [ext_resource type="Resource" uid="uid://bwxhu0g3r7mfy" path="res://relics/flywheel.tres" id="26_fly"]
 [ext_resource type="Resource" uid="uid://dmn8vwfuq8vmm" path="res://relics/trick_scale.tres" id="27_trick"]
 [ext_resource type="Resource" path="res://relics/underdog_ring.tres" id="100_underd"]
-[ext_resource type="Resource" path="res://relics/needle_die.tres" id="101_needle"]
 [ext_resource type="Resource" uid="uid://dmjioo7dg7dr" path="res://relics/worms_eye_lens.tres" id="102_wormse"]
 [ext_resource type="Resource" uid="uid://rsix03qgear" path="res://relics/sixth_gear.tres" id="103_sixthg"]
 [ext_resource type="Resource" path="res://relics/conductors_baton.tres" id="104_conduc"]
@@ -45,6 +44,9 @@
 [ext_resource type="Resource" uid="uid://rhag2aqoupe" path="res://relics/hagglers_loupe.tres" id="118_haggle"]
 [ext_resource type="Resource" path="res://relics/golem_heart.tres" id="119_golemh"]
 
+[ext_resource type="Resource" uid="uid://dn1kbuqp83m6y" path="res://relics/spyglass.tres" id="130_spygls"]
+[ext_resource type="Resource" uid="uid://rgam20qsfan" path="res://relics/gamblers_fan.tres" id="131_gamblf"]
+
 [resource]
 script = ExtResource("2_tgoc2")
-pool = Array[ExtResource("1_3cua4")]([ExtResource("2_fqptj"), ExtResource("3_nr6f2"), ExtResource("4_yunvh"), ExtResource("6_wv4ds"), ExtResource("7_8op50"), ExtResource("9_plo4j"), ExtResource("10_pt110"), ExtResource("11_1ld04"), ExtResource("12_w00ns"), ExtResource("12_ckpsv"), ExtResource("13_si5dn"), ExtResource("14_0sw8d"), ExtResource("16_sytgm"), ExtResource("18_quill"), ExtResource("19_snake"), ExtResource("20_house"), ExtResource("21_echo"), ExtResource("22_obsidian"), ExtResource("23_metro"), ExtResource("24_valve"), ExtResource("25_prayer"), ExtResource("26_fly"), ExtResource("27_trick"), ExtResource("100_underd"), ExtResource("101_needle"), ExtResource("102_wormse"), ExtResource("103_sixthg"), ExtResource("104_conduc"), ExtResource("105_pilotl"), ExtResource("106_marked"), ExtResource("107_consol"), ExtResource("108_jackpo"), ExtResource("109_bloodc"), ExtResource("110_whetst"), ExtResource("111_mortar"), ExtResource("112_thorne"), ExtResource("113_fuelga"), ExtResource("116_strayd"), ExtResource("117_almsbo"), ExtResource("118_haggle"), ExtResource("119_golemh"), ExtResource("105_giants")])
+pool = Array[ExtResource("1_3cua4")]([ExtResource("2_fqptj"), ExtResource("3_nr6f2"), ExtResource("4_yunvh"), ExtResource("6_wv4ds"), ExtResource("7_8op50"), ExtResource("9_plo4j"), ExtResource("10_pt110"), ExtResource("11_1ld04"), ExtResource("12_w00ns"), ExtResource("12_ckpsv"), ExtResource("13_si5dn"), ExtResource("14_0sw8d"), ExtResource("16_sytgm"), ExtResource("18_quill"), ExtResource("19_snake"), ExtResource("20_house"), ExtResource("21_echo"), ExtResource("22_obsidian"), ExtResource("23_metro"), ExtResource("24_valve"), ExtResource("25_prayer"), ExtResource("26_fly"), ExtResource("27_trick"), ExtResource("100_underd"), ExtResource("102_wormse"), ExtResource("103_sixthg"), ExtResource("104_conduc"), ExtResource("105_pilotl"), ExtResource("106_marked"), ExtResource("107_consol"), ExtResource("108_jackpo"), ExtResource("109_bloodc"), ExtResource("110_whetst"), ExtResource("111_mortar"), ExtResource("112_thorne"), ExtResource("113_fuelga"), ExtResource("116_strayd"), ExtResource("117_almsbo"), ExtResource("118_haggle"), ExtResource("119_golemh"), ExtResource("105_giants"), ExtResource("130_spygls"), ExtResource("131_gamblf")])

@@ -18,7 +18,8 @@ const NEW_RELICS := [
 ]
 # A few shipped relics rendered alongside, so the new icons can be compared against the
 # existing ones for visual weight rather than judged in isolation.
-const EXISTING := ["crown", "hunting_bow", "metronome", "prayer_beads", "coupons"]
+const EXISTING := ["crown", "hunting_bow", "metronome", "prayer_beads", "coupons",
+		"gamblers_fan", "spyglass", "snake_eyes_charm", "runic_bones", "magic_sleeve"]
 
 const OUT := "res://relic_row_render.png"
 

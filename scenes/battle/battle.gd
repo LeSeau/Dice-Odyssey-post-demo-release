@@ -643,8 +643,25 @@ func _on_scout_effect(amount: int) -> void:
             selected_faces.append(forced_tex if forced_tex else faces[randi() % faces.size()])
         Global.tutorial_forced_scout_faces = []
     else:
+        # Spyglass draws WITHOUT replacement, so a Scout can never spend a slot on an
+        # outcome already on the table. Note `faces` can legitimately hold the same texture
+        # more than once - Evil is 0/6/6/6 and load() caches, so those three 6s are one
+        # object - which means deduping by identity is deduping by OUTCOME, exactly what the
+        # relic promises. Once the distinct faces run out (Green d3 under a Scout 5, or a
+        # Repented Evil whose faces collapse to a single 6) the remaining slots fall back to
+        # ordinary random draws. With the relic unowned unique_pool stays empty, so every
+        # slot takes the old random path and the draw is unchanged.
+        var unique_pool: Array = []
+        if Global.scout_unique_faces:
+            for face in faces:
+                if not unique_pool.has(face):
+                    unique_pool.append(face)
+            unique_pool.shuffle()
         for i in range(visible_count):
-            selected_faces.append(faces[randi() % faces.size()])
+            if i < unique_pool.size():
+                selected_faces.append(unique_pool[i])
+            else:
+                selected_faces.append(faces[randi() % faces.size()])
 
     # The panel stays hidden until the summon comet reaches it - see _summon_scout_panel. Every
     # path ends in _open_scout_panel; only the travel beat in front of it is conditional.

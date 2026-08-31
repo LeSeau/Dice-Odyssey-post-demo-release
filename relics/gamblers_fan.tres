@@ -1,0 +1,16 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://rgam20qsfan"]
+
+[ext_resource type="Script" path="res://relics/gamblers_fan.gd" id="1_gamblf"]
+[ext_resource type="Texture2D" uid="uid://bm5qmfwi7423x" path="res://gamblers_fan.png" id="2_gamblf"]
+
+[resource]
+script = ExtResource("1_gamblf")
+relic_name = "Gambler's Fan"
+id = "gamblers_fan"
+type = 1
+has_counter = false
+counter = 0
+starter_relic = false
+icon = ExtResource("2_gamblf")
+tooltip = "Start each combat with 2 more cards in hand"
+tags = ""

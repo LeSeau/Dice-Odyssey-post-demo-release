@@ -3,6 +3,10 @@ extends Node
 # Verification harness for the 2026-08-24 RELIC REWORK (Julien's balance pass).
 #
 #   6 cuts   diplomats_seal, wayfinder_compass, spyglass, fuel-o-meter, crown, prismatic_lens
+#
+# Amended 2026-08-31 (Julien's second relic pass): Spyglass is UNCUT and back in both pools
+# with a new effect, Needle Die is cut in its place, and Giant's Signet goes back to paying
+# Strength. Pools are 43 (42 - needle_die + spyglass + gamblers_fan).
 #   11 edits war_horn, fuel_gauge, sixth_gear, pilot_light, metronome, hunting_bow,
 #            hagglers_loupe, flywheel, echo_chamber, giants_signet, blood_chalice
 #
@@ -17,9 +21,9 @@ extends Node
 #       --rendering-driver opengl3 --position 2000,2000
 
 const FIGHT := "res://battles/tier_1_crab_satyr.tres"
-const CUTS := ["diplomats_seal", "wayfinder_compass", "spyglass", "fuel-o-meter",
-		"crown", "prismatic_lens"]
-const EXPECTED_POOL := 42
+const CUTS := ["diplomats_seal", "wayfinder_compass", "fuel-o-meter", "crown",
+		"prismatic_lens", "needle_die"]
+const EXPECTED_POOL := 43
 
 var checks := 0
 var fails := 0
@@ -137,7 +141,7 @@ func _check_rarity_and_text() -> void:
 		"hagglers_loupe": "10%",
 		"flywheel": "draw 2 cards",
 		"echo_chamber": "Once per turn",
-		"giants_signet": "6 Block",
+		"giants_signet": "2 Strength",
 	}
 	for rid in texts:
 		var r := load("res://relics/%s.tres" % rid) as Relic
@@ -314,15 +318,18 @@ func _scenario_misc() -> void:
 			str(hp_before - _enemy_hp()))
 	await _remove("hunting_bow")
 
+	# Back to Strength on 2026-08-31, reversing the 2026-08-24 switch to 6 Block. Both
+	# halves are asserted: the Strength arrives AND no Block is handed out, so a partial
+	# revert that left the BlockEffect in place would still fail here.
 	_add("giants_signet")
 	var b0 := _block()
 	var s0 := _strength()
 	_fake_roll("giant", 10)
-	check("Giant's Signet: 10+ grants 6 Block", _block() == b0 + 6, str(_block() - b0))
-	check("Giant's Signet: no longer grants Strength", _strength() == s0)
-	b0 = _block()
+	check("Giant's Signet: 10+ grants 2 Strength", _strength() == s0 + 2, str(_strength() - s0))
+	check("Giant's Signet: no longer grants Block", _block() == b0)
+	s0 = _strength()
 	_fake_roll("giant", 9)
-	check("Giant's Signet: 9 grants nothing", _block() == b0)
+	check("Giant's Signet: 9 grants nothing", _strength() == s0)
 	await _remove("giants_signet")
 
 	# Echo Chamber: once per turn.

@@ -20,12 +20,15 @@ extends Node
 
 const FIGHT := "res://battles/tier_1_crab_satyr.tres"
 
+# needle_die dropped from this list on 2026-08-31: it was CUT from both pools and its effect
+# (3 damage on a 1) moved onto Conductor's Baton. spyglass rejoined the pools the same day
+# with a new effect, and gamblers_fan is new.
 const NEW_RELICS := [
-	"underdog_ring", "needle_die", "worms_eye_lens", "sixth_gear", "conductors_baton",
+	"underdog_ring", "worms_eye_lens", "sixth_gear", "conductors_baton",
 	"giants_signet", "pilot_light", "marked_deck", "consolation_chip", "jackpot_pin",
 	"blood_chalice", "whetstone_pendant", "mortar_trowel", "thorned_plate", "fuel_gauge",
 	"stray_die", "alms_box", "hagglers_loupe",
-	"golem_heart",
+	"golem_heart", "spyglass", "gamblers_fan",
 ]
 # Deliberately shop-only: a Giant-specific relic in a treasure chest is a dead chest for a
 # player who never bought a Giant die.
@@ -69,6 +72,7 @@ func _ready() -> void:
 	await _scenario_defence()
 	await _scenario_flags()
 	await _scenario_blessing_and_refuel()
+	await _scenario_scout_and_hand()
 
 	print("\n==== RELIC BATCH: %d checks, %d fail(s) ====" % [checks, fails])
 	print("ALL PASS" if fails == 0 else "FAILURES PRESENT")
@@ -309,6 +313,20 @@ func _isolate_dice_count(dice_type: String) -> void:
 	Global.set(dice_type + "_dice_current_amount", 0)
 
 
+# Same trick across the WHOLE roster, for a relic that charges a die of a type it picks
+# itself - the only honest assertion then is "the player gained exactly one die".
+func _isolate_all_dice() -> void:
+	for dice_type: String in Global.DICE_TYPE_ORDER:
+		Global.set(dice_type + "_dice_current_amount", 0)
+
+
+func _total_dice() -> int:
+	var total := 0
+	for dice_type: String in Global.DICE_TYPE_ORDER:
+		total += int(Global.get(dice_type + "_dice_current_amount"))
+	return total
+
+
 # Red-specific relics listen to red_dice_rolled, which is emitted separately from dice_rolled
 # by dice.gd. Emitting only that one keeps the dice pool out of it entirely.
 func _fake_red_roll(value: int) -> void:
@@ -332,32 +350,41 @@ func _scenario_low_rolls() -> void:
 	check("Underdog Ring: 3 grants nothing", _block() == before)
 	await _remove("underdog_ring")
 
-	_add("needle_die")
-	var hp_before := _enemy_hp()
+	# Snake Eyes Charm was uncapped until 2026-08-31; the cap IS the change, so the second 1
+	# in the same turn is the assertion that matters.
+	_add("snake_eyes_charm")
+	var str_before := _strength()
 	_fake_roll("blue", 1)
-	await get_tree().process_frame
-	check("Needle Die: 1 deals damage", _enemy_hp() < hp_before,
-			"%d -> %d" % [hp_before, _enemy_hp()])
-	hp_before = _enemy_hp()
-	_fake_roll("blue", 4)
-	await get_tree().process_frame
-	check("Needle Die: 4 deals nothing", _enemy_hp() == hp_before)
-	await _remove("needle_die")
+	check("Snake Eyes Charm: first 1 grants 1 Strength", _strength() == str_before + 1,
+			str(_strength() - str_before))
+	str_before = _strength()
+	_fake_roll("blue", 1)
+	check("Snake Eyes Charm: second 1 in the same turn grants nothing",
+			_strength() == str_before, str(_strength() - str_before))
+	Events.player_turn_started.emit()
+	str_before = _strength()
+	_fake_roll("blue", 1)
+	check("Snake Eyes Charm: rearms next turn", _strength() == str_before + 1,
+			str(_strength() - str_before))
+	await _remove("snake_eyes_charm")
 
 
 func _scenario_giant_and_red() -> void:
 	_section("giant / red relics")
 	_add("giants_signet")
-	# Pays Block since 2026-08-24 (was 1 Strength): Strength compounded over a long fight.
-	var blk_before := _block()
+	# Back to 2 Strength on 2026-08-31, reversing the 2026-08-24 switch to 6 Block. Both halves
+	# are asserted, so a half-done revert that left the BlockEffect in would still fail here.
+	var sig_str := _strength()
+	var sig_blk := _block()
 	_fake_roll("giant", 10)
-	check("Giant's Signet: 10 grants Block", _block() == blk_before + 6, str(_block() - blk_before))
-	blk_before = _block()
+	check("Giant's Signet: 10 grants 2 Strength", _strength() == sig_str + 2,
+			str(_strength() - sig_str))
+	check("Giant's Signet: grants no Block", _block() == sig_blk)
+	sig_str = _strength()
 	_fake_roll("giant", 9)
-	check("Giant's Signet: 9 grants nothing", _block() == blk_before)
-	blk_before = _block()
+	check("Giant's Signet: 9 grants nothing", _strength() == sig_str)
 	_fake_roll("blue", 12)
-	check("Giant's Signet: ignores other types", _block() == blk_before)
+	check("Giant's Signet: ignores other types", _strength() == sig_str)
 	await _remove("giants_signet")
 
 	_add("jackpot_pin")
@@ -370,15 +397,24 @@ func _scenario_giant_and_red() -> void:
 	check("Jackpot Pin: red 5 grants nothing", _strength() == str_before)
 	await _remove("jackpot_pin")
 
+	# Charges a RANDOM type since 2026-08-31, so the die handed back is no longer necessarily
+	# Red and only the TOTAL can be asserted. Repeated 12x so a run that happens to roll "red"
+	# every time cannot masquerade as the old behaviour - P(all 12 red) is 9^-12.
 	_add("consolation_chip")
-	_isolate_dice_count("red")
-	_fake_red_roll(2)
-	check("Consolation Chip: red 2 refunds a die",
-			Global.red_dice_current_amount == 1, str(Global.red_dice_current_amount))
-	_isolate_dice_count("red")
+	var saw_non_red := false
+	var all_single := true
+	for _i in range(12):
+		_isolate_all_dice()
+		_fake_red_roll(2)
+		if _total_dice() != 1:
+			all_single = false
+		if Global.red_dice_current_amount == 0:
+			saw_non_red = true
+	check("Consolation Chip: red 2 charges exactly one die", all_single)
+	check("Consolation Chip: the charged type is random, not always Red", saw_non_red)
+	_isolate_all_dice()
 	_fake_red_roll(3)
-	check("Consolation Chip: red 3 refunds nothing",
-			Global.red_dice_current_amount == 0, str(Global.red_dice_current_amount))
+	check("Consolation Chip: red 3 charges nothing", _total_dice() == 0, str(_total_dice()))
 	await _remove("consolation_chip")
 
 	# Marked Deck arms a flag that dice.gd's roll path consumes on the first RED roll.
@@ -390,20 +426,23 @@ func _scenario_giant_and_red() -> void:
 
 func _scenario_chain_and_count() -> void:
 	_section("chain / count relics")
+	# Took over Needle Die's effect on 2026-08-31 (3 damage on a 1). Its old chain-of-four
+	# Charge is gone, so the dice count must NOT move either - that is the third check.
 	_add("conductors_baton")
-	Global.roll_history = [3, 4]
 	_isolate_dice_count("blue")
-	_fake_roll("blue", 5)
-	check("Conductor's Baton: chain of 3 does nothing",
-			Global.blue_dice_current_amount == 0, str(Global.blue_dice_current_amount))
+	var baton_hp := _enemy_hp()
+	_fake_roll("blue", 1)
+	await get_tree().process_frame
+	check("Conductor's Baton: a 1 deals 3 damage", baton_hp - _enemy_hp() == 3,
+			str(baton_hp - _enemy_hp()))
+	baton_hp = _enemy_hp()
+	_fake_roll("blue", 4)
+	await get_tree().process_frame
+	check("Conductor's Baton: a 4 deals nothing", _enemy_hp() == baton_hp)
 	Global.roll_history = [3, 4, 5, 6]
 	_isolate_dice_count("blue")
 	_fake_roll("blue", 6)
-	check("Conductor's Baton: chain of 4 Charges",
-			Global.blue_dice_current_amount == 1, str(Global.blue_dice_current_amount))
-	_isolate_dice_count("blue")
-	_fake_roll("blue", 6)
-	check("Conductor's Baton: only once per turn",
+	check("Conductor's Baton: no longer Charges on a chain of 4",
 			Global.blue_dice_current_amount == 0, str(Global.blue_dice_current_amount))
 	await _remove("conductors_baton")
 
@@ -553,6 +592,77 @@ func _scenario_blessing_and_refuel() -> void:
 	check("Pilot Light: banks 3 Power at fight start", Global.starting_power_next_turn == 3,
 			str(Global.starting_power_next_turn))
 	await _remove("pilot_light")
+
+
+# Added 2026-08-31 with Julien's second relic pass: Spyglass came back from the cut list with
+# a brand new job, and Gambler's Fan is new.
+func _scenario_scout_and_hand() -> void:
+	_section("scout / opening hand")
+
+	# Cartographer's Quill also writes scout_bonus_amount; zero it so the widths below are the
+	# ones this scenario asked for even if an earlier scenario left the field dirty.
+	Global.scout_bonus_amount = 0
+	Global.dice_type = "blue"
+
+	_add("spyglass")
+	check("Spyglass: arms unique-face scouting", Global.scout_unique_faces)
+
+	# Drives the REAL scout path (battle.gd::_on_scout_effect), not a copy of its maths. Three
+	# rounds is also the negative control: a plain random Scout 6 on a d6 comes back all-distinct
+	# only 720/6^6 = 1.54% of the time, so three in a row without the feature is a ~4-in-a-million
+	# event. The panel is hidden between rounds so the await cannot read the previous round.
+	var rounds_all_distinct := 0
+	for _round in range(3):
+		_battle.scout_panel.hide()
+		Events.scout_effect.emit(6)
+		await _await_until(func() -> bool: return _battle.scout_panel.visible, 4.0)
+		var shown := 0
+		var distinct: Array = []
+		for face in _battle.scout_faces:
+			if not face.visible:
+				continue
+			shown += 1
+			if face.texture and not distinct.has(face.texture):
+				distinct.append(face.texture)
+		if shown == 6 and distinct.size() == 6:
+			rounds_all_distinct += 1
+	check("Spyglass: three Scout 6 draws each show six distinct faces",
+			rounds_all_distinct == 3, "%d/3" % rounds_all_distinct)
+
+	await _remove("spyglass")
+	check("Spyglass: disarms on removal", not Global.scout_unique_faces)
+
+	# Gambler's Fan writes a Global rather than drawing, because START_OF_COMBAT relics run
+	# before player_handler has a character (and therefore a draw pile) at all.
+	_add("gamblers_fan")
+	Global.bonus_cards_first_hand = 0
+	for relic_ui: RelicUI in _relic_handler.relics.get_children():
+		if relic_ui.relic and relic_ui.relic.id == "gamblers_fan":
+			relic_ui.relic.activate_relic(relic_ui)
+	check("Gambler's Fan: banks 2 extra cards at fight start",
+			Global.bonus_cards_first_hand == 2, str(Global.bonus_cards_first_hand))
+
+	# The consuming half, through the real deal path: the opening hand is widened once and the
+	# field is cleared, so every later turn deals a normal hand.
+	var hand_node: Control = _battle.player_handler.hand
+	var per_turn: int = _battle.player_handler.character.cards_per_turn
+	var cards_before: int = hand_node.get_child_count()
+	var hands_at: int = hands_drawn
+	_battle.player_handler._on_statuses_applied(Status.Type.START_OF_TURN)
+	await _await_until(func() -> bool: return hands_drawn > hands_at, 8.0)
+	check("Gambler's Fan: the opening deal is cards_per_turn + 2",
+			hand_node.get_child_count() - cards_before == per_turn + 2,
+			"drew %d, want %d" % [hand_node.get_child_count() - cards_before, per_turn + 2])
+	check("Gambler's Fan: consumed by that deal", Global.bonus_cards_first_hand == 0)
+
+	cards_before = hand_node.get_child_count()
+	hands_at = hands_drawn
+	_battle.player_handler._on_statuses_applied(Status.Type.START_OF_TURN)
+	await _await_until(func() -> bool: return hands_drawn > hands_at, 8.0)
+	check("Gambler's Fan: later turns deal a normal hand",
+			hand_node.get_child_count() - cards_before == per_turn,
+			"drew %d, want %d" % [hand_node.get_child_count() - cards_before, per_turn])
+	await _remove("gamblers_fan")
 
 
 func _await_until(predicate: Callable, timeout: float) -> void:

@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://drelicrework01"]
+
+[ext_resource type="Script" path="res://debug_relic_rework.gd" id="1_rework"]
+
+[node name="DebugRelicRework" type="Node"]
+script = ExtResource("1_rework")
