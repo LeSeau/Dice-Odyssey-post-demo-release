@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="DiceHostageStatus" load_steps=3 format=3 uid="uid://dchostage5tat"]
 
 [ext_resource type="Script" path="res://statuses/dice_hostage.gd" id="1_hostg"]
-[ext_resource type="Texture2D" uid="uid://bx326akbkj0gi" path="res://charge_dice_icon.png" id="2_hosti"]
+[ext_resource type="Texture2D" uid="uid://bmrwirses8cm3" path="res://dice_hostage_status_icon.png" id="2_hosti"]
 
 [resource]
 script = ExtResource("1_hostg")

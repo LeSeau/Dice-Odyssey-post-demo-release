@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://custom_resources/enemy_stats.gd" id="1_stats"]
 [ext_resource type="PackedScene" uid="uid://dmimicai0001" path="res://enemies/dice_mimic/dice_mimic_ai.tscn" id="2_ai"]
-[ext_resource type="Texture2D" uid="uid://dkcb663jesp24" path="res://treasure_chest_closed_v2.png" id="3_art"]
+[ext_resource type="Texture2D" uid="uid://dgeuvee3wde80" path="res://dice_mimic.png" id="3_art"]
 
 [resource]
 script = ExtResource("1_stats")
