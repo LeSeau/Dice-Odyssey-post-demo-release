@@ -10,10 +10,10 @@ var weak_stacks := 2
 @export var damage := 4
 var base_damage = damage
 
+# Capped at two screeches in a row. The guaranteed turn-1 opener shares this action_id on
+# purpose, so it counts towards the cap: screech, screech, then the third turn must gore.
 func is_performable() -> bool:
-    if enemy.last_action == "bigger_satyr_attack_debuff" and enemy.last_action_count >= 2:
-        return false
-    return true
+    return not hit_consecutive_cap(2)
 
 
 func perform_action() -> void:

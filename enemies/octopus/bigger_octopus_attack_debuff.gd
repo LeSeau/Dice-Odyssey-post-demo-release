@@ -2,16 +2,24 @@ extends EnemyAction
 
 
 const INK_STATUS = preload("res://statuses/ink.tres")
-const WEAK_STATUS = preload("res://statuses/weak.tres")
 
-var exposed_duration := 2
 var ink_duration := 2
 
 @export var damage := 4
+# Set to a fight_turn number on a CONDITIONAL copy of this node to make it a guaranteed
+# opener on that turn; -1 (the default) leaves it as the ordinary chance-based beat. One
+# script serving both nodes keeps the ink logic in a single place - the Bigger Satyr's
+# opener is a full script copy and its ink/weak numbers can drift from its twin's.
+@export var opener_turn: int = -1
 var base_damage = damage
 
+# Turn 1 is a guaranteed ink blast; after that ink never lands twice in a row. Ink is a
+# DURATION status, so re-applying it EXTENDS the blackout on the Power number - a cap of 2
+# would let this hide the number for roughly four straight turns.
 func is_performable() -> bool:
-    return Global.fight_turn == 0 or enemy.last_action == "bigger_octopus_attack"
+    if opener_turn >= 0:
+        return Global.fight_turn == opener_turn
+    return not hit_consecutive_cap(1)
 
 func perform_action() -> void:
     if not enemy or not target:

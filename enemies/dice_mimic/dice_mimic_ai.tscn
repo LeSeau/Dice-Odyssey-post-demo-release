@@ -1,0 +1,51 @@
+[gd_scene load_steps=12 format=3 uid="uid://dmimicai0001"]
+
+[ext_resource type="Script" path="res://scenes/enemy/enemy_action_picker.gd" id="1_picker"]
+[ext_resource type="Script" path="res://enemies/dice_mimic/dice_mimic_attack_action.gd" id="2_attack"]
+[ext_resource type="Script" path="res://enemies/dice_mimic/dice_mimic_guard_action.gd" id="3_guard"]
+[ext_resource type="Script" path="res://enemies/dice_mimic/dice_mimic_steal_action.gd" id="4_steal"]
+[ext_resource type="Script" path="res://custom_resources/intent.gd" id="5_intent"]
+[ext_resource type="Texture2D" uid="uid://cm56j6ual41dr" path="res://attack_icon_intent.png" id="6_atkico"]
+[ext_resource type="Texture2D" uid="uid://bm8mrkcar7cyh" path="res://block_icon_intent.png" id="7_blkico"]
+[ext_resource type="Texture2D" uid="uid://binq5gkgr3pre" path="res://buff_icon_intent.png" id="8_bufico"]
+[ext_resource type="Texture2D" uid="uid://ckf4qt26na5g7" path="res://debuff_intent.png" id="9_diceico"]
+[ext_resource type="AudioStream" uid="uid://de2ryat1pxq6" path="res://art/enemy_attack.ogg" id="10_atksnd"]
+[ext_resource type="AudioStream" uid="uid://k8m4o3hlwm7l" path="res://art/enemy_block.ogg" id="11_blksnd"]
+
+[sub_resource type="Resource" id="Resource_mimic_atk"]
+script = ExtResource("5_intent")
+base_text = "%s"
+icon = ExtResource("6_atkico")
+
+[sub_resource type="Resource" id="Resource_mimic_guard"]
+script = ExtResource("5_intent")
+base_text = "%s"
+icon = ExtResource("7_blkico")
+icon2 = ExtResource("8_bufico")
+
+[sub_resource type="Resource" id="Resource_mimic_steal"]
+script = ExtResource("5_intent")
+base_text = "%s"
+icon = ExtResource("6_atkico")
+icon2 = ExtResource("9_diceico")
+
+[node name="DiceMimicAI" type="Node"]
+script = ExtResource("1_picker")
+
+[node name="MimicAttackAction" type="Node" parent="."]
+script = ExtResource("2_attack")
+intent = SubResource("Resource_mimic_atk")
+sound = ExtResource("10_atksnd")
+action_id = "mimic_attack"
+
+[node name="MimicGuardAction" type="Node" parent="."]
+script = ExtResource("3_guard")
+intent = SubResource("Resource_mimic_guard")
+sound = ExtResource("11_blksnd")
+action_id = "mimic_guard"
+
+[node name="MimicStealAction" type="Node" parent="."]
+script = ExtResource("4_steal")
+intent = SubResource("Resource_mimic_steal")
+sound = ExtResource("10_atksnd")
+action_id = "mimic_steal"

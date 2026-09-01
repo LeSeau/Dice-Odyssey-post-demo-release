@@ -3,8 +3,12 @@ extends EnemyAction
 @export var damage := 6
 var base_damage = damage
 
+# Beat 0 of the Skeleton's fixed 3-turn cycle: strike / bone guard / bone spike, repeating.
+# fight_turn is 0 during PLAYER TURN 1 (player_handler.end_turn() is the only increment), so
+# this lands on player turns 1, 4, 7... The three beats form a total partition of fight_turn
+# % 3, which is what makes the picker's blind get_child(0) fallback unreachable here.
 func is_performable() -> bool:
-    return true
+    return Global.fight_turn % 3 == 0
 
 func perform_action() -> void:
     if not enemy or not target:

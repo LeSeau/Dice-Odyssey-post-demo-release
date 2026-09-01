@@ -13,7 +13,7 @@ const MUSCLE_STATUS = preload("res://statuses/muscle.tres")
 var base_damage = damage
 
 func is_performable() -> bool:
-    return true
+    return not hit_consecutive_cap(2)
 
 func perform_action() -> void:
     if not enemy or not target:
