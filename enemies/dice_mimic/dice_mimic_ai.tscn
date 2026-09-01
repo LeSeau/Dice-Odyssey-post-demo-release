@@ -8,7 +8,7 @@
 [ext_resource type="Texture2D" uid="uid://cm56j6ual41dr" path="res://attack_icon_intent.png" id="6_atkico"]
 [ext_resource type="Texture2D" uid="uid://bm8mrkcar7cyh" path="res://block_icon_intent.png" id="7_blkico"]
 [ext_resource type="Texture2D" uid="uid://binq5gkgr3pre" path="res://buff_icon_intent.png" id="8_bufico"]
-[ext_resource type="Texture2D" uid="uid://ckf4qt26na5g7" path="res://debuff_intent.png" id="9_diceico"]
+[ext_resource type="Texture2D" uid="uid://cv3vg8fre0bp4" path="res://dice_debuff_intent.png" id="9_diceico"]
 [ext_resource type="AudioStream" uid="uid://de2ryat1pxq6" path="res://art/enemy_attack.ogg" id="10_atksnd"]
 [ext_resource type="AudioStream" uid="uid://k8m4o3hlwm7l" path="res://art/enemy_block.ogg" id="11_blksnd"]
 
