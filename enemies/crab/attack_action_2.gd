@@ -3,8 +3,12 @@ extends EnemyAction
 @export var damage := 12
 var base_damage = damage
 
+# Beat 2 of the Skeleton's fixed 3-turn cycle (player turns 3, 6, 9...). Was % 4 == 3, i.e.
+# every 4th turn, back when the other two beats were a weighted coin flip. The spike is now
+# fully telegraphed on a schedule the player can read from turn one, which is the whole point
+# of the fight: the turn-2 guard soaks a hit and slows your kill, pushing you into this.
 func is_performable() -> bool:
-    return Global.fight_turn % 4 == 3
+    return Global.fight_turn % 3 == 2
 
 func perform_action() -> void:
     if not enemy or not target:

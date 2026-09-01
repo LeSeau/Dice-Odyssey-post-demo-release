@@ -196,8 +196,8 @@ func start_battle() -> void:
     player_handler.relics = relics
     enemy_handler.setup_enemies(battle_stats)
     _apply_act2_scaling()
-    enemy_handler.reset_enemy_actions()
     Global.fight_turn = 0
+    enemy_handler.reset_enemy_actions()
     Global.fight_dice_rolled = 0
     Global.refueled_power_this_fight = 0
     # Not a hard "blue": run loadouts (dice_loadout.gd) can start a run without Blue,
@@ -206,6 +206,7 @@ func start_battle() -> void:
     Global.hound_debuff_attack_done = false
     Global.gargantua_debuff_attack_done = false
     Global.ink_active = false
+    Global.dice_hostage_types = []
     Global.thrown_dice_bonus_fight = 0
     Global.surge_amount = 0
     Global.surge_expiring = 0

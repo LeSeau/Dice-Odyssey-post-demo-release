@@ -379,6 +379,15 @@ func _on_player_turn_started() -> void:
                 Global.get(kept_type + "_dice_current_amount") + Global.kept_dice[kept_type])
     Global.kept_dice = {}
 
+    # Dice Mimic hostages: each stolen die is withheld from the refill for as long as the
+    # mimic holds it. Applied here, inline, rather than from a status listening to
+    # player_turn_started - the bonus fields this function zeroes just below make any
+    # signal-based deduction a connection-order race. Clamped at 0 (only Golem's line
+    # clamps otherwise, so the other eight types can otherwise go negative).
+    for hostage_type: String in Global.dice_hostage_types:
+        var prop := hostage_type + "_dice_current_amount"
+        Global.set(prop, maxi(0, int(Global.get(prop)) - 1))
+
     dice_1_label.text = str(Global.blue_dice_current_amount, "/", Global.blue_dice_max_amount)
     dice_2_label.text = str(Global.red_dice_current_amount, "/", Global.red_dice_max_amount)
     dice_3_label.text = str(Global.evil_dice_current_amount, "/", Global.evil_dice_max_amount)

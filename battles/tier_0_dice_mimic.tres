@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="BattleStats" load_steps=3 format=3 uid="uid://dmimicbattle1"]
+
+[ext_resource type="PackedScene" uid="uid://dmimicfight01" path="res://battles/tier_0_dice_mimic.tscn" id="1_scene"]
+[ext_resource type="Script" path="res://custom_resources/battle_stats.gd" id="2_script"]
+
+[resource]
+script = ExtResource("2_script")
+battle_tier = 0
+weight = 1.0
+gold_reward_min = 20
+gold_reward_max = 30
+enemies = ExtResource("1_scene")
+group = ""

@@ -7,10 +7,17 @@ const MUSCLE_STATUS = preload("res://statuses/muscle.tres")
 # carries a clock. Rides an existing beat, one rule per fight. The AI scene is shared by
 # all three tier .tres files, so this single edit covers every Bigger Kraken fight.
 @export var muscle_rider := 1
+# See bigger_octopus_attack_debuff.gd: -1 = ordinary chance beat, >= 0 = guaranteed opener
+# on that fight_turn. Turn 2 is a guaranteed crush.
+@export var opener_turn: int = -1
 var base_damage = damage
 
+# Was hard-locked to "only right after an ink blast", which forced a strict ink-crush
+# metronome. Now a plain 50/50 beat capped at two in a row.
 func is_performable() -> bool:
-    return enemy.last_action == "bigger_octopus_attack_debuff"
+    if opener_turn >= 0:
+        return Global.fight_turn == opener_turn
+    return not hit_consecutive_cap(2)
 
 func perform_action() -> void:
     if not enemy or not target:

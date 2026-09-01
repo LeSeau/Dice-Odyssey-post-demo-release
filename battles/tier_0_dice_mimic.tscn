@@ -1,0 +1,20 @@
+[gd_scene load_steps=4 format=3 uid="uid://dmimicfight01"]
+
+[ext_resource type="PackedScene" uid="uid://d0efyathkfg74" path="res://scenes/enemy/enemy.tscn" id="1_enemy"]
+[ext_resource type="Resource" uid="uid://dmimicstat001" path="res://enemies/dice_mimic/dice_mimic_enemy.tres" id="2_mimic"]
+[ext_resource type="Resource" uid="uid://0m1j3lvn7xwr" path="res://enemies/satyr/satyr_enemy.tres" id="3_satyr"]
+
+[node name="Tier0DiceMimic" type="Node2D"]
+
+[node name="Dice Mimic" parent="." instance=ExtResource("1_enemy")]
+position = Vector2(829, 390)
+stats = ExtResource("2_mimic")
+width = 250
+height = 250
+
+[node name="S Satyr" parent="." instance=ExtResource("1_enemy")]
+position = Vector2(1044, 436)
+stats = ExtResource("3_satyr")
+width = 165
+height = 165
+forced_opener_action_id = "satyr_attack"

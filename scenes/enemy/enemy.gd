@@ -319,6 +319,10 @@ void fragment() {
 @export var width: int 
 @export var height: int
 @export var initial_statuses: Array[Status] = []
+# Per-instance turn-1 opener override, consumed by update_action(). Set it to the action_id
+# of a node inside this enemy's AI scene to pin what it does on fight_turn 0 in THIS fight
+# only. Empty (the default) = untouched behaviour, so every existing enemy is unaffected.
+@export var forced_opener_action_id: String = ""
 @export var sprite_y_offset: int = 0
 @onready var sprite_2d: Sprite2D = $SpriteRoot/Sprite2D
 @export var stats_ui_y_offset: int = 0
@@ -432,6 +436,20 @@ func update_stats() -> void:
 func update_action() -> void:
     if not enemy_action_picker:
         return
+
+    # Per-instance turn-1 override, set on the Enemy node inside a battles/*.tscn. Lets one
+    # fight pin an enemy's opening beat without touching the AI scene every other fight using
+    # that enemy shares - e.g. the Dice Mimic encounter forces its Satyr to open on the plain
+    # attack so the mimic's steal isn't buried under a Weak landing the same turn.
+    #
+    # Deliberately ahead of the whole conditional/chance/fallback chain rather than inside the
+    # picker: it has to win outright, and the picker's fallback ladder is load-bearing for
+    # every other enemy.
+    if Global.fight_turn == 0 and forced_opener_action_id != "":
+        for child in enemy_action_picker.get_children():
+            if child is EnemyAction and child.action_id == forced_opener_action_id:
+                current_action = child
+                return
 
     current_action = enemy_action_picker.get_action()
 
