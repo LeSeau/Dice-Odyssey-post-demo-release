@@ -37,6 +37,9 @@ const FIGHTS_T0 := [
 	"res://battles/tier_0_satyrs_1_octopus_2.tscn",
 	"res://battles/tier_0_satyrs_2_octopus_1.tscn",
 	"res://battles/tier_0_dice_mimic.tscn",
+	"res://battles/tier_1_slanderers.tscn",
+	"res://battles/tier_2_quartermaster.tscn",
+	"res://battles/tier_2_famished.tscn",
 	# The three double-big comps (bigger_octopus_2, bigger_satyrs_2,
 	# bigger_satyr_octopus) were cut from the tier-0 pool on 2026-09-01. Their scenes
 	# are still on disk but nothing can draw them, so auditing them is noise.

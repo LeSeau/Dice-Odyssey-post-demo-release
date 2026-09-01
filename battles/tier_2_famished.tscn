@@ -1,0 +1,15 @@
+[gd_scene load_steps=5 format=3 uid="uid://dfamfight0001"]
+
+[ext_resource type="PackedScene" uid="uid://d0efyathkfg74" path="res://scenes/enemy/enemy.tscn" id="1_enemy"]
+[ext_resource type="Resource" uid="uid://dfamishedst01" path="res://enemies/famished/famished_enemy.tres" id="2_fa"]
+[ext_resource type="Script" path="res://custom_resources/status.gd" id="3_statscript"]
+[ext_resource type="Resource" uid="uid://dgorge5tatu50" path="res://statuses/gorge.tres" id="4_status"]
+
+[node name="Tier2Famished" type="Node2D"]
+
+[node name="Famished" parent="." instance=ExtResource("1_enemy")]
+position = Vector2(900, 380)
+stats = ExtResource("2_fa")
+initial_statuses = Array[ExtResource("3_statscript")]([ExtResource("4_status")])
+width = 270
+height = 270

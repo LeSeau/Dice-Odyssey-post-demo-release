@@ -1,0 +1,51 @@
+[gd_scene load_steps=12 format=3 uid="uid://dfamishedai01"]
+
+[ext_resource type="Script" path="res://scenes/enemy/enemy_action_picker.gd" id="1_picker"]
+[ext_resource type="Script" path="res://enemies/famished/famished_gnaw_action.gd" id="2_gnaw"]
+[ext_resource type="Script" path="res://enemies/famished/famished_burrow_action.gd" id="3_burrow"]
+[ext_resource type="Script" path="res://enemies/famished/famished_devour_action.gd" id="4_devour"]
+[ext_resource type="Script" path="res://custom_resources/intent.gd" id="5_intent"]
+[ext_resource type="Texture2D" uid="uid://cm56j6ual41dr" path="res://attack_icon_intent.png" id="6_atk"]
+[ext_resource type="Texture2D" uid="uid://jkn8vsh3cles" path="res://debuff_icon.png" id="7_deb"]
+[ext_resource type="Texture2D" path="res://block_icon_intent.png" id="8_blk"]
+[ext_resource type="Texture2D" uid="uid://binq5gkgr3pre" path="res://buff_icon_intent.png" id="9_buff"]
+[ext_resource type="AudioStream" uid="uid://de2ryat1pxq6" path="res://art/enemy_attack.ogg" id="10_atk"]
+[ext_resource type="AudioStream" uid="uid://k8m4o3hlwm7l" path="res://art/enemy_block.ogg" id="11_blk"]
+
+[sub_resource type="Resource" id="Resource_fa_gnaw"]
+script = ExtResource("5_intent")
+base_text = "%s"
+icon = ExtResource("6_atk")
+icon2 = ExtResource("7_deb")
+
+[sub_resource type="Resource" id="Resource_fa_burrow"]
+script = ExtResource("5_intent")
+base_text = "%s"
+icon = ExtResource("8_blk")
+icon2 = ExtResource("9_buff")
+
+[sub_resource type="Resource" id="Resource_fa_devour"]
+script = ExtResource("5_intent")
+base_text = "%s"
+icon = ExtResource("6_atk")
+
+[node name="FamishedAI" type="Node"]
+script = ExtResource("1_picker")
+
+[node name="GnawAction" type="Node" parent="."]
+script = ExtResource("2_gnaw")
+intent = SubResource("Resource_fa_gnaw")
+sound = ExtResource("10_atk")
+action_id = "famished_gnaw"
+
+[node name="BurrowAction" type="Node" parent="."]
+script = ExtResource("3_burrow")
+intent = SubResource("Resource_fa_burrow")
+sound = ExtResource("11_blk")
+action_id = "famished_burrow"
+
+[node name="DevourAction" type="Node" parent="."]
+script = ExtResource("4_devour")
+intent = SubResource("Resource_fa_devour")
+sound = ExtResource("10_atk")
+action_id = "famished_devour"

@@ -1,0 +1,20 @@
+[gd_scene load_steps=3 format=3 uid="uid://dslfight00001"]
+
+[ext_resource type="PackedScene" uid="uid://d0efyathkfg74" path="res://scenes/enemy/enemy.tscn" id="1_enemy"]
+[ext_resource type="Resource" uid="uid://dslanderstat1" path="res://enemies/slanderer/slanderer_enemy.tres" id="2_sl"]
+
+[node name="Tier1Slanderers" type="Node2D"]
+
+[node name="Slanderer A" parent="." instance=ExtResource("1_enemy")]
+position = Vector2(860, 400)
+stats = ExtResource("2_sl")
+forced_opener_action_id = "slanderer_whisper"
+width = 210
+height = 210
+
+[node name="Slanderer B" parent="." instance=ExtResource("1_enemy")]
+position = Vector2(1044, 400)
+stats = ExtResource("2_sl")
+forced_opener_action_id = "slanderer_sneer"
+width = 210
+height = 210

@@ -1,0 +1,39 @@
+[gd_scene load_steps=10 format=3 uid="uid://dslanderai001"]
+
+[ext_resource type="Script" path="res://scenes/enemy/enemy_action_picker.gd" id="1_picker"]
+[ext_resource type="Script" path="res://enemies/slanderer/slanderer_sneer_action.gd" id="2_sneer"]
+[ext_resource type="Script" path="res://enemies/slanderer/slanderer_whisper_action.gd" id="3_whisper"]
+[ext_resource type="Script" path="res://custom_resources/intent.gd" id="4_intent"]
+[ext_resource type="Texture2D" uid="uid://cm56j6ual41dr" path="res://attack_icon_intent.png" id="5_atk"]
+[ext_resource type="Texture2D" uid="uid://jkn8vsh3cles" path="res://debuff_icon.png" id="6_junk"]
+[ext_resource type="AudioStream" uid="uid://de2ryat1pxq6" path="res://art/enemy_attack.ogg" id="7_snd"]
+
+[sub_resource type="Resource" id="Resource_sl_sneer"]
+script = ExtResource("4_intent")
+base_text = "%s"
+icon = ExtResource("5_atk")
+
+[sub_resource type="Resource" id="Resource_sl_whisper"]
+script = ExtResource("4_intent")
+base_text = "%s"
+icon = ExtResource("5_atk")
+icon2 = ExtResource("6_junk")
+
+[node name="SlandererAI" type="Node"]
+script = ExtResource("1_picker")
+
+[node name="SneerAction" type="Node" parent="."]
+script = ExtResource("2_sneer")
+intent = SubResource("Resource_sl_sneer")
+sound = ExtResource("7_snd")
+type = 1
+chance_weight = 5.0
+action_id = "slanderer_sneer"
+
+[node name="WhisperAction" type="Node" parent="."]
+script = ExtResource("3_whisper")
+intent = SubResource("Resource_sl_whisper")
+sound = ExtResource("7_snd")
+type = 1
+chance_weight = 5.0
+action_id = "slanderer_whisper"
