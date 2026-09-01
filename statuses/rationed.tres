@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="RationedStatus" load_steps=3 format=3 uid="uid://drationed5ta7"]
+
+[ext_resource type="Script" path="res://statuses/rationed.gd" id="1_ratio"]
+[ext_resource type="Texture2D" uid="uid://bx326akbkj0gi" path="res://charge_dice_icon.png" id="2_ratii"]
+
+[resource]
+script = ExtResource("1_ratio")
+id = "rationed"
+type = 2
+stack_type = 0
+can_expire = false
+duration = 0
+stacks = 5
+icon = ExtResource("2_ratii")
+tooltip = "You may roll at most 5 Dice per turn."
+hide_when_zero = false
+hide_counter_when_zero = false

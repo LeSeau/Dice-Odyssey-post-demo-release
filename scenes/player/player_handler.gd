@@ -61,6 +61,7 @@ var character: CharacterStats
 
 func _ready() -> void:
     Events.card_played.connect(_on_card_played)
+    Events.add_card_to_discard_requested.connect(_on_add_card_to_discard_requested)
     Events.block_reset.connect(_on_block_reset)
     Events.add_block.connect(_on_add_block)
     Events.draw_card.connect(_on_draw_card)
@@ -159,6 +160,15 @@ func _punch_draw_pile() -> void:
         var draw_pile_button: Node = ui_layer.get_node_or_null("DrawPileButton")
         if draw_pile_button is CardPileOpener:
             (draw_pile_button as CardPileOpener).receive_punch(1.1)
+
+# Junk planted straight into the discard pile (the Slanderer). Discard rather than draw pile
+# on purpose: it is met on the next reshuffle, not the next draw, so the pain is deferred and
+# accumulates quietly instead of clogging the turn it lands on.
+func _on_add_card_to_discard_requested(card: Card) -> void:
+    if character == null or card == null:
+        return
+    character.discard.add_card(card)
+
 
 func draw_cards(amount: int) -> void:
     # Load the audio file

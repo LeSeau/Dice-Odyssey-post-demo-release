@@ -942,6 +942,18 @@ func _flux_blocks_roll(is_ricochet_reroll: bool) -> bool:
             return true
     return false
 
+# The Quartermaster's Rationed status: a hard ceiling on rolls per turn. Same shape as the
+# Flux gate above, and Ricochet is exempt for the same reason - a reroll replaces the roll you
+# already legally made, it does not spend a second one, so counting it would make the reroll
+# stop working exactly when you are closest to the cap.
+func _spend_cap_blocks_roll(is_ricochet_reroll: bool) -> bool:
+    if is_ricochet_reroll:
+        return false
+    if Global.dice_spend_cap <= 0:
+        return false
+    return Global.dice_amount_rolled_this_turn >= Global.dice_spend_cap
+
+
 func _update_power_float() -> void:
     if current_power.material:
         current_power.material.set_shader_parameter("float_intensity", 0.0 if Global.roll_value == 0 else 1.0)
@@ -955,6 +967,10 @@ func roll_dice():
     var is_ricochet_reroll: bool = Global.ricochet_reroll_active
     dice_type = Global.dice_type
     if _flux_blocks_roll(is_ricochet_reroll):
+        release_die_coil()
+        play_error_sound()
+        return
+    if _spend_cap_blocks_roll(is_ricochet_reroll):
         release_die_coil()
         play_error_sound()
         return

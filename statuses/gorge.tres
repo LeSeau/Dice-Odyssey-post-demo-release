@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="GorgeStatus" load_steps=3 format=3 uid="uid://dgorge5tatu50"]
+
+[ext_resource type="Script" path="res://statuses/gorge.gd" id="1_gorge"]
+[ext_resource type="Texture2D" uid="uid://cfyd1vupwjrkl" path="res://parasite_status_icon.png" id="2_gorgi"]
+
+[resource]
+script = ExtResource("1_gorge")
+id = "gorge"
+type = 2
+stack_type = 0
+can_expire = false
+duration = 0
+stacks = 3
+icon = ExtResource("2_gorgi")
+tooltip = "Gains 3 Strength each turn you end with no Dice left."
+hide_when_zero = false
+hide_counter_when_zero = false

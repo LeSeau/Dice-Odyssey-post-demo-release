@@ -727,6 +727,23 @@ var golem_dice_carryover := 0
 # so a die can never stay stolen into the next fight even if a return hook somehow misfires.
 var dice_hostage_types: Array[String] = []
 
+# Max number of Dice the player may ROLL in one turn; 0 = uncapped (the default).
+# Read by dice.gd::_spend_cap_blocks_roll, which mirrors the Flux gate exactly.
+# It caps SPEND, not pool size, so refuel and Charge still work - you just cannot cash
+# them all in the same turn, which is the whole point of the Quartermaster.
+# Fight-scoped like ink_active: reset by battle.gd::start_battle() AND reset_run_state().
+var dice_spend_cap := 0
+
+
+# True when the player has no Dice left of any type. Used by the Famished (gorge.gd), which
+# feeds on the reflex of emptying the pool. Iterates DICE_TYPE_ORDER so a future tenth type
+# is covered without touching this.
+func dice_pool_empty() -> bool:
+    for type: String in DICE_TYPE_ORDER:
+        if int(get(type + "_dice_current_amount")) > 0:
+            return false
+    return true
+
 # True only while a Ricochet reroll is travelling through dice.gd's roll path. Read by
 # dice_interface._on_dice_rolled to skip the die decrement: a reroll re-rolls the die you
 # already spent, it must not spend a second one. Everything ELSE on that path is deliberately
@@ -879,6 +896,7 @@ func reset_run_state() -> void:
     kept_dice = {}
     golem_dice_carryover = 0
     dice_hostage_types = []
+    dice_spend_cap = 0
 
     # Relic-owned switches: cleared here so a fresh run never inherits the previous run's
     # relics. Each is re-established by its relic's initialize_relic() as it is re-added.

@@ -162,6 +162,11 @@ signal clear_socket
 
 signal temporary_dice_added(dice_type: String)
 signal add_card_to_hand_requested(card: Card)
+# Same shape, different destination: drops a card straight into the DISCARD pile, so it is met
+# on the next shuffle rather than the next draw. Used by the Slanderer to plant junk.
+# Always pass a duplicate() - two CardUI nodes sharing one Card instance_id both resolve as
+# "the" played card at once (see the note in calculations.gd).
+signal add_card_to_discard_requested(card: Card)
 signal show_map_requested
 # Closing the floating dice shop panel. Deliberately NOT shop_exited/show_map_requested:
 # those mean "this room is over, go back to the map", which frees the current view - the

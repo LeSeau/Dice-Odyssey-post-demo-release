@@ -194,6 +194,7 @@ func start_battle() -> void:
     battle_ui.char_stats = char_stats
     player.stats = char_stats
     player_handler.relics = relics
+    Global.dice_spend_cap = 0
     enemy_handler.setup_enemies(battle_stats)
     _apply_act2_scaling()
     Global.fight_turn = 0
