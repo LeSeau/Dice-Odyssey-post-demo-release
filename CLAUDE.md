@@ -4,6 +4,28 @@ Roguelike deckbuilder en Godot 4 (GDScript) où les dés remplacent l'énergie c
 
 L'auteur (Julien) n'est pas développeur de formation — le code a beaucoup de duplication / spaghetti. Ne pas supposer une cohérence architecturale qui n'existe pas ; vérifier le code réel avant d'agir, surtout pour les mécaniques de power/dés où plusieurs variables se chevauchent.
 
+## Comment m'écrire les réponses (règles de Julien, 2026-09-01)
+
+Julien lit en diagonale pendant qu'il fait autre chose. Quand une réponse est longue, la ligne qui demandait un arbitrage se fait rater. Écrire une note de statut.
+
+**Ces règles valent pour les MESSAGES DE CHAT uniquement.** Les entrées de ce fichier et les fichiers mémoire restent longs, parce que ce sont des comptes-rendus pour les sessions futures et pas quelque chose qu'il lit en direct.
+
+- **Le résultat en première ligne.**
+- Couper la demande qu'il vient de faire, les étapes qu'il m'a vu faire, et tout résumé qui répète la première ligne.
+- Être précis : vrai nom de fichier, vraie valeur, vrai texte d'erreur. Écrire `dice.gd:1150`, pas « la fonction de roll ».
+- **Les questions à la fin, une par ligne.**
+- **Les risques, les erreurs et les suppositions restent toujours**, même quand tout le reste est coupé. Pareil pour les caveats NON PLAYTESTÉ / non vérifié, c'est précisément ce sur quoi il agit.
+- Phrases simples, une idée par phrase. Dire le fait et s'arrêter.
+- Poli, pas sec. Proposer (« tu peux relancer le harnais avec... ») plutôt qu'ordonner. Un merci coûte un mot.
+
+**À ne jamais écrire (liste explicite de Julien).** Pas de tirets cadratins. Pas de deux-points ni de point-virgule en pause dramatique, écrire « et », « mais », « parce que », ou commencer une nouvelle phrase. Pas de fragments d'emphase du type « Pas un bug. Un choix de design. ». Pas de phrase qui ANNONCE un point au lieu de le faire, et si une ligne peut être supprimée sans perte d'information, la supprimer. Pas de « real » ou « actual » en emphase. Pas de « this is not X, it is Y » ni « it isn't just X, it's Y ». Pas d'ouverture sur un compliment ou un acquiescement (« You're absolutely right », « Great catch »). Pas d'auto-notation (« successfully », « now works flawlessly », « production ready »). Et ces tics anglais sont bannis tels quels : *load-bearing, worth stating plainly, worth naming, worth flagging, full stop, carries the argument, the trap is, the real question is, the honest answer is, to be clear, let me be direct*.
+
+Forme d'une bonne réponse :
+
+> `dice.gd` : le pulse de charge part maintenant à la livraison, plus au play de la carte. Avant, le gust se déclenchait à l'instant où tu jouais la carte. J'ai aussi ajouté un token pour qu'une volley multi-type ne puisse pas double-emit.
+>
+> Tu veux l'amplitude du gust plus haute que 1.25 sur un Charge 4 ?
+
 ## TL;DR — où on en est (fin de session du 2026-07-30)
 
 Lire ceci avant de re-creuser quoi que ce soit — ça évite de redécouvrir des choses déjà établies. Session très chargée : garder cette liste à jour au fil des prochaines sessions plutôt que de tout re-résumer depuis zéro.
