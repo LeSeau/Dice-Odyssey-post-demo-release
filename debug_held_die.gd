@@ -194,7 +194,7 @@ func _run_dim_checks() -> void:
 			print("FAIL  held die not built")
 			fail_count += 1
 		else:
-			print("ok    held die built, modulate %s" % str(held.modulate))
+			print("ok    held die built, texture %s" % str(held.texture.resource_path if held.texture else "<null>"))
 			pass_count += 1
 
 			# Regression for the one-switch-late tint (2026-08-27). Global.dice_type is
@@ -208,15 +208,18 @@ func _run_dim_checks() -> void:
 			Events.active_dice_changed.emit("magma")
 			for i in 45:
 				await get_tree().process_frame
-			var want: Color = DicePalette.accent("magma").lerp(Color.WHITE, 0.15)
-			var got: Color = held.modulate
-			var close := absf(got.r - want.r) < 0.02 and absf(got.g - want.g) < 0.02 \
-					and absf(got.b - want.b) < 0.02
-			if close:
-				print("ok    tint follows the signal, not the racing global (%s)" % str(got))
+			# The die is no longer tinted with modulate - the colour is baked into one
+			# texture per type (build_hero_dice.py) and swapped, so cream pips can sit
+			# on a coloured body. The invariant this check exists for is unchanged: after
+			# the signal the die must show the NEW type, never the previous one - so
+			# assert texture identity instead of tint.
+			var want_path := "res://hero_die_magma.png"
+			var got_path: String = held.texture.resource_path if held.texture != null else "<null>"
+			if got_path == want_path:
+				print("ok    die art follows the signal, not the racing global (%s)" % got_path)
 				pass_count += 1
 			else:
-				print("FAIL  tint is one switch behind: got %s, want %s" % [str(got), str(want)])
+				print("FAIL  die art is one switch behind: got %s, want %s" % [got_path, want_path])
 				fail_count += 1
 
 	_report(pass_count, fail_count)

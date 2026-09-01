@@ -103,7 +103,7 @@ stats = ExtResource("2_vmwmn")
 
 [node name="Sprite2D" type="Sprite2D" parent="SpriteRoot"]
 position = Vector2(-5.2091, -1.9091)
-scale = Vector2(0.709091, 0.709091)
+scale = Vector2(0.3545455, 0.3545455)
 texture = ExtResource("3_bvqsb")
 
 [node name="StatsUI" parent="." instance=ExtResource("2_wnqqm")]

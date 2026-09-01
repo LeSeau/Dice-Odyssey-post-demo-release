@@ -34,9 +34,16 @@ const SWAY_SHADER := preload("res://scenes/enemy/enemy.gdshader")
 # Because it MOVES it cannot simply be drawn over the baked one - the original would peek
 # out from under it - hence a genuine split rather than an occluding overlay.
 const DIE_TEXTURE_PATH := "res://main_character_die.png"
+# One baked texture per dice type (and per infusion id), built by build_hero_dice.py.
+# Swapping the texture rather than tinting with modulate is what lets the pips stay cream
+# on a coloured body - a multiply tint can only ever make them a lighter shade of the body.
+const DIE_TEXTURE_DIR := "res://hero_die_%s.png"
 # Accent lifted toward white. At its real ~38px on-screen size a fully saturated cobalt or
 # fuchsia die goes muddy against the navy cloak; 0.15 keeps the identity and the luminance.
+# Kept as the value build_hero_dice.py bakes the accents at, so the two stay in step.
 const DIE_TINT_WHITE_LIFT := 0.15
+# Hot frame the die passes through when it retunes to a new type.
+const DIE_RETUNE_FLASH := Color(1.75, 1.75, 1.75)
 # Enemies stand to the RIGHT of the hero, so the thrust travels right-and-up. ~15px on a
 # 38px die is ~40% of its own width - comfortably over the ~4px floor below which an effect
 # does not exist at play speed.
@@ -145,6 +152,7 @@ var _ground_shadow: Sprite2D
 var _die_bob: Node2D
 var _die_pivot: Node2D
 var _die_sprite: Sprite2D
+var _die_texture_cache: Dictionary = {}
 var _die_rest_position: Vector2
 var _die_punch_tween: Tween
 var _die_tint_tween: Tween
@@ -320,20 +328,40 @@ func _update_die_tint(animate: bool = false, type_override: String = "") -> void
     if _die_sprite == null:
         return
     var type: String = type_override if type_override != "" else Global.dice_type
-    # accent() is infusion-aware at the single source, so an infused die recolours the one
-    # the hero holds for free. An unknown/empty type returns white, which lands back on the
-    # die's original painted white - the correct look outside combat.
-    var target: Color = DicePalette.accent(type).lerp(Color.WHITE, DIE_TINT_WHITE_LIFT)
+    var tex := _die_texture_for(type)
     if _die_tint_tween and _die_tint_tween.is_valid():
         _die_tint_tween.kill()
     if not animate:
-        _die_sprite.modulate = target
+        if tex != null:
+            _die_sprite.texture = tex
+            _sync_held_die_transform()
+        _die_sprite.modulate = Color.WHITE
         return
+    # Same retune beat as the old tint: flash hot, settle. The swap happens AT the peak of
+    # the flash, so the changeover is hidden inside the brightest frame rather than popping.
     _die_tint_tween = create_tween()
-    _die_tint_tween.tween_property(_die_sprite, "modulate", target.lerp(Color.WHITE, 0.55), 0.09) \
-        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-    _die_tint_tween.tween_property(_die_sprite, "modulate", target, 0.22) \
-        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+    _die_tint_tween.tween_property(_die_sprite, "modulate", DIE_RETUNE_FLASH, 0.09)         .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    if tex != null:
+        _die_tint_tween.tween_callback(func() -> void:
+            _die_sprite.texture = tex
+            _sync_held_die_transform())
+    _die_tint_tween.tween_property(_die_sprite, "modulate", Color.WHITE, 0.22)         .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+
+
+# Baked-per-type die art. An infusion overrides its type's accent, so it gets its own baked
+# texture keyed by infusion id - that is what keeps the infusion-aware recolour the old
+# modulate tint gave for free. Unknown type -> null, and the caller keeps the painted die.
+func _die_texture_for(type: String) -> Texture2D:
+    var key := type
+    if Global.is_dice_infused(type):
+        var info: Dictionary = DiceInfusions.get_info(type)
+        if info.has("id"):
+            key = String(info["id"])
+    if _die_texture_cache.has(key):
+        return _die_texture_cache[key]
+    var tex := load(DIE_TEXTURE_DIR % key) as Texture2D
+    _die_texture_cache[key] = tex
+    return tex
 
 
 # Thrust toward the enemies. Legs are grouped with .parallel() on the follow-up tweeners
