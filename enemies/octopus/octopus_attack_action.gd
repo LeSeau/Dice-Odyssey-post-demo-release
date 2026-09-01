@@ -5,8 +5,11 @@ extends EnemyAction
 @export var damage := 3
 var base_damage = damage
 
+# Capped at two in a row. This used to be a hard `last_action != self` lock, which forced a
+# strict A-B-A-B metronome and made the fight fully predictable; the cap keeps it bounded
+# without making it a clock.
 func is_performable() -> bool:
-    return enemy.last_action != "octopus_attack"  # or whatever the action name is
+    return not hit_consecutive_cap(2)
 
 func perform_action() -> void:
     if not enemy or not target:

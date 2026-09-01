@@ -10,8 +10,10 @@ var weak_stacks := 1
 @export var damage := 2
 var base_damage = damage
 
+# The screech never lands twice in a row, so Weak arrives on an unscheduled but bounded
+# beat instead of the old unconstrained coin flip (which could stack Weak turn after turn).
 func is_performable() -> bool:
-    return true
+    return not hit_consecutive_cap(1)
 
 
 func perform_action() -> void:

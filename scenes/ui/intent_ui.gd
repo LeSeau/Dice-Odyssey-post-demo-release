@@ -135,6 +135,10 @@ func _tooltip_text_for_texture(texture: Texture2D) -> String:
             return "This enemy will inflict a negative effect on you."
         "debuff_intent":
             return "This enemy will inflict a negative effect on you."
+        "dice_debuff_intent":
+            return "This enemy will tamper with your Dice."
+        "junk_card_intent":
+            return "This enemy will put a bad card into your deck."
         "buff_icon_intent":
             return "This enemy will gain a positive effect."
         "buff_icon":
@@ -158,6 +162,10 @@ func _rider_tooltip_text_for_texture(texture: Texture2D) -> String:
             return "It will also block damage next turn."
         "debuff_icon_3", "debuff_icon", "debuff_intent":
             return "It will also inflict a negative effect on you."
+        "dice_debuff_intent":
+            return "It will also tamper with your Dice."
+        "junk_card_intent":
+            return "It will also put a bad card into your deck."
         "buff_icon_intent", "buff_icon":
             return "It will also gain a positive effect."
         "buff_block_intent":

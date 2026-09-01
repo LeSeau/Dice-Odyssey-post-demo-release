@@ -550,11 +550,11 @@ var tutorial_forced_rolls: Array[int] = []
 var tutorial_forced_scout_faces: Array[int] = []
 
 var tutorial_fight = true
-# NOT tutorial-exclusive despite the name - crab_enemy_ai.tscn's TutorialAttack node
-# (weight 10, used by every real Crab fight in the game, all 3 tiers) gates on this
-# flag too, as a one-shot "opening move" for the FIRST Crab fight of the whole run.
-# Do not repurpose or rename without also touching enemies/crab/tutorial_attack.gd.
-var tutorial_enemy_attack = true
+# tutorial_enemy_attack was removed on 2026-09-01. It gated crab_enemy_ai.tscn's
+# TutorialAttack node, a one-shot forced 6-damage opener on the first Crab fight of a run,
+# which is obsolete now that the Skeleton runs a fixed strike/guard/spike cycle. The tutorial
+# fight uses a separate AI scene and never read it. enemies/crab/tutorial_attack.gd is left
+# on disk, orphaned (house convention for cut content).
 var tutorial_bonus_requirement_explanation_needed = true
 var tutorial_transcendent_explanation_needed = true
 var tutorial_dice_shop_explanation_needed = false
@@ -711,6 +711,22 @@ var surge_expiring := 0
 # into the next combat. Reset by battle.gd::start_battle() and reset_run_state().
 var golem_dice_carryover := 0
 
+# Dice types the Dice Mimic is currently holding hostage, one entry per stolen die. Each
+# entry costs the player one die of that type on EVERY refill until the mimic gives it back
+# (dice_interface._on_player_turn_started applies it inline).
+#
+# ⚠️ Deliberately NOT built on <type>_dice_bonus_amount, which is how the Dicelord's one-turn
+# theft works: dice_interface zeroes every bonus field inside the same function that consumes
+# it, so a status re-applying a deduction from a signal handler would be racing that function
+# on connection order. Inline in the refill is the pattern golem_dice_carryover already uses,
+# and it is deterministic.
+#
+# An Array rather than a single slot so an encounter can field more than one mimic; the
+# hostage status erases its own entry when it returns the die.
+# Fight-scoped, like ink_active: reset by battle.gd::start_battle() AND reset_run_state(),
+# so a die can never stay stolen into the next fight even if a return hook somehow misfires.
+var dice_hostage_types: Array[String] = []
+
 # True only while a Ricochet reroll is travelling through dice.gd's roll path. Read by
 # dice_interface._on_dice_rolled to skip the die decrement: a reroll re-rolls the die you
 # already spent, it must not spend a second one. Everything ELSE on that path is deliberately
@@ -862,6 +878,7 @@ func reset_run_state() -> void:
     keep_all_dice_next_turn = false
     kept_dice = {}
     golem_dice_carryover = 0
+    dice_hostage_types = []
 
     # Relic-owned switches: cleared here so a fresh run never inherits the previous run's
     # relics. Each is re-established by its relic's initialize_relic() as it is re-added.
@@ -942,7 +959,6 @@ func reset_run_state() -> void:
     tutorial_forced_rolls = []
     tutorial_forced_scout_faces = []
     tutorial_fight = true
-    tutorial_enemy_attack = true
     tutorial_bonus_requirement_explanation_needed = true
     tutorial_transcendent_explanation_needed = true
     tutorial_dice_shop_explanation_needed = false

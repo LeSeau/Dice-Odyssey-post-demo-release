@@ -3,16 +3,19 @@ extends EnemyAction
 @export var damage := 6
 var base_damage = damage
 
+
+# Odd beats of the mimic's cycle (player turns 2, 4, 6...). Turn 1 belongs to the steal, so
+# this deliberately excludes fight_turn 0 rather than relying on the picker's child order.
+# Together with the guard's "even and >= 2" the three beats partition every fight_turn, which
+# is what keeps the picker's blind get_child(0) fallback unreachable.
 func is_performable() -> bool:
-    if Global.tutorial_enemy_attack == true:
-        return true
-    else:
-        return false
+    return Global.fight_turn >= 1 and Global.fight_turn % 2 == 1
+
 
 func perform_action() -> void:
     if not enemy or not target:
         return
-    
+
     var tween := create_tween().set_trans(Tween.TRANS_QUINT)
     var start := enemy.global_position
     var end := target.global_position + Vector2.RIGHT * 32
@@ -20,20 +23,24 @@ func perform_action() -> void:
     var target_array: Array[Node] = [target]
     damage_effect.amount = modifiers.get_modified_value(base_damage, Modifier.Type.DMG_DEALT)
     damage_effect.sound = sound
+
     tween.tween_property(enemy, "global_position", end, 0.4)
     tween.tween_callback(damage_effect.execute.bind(target_array))
     tween.tween_interval(0.25)
     tween.tween_property(enemy, "global_position", start, 0.4)
+
     tween.finished.connect(
         func():
             Events.enemy_action_completed.emit(enemy)
     )
-    Global.tutorial_enemy_attack = false
+
 
 func update_intent_text() -> void:
     var player := target as Player
     if not player:
         return
+
     var damage_with_enemy_mods := modifiers.get_modified_value(base_damage, Modifier.Type.DMG_DEALT)
     var total_modified_damage := player.modifier_handler.get_modified_value(damage_with_enemy_mods, Modifier.Type.DMG_TAKEN)
+
     intent.current_text = intent.base_text % total_modified_damage

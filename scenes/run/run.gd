@@ -1112,7 +1112,7 @@ const DICE_TYPES := ["blue", "red", "evil", "green", "giant", "magma", "even", "
 # within-combat tutorial flags aren't listed - a load always lands on the map, where
 # reset_run_state() defaults are correct for them.
 const SAVED_TUTORIAL_FLAGS := [
-    "tutorial_on", "tutorial_fight", "tutorial_enemy_attack",
+    "tutorial_on", "tutorial_fight",
     "tutorial_reset_power_warning",
     "tutorial_bonus_requirement_explanation_needed",
     "tutorial_transcendent_explanation_needed",

@@ -29,24 +29,24 @@ icon2 = ExtResource("90_buffic")
 [node name="BiggerSatyrEnemyAi" type="Node"]
 script = ExtResource("1_nxkrf")
 
-[node name="BiggerSatyrAttackDebuffOpener" type="Node" parent="."]
-script = ExtResource("2_66pso")
-intent = SubResource("Resource_evlb8")
+[node name="BiggerSatyrAttack" type="Node" parent="."]
+script = ExtResource("6_b60v1")
+intent = SubResource("Resource_f2k1a")
 sound = ExtResource("5_jg7gr")
-chance_weight = 10.0
-action_id = "bigger_satyr_attack_debuff"
+type = 1
+chance_weight = 5.0
+action_id = "bigger_satyr_attack"
 
 [node name="BiggerSatyrAttackDebuff" type="Node" parent="."]
 script = ExtResource("2_kb04a")
 intent = SubResource("Resource_6g1um")
 sound = ExtResource("5_jg7gr")
 type = 1
-chance_weight = 6.7
+chance_weight = 5.0
 action_id = "bigger_satyr_attack_debuff"
 
-[node name="BiggerSatyrAttack" type="Node" parent="."]
-script = ExtResource("6_b60v1")
-intent = SubResource("Resource_f2k1a")
+[node name="BiggerSatyrAttackDebuffOpener" type="Node" parent="."]
+script = ExtResource("2_66pso")
+intent = SubResource("Resource_evlb8")
 sound = ExtResource("5_jg7gr")
-type = 1
-chance_weight = 3.3
+action_id = "bigger_satyr_attack_debuff"

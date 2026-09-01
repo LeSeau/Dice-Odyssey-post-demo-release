@@ -6,8 +6,11 @@ extends EnemyAction
 
 var base_damage = damage
 
+# Plain gore, capped at two in a row. Paired with the debuff's cap of 1 the two can never
+# both be blocked at once: after A-A the attack is capped but the debuff is free, and after
+# any debuff the debuff is capped but the attack is free.
 func is_performable() -> bool:
-    return true
+    return not hit_consecutive_cap(2)
 
 func perform_action() -> void:
     if not enemy or not target:

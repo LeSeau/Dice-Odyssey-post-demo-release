@@ -2,7 +2,6 @@ extends EnemyAction
 
 
 const INK_STATUS = preload("res://statuses/ink.tres")
-const WEAK_STATUS = preload("res://statuses/weak.tres")
 
 var exposed_duration := 2
 var ink_duration := 1
@@ -10,8 +9,11 @@ var ink_duration := 1
 @export var damage := 2
 var base_damage = damage
 
+# Ink never twice in a row. Ink is a DURATION status, so re-applying it EXTENDS the blackout
+# on the Power number - a cap of 2 would let this hide the number for ~4 straight turns on
+# floors 1-3. The plain attack is capped at 2, so the two can never both be blocked at once.
 func is_performable() -> bool:
-    return enemy.last_action != "octopus_debuff_attack"  # or whatever the action name is
+    return not hit_consecutive_cap(1)
 
 func perform_action() -> void:
     if not enemy or not target:
