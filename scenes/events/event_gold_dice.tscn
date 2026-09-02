@@ -1,13 +1,10 @@
-[gd_scene load_steps=23 format=3 uid="uid://cn6oumffvf4w8"]
+[gd_scene load_steps=26 format=3 uid="uid://cn6oumffvf4w8"]
 
 [ext_resource type="Script" path="res://scenes/events/event_gold_dice.gd" id="1_a8p4h"]
 [ext_resource type="Texture2D" uid="uid://cixhe0hba0c1" path="res://assets/images/scroll.jpg" id="2_jew28"]
 [ext_resource type="Texture2D" uid="uid://c17qq0sj25epy" path="res://assets/images/blue1.png" id="2_mn2i4"]
-[ext_resource type="Theme" uid="uid://c5ebdqhhhfy3i" path="res://scenes/button/base_button.tres" id="3_ck8t7"]
 [ext_resource type="Texture2D" uid="uid://dle5n7pjyi82e" path="res://events_gold_dice.png" id="3_o1pui"]
-[ext_resource type="FontFile" uid="uid://klo4n2sp4ar6" path="res://fonts/MinionPro-Bold.otf" id="5_kgvfx"]
 [ext_resource type="Texture2D" uid="uid://cbqo7ygdiomru" path="res://sadgoblin.png" id="5_pfvur"]
-[ext_resource type="FontFile" uid="uid://bfgwr7o37ol1j" path="res://Noto_Sans/static/NotoSans-Regular.ttf" id="7_xqkjp"]
 [ext_resource type="AudioStream" uid="uid://bu8uvjhi41uik" path="res://success.mp3" id="8_6eihv"]
 [ext_resource type="Theme" uid="uid://c8cqncsqlplyu" path="res://main_theme.tres" id="8_0584i"]
 [ext_resource type="StyleBox" uid="uid://d33nvcmlyrn4o" path="res://scenes/shop/shop_button_normal.tres" id="btn_n"]
@@ -15,32 +12,14 @@
 [ext_resource type="StyleBox" uid="uid://0f1dsnbsuyaw" path="res://scenes/shop/shop_button_pressed.tres" id="btn_p"]
 [ext_resource type="FontFile" uid="uid://bm3deysyi2y55" path="res://Belwe Bold/Belwe Bold.otf" id="belwe_lbl"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_kwaja"]
-bg_color = Color(0.117647, 0.196078, 0.176471, 1)
-border_width_left = 4
-border_width_top = 4
-border_width_right = 4
-border_width_bottom = 4
-border_color = Color(0.788235, 0.635294, 0.152941, 1)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-shadow_color = Color(0, 0, 0, 0.5)
-shadow_size = 8
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_htkly"]
-bg_color = Color(0.311214, 0, 0.0696221, 1)
-border_width_left = 6
-border_width_top = 6
-border_width_right = 6
-border_width_bottom = 6
-border_color = Color(0.957843, 0.774044, 0.321806, 1)
-corner_radius_top_left = 25
-corner_radius_top_right = 25
-corner_radius_bottom_right = 25
-corner_radius_bottom_left = 25
-shadow_size = 8
+[ext_resource type="StyleBox" uid="uid://bevmodalpanel01" path="res://scenes/events/event_modal_panel.tres" id="modal_panel"]
+[ext_resource type="StyleBox" uid="uid://bevmodalinner1" path="res://scenes/events/event_modal_inner.tres" id="modal_inner"]
+[ext_resource type="StyleBox" uid="uid://bevmodalheadr1" path="res://scenes/events/event_modal_header.tres" id="modal_header"]
+[ext_resource type="LabelSettings" uid="uid://bevrolllabel01" path="res://scenes/events/event_roll_label.tres" id="roll_lbl"]
+[ext_resource type="StyleBox" uid="uid://brollplate001" path="res://scenes/dices/roll_button_texture.tres" id="roll_n"]
+[ext_resource type="StyleBox" uid="uid://brollplate002" path="res://scenes/dices/roll_button_texture_hover.tres" id="roll_h"]
+[ext_resource type="StyleBox" uid="uid://brollplate003" path="res://scenes/dices/roll_button_texture_pressed.tres" id="roll_p"]
+[ext_resource type="StyleBox" uid="uid://brollplate004" path="res://scenes/dices/roll_button_texture_disabled.tres" id="roll_d"]
 
 [sub_resource type="Gradient" id="Gradient_n2u7c"]
 colors = PackedColorArray(0.22, 0.16, 0.05, 1, 0.68, 0.52, 0.16, 1)
@@ -114,36 +93,82 @@ script = ExtResource("1_a8p4h")
 [node name="DicePanel" type="Panel" parent="."]
 visible = false
 z_index = 5
-custom_minimum_size = Vector2(800, 400)
+custom_minimum_size = Vector2(620, 460)
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -400.0
-offset_top = -200.0
-offset_right = 400.0
-offset_bottom = 200.0
+offset_left = -310.0
+offset_top = -230.0
+offset_right = 310.0
+offset_bottom = 230.0
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 mouse_filter = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_kwaja")
+theme_override_styles/panel = ExtResource("modal_panel")
+
+[node name="Scrim" type="ColorRect" parent="DicePanel"]
+show_behind_parent = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -400.0
+offset_top = -260.0
+offset_right = 400.0
+offset_bottom = 280.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.62)
+
+[node name="Header" type="Panel" parent="DicePanel"]
+custom_minimum_size = Vector2(0, 66)
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 3.0
+offset_top = 3.0
+offset_right = -3.0
+offset_bottom = 69.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_styles/panel = ExtResource("modal_header")
+
+[node name="HeaderLabel" type="RichTextLabel" parent="DicePanel/Header"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_colors/default_color = Color(1, 0.964706, 0.886275, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.35)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_fonts/normal_font = ExtResource("belwe_lbl")
+theme_override_font_sizes/normal_font_size = 18
+bbcode_enabled = true
+text = "[center]Your roll x 15 Gold.
+[color=#e05a5a]Roll a 1 and he takes 50 Gold[/color][/center]"
+scroll_active = false
 
 [node name="DiceDisplay" type="TextureRect" parent="DicePanel"]
-custom_minimum_size = Vector2(225, 225)
+custom_minimum_size = Vector2(230, 230)
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -327.0
-offset_top = -153.0
-offset_right = -102.0
-offset_bottom = 72.0
+offset_left = -115.0
+offset_top = -131.0
+offset_right = 115.0
+offset_bottom = 99.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
@@ -152,33 +177,42 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="RollDice" type="Button" parent="DicePanel/DiceDisplay"]
+texture_filter = 2
 z_index = 12
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -2.0
-offset_top = 2.0
-offset_right = 1.0
-offset_bottom = 58.0
+offset_left = -15.0
+offset_top = 28.0
+offset_right = 15.0
+offset_bottom = 98.0
 grow_horizontal = 2
 grow_vertical = 0
-theme = ExtResource("3_ck8t7")
+theme_override_styles/focus = ExtResource("roll_n")
+theme_override_styles/disabled = ExtResource("roll_d")
+theme_override_styles/hover = ExtResource("roll_h")
+theme_override_styles/pressed = ExtResource("roll_p")
+theme_override_styles/normal = ExtResource("roll_n")
 
 [node name="Label" type="Label" parent="DicePanel/DiceDisplay/RollDice"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_right = 20.0
+offset_top = -4.0
+offset_bottom = -4.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 text = "ROLL"
+label_settings = ExtResource("roll_lbl")
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="TextureRect" type="TextureRect" parent="DicePanel/DiceDisplay/RollDice"]
+visible = false
 z_index = 1
 custom_minimum_size = Vector2(50, 50)
 layout_mode = 1
@@ -196,49 +230,74 @@ expand_mode = 1
 
 [node name="RewardPanel" type="Panel" parent="DicePanel"]
 visible = false
-layout_mode = 0
-offset_left = 376.0
-offset_top = 241.0
-offset_right = 744.0
-offset_bottom = 340.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_htkly")
+z_index = 15
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -240.0
+offset_top = -132.0
+offset_right = 240.0
+offset_bottom = 120.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = ExtResource("modal_inner")
 
 [node name="RewardLabel" type="RichTextLabel" parent="DicePanel/RewardPanel"]
 layout_mode = 1
-anchors_preset = 15
+anchors_preset = 10
 anchor_right = 1.0
-anchor_bottom = 1.0
-offset_top = 27.0
-offset_bottom = 27.0
+offset_top = 190.0
+offset_bottom = 240.0
 grow_horizontal = 2
-grow_vertical = 2
+mouse_filter = 2
+theme_override_colors/default_color = Color(1, 0.964706, 0.886275, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.35)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_fonts/normal_font = ExtResource("belwe_lbl")
+theme_override_font_sizes/normal_font_size = 22
 bbcode_enabled = true
 text = "[center]You won [color=gold] %s Gold[/color]!"
+scroll_active = false
 
 [node name="SadGoblin" type="TextureRect" parent="DicePanel"]
 visible = false
+z_index = 15
 layout_mode = 0
-offset_left = 492.0
-offset_top = 22.0
-offset_right = 732.0
-offset_bottom = 227.0
+offset_left = 230.0
+offset_top = 101.0
+offset_right = 390.0
+offset_bottom = 269.0
+mouse_filter = 2
 texture = ExtResource("5_pfvur")
 expand_mode = 1
+stretch_mode = 5
 
 [node name="ContinueButton" type="Button" parent="DicePanel"]
+texture_filter = 2
 visible = false
-layout_mode = 1
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -186.0
-offset_top = -64.0
-offset_right = -16.0
-offset_bottom = -16.0
-grow_horizontal = 0
-grow_vertical = 0
+z_index = 15
+layout_mode = 0
+offset_left = 200.0
+offset_top = 362.0
+offset_right = 420.0
+offset_bottom = 422.0
+theme_override_colors/font_color = Color(1, 0.964706, 0.886275, 1)
+theme_override_colors/font_hover_color = Color(1, 0.964706, 0.886275, 1)
+theme_override_colors/font_pressed_color = Color(1, 0.964706, 0.886275, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.25)
+theme_override_constants/outline_size = 0
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 2
+theme_override_fonts/font = ExtResource("belwe_lbl")
+theme_override_font_sizes/font_size = 18
+theme_override_styles/focus = ExtResource("btn_n")
+theme_override_styles/hover = ExtResource("btn_h")
+theme_override_styles/pressed = ExtResource("btn_p")
+theme_override_styles/normal = ExtResource("btn_n")
 text = "Continue"
 
 [node name="TextureRect" type="TextureRect" parent="."]
@@ -356,8 +415,8 @@ mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("belwe_lbl")
 bbcode_enabled = true
 text = "\"Hey, you! Wanna roll my [color=yellow]Golden dice? [/color]
-[p] [p] I'll give you [color=yellow]YOUR ROLL X 20 GOLD. [/color]
-[p] [p]But if you roll a 1... I'll take all your money!
+[p] [p] I'll give you [color=yellow]YOUR ROLL X 15 GOLD. [/color]
+[p] [p]But if you roll a 1... I'll take 50 gold!
 [p] [p]Deal?"
 fit_content = true
 

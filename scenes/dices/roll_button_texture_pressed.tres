@@ -1,0 +1,11 @@
+[gd_resource type="StyleBoxTexture" load_steps=2 format=3 uid="uid://brollplate003"]
+
+[ext_resource type="Texture2D" path="res://assets/images/ui/ui_roll_plate.png" id="1_rbp"]
+
+[resource]
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 10.0
+texture = ExtResource("1_rbp")
+modulate_color = Color(0.82, 0.82, 0.82, 1)

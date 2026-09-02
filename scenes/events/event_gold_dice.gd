@@ -3,8 +3,6 @@ extends Control
 @onready var roll_golden_dice: Button = $TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/RollGoldenDice
 @onready var quit: Button = $TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/Quit
 @onready var dice_panel: Panel = $DicePanel
-@onready var button: Button = $DicePanel/DiceDisplay/Button
-@onready var test: Button = $DicePanel/DiceDisplay/Test
 @onready var roll_dice: Button = $DicePanel/DiceDisplay/RollDice
 @onready var dice_display: TextureRect = $DicePanel/DiceDisplay
 @onready var reward_panel: Panel = $DicePanel/RewardPanel
@@ -13,6 +11,31 @@ extends Control
 
 @onready var sad_goblin: TextureRect = $DicePanel/SadGoblin
 @onready var audio_listener_2d: AudioStreamPlayer2D = $AudioListener2D
+
+const MODAL_TEXT := preload("res://scenes/events/event_modal_text.gd")
+
+# Payout is roll x GOLD_PER_PIP; a 1 costs a FLAT GOLD_LOST_ON_ONE instead of the
+# whole purse. The old proportional wipe meant the player set their own risk -
+# taking the event straight after a shop was free money - so the payout was the
+# only thing scaling, never the cost.
+const GOLD_PER_PIP := 15
+const GOLD_LOST_ON_ONE := 50
+
+
+func _ready() -> void:
+    dice_panel.visibility_changed.connect(_recenter_modal_text)
+
+# The chip / recap / result labels are BBCode, and RichTextLabel has no vertical
+# alignment, so they need centring by hand. Done on show rather than in _ready:
+# the chips live in nested containers, which only sort deferred, so their bands
+# still measure 0 the frame _ready runs.
+func _recenter_modal_text() -> void:
+    if not dice_panel.visible:
+        return
+    await get_tree().process_frame
+    MODAL_TEXT.center_labels(dice_panel)
+
+
 
 func _on_quit_pressed() -> void:
     Events.event_exited.emit()
@@ -24,8 +47,6 @@ func _on_roll_golden_dice_pressed() -> void:
     print("opening golden dice box")
     dice_panel.show()
 
-func _on_button_pressed() -> void:
-    print("rolling golden dice")
 
 func _on_roll_dice_pressed() -> void:
     # Guard against spam-clicking while the roll animation/reward await chain
@@ -68,13 +89,15 @@ func _on_roll_dice_pressed() -> void:
     audio_listener_2d.play()
 
     if roll_result!= 1:
+        roll_dice.hide()
         reward_panel.show()
-        var gold_reward = roll_result * 20
+        var gold_reward = roll_result * GOLD_PER_PIP
         Global.gold += gold_reward 
         Events.gold_changed.emit()
 
         # 🔥 Build the reward text manually
         reward_label.text = "[center]You won [color=gold]" + str(gold_reward) + " Gold[/color]![/center]"
+        MODAL_TEXT.center_label(reward_label)
 
         # Step 4: Wait another 1.5 seconds, show sad goblin
         await get_tree().create_timer(1.5).timeout
@@ -84,8 +107,14 @@ func _on_roll_dice_pressed() -> void:
         audio_listener_2d.stream = kamikaze_fail
         audio_listener_2d.play()
     else:
+        roll_dice.hide()
         reward_panel.show()
-        reward_label.text = "[center]Thank you![/center]"
+        # Report what he actually took, which is less than 50 on a thin purse.
+        var gold_lost: int = mini(GOLD_LOST_ON_ONE, Global.gold)
+        Global.gold -= gold_lost
+        Events.gold_changed.emit()
+        reward_label.text = "[center]\"Thank you!\" [color=#e05a5a]-" + str(gold_lost) + " Gold[/color][/center]"
+        MODAL_TEXT.center_label(reward_label)
         await get_tree().create_timer(1.5).timeout
         continue_button.show()
         sad_goblin.show()
@@ -93,9 +122,4 @@ func _on_roll_dice_pressed() -> void:
         var kamikaze_fail = preload("res://sounds/kamikazefail.mp3")
         audio_listener_2d.stream = kamikaze_fail
         audio_listener_2d.play()
-        Global.gold = 0 
-        Events.gold_changed.emit()
-        
 
-func _on_test_pressed() -> void:
-    print("pressed test")
