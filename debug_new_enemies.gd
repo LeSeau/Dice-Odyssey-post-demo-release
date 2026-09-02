@@ -7,7 +7,8 @@ extends Node
 #     is exempt, and killing it lifts the cap. Beats: Levy 12 / Requisition 6 + 2 Str, both
 #     capped at 2 in a row.
 #   Slanderer     - Whisper plants a Slander card in the DISCARD pile (not the draw pile),
-#     never twice in a row, and the pair opens out of sync via forced_opener_action_id.
+#     never twice in a row, and the pair opens out of sync via forced_opener_action_id. The
+#     card is NOT Celestial: binning it needs a roll and eats the bank, which is the real tax.
 #   Famished      - fixed Gnaw / Burrow / Devour cycle, and Gorge grants +3 Str only on turns
 #     the player ends with an empty Dice pool.
 #
@@ -256,7 +257,7 @@ func _section_slander_injection() -> void:
 	var before_draw: int = _battle.char_stats.draw_pile.cards.size()
 
 	var card: Card = load("res://characters/warrior/cards/card_slander.tres").duplicate()
-	Events.add_card_to_discard_requested.emit(card)
+	Events.add_card_to_discard_requested.emit(card, Vector2.ZERO)
 	await get_tree().process_frame
 
 	check("discard pile grew by exactly 1",
@@ -268,8 +269,26 @@ func _section_slander_injection() -> void:
 	var planted: Card = _battle.char_stats.discard.cards.back()
 	check("it is the Slander card", planted.id == "card_slander", planted.id)
 	check("it exhausts when played", planted.exhausts)
-	check("it is playable with no Dice and no requirement",
-			planted.can_play_without_dice and planted.requirement == Card.Requirement.NONE)
+	# The tax IS the price of binning it. A Celestial Slander would be free tempo, so it must
+	# be non-Celestial (needs a roll first) and it must reset the bank like an ordinary card.
+	check("it is NOT Celestial - binning it costs a roll",
+			not planted.can_play_without_dice)
+	check("no requirement, so it is never stuck in hand once you have rolled",
+			planted.requirement == Card.Requirement.NONE)
+	check("flagged NORMAL, not SUPPORT (SUPPORT means 'does not reset your Power')",
+			planted.rarity == Card.Rarity.NORMAL)
+
+	# Behavioural, through the real path: a live battle has dice.gd listening to
+	# dice_roll_reset. Force blue first - the red branch defers the wipe by a second.
+	Global.dice_type = "blue"
+	Global.roll_value = 9
+	Global.roll_history = [9]
+	planted.apply_effects([], null)
+	await get_tree().process_frame
+	check("playing it wipes the banked Power", Global.roll_value == 0,
+			"roll_value left at %d" % Global.roll_value)
+	check("and clears the roll chain, so the next card needs a fresh roll",
+			Global.roll_history.is_empty(), "history %s" % str(Global.roll_history))
 	# It must never turn up in a reward screen or a shop.
 	var pool: CardPile = load("res://characters/warrior/warrior_draftable_cards.tres")
 	var draftable := false

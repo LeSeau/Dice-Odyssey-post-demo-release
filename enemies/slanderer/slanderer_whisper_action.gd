@@ -52,4 +52,9 @@ func _plant_slander() -> void:
     # object twice gives two CardUI nodes one instance_id, and both then resolve as "the"
     # played card at once (same trap documented in calculations.gd).
     var card: Card = load(SLANDER_CARD_PATH).duplicate()
-    Events.add_card_to_discard_requested.emit(card)
+    # enemy.tscn bakes the Sprite2D at x=124, so the node's own global_position sits well to
+    # the LEFT of the drawn body - the sprite is the honest place for the card to leave from.
+    var origin := Vector2.ZERO
+    if is_instance_valid(enemy) and enemy.sprite_2d != null:
+        origin = enemy.sprite_2d.global_position
+    Events.add_card_to_discard_requested.emit(card, origin)
