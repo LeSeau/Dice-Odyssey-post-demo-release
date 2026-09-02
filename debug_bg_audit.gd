@@ -36,7 +36,7 @@ const FIGHTS_T0 := [
 	"res://battles/tier_0_octopus_2_satyr_1.tscn",
 	"res://battles/tier_0_satyrs_1_octopus_2.tscn",
 	"res://battles/tier_0_satyrs_2_octopus_1.tscn",
-	"res://battles/tier_0_dice_mimic.tscn",
+	"res://battles/tier_1_dice_mimic.tscn",
 	"res://battles/tier_1_slanderers.tscn",
 	"res://battles/tier_2_quartermaster.tscn",
 	"res://battles/tier_2_famished.tscn",

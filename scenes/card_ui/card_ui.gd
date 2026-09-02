@@ -1088,9 +1088,10 @@ func _on_card_frame_mouse_entered() -> void:
     if card.type == Card.Type.HEX:
         tooltips_to_show.append("Hex")
 
-    # Hex cards are Celestial so the player can always bin them, but leading with "needs no
-    # Dice or Power to play" frames an enemy gift as a perk. The Hex tooltip already carries
-    # the only part that matters here, which is that playing it is how you get rid of it.
+    # Kept even though Slander stopped being Celestial on 2026-09-02: leading with "needs no
+    # Dice or Power to play" would frame an enemy gift as a perk, and it would be flatly wrong
+    # now that binning one costs a roll. The Hex tooltip already carries the part that matters,
+    # which is that playing it is how you get rid of it.
     if card.can_play_without_dice and card.type != Card.Type.HEX:
         tooltips_to_show.append("Celestial")
 

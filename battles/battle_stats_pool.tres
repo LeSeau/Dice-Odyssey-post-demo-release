@@ -33,7 +33,7 @@
 [ext_resource type="Resource" uid="uid://rdf6nwie4yma" path="res://battles/tier_1_lurker_crab.tres" id="30_lucr"]
 [ext_resource type="Resource" uid="uid://pyw3lm0ken75" path="res://battles/tier_1_machopeur_octopus.tres" id="30_mao1"]
 [ext_resource type="Resource" uid="uid://dnwvgja15h8w3" path="res://battles/tier_2_machopeur_octopus.tres" id="30_mao2"]
-[ext_resource type="Resource" uid="uid://dmimicbattle1" path="res://battles/tier_0_dice_mimic.tres" id="30_mimic"]
+[ext_resource type="Resource" uid="uid://dmimicbattl11" path="res://battles/tier_1_dice_mimic.tres" id="30_mimic"]
 [ext_resource type="Resource" path="res://battles/tier_2_famished.tres" id="31_fa"]
 [ext_resource type="Resource" path="res://battles/tier_2_quartermaster.tres" id="31_qm"]
 [ext_resource type="Resource" path="res://battles/tier_1_slanderers.tres" id="31_sl"]

@@ -9,10 +9,11 @@ extends Node
 #   - Kraken S: ink never twice in a row, attack capped at 2 - and repeats DO happen now
 #     (this used to be a forced A-B-A-B metronome, so "a repeat is possible" is the change)
 #   - Kraken B: guaranteed turn-1 ink and turn-2 crush, then ink capped at 1 / crush at 2
-#   - Dice Mimic: steal on turn 1, then attack / guard alternating
+#   - Dice Mimic: steal on turn 1, then a flat bite every turn (no guard beat)
 #   - the picker's blind `get_child(0)` fallback is never reached by any of them
-#   - forced_opener_action_id pins the Mimic encounter's Satyr to its non-debuff attack
-#   - the Dice Mimic hostage survives a refill, comes back at half health, and is fight-scoped
+#   - forced_opener_action_id pins each Slanderer to a different opening beat
+#   - the Dice Mimic hostage survives a refill, comes back only when the mimic DIES, and is
+#     fight-scoped
 #
 # Sections A-H simulate turns directly (pick an action, replicate Enemy.do_turn()'s
 # last_action bookkeeping, never run the tweens), which is what makes a 400-turn cap check
@@ -30,8 +31,13 @@ extends Node
 const FIGHT_SKELETON := "res://battles/tier_0_crab.tscn"
 const FIGHT_SATYRS := "res://battles/tier_0_satyrs_3.tscn"
 const FIGHT_KRAKENS := "res://battles/tier_0_octopus_3.tscn"
-const FIGHT_MIMIC_SCENE := "res://battles/tier_0_dice_mimic.tscn"
-const FIGHT_MIMIC := "res://battles/tier_0_dice_mimic.tres"
+# The Mimic moved to tier 1 on 2026-09-02 and pairs with a Goblin: the fight-mate has to
+# outlive it, or "kill it and get your die back" just ends the fight instead of changing it.
+const FIGHT_MIMIC_SCENE := "res://battles/tier_1_dice_mimic.tscn"
+const FIGHT_MIMIC := "res://battles/tier_1_dice_mimic.tres"
+# The only remaining user of forced_opener_action_id (the Mimic's Satyr is gone with the
+# tier-0 encounter, and a Goblin's cycle is fixed, so pinning one would prove nothing).
+const FIGHT_SLANDERERS := "res://battles/tier_1_slanderers.tscn"
 
 const LONG_RUN := 400
 const OPENER_TRIALS := 60
@@ -289,12 +295,15 @@ func _section_mimic_cycle() -> void:
 
 	var seq := _simulate(mimic, 9)
 	var expected: Array[String] = [
-		"mimic_steal", "mimic_attack", "mimic_guard",
-		"mimic_attack", "mimic_guard", "mimic_attack",
-		"mimic_guard", "mimic_attack", "mimic_guard",
+		"mimic_steal", "mimic_attack", "mimic_attack",
+		"mimic_attack", "mimic_attack", "mimic_attack",
+		"mimic_attack", "mimic_attack", "mimic_attack",
 	]
-	check("steal on turn 1, then attack/guard alternating", seq == expected, ", ".join(seq))
+	check("steal on turn 1, then a flat bite forever", seq == expected, ", ".join(seq))
 	check("the steal happens exactly once", _count(seq, "mimic_steal") == 1)
+	# The guard beat (block 5 + 2 Str) was cut with the tier-1 move: the Goblin is the clock
+	# now, and one clock per fight.
+	check("no guard beat survives", _count(seq, "mimic_guard") == 0)
 	check("no randomness: a second run is identical", _simulate(mimic, 9) == seq)
 	fight.queue_free()
 
@@ -303,28 +312,29 @@ func _section_mimic_cycle() -> void:
 
 func _section_forced_opener() -> void:
 	print("\n--- G: forced_opener_action_id ---")
-	var fight := _load_fight(FIGHT_MIMIC_SCENE)
-	var satyr := _enemy_named(fight, "satyr")
-	if satyr == null:
-		check("satyr found in the mimic encounter", false)
+	var fight := _load_fight(FIGHT_SLANDERERS)
+	var slanderer := _enemy_named(fight, "slanderer a")
+	if slanderer == null:
+		check("slanderer A found in the pair encounter", false)
 		return
 
-	check("the encounter sets the override", satyr.forced_opener_action_id == "satyr_attack",
-			satyr.forced_opener_action_id)
+	check("the encounter sets the override",
+			slanderer.forced_opener_action_id == "slanderer_whisper",
+			slanderer.forced_opener_action_id)
 
 	var plain := 0
 	for i in range(OPENER_TRIALS):
-		var one := _simulate(satyr, 1)
-		if one[0] == "satyr_attack":
+		var one := _simulate(slanderer, 1)
+		if one[0] == "slanderer_whisper":
 			plain += 1
-	# Without the override this satyr is a flat coin flip, so ~half of these would screech.
-	check("its turn 1 is ALWAYS the non-debuff attack", plain == OPENER_TRIALS,
+	# Without the override this body is a flat coin flip, so ~half of these would sneer.
+	check("its turn 1 is ALWAYS the pinned beat", plain == OPENER_TRIALS,
 			"%d/%d" % [plain, OPENER_TRIALS])
 
 	# And the override must be turn-1 only, not a permanent lock on the beat.
-	var seq := _simulate(satyr, LONG_RUN)
-	check("later turns are free to screech again", _count(seq, "satyr_debuff") > 0,
-			"%d screeches" % _count(seq, "satyr_debuff"))
+	var seq := _simulate(slanderer, LONG_RUN)
+	check("later turns are free to sneer again", _count(seq, "slanderer_sneer") > 0,
+			"%d sneers" % _count(seq, "slanderer_sneer"))
 
 	# Every other enemy must be untouched by the new field.
 	var other := _load_fight(FIGHT_SATYRS)
@@ -400,22 +410,35 @@ func _section_hostage() -> void:
 	check("the stolen die is STILL missing after the refill", short_ok, detail)
 	check("no other dice type was touched", others_ok)
 
-	# Ransom: 28 max, so anything at or below 14 pays it back.
+	# The half-health ransom was cut on 2026-09-02: only death releases the die now. Hurting
+	# it badly must therefore change nothing at all.
 	var before_return: int = int(Global.get(stolen + "_dice_current_amount"))
-	mimic.take_damage(20, Modifier.Type.DMG_DEALT)
+	mimic.take_damage(10, Modifier.Type.DMG_DEALT)
 	await get_tree().process_frame
-	check("crossing half health returns the die immediately",
+	check("half health does NOT return the die any more",
+			Global.dice_hostage_types.size() == 1, str(Global.dice_hostage_types))
+	check("and the die is still missing from the pool",
+			int(Global.get(stolen + "_dice_current_amount")) == before_return,
+			"%d" % int(Global.get(stolen + "_dice_current_amount")))
+
+	# Killing it hands the die back, usable the same turn. The Goblin is still alive, so this
+	# is a mid-fight rescue rather than the end of the fight - which is the whole point of the
+	# tier-1 pairing.
+	mimic.take_damage(mimic.stats.health + 5, Modifier.Type.DMG_DEALT)
+	await get_tree().process_frame
+	check("killing it returns the die immediately",
 			int(Global.get(stolen + "_dice_current_amount")) == before_return + 1,
 			"%d -> %d" % [before_return, int(Global.get(stolen + "_dice_current_amount"))])
 	check("the hostage list is empty again", Global.dice_hostage_types.is_empty(),
 			str(Global.dice_hostage_types))
-
-	# And it must not be handed back twice - stats_changed fires on every health and block write.
-	var after_return: int = int(Global.get(stolen + "_dice_current_amount"))
-	mimic.take_damage(2, Modifier.Type.DMG_DEALT)
-	await get_tree().process_frame
-	check("further damage does not return a second die",
-			int(Global.get(stolen + "_dice_current_amount")) == after_return)
+	# House rule: a check that cannot fail proves nothing. Counting the group would pass even
+	# if the mimic were the only thing in it, so look for a body that is NOT the mimic.
+	var mate_alive := false
+	for node in get_tree().get_nodes_in_group("enemies"):
+		var other := node as Enemy
+		if other != null and other != mimic and other.stats != null and other.stats.health > 0:
+			mate_alive = true
+	check("the fight-mate outlives the mimic, so the rescue is mid-fight", mate_alive)
 
 	# Fight-scoped safety net: even if a return hook ever misfired, the next fight is whole.
 	Global.dice_hostage_types = ["blue"]
@@ -489,7 +512,9 @@ func _await_until(cond: Callable, timeout: float) -> void:
 #      on the max-run checks.
 #   3. Openers: delete the `opener_turn` branch from bigger_octopus_attack*.gd -> E's
 #      turn-1/turn-2 checks go red.
-#   4. Forced opener: clear forced_opener_action_id on the mimic encounter's Satyr -> G's
-#      100% check lands near 50%.
+#   4. Forced opener: clear forced_opener_action_id on Slanderer A -> G's 100% check lands
+#      near 50%.
 #   5. Hostage: move the deduction from dice_interface's refill onto <type>_dice_bonus_amount
 #      -> I's "STILL missing after the refill" check goes red, which is the whole point of it.
+#   6. Ransom: put a half-health release back in dice_hostage.gd -> I's "half health does NOT
+#      return the die" check goes red.

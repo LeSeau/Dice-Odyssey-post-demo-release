@@ -164,7 +164,7 @@ func _punch_draw_pile() -> void:
 # Junk planted straight into the discard pile (the Slanderer). Discard rather than draw pile
 # on purpose: it is met on the next reshuffle, not the next draw, so the pain is deferred and
 # accumulates quietly instead of clogging the turn it lands on.
-func _on_add_card_to_discard_requested(card: Card) -> void:
+func _on_add_card_to_discard_requested(card: Card, _source_global_position: Vector2) -> void:
     if character == null or card == null:
         return
     character.discard.add_card(card)

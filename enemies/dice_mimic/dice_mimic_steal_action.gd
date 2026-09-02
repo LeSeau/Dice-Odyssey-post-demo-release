@@ -43,11 +43,6 @@ func perform_action() -> void:
 func _steal_die() -> void:
     if not is_instance_valid(enemy):
         return
-    # The player moves first, so the mimic can already be at or below its ransom line by the
-    # time this resolves. Stealing there would hand the die straight back on the next hit,
-    # which reads as a bug rather than a mechanic.
-    if DiceHostageStatus.is_below_ransom(enemy):
-        return
 
     var owned: Array[String] = []
     for type: String in STEALABLE_TYPES:

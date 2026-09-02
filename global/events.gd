@@ -166,7 +166,13 @@ signal add_card_to_hand_requested(card: Card)
 # on the next shuffle rather than the next draw. Used by the Slanderer to plant junk.
 # Always pass a duplicate() - two CardUI nodes sharing one Card instance_id both resolve as
 # "the" played card at once (see the note in calculations.gd).
-signal add_card_to_discard_requested(card: Card)
+# Enemy-planted junk (the Slanderer today). source_global_position is the WORLD position the
+# card should visibly fly out of - the planting enemy's SPRITE centre, not its node origin -
+# so battle_ui can show the deck being written into instead of the discard counter silently
+# ticking up. Pass Vector2.ZERO when there is no on-screen source and the flight is skipped.
+# Arity matters: a handler declared with fewer parameters connects without complaint and then
+# never runs, so every listener has to move with this line.
+signal add_card_to_discard_requested(card: Card, source_global_position: Vector2)
 signal show_map_requested
 # Closing the floating dice shop panel. Deliberately NOT shop_exited/show_map_requested:
 # those mean "this room is over, go back to the map", which frees the current view - the
