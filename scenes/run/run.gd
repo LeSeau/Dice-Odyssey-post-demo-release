@@ -415,6 +415,7 @@ func _setup_event_connections() -> void:
 
     
     battle_button.pressed.connect(_on_debug_battle_button_pressed)
+    _build_debug_fight_button()
     map_button.pressed.connect(_show_map)
     rewards_button.pressed.connect(_change_view.bind(BATTLE_REWARD_SCENE))
     shop_button.pressed.connect(_change_view.bind(SHOP_SCENE))
@@ -436,6 +437,12 @@ func _setup_top_bar():
     deck_button.pressed.connect(deck_view.show_current_view.bind("Deck"))
     
 func _on_battle_room_entered(room: Room) ->  void:
+    # A real room takes over from anything the debug picker left armed, including the act it
+    # borrowed - otherwise an "Act 2" test would leave an act-1 run permanently scaled up.
+    _debug_fight_stats = null
+    if _debug_fight_prev_act > 0:
+        Global.current_act = _debug_fight_prev_act
+        _debug_fight_prev_act = 0
     var battle_scene: Battle = _change_view(BATTLE_SCENE) as Battle
     battle_scene.char_stats = character
     battle_scene.relics = relic_handler
@@ -598,40 +605,53 @@ func _on_battle_won() -> void:
     reward_scene.run_stats = stats
     reward_scene.character_stats = character
     reward_scene.relic_handler = relic_handler
-    var gold_reward: int = map.last_room.battle_stats.roll_gold_reward()
-    if Global.current_act >= 2:
-        gold_reward = roundi(gold_reward * ACT2_GOLD_MULT)
-    reward_scene.add_gold_reward(gold_reward)
+    # The debug fight picker enters a fight without going through a map room, so last_room is
+    # either null (fresh run) or STALE - whatever room you last stood on. Reading the room there
+    # would pay a boss fight like a hallway. Derive the reward shape from the fight that was
+    # actually picked instead, so an elite pays like an elite and the boss still arms the act
+    # transition. In a real run _debug_fight_stats is null and this is the old code exactly.
+    var won_room: Room = map.last_room
+    var won_stats: BattleStats = won_room.battle_stats if won_room != null else null
+    var won_type: int = won_room.type if won_room != null else Room.Type.MONSTER
+    if _debug_fight_stats != null:
+        won_stats = _debug_fight_stats
+        won_type = _debug_room_type_for_tier(_debug_fight_tier)
+        _debug_fight_stats = null
+    if won_stats != null:
+        var gold_reward: int = won_stats.roll_gold_reward()
+        if Global.current_act >= 2:
+            gold_reward = roundi(gold_reward * ACT2_GOLD_MULT)
+        reward_scene.add_gold_reward(gold_reward)
     reward_scene.add_card_reward()
 
     # Card-reward rarity odds branch on room type (BattleReward.RewardContext) - boss rooms
     # get all-Rare offers, elites get boosted Uncommon/Rare odds, everything else is the base
     # weighted draw. Must be set before the player can click the "Add New Card" button, so
     # right here is early enough regardless of room type.
-    if map.last_room.type == Room.Type.BOSS:
+    if won_type == Room.Type.BOSS:
         reward_scene.reward_context = BattleReward.RewardContext.BOSS
         # Both act bosses are the Leviathan (same resource, act-2 scaled).
         AchievementManager.unlock("marine")
-    elif map.last_room.type == Room.Type.ELITE:
+    elif won_type == Room.Type.ELITE:
         reward_scene.reward_context = BattleReward.RewardContext.ELITE
         AchievementManager.unlock("not_impressed")
 
     # Add relic reward for elite fights
 
-    if map.last_room.type == Room.Type.ELITE:
+    if won_type == Room.Type.ELITE:
         var elite_relic = _generate_elite_relic()
         if elite_relic != null:
             reward_scene.add_relic_reward(elite_relic)
 
     # Beating the act-1 boss arms the act transition; _show_map performs it once
     # the reward screen is exited (see _enter_act_2).
-    if map.last_room.type == Room.Type.BOSS and Global.current_act == 1:
+    if won_type == Room.Type.BOSS and Global.current_act == 1:
         act_transition_pending = true
 
     # Beating the act-2 boss ends the run - drop the save (roguelike: a finished run
     # can't be reloaded). run_finished also stops _show_map's checkpoint from writing
     # a useless "post-boss map with nothing left to do" save when the reward screen exits.
-    if map.last_room.type == Room.Type.BOSS and Global.current_act >= 2:
+    if won_type == Room.Type.BOSS and Global.current_act >= 2:
         run_finished = true
         SaveManager.delete_save()
         AchievementManager.unlock("conqueror")
@@ -785,6 +805,219 @@ func _on_show_reward():
 func _on_debug_battle_button_pressed() -> void:
     Global.debug_battle_entry = true
     _change_view(BATTLE_SCENE)
+
+
+# ============================================================================
+# Debug fight picker - "load any fight from the map" (Julien, 2026-09-02)
+# ============================================================================
+#
+# The debug Battle button drops you into battle.tscn's placeholder encounter. This one lists
+# every battles/*.tres and enters the chosen one exactly the way _on_battle_room_entered does,
+# so tuning one encounter no longer means rerolling the map until it comes up.
+#
+# Built entirely in code, no .tscn edits: nothing for a live editor to re-save (the documented
+# strip incident), and deleting this block removes the feature whole. Same reason
+# run_stats_panel and the card inspect overlay are code-built.
+#
+# It deliberately reads the FOLDER, not battle_stats_pool.tres, so cut and unreachable fights
+# (tier_0_dice_mimic, chimera, the leftovers) are testable too - the pool is exactly what you
+# cannot reach by playing.
+const DEBUG_PICKER_LAYER := 80
+const DEBUG_PICKER_ROW_HEIGHT := 26
+
+var _debug_fight_panel: CanvasLayer
+var _debug_fight_rows: VBoxContainer
+var _debug_fight_filter := ""
+var _debug_fight_act2 := false
+# What the reward screen falls back to when a fight was entered without a map room.
+var _debug_fight_stats: BattleStats
+var _debug_fight_tier := 0
+# Ticking "Act 2" writes Global.current_act for real (that is the only way to exercise the
+# scaling), so remember what the run was actually on and hand it back the moment a real map
+# room is entered. 0 = nothing borrowed.
+var _debug_fight_prev_act := 0
+
+
+func _build_debug_fight_button() -> void:
+    var button := Button.new()
+    button.text = "Fights"
+    button.pressed.connect(_toggle_debug_fight_picker)
+    $DebugButtons.add_child(button)
+
+
+func _toggle_debug_fight_picker() -> void:
+    if _debug_fight_panel != null and is_instance_valid(_debug_fight_panel):
+        _close_debug_fight_picker()
+        return
+
+    var layer := CanvasLayer.new()
+    layer.layer = DEBUG_PICKER_LAYER
+    # The map pauses the tree in consult mode, and the picker has to stay clickable there.
+    layer.process_mode = Node.PROCESS_MODE_ALWAYS
+
+    var backdrop := ColorRect.new()
+    backdrop.color = Color(0, 0, 0, 0.55)
+    backdrop.set_anchors_preset(Control.PRESET_FULL_RECT)
+    backdrop.gui_input.connect(func(event: InputEvent) -> void:
+        if event is InputEventMouseButton and event.pressed:
+            _close_debug_fight_picker())
+    layer.add_child(backdrop)
+
+    var frame := PanelContainer.new()
+    frame.set_anchors_preset(Control.PRESET_CENTER)
+    frame.custom_minimum_size = Vector2(430, 560)
+    frame.offset_left = -215
+    frame.offset_right = 215
+    frame.offset_top = -280
+    frame.offset_bottom = 280
+    layer.add_child(frame)
+
+    var margin := MarginContainer.new()
+    for side in ["left", "right", "top", "bottom"]:
+        margin.add_theme_constant_override("margin_" + side, 12)
+    frame.add_child(margin)
+
+    var column := VBoxContainer.new()
+    column.add_theme_constant_override("separation", 6)
+    margin.add_child(column)
+
+    var title := Label.new()
+    title.text = "Load a fight"
+    column.add_child(title)
+
+    var hint := Label.new()
+    hint.text = "Act 2 scales using the fight's own tier as the act-local tier,\nwhich differs from a real run for recycled fights."
+    hint.add_theme_font_size_override("font_size", 10)
+    hint.modulate = Color(1, 1, 1, 0.6)
+    column.add_child(hint)
+
+    var filter := LineEdit.new()
+    filter.placeholder_text = "Filter..."
+    filter.text = _debug_fight_filter
+    filter.text_changed.connect(func(text: String) -> void:
+        _debug_fight_filter = text
+        _fill_debug_fight_rows())
+    column.add_child(filter)
+
+    var act2 := CheckBox.new()
+    act2.text = "Act 2 (HP + flat damage scaling)"
+    act2.button_pressed = _debug_fight_act2
+    act2.toggled.connect(func(on: bool) -> void: _debug_fight_act2 = on)
+    column.add_child(act2)
+
+    var scroll := ScrollContainer.new()
+    scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+    scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+    column.add_child(scroll)
+
+    _debug_fight_rows = VBoxContainer.new()
+    _debug_fight_rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    _debug_fight_rows.add_theme_constant_override("separation", 2)
+    scroll.add_child(_debug_fight_rows)
+
+    _debug_fight_panel = layer
+    add_child(layer)
+    _fill_debug_fight_rows()
+    filter.grab_focus()
+
+
+func _close_debug_fight_picker() -> void:
+    if _debug_fight_panel != null and is_instance_valid(_debug_fight_panel):
+        _debug_fight_panel.queue_free()
+    _debug_fight_panel = null
+    _debug_fight_rows = null
+
+
+# Every BattleStats on disk, sorted by tier then filename. Loaded fresh each time the panel
+# opens so a .tres edited in the editor shows up without restarting the game.
+func _debug_fight_entries() -> Array:
+    var out := []
+    var dir := DirAccess.open("res://battles")
+    if dir == null:
+        return out
+    dir.list_dir_begin()
+    var file_name := dir.get_next()
+    while file_name != "":
+        # Exported builds rename resources to .remap; harmless to strip, debug-only anyway.
+        var trimmed := file_name.trim_suffix(".remap")
+        if trimmed.ends_with(".tres"):
+            var resource: Resource = load("res://battles/" + trimmed)
+            # The folder also holds battle_stats_pool.tres, which is a POOL, not a fight.
+            if resource is BattleStats:
+                var stats: BattleStats = resource
+                out.append({
+                    "name": trimmed.trim_suffix(".tres"),
+                    "tier": stats.battle_tier,
+                    "stats": stats,
+                })
+        file_name = dir.get_next()
+    dir.list_dir_end()
+    out.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+        if a["tier"] != b["tier"]:
+            return a["tier"] < b["tier"]
+        return a["name"] < b["name"])
+    return out
+
+
+func _fill_debug_fight_rows() -> void:
+    if _debug_fight_rows == null or not is_instance_valid(_debug_fight_rows):
+        return
+    for child in _debug_fight_rows.get_children():
+        child.queue_free()
+
+    var needle := _debug_fight_filter.to_lower()
+    var in_pool: Array = battle_stats_pool.pool if battle_stats_pool != null else []
+    for entry: Dictionary in _debug_fight_entries():
+        var label_name: String = entry["name"]
+        if needle != "" and not label_name.to_lower().contains(needle):
+            continue
+        var stats: BattleStats = entry["stats"]
+        # Fights on disk but not in the pool can never come up in a real run - worth seeing.
+        var suffix := "" if in_pool.has(stats) else "   (not in pool)"
+        var row := Button.new()
+        row.text = "%s   %s%s" % [_debug_tier_tag(entry["tier"]), label_name, suffix]
+        row.alignment = HORIZONTAL_ALIGNMENT_LEFT
+        row.custom_minimum_size.y = DEBUG_PICKER_ROW_HEIGHT
+        if suffix != "":
+            row.modulate = Color(1, 1, 1, 0.65)
+        row.pressed.connect(_debug_start_fight.bind(stats, entry["tier"]))
+        _debug_fight_rows.add_child(row)
+
+
+# The reward screen thinks in room types, the picker thinks in battle tiers. Elites and the
+# boss are their own tiers in the pool, so the mapping is exact.
+func _debug_room_type_for_tier(tier: int) -> int:
+    match tier:
+        3: return Room.Type.ELITE
+        4: return Room.Type.BOSS
+        _: return Room.Type.MONSTER
+
+
+func _debug_tier_tag(tier: int) -> String:
+    match tier:
+        3: return "ELITE"
+        4: return "BOSS "
+        _: return "T%d   " % tier
+
+
+# Mirrors _on_battle_room_entered, minus the map room. What that room would have told the
+# reward screen (gold and room type) is carried by _debug_fight_stats/_debug_fight_tier instead.
+func _debug_start_fight(stats: BattleStats, tier: int) -> void:
+    _close_debug_fight_picker()
+    if _debug_fight_prev_act == 0:
+        _debug_fight_prev_act = Global.current_act
+    Global.current_act = 2 if _debug_fight_act2 else 1
+    Global.debug_battle_entry = true
+    _debug_fight_stats = stats
+    _debug_fight_tier = tier
+
+    var battle_scene: Battle = _change_view(BATTLE_SCENE) as Battle
+    battle_scene.char_stats = character
+    battle_scene.relics = relic_handler
+    battle_scene.act_tier = tier
+    battle_scene.battle_stats = stats
+    battle_scene.start_battle()
+    dice_shop.set_available(false)
 
 # Slides the whole "visit the Dice Shop" tip so its arrow lands on the actual Dice Shop button
 # in the top bar - it was authored pointing at the DECK button, one slot too far right.
