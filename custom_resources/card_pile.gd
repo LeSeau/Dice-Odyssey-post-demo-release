@@ -19,6 +19,14 @@ func draw_card() -> Card:
 func add_card(card: Card) -> void:
     cards.append(card)
     card_pile_size_changed.emit(cards.size())
+
+
+# Slots the card at `index` (0 = drawn next) instead of at the back - draw_card() pops the
+# FRONT, so add_card() on the draw pile would bury a card at the bottom. Used by the
+# draw-pile junk injector to shuffle an enemy's card in at a random depth.
+func insert_card(card: Card, index: int) -> void:
+    cards.insert(clampi(index, 0, cards.size()), card)
+    card_pile_size_changed.emit(cards.size())
     
 func remove_card(card: Card) -> void:
     cards.erase(card)

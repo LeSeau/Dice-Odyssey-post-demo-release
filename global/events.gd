@@ -173,6 +173,13 @@ signal add_card_to_hand_requested(card: Card)
 # Arity matters: a handler declared with fewer parameters connects without complaint and then
 # never runs, so every listener has to move with this line.
 signal add_card_to_discard_requested(card: Card, source_global_position: Vector2)
+# The DRAW-pile sibling: the card is shuffled into the draw pile at a random depth, so it can
+# turn up on the very next draw. No enemy emits this yet (the Slanderer deliberately plants
+# in the DISCARD so its pain is deferred); it exists so the injection path and its
+# presentation cover both piles from day one - a future Hex that must be met NOW (the
+# planned hand-locking one) plants here. Same argument contract and the same duplicate()
+# rule as the discard signal above; every listener has to move with this line.
+signal add_card_to_draw_pile_requested(card: Card, source_global_position: Vector2)
 signal show_map_requested
 # Closing the floating dice shop panel. Deliberately NOT shop_exited/show_map_requested:
 # those mean "this room is over, go back to the map", which frees the current view - the
