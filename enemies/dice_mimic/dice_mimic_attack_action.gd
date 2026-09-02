@@ -1,15 +1,17 @@
 extends EnemyAction
 
-@export var damage := 6
+@export var damage := 4
 var base_damage = damage
 
 
-# Odd beats of the mimic's cycle (player turns 2, 4, 6...). Turn 1 belongs to the steal, so
-# this deliberately excludes fight_turn 0 rather than relying on the picker's child order.
-# Together with the guard's "even and >= 2" the three beats partition every fight_turn, which
-# is what keeps the picker's blind get_child(0) fallback unreachable.
+# Every turn after the steal. Together with the steal's `fight_turn == 0` this is a total
+# partition of fight_turn, which is what keeps the picker's blind get_child(0) fallback
+# unreachable.
+#
+# The mimic has no guard beat and no Strength on purpose (2026-09-02): it is a throughput tax,
+# not a damage body, and its fight-mate carries the clock. One clock per fight.
 func is_performable() -> bool:
-    return Global.fight_turn >= 1 and Global.fight_turn % 2 == 1
+    return Global.fight_turn >= 1
 
 
 func perform_action() -> void:

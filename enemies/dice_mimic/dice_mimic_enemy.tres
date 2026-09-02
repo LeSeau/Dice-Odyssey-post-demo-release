@@ -9,5 +9,5 @@ script = ExtResource("1_stats")
 ai = ExtResource("2_ai")
 enemy_name = "Dice Mimic"
 content_center_x = 0.5
-max_health = 28
+max_health = 20
 art = ExtResource("3_art")
