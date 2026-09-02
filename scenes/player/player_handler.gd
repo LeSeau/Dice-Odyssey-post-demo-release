@@ -62,6 +62,7 @@ var character: CharacterStats
 func _ready() -> void:
     Events.card_played.connect(_on_card_played)
     Events.add_card_to_discard_requested.connect(_on_add_card_to_discard_requested)
+    Events.add_card_to_draw_pile_requested.connect(_on_add_card_to_draw_pile_requested)
     Events.block_reset.connect(_on_block_reset)
     Events.add_block.connect(_on_add_block)
     Events.draw_card.connect(_on_draw_card)
@@ -168,6 +169,18 @@ func _on_add_card_to_discard_requested(card: Card, _source_global_position: Vect
     if character == null or card == null:
         return
     character.discard.add_card(card)
+
+
+# Junk planted into the DRAW pile at a random depth: it can be the very next card drawn or
+# sit a few draws down, which is the "it is coming, you do not know when" flavour of an
+# immediate plant. The pile write happens HERE, on the emit, never at the end of the
+# presentation battle_ui plays for it - the next reshuffle/draw may legitimately run before
+# the card has visibly landed (the enemy turn keeps going), and the state must already be
+# true by then. The visual is a story about a write that has already happened.
+func _on_add_card_to_draw_pile_requested(card: Card, _source_global_position: Vector2) -> void:
+    if character == null or card == null:
+        return
+    character.draw_pile.insert_card(card, randi_range(0, character.draw_pile.cards.size()))
 
 
 func draw_cards(amount: int) -> void:

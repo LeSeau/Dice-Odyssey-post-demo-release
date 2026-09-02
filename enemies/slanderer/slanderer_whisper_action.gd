@@ -27,7 +27,11 @@ func perform_action() -> void:
     tween.tween_property(enemy, "global_position", end, 0.4)
     tween.tween_callback(damage_effect.execute.bind(target_array))
     tween.tween_callback(_plant_slander)
-    tween.tween_interval(0.25)
+    # The Slanderer stays in your face while the card it planted is presented on the stage
+    # (junk_plant_presenter.gd) and walks back exactly as it flies off to the pile. Holding
+    # the lunge is what keeps the beat ON ITS MOVE: without it the next enemy's lunge would
+    # cross behind the card mid-read, which is precisely the case in its own paired fight.
+    tween.tween_interval(Global.JUNK_PLANT_PRESENT_TIME)
     tween.tween_property(enemy, "global_position", start, 0.4)
 
     tween.finished.connect(

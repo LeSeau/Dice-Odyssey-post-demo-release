@@ -34,6 +34,14 @@ const DICE_THROW_VOLLEY_SPAN := 1.95
 const DICE_THROW_STAGGER_MIN := 0.12
 # Double or Nothing: how long the coin spins before the outcome resolves (damage or nothing).
 const COIN_FLIP_TIME := 0.6
+# Enemy-planted junk (the Slanderer's Whisper, and every future Hex injector): seconds from
+# the add_card_to_*_pile_requested emit until the presented card LEAVES the stage and streaks
+# into the pile. Same contract as DICE_THROW_FLIGHT_TIME: the planting action holds its lunge
+# pose for exactly this long (tween_interval) so the card is read ON THE ENEMY'S MOVE, and
+# junk_plant_presenter.gd carves its conjure + glide + hold out of this budget rather than
+# adding on top - the enemy walks back the moment the card flies off, never before, never
+# after. Retiming the beat means touching this one number.
+const JUNK_PLANT_PRESENT_TIME := 1.35
 
 
 # Per-die spacing for a volley of `count` thrown dice. THE single source of truth for

@@ -50,27 +50,29 @@ const RESHUFFLE_ARC_HEIGHT := 110.0
 # dedicated shuffle SFX if Julien finds one.
 const RESHUFFLE_SFX := preload("res://drawcardsound.wav")
 
-# Junk plant flourish (2026-09-02): an enemy writing into the player's DISCARD pile was
-# completely silent - the pile counter ticked up by one underneath a damage number, and nothing
-# said a card had just been added to the deck. The Slanderer's whole identity is that write, so
-# it has to be seen. A mini card wearing the junk card's OWN art (so it reads as "that card
-# went in there", not just "a card") arcs from the enemy to the discard pile and lands with a
-# punch on it. Deliberately one card and under a second: it fires mid-enemy-turn, so it has to
-# read at a glance without holding up the turn.
-const JUNK_PLANT_CARD_SIZE := Vector2(38, 54)
-const JUNK_PLANT_STYLE := preload("res://scenes/card_ui/card_ui_normal.tres")
-const JUNK_PLANT_ART_INSET := 4.0
-const JUNK_PLANT_BIRTH_TIME := 0.16
-const JUNK_PLANT_FLIGHT_TIME := 0.62
-const JUNK_PLANT_ARC_HEIGHT := 120.0
-# Placeholder: the draw tick pitched down and quiet. Wants a proper "unwanted card" sound.
-const JUNK_PLANT_SFX := preload("res://drawcardsound.wav")
-
+# Enemy-planted junk (2026-09-02): an enemy writing into your deck used to be a 38px art crop
+# arcing to the discard - it named neither the card, nor the count, nor the pile. The whole
+# presentation now lives in scenes/ui/junk_plant_presenter.gd (built in code, no .tscn): a
+# real card face held readable on the stage under a caption naming the pile and the count,
+# then a comet streak into that pile. BattleUI only forwards the two injection signals and
+# hands it the pile buttons. Listening to the SAME signals player_handler performs the pile
+# write on (never a dedicated visual one): one event, one truth - the story can never play
+# without the write, and never for a card that did not land.
+const JunkPlantPresenter := preload("res://scenes/ui/junk_plant_presenter.gd")
+var junk_presenter
 
 func _ready() -> void:
     Events.player_hand_drawn.connect(_on_player_hand_drawn)
     Events.deck_reshuffled.connect(_on_deck_reshuffled)
-    Events.add_card_to_discard_requested.connect(_on_card_planted_in_discard)
+    junk_presenter = JunkPlantPresenter.new()
+    junk_presenter.name = "JunkPlantPresenter"
+    add_child(junk_presenter)
+    junk_presenter.draw_pile_button = draw_pile_button
+    junk_presenter.discard_pile_button = discard_pile_button
+    Events.add_card_to_discard_requested.connect(
+            _on_card_planted.bind(JunkPlantPresenter.Dest.DISCARD))
+    Events.add_card_to_draw_pile_requested.connect(
+            _on_card_planted.bind(JunkPlantPresenter.Dest.DRAW))
     end_turn_button.pressed.connect(_on_end_turn_button_pressed)
     draw_pile_button.pressed.connect(draw_pile_view.show_current_view.bind("Draw Pile", true))
     discard_pile_button.pressed.connect(discard_pile_view.show_current_view.bind("Discard Pile"))
@@ -287,82 +289,11 @@ func _mini_card_arc_step(t: float, node: Control, p0: Vector2, p1: Vector2, p2: 
     node.global_position = p0.lerp(p1, t).lerp(p1.lerp(p2, t), t) - node.size / 2.0
 
 
-# An enemy just planted a card in the discard pile. Note this listens to the same signal that
-# actually performs the injection (player_handler does the pile write) rather than a dedicated
-# visual one: one event, one truth, so the flourish can never fire without the card landing.
-func _on_card_planted_in_discard(card: Card, source_global_position: Vector2) -> void:
-    if card == null or source_global_position == Vector2.ZERO:
-        # No on-screen source (harness, or a future non-enemy injector). Still acknowledge the
-        # pile so the write is never completely invisible.
-        discard_pile_button.receive_punch(1.12)
-        return
-
-    # Enemies live in the base canvas (Node2D under Battle, moved by the battle Camera2D) while
-    # this UI is a CanvasLayer in screen space, so the origin has to be converted or the card
-    # flies out of a point that only matches while the camera is at rest.
-    var from := get_viewport().get_canvas_transform() * source_global_position
-    var to := discard_pile_button.global_position + discard_pile_button.size / 2.0
-
-    var mini := Panel.new()
-    mini.add_theme_stylebox_override("panel", JUNK_PLANT_STYLE)
-    mini.size = JUNK_PLANT_CARD_SIZE
-    mini.pivot_offset = JUNK_PLANT_CARD_SIZE / 2.0
-    mini.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    mini.z_index = 90
-    mini.scale = Vector2.ZERO
-    # The card owns its own tween and keeps processing through a pause: if the whisper is the
-    # blow that ends the fight, the tree pauses for the game-over panel and a tween owned by
-    # this (pausable) UI would strand the card mid-air instead of letting it clean itself up.
-    mini.process_mode = Node.PROCESS_MODE_ALWAYS
-    add_child(mini)
-    mini.global_position = from - JUNK_PLANT_CARD_SIZE / 2.0
-
-    # Card.icon is typed Texture (the base class), not Texture2D - the same footgun that bit
-    # the relic tooltips. Cast once and skip the art rather than risking the assignment.
-    var art_texture := card.icon as Texture2D
-    if art_texture != null:
-        var art := TextureRect.new()
-        art.texture = art_texture
-        art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-        # COVERED crops the sides of a wide card illustration rather than letterboxing it, which
-        # is what makes a 38px panel still read as a card face.
-        art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-        art.mouse_filter = Control.MOUSE_FILTER_IGNORE
-        mini.add_child(art)
-        art.set_anchors_preset(Control.PRESET_FULL_RECT)
-        art.offset_left = JUNK_PLANT_ART_INSET
-        art.offset_top = JUNK_PLANT_ART_INSET
-        art.offset_right = -JUNK_PLANT_ART_INSET
-        art.offset_bottom = -JUNK_PLANT_ART_INSET
-
-    # Apex above both ends so the card sails over the board instead of sliding across it, and
-    # a little to the enemy's side so the arc reads as "thrown from there".
-    var apex := Vector2(
-        lerpf(from.x, to.x, 0.35),
-        minf(from.y, to.y) - JUNK_PLANT_ARC_HEIGHT
-    )
-    var tween := mini.create_tween()
-    # Born at the enemy: a quick overshoot pop so the eye catches where it came from before it
-    # starts moving. TRANS_BACK finishes almost all of its travel in the first fifth of the
-    # time, which is exactly what a conjure wants.
-    tween.tween_property(mini, "scale", Vector2.ONE, JUNK_PLANT_BIRTH_TIME) \
-        .from(Vector2.ZERO).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-    tween.tween_method(
-            _mini_card_arc_step.bind(mini, from, apex, to),
-            0.0, 1.0, JUNK_PLANT_FLIGHT_TIME) \
-        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-    tween.parallel().tween_property(
-            mini, "rotation", deg_to_rad(randf_range(180.0, 260.0)), JUNK_PLANT_FLIGHT_TIME) \
-        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-    # Shrink into the pile so it reads as absorbed; the punch sells the landing.
-    tween.parallel().tween_property(mini, "scale", Vector2(0.45, 0.45), JUNK_PLANT_FLIGHT_TIME) \
-        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-    tween.parallel().tween_property(mini, "modulate:a", 0.0, 0.14) \
-        .set_delay(JUNK_PLANT_FLIGHT_TIME - 0.14)
-    tween.tween_callback(discard_pile_button.receive_punch.bind(1.2))
-    tween.tween_callback(SFXPlayer.play.bind(JUNK_PLANT_SFX, false, 0.8, -4.0))
-    tween.tween_callback(mini.queue_free)
-
+# An enemy just planted a card in one of the piles (the write already happened in
+# player_handler on this same signal). Bound `dest` says which pile; the presenter does the rest.
+func _on_card_planted(card: Card, source_global_position: Vector2, dest: int) -> void:
+    if is_instance_valid(junk_presenter):
+        junk_presenter.plant(card, source_global_position, dest)
 
 func _on_deck_reshuffled(card_count: int) -> void:
     var from := discard_pile_button.global_position + discard_pile_button.size / 2.0
