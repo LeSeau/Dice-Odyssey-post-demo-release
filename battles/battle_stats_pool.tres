@@ -2,9 +2,6 @@
 
 [ext_resource type="Script" path="res://custom_resources/battle_stats.gd" id="1_wf3rv"]
 [ext_resource type="Script" path="res://custom_resources/battle_stats_pool.gd" id="2_fjg3a"]
-[ext_resource type="Resource" uid="uid://dqmbattle0001" path="res://battles/tier_2_quartermaster.tres" id="31_qm"]
-[ext_resource type="Resource" uid="uid://dslbattle0001" path="res://battles/tier_1_slanderers.tres" id="31_sl"]
-[ext_resource type="Resource" uid="uid://dfambattle001" path="res://battles/tier_2_famished.tres" id="31_fa"]
 [ext_resource type="Resource" uid="uid://uaaa6t2yc0pl" path="res://battles/tier_0_plant.tres" id="3_17iyj"]
 [ext_resource type="Resource" uid="uid://c5rd1m1ogsc8h" path="res://battles/tier_0_crab.tres" id="3_jgii0"]
 [ext_resource type="Resource" uid="uid://8wmrkcqvsqsx" path="res://battles/tier_0_satyrs_3.tres" id="3_qv02c"]
@@ -37,6 +34,9 @@
 [ext_resource type="Resource" uid="uid://pyw3lm0ken75" path="res://battles/tier_1_machopeur_octopus.tres" id="30_mao1"]
 [ext_resource type="Resource" uid="uid://dnwvgja15h8w3" path="res://battles/tier_2_machopeur_octopus.tres" id="30_mao2"]
 [ext_resource type="Resource" uid="uid://dmimicbattle1" path="res://battles/tier_0_dice_mimic.tres" id="30_mimic"]
+[ext_resource type="Resource" path="res://battles/tier_2_famished.tres" id="31_fa"]
+[ext_resource type="Resource" path="res://battles/tier_2_quartermaster.tres" id="31_qm"]
+[ext_resource type="Resource" path="res://battles/tier_1_slanderers.tres" id="31_sl"]
 
 [resource]
 script = ExtResource("2_fjg3a")
