@@ -1,10 +1,7 @@
 extends Control
 
-@onready var roll_golden_dice: Button = $TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/RollGoldenDice
 @onready var quit: Button = $TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/VBoxContainer/Quit
 @onready var dice_panel: Panel = $DicePanel
-@onready var button: Button = $DicePanel/DiceDisplay/Button
-@onready var test: Button = $DicePanel/DiceDisplay/Test
 @onready var roll_dice: Button = $DicePanel/DiceDisplay/RollDice
 @onready var dice_display: TextureRect = $DicePanel/DiceDisplay
 @onready var reward_panel: Panel = $DicePanel/RewardPanel
@@ -14,8 +11,26 @@ extends Control
 @onready var sad_goblin: TextureRect = $DicePanel/SadGoblin
 @onready var audio_listener_2d: AudioStreamPlayer2D = $AudioListener2D
 
+const MODAL_TEXT := preload("res://scenes/events/event_modal_text.gd")
+
+
 var character_stats: CharacterStats
 var run_stats: RunStats
+
+func _ready() -> void:
+    dice_panel.visibility_changed.connect(_recenter_modal_text)
+
+# The chip / recap / result labels are BBCode, and RichTextLabel has no vertical
+# alignment, so they need centring by hand. Done on show rather than in _ready:
+# the chips live in nested containers, which only sort deferred, so their bands
+# still measure 0 the frame _ready runs.
+func _recenter_modal_text() -> void:
+    if not dice_panel.visible:
+        return
+    await get_tree().process_frame
+    MODAL_TEXT.center_labels(dice_panel)
+
+
 
 func setup(character: CharacterStats, stats: RunStats) -> void:
     character_stats = character
@@ -28,10 +43,6 @@ func _on_quit_pressed() -> void:
 func _on_continue_button_pressed() -> void:
     Events.event_exited.emit()
 
-
-
-func _on_button_pressed() -> void:
-    print("rolling golden dice")
 
 func _on_roll_dice_pressed() -> void:
     # Guard against spam-clicking while the roll animation/reward await chain
@@ -75,6 +86,7 @@ func _on_roll_dice_pressed() -> void:
     audio_listener_2d.play()
 
     if roll_result!= 0:
+        roll_dice.hide()
         reward_panel.show()
         var health_reward = roll_result * 5
         # character_stats should always be set by run.gd's setup() call on entering
@@ -88,19 +100,16 @@ func _on_roll_dice_pressed() -> void:
             Events.hp_changed.emit()
 
         # 🔥 Build the reward text manually
-        reward_label.text = "[center]You won [color=green]" + str(health_reward) + " Health[/color]![/center]"
+        reward_label.text = "[center]You won [color=#5ad16b]" + str(health_reward) + " Health[/color]![/center]"
+        MODAL_TEXT.center_label(reward_label)
 
-        # Step 4: Wait another 1.5 seconds, show sad goblin
+        # Step 4: Wait another 1.5 seconds, then fill in the result card
         await get_tree().create_timer(1.5).timeout
+        sad_goblin.show()
         continue_button.show()
         var fountain_heal = preload("res://sounds/fountainheal.wav")
         audio_listener_2d.stream = fountain_heal
         audio_listener_2d.play()
-
-        
-
-func _on_test_pressed() -> void:
-    print("pressed test")
 
 
 func _on_roll_healing_dice_pressed() -> void:
