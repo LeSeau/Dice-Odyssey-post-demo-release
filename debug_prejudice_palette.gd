@@ -48,20 +48,63 @@ const CANDIDATES := {
 		"outline": Color(0.082, 0.075, 0.106),
 		"label": "C - cold bruise indigo, gold border (nearest to Blessing)",
 	},
+	"E_bone": {
+		"bg": Color(0.176, 0.184, 0.176),
+		"border": Color(0.478, 0.494, 0.463),
+		"outline": Color(0.086, 0.090, 0.086),
+		"label": "E - bone body, dull iron border (no gold)",
+	},
+	"F_bile": {
+		"bg": Color(0.145, 0.176, 0.129),
+		"border": Color(0.435, 0.510, 0.373),
+		"outline": Color(0.071, 0.086, 0.063),
+		"label": "F - bile green body, oxidised border (no gold)",
+	},
 }
 
 const SHIPPED := "SHIPPED_baseline"
-const FULL := "D_full_treatment"
+
+# The stacked treatments. D darkens the art; E and F DRAIN it instead (darken ~1.0), because
+# the game already spends "dim" on "you cannot play this right now" (unplayable modulate 0.6 /
+# 0.75). A junk card that is always playable must read FOREIGN, not DISABLED - so E/F keep the
+# art's luminance and take its colour away, tinting the leftover grey off-neutral.
+const TREATMENTS := {
+	"D_full_treatment": {
+		"palette": "A_ash_iron", "art": true, "amount": 0.85, "darken": 0.72,
+		"tint": Color(1.0, 1.0, 1.0), "text": Color(0.66, 0.69, 0.66),
+	},
+	# G/H exist because draining hex.png proved a dead end: that art carries its read in CHROMA,
+	# not luminance (dark violet on near-black), so any desaturation collapses it to a black
+	# rectangle. G therefore leaves the art ALONE and asks whether the chrome alone can carry the
+	# identity once the title and ribbon text actually change colour; H adds only a gentle knock.
+	"G_chrome_only": {
+		"palette": "E_bone", "art": false,
+		"text": Color(0.729, 0.749, 0.706),
+	},
+	"H_chrome_soft_art": {
+		"palette": "E_bone", "art": true, "amount": 0.35, "darken": 0.82,
+		"tint": Color(0.95, 0.97, 0.92), "text": Color(0.729, 0.749, 0.706),
+	},
+	"E_bone_drained": {
+		"palette": "E_bone", "art": true, "amount": 1.0, "darken": 0.97,
+		"tint": Color(0.93, 0.96, 0.88), "text": Color(0.74, 0.76, 0.71),
+	},
+	"F_bile_drained": {
+		"palette": "F_bile", "art": true, "amount": 1.0, "darken": 0.90,
+		"tint": Color(0.80, 0.95, 0.71), "text": Color(0.72, 0.79, 0.66),
+	},
+}
 
 # Desaturating the art needs a shader - modulate only multiplies, it cannot pull chroma out.
 const DESAT_CODE := """
 shader_type canvas_item;
 uniform float amount : hint_range(0.0, 1.0) = 0.85;
 uniform float darken : hint_range(0.0, 1.0) = 0.72;
+uniform vec3 tint = vec3(1.0, 1.0, 1.0);
 void fragment() {
 	vec4 c = texture(TEXTURE, UV);
 	float g = dot(c.rgb, vec3(0.299, 0.587, 0.114));
-	c.rgb = mix(c.rgb, vec3(g), amount) * darken;
+	c.rgb = mix(c.rgb, vec3(g) * tint, amount) * darken;
 	COLOR = c * COLOR;
 }
 """
@@ -87,7 +130,9 @@ func _ready() -> void:
 	await _shoot(SHIPPED, {})
 	for key: String in CANDIDATES:
 		await _shoot(key, CANDIDATES[key])
-	await _shoot(FULL, CANDIDATES["A_ash_iron"])
+	for key: String in TREATMENTS:
+		var treatment: Dictionary = TREATMENTS[key]
+		await _shoot(key, CANDIDATES[treatment["palette"]], treatment)
 
 	print("[prejudice] done -> ", _out_dir)
 	get_tree().quit()
@@ -152,7 +197,7 @@ func _stage_hand() -> CardUI:
 	return slander_ui
 
 
-func _shoot(key: String, palette: Dictionary) -> void:
+func _shoot(key: String, palette: Dictionary, treatment: Dictionary = {}) -> void:
 	var slander_ui := await _stage_hand()
 	if slander_ui == null:
 		print("[prejudice] SKIP ", key, " - no Slander CardUI in hand")
@@ -160,8 +205,8 @@ func _shoot(key: String, palette: Dictionary) -> void:
 
 	if not palette.is_empty():
 		_apply(slander_ui, palette)
-	if key == FULL:
-		_apply_full(slander_ui, palette)
+	if not treatment.is_empty():
+		_apply_full(slander_ui, palette, treatment)
 
 	# Let the fan settle: add_card defers _update_card_positions, and the entrance tween on a
 	# freshly dealt card still has alpha to climb.
@@ -196,22 +241,25 @@ func _apply(ui: CardUI, palette: Dictionary) -> void:
 # The three levers that actually occupy pixels in the fan, on top of the frame palette:
 # the requirement ribbon (a full-width bar), the art (it fills the visible band), and the
 # glow state (can_play_without_dice currently forces HOT, the brightest state in the game).
-func _apply_full(ui: CardUI, palette: Dictionary) -> void:
+func _apply_full(ui: CardUI, palette: Dictionary, treatment: Dictionary) -> void:
 	var ribbon := BASE_STYLEBOX.duplicate() as StyleBoxFlat
 	ribbon.bg_color = (palette["bg"] as Color).lightened(0.06)
 	ribbon.border_color = palette["border"]
 	ui.requirement_panel.add_theme_stylebox_override("panel", ribbon)
-	ui.requirement_label.add_theme_color_override("font_color", Color(0.62, 0.65, 0.62))
+	_recolor_label(ui.requirement_label, treatment["text"])
 
-	var mat := ShaderMaterial.new()
-	var sh := Shader.new()
-	sh.code = DESAT_CODE
-	mat.shader = sh
-	mat.set_shader_parameter("amount", 0.85)
-	mat.set_shader_parameter("darken", 0.72)
-	ui.icon.material = mat
+	if treatment["art"]:
+		var mat := ShaderMaterial.new()
+		var sh := Shader.new()
+		sh.code = DESAT_CODE
+		mat.shader = sh
+		mat.set_shader_parameter("amount", treatment["amount"])
+		mat.set_shader_parameter("darken", treatment["darken"])
+		var tint: Color = treatment["tint"]
+		mat.set_shader_parameter("tint", Vector3(tint.r, tint.g, tint.b))
+		ui.icon.material = mat
 
-	ui.title.add_theme_color_override("font_color", Color(0.66, 0.69, 0.66))
+	_recolor_label(ui.title, treatment["text"])
 	# drop the HOT glow: no expanded border, no bright rim
 	var calm := ui.card_frame.get_theme_stylebox("panel").duplicate() as StyleBoxFlat
 	calm.border_width_left = 2
@@ -224,6 +272,20 @@ func _apply_full(ui: CardUI, palette: Dictionary) -> void:
 	calm.expand_margin_bottom = 2.0
 	ui.card_frame.add_theme_stylebox_override("panel", calm)
 	ui._base_frame_stylebox = calm
+
+
+# A Label carrying a LabelSettings IGNORES add_theme_color_override() entirely - the resource
+# wins. card_ui.gd assigns one to BOTH the title (_apply_title_color, per card, for the font
+# size) and the requirement label, so the only way to recolour either is to duplicate that
+# resource and write font_color on the copy. Duplicating matters twice over: card_title.tres is
+# shared by every CardUI in the game, so mutating it in place would repaint every card's title.
+func _recolor_label(label: Label, color: Color) -> void:
+	if label.label_settings == null:
+		label.add_theme_color_override("font_color", color)
+		return
+	var settings := label.label_settings.duplicate() as LabelSettings
+	settings.font_color = color
+	label.label_settings = settings
 
 
 func _wait_seconds(seconds: float) -> void:

@@ -7,7 +7,7 @@
 script = ExtResource("1_slascr")
 id = "card_slander"
 name = "Slander"
-type = 1
+type = 3
 target = 0
 description = "Does nothing. Play it to be rid of it. Exhaust"
 rarity = 1

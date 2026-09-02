@@ -57,6 +57,25 @@ const BLESSING_STYLEBOX := preload("res://scenes/card_ui/card_ui_blessing.tres")
 const BLESSING_DESC_STYLEBOX := preload("res://scenes/card_ui/card_ui_description_panel_blessing.tres")
 const BLESSING_DESC_LABEL_SETTINGS := preload("res://scenes/card_ui/blessing_card_description_label.tres")
 
+# --- Omen: cards an enemy forced into your deck -----------------------------------------
+# Cold ash body with a DULL IRON border. Normal, Blessing and Celestial cards all share the
+# same gold border, so dropping gold is the loudest mark available for "this one is not
+# yours", and it is one of the few that survives the hand fan (cards overlap at separation
+# -35, so only the left ~105px and the banner are ever read).
+# Measured and rejected: treating the ART. Desaturating it reads as the game already-spent
+# "you cannot play this" dim (UNPLAYABLE_MODULATE_*), and on hex.png it collapses to a black
+# rectangle outright, because that art carries its read in chroma rather than luminance. The
+# art is therefore left completely untouched and the chrome carries the whole identity.
+const OMEN_BANNER_STYLEBOX := preload("res://scenes/card_ui/card_banner_omen.tres")
+const OMEN_STYLEBOX := preload("res://scenes/card_ui/card_ui_omen.tres")
+const OMEN_DESC_STYLEBOX := preload("res://scenes/card_ui/card_ui_description_panel_omen.tres")
+const OMEN_DESC_LABEL_SETTINGS := preload("res://scenes/card_ui/omen_card_description_label.tres")
+const OMEN_REQUIREMENT_NONE_STYLEBOX := preload("res://scenes/card_ui/card_requirement_none_omen.tres")
+const OMEN_NO_REQUIREMENT_LABEL_SETTINGS := preload("res://scenes/card_ui/card_ui_no_requirement_ribbon_omen.tres")
+const OMEN_TITLE_COLOR := Color(0.729412, 0.74902, 0.705882)
+const OMEN_TITLE_OUTLINE_COLOR := Color(0.086275, 0.090196, 0.086275)
+const HOVER_OMEN_STYLEBOX := preload("res://scenes/card_ui/card_ui_hover_omen.tres")
+
 # Rarity gem in the banner's right slot - kept in sync with CardUI's copy of the same
 # constants/logic. Every tier shows a gem, Common included (muted stone gray) - and since the
 # texture is unconditionally overwritten on every set_card(), the reused BeforeCard/AfterCard
@@ -148,7 +167,9 @@ const TooltipScene = preload("res://scenes/ui/tooltip.tscn")
 
 
 func _on_visuals_mouse_entered() -> void:
-    if card and card.can_play_without_dice:
+    if card and card.type == Card.Type.OMEN:
+        card_frame.set("theme_override_styles/panel", HOVER_OMEN_STYLEBOX)
+    elif card and card.can_play_without_dice:
         card_frame.set("theme_override_styles/panel", HOVER_CELESTIAL_STYLEBOX)
     elif card and card.type == Card.Type.BLESSING:
         card_frame.set("theme_override_styles/panel", HOVER_BLESSING_STYLEBOX)
@@ -156,7 +177,9 @@ func _on_visuals_mouse_entered() -> void:
         card_frame.set("theme_override_styles/panel", HOVER_STYLEBOX)
 
 func _on_visuals_mouse_exited() -> void:
-    if card and card.can_play_without_dice:
+    if card and card.type == Card.Type.OMEN:
+        card_frame.set("theme_override_styles/panel", OMEN_STYLEBOX)
+    elif card and card.can_play_without_dice:
         card_frame.set("theme_override_styles/panel", BASE_CELESTIAL_STYLEBOX)
     elif card and card.type == Card.Type.BLESSING:
         card_frame.set("theme_override_styles/panel", BLESSING_STYLEBOX)
@@ -208,7 +231,17 @@ func set_card(value: Card) -> void:
     # keeps showing the PREVIOUS card's Celestial/Blessing styling forever, since nothing else
     # in this file ever clears these overrides. Freshly-instantiated cards (shop/reward grids)
     # never had an override to begin with, so this is a no-op for them.
-    if card.can_play_without_dice:
+    # Omen first: junk is Celestial, so without this it falls into the Celestial branch
+    # below and gets painted teal like a premium card.
+    if card.type == Card.Type.OMEN:
+        card_banner.add_theme_stylebox_override("panel", OMEN_BANNER_STYLEBOX)
+        description_panel.add_theme_stylebox_override("panel", OMEN_DESC_STYLEBOX)
+        card_frame.add_theme_stylebox_override("panel", OMEN_STYLEBOX)
+        if card.requirement == Card.Requirement.NONE:
+            requirement_panel.add_theme_stylebox_override("panel", OMEN_REQUIREMENT_NONE_STYLEBOX)
+            requirement_label.label_settings = OMEN_NO_REQUIREMENT_LABEL_SETTINGS
+        description.add_theme_color_override("font_outline_color", OMEN_DESC_LABEL_SETTINGS.outline_color)
+    elif card.can_play_without_dice:
         description_panel.add_theme_stylebox_override("panel", CELESTIAL_DESC_STYLEBOX)
         card_banner.add_theme_stylebox_override("panel", CELESTIAL_BANNER_STYLEBOX)
         card_frame.add_theme_stylebox_override("panel", SUPPORT_STYLEBOX)
@@ -274,7 +307,15 @@ func set_card(value: Card) -> void:
 func _apply_title_color() -> void:
     var settings := TITLE_LABEL_SETTINGS.duplicate()
     settings.font_size = title_font_size_for(card.name)
-    if card.upgraded:
+    # Omen wins over upgraded: the type identity has to survive whatever else the card is.
+    # The title is the single most-read mark in the fan (the banner band is never covered by
+    # the neighbouring card), so an ash title is what actually sells "not yours" at a glance.
+    # This MUST go through the duplicated LabelSettings - a Label carrying one ignores
+    # add_theme_color_override("font_color", ...) entirely, and silently.
+    if card.type == Card.Type.OMEN:
+        settings.font_color = OMEN_TITLE_COLOR
+        settings.outline_color = OMEN_TITLE_OUTLINE_COLOR
+    elif card.upgraded:
         settings.font_color = UPGRADED_TITLE_COLOR
     title.label_settings = settings
 
@@ -452,7 +493,13 @@ func _on_card_frame_mouse_entered() -> void:
     if card.type == Card.Type.BLESSING:
         tooltips_to_show.append("Blessing")
 
-    if card.can_play_without_dice:
+    if card.type == Card.Type.OMEN:
+        tooltips_to_show.append("Omen")
+
+    # Omen cards are Celestial so the player can always bin them, but leading with "needs no
+    # Dice or Power to play" frames an enemy gift as a perk. The Omen tooltip already carries
+    # the only part that matters here, which is that playing it is how you get rid of it.
+    if card.can_play_without_dice and card.type != Card.Type.OMEN:
         tooltips_to_show.append("Celestial")
 
     # Tags, dice types mentioned in the text, and Power - all ordered by where they read in the
