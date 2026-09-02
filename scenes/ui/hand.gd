@@ -408,13 +408,13 @@ func _reset_playable_flashes() -> void:
     _playable_flash_resting.clear()
 
 func _get_glow_state(card: Card) -> CardUI.PlayableGlow:
-    # Omen before Celestial. Junk IS Celestial, so it used to fall straight into the HOT
+    # Hex before Celestial. Junk IS Celestial, so it used to fall straight into the HOT
     # branch below and an enemy plant rendered as the single brightest card in the hand -
     # pulsing border in the active dice colour, the game premium signal. NEUTRAL rather
     # than NONE because NONE dims, and dim already means "you cannot play this right now",
-    # which would be a second lie: an Omen is always playable, that is how you bin it.
+    # which would be a second lie: a Hex is always playable, that is how you bin it.
     # NEUTRAL is full brightness with no glow, so the card own ash chrome does the talking.
-    if card.type == Card.Type.OMEN:
+    if card.type == Card.Type.HEX:
         return CardUI.PlayableGlow.NEUTRAL
     if card.can_play_without_dice:
         return CardUI.PlayableGlow.HOT

@@ -294,7 +294,7 @@ the already-scoped three, with STS2's real doses:
 |---|---|---|---|---|
 | **Sludge** | unplayable, vanishes at end of turn | Dazed | **Deepling** (act-2 b.Kraken) ink beat | 1/cast, cap 2/fight |
 | **Cinder** | unplayable, take 2 if in hand at end of turn | Burn/Infection | **Ember Fiend** (act-2 Hound) double-hit | 1/cast |
-| **Hex** | "can't play other cards while a Hex is in hand; play it (does nothing) to discard" | *harsher than anything in their act 1* | **Bog Hag** (act-2 Goblin): Unlucky beat → 5 dmg + 1 Hex | 1, cap 1 in deck |
+| **Hex** *(NAME TAKEN - see CLAUDE.md: "Hex" is now the card TYPE for enemy-planted junk, so this card needs a new name before implementation)* | "can't play other cards while a Hex is in hand; play it (does nothing) to discard" | *harsher than anything in their act 1* | **Bog Hag** (act-2 Goblin): Unlucky beat → 5 dmg + 1 Hex | 1, cap 1 in deck |
 | *(wave 2)* Lead Die / Cursed Pact | rolls −1 while held / can't roll Red | Void-class | post-launch | — |
 
 **Hex semantics flag** (open verdict, sharpened by the data): none of STS2's act-1 junk locks

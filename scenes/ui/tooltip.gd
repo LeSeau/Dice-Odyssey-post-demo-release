@@ -93,8 +93,8 @@ func get_tooltip_content(requirement):
         # The panel is fixed-height and silently clips past 3 lines; the old 95-char version
         # sat right on that limit.
         text += "Needs no Dice or Power to play, and doesn't reset your Power."
-    elif requirement == "Omen":
-        # Says nothing about what THIS card does - each Omen writes that in its own
+    elif requirement == "Hex":
+        # Says nothing about what THIS card does - each Hex writes that in its own
         # description. What the CATEGORY has to teach is where the card came from and how
         # long it lasts, because a card the player never drafted is otherwise both an
         # unexplained bad draw AND a scare (it reads as permanent deck damage until you

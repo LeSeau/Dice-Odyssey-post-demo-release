@@ -229,7 +229,7 @@ const BLESSING_STYLEBOX := preload("res://scenes/card_ui/card_ui_blessing.tres")
 const BLESSING_DESC_STYLEBOX := preload("res://scenes/card_ui/card_ui_description_panel_blessing.tres")
 const BLESSING_DESC_LABEL_SETTINGS := preload("res://scenes/card_ui/blessing_card_description_label.tres")
 
-# --- Omen: cards an enemy forced into your deck -----------------------------------------
+# --- Hex: cards an enemy forced into your deck -----------------------------------------
 # Cold ash body with a DULL IRON border. Normal, Blessing and Celestial cards all share the
 # same gold border, so dropping gold is the loudest mark available for "this one is not
 # yours", and it is one of the few that survives the hand fan (cards overlap at separation
@@ -238,14 +238,14 @@ const BLESSING_DESC_LABEL_SETTINGS := preload("res://scenes/card_ui/blessing_car
 # "you cannot play this" dim (UNPLAYABLE_MODULATE_*), and on hex.png it collapses to a black
 # rectangle outright, because that art carries its read in chroma rather than luminance. The
 # art is therefore left completely untouched and the chrome carries the whole identity.
-const OMEN_BANNER_STYLEBOX := preload("res://scenes/card_ui/card_banner_omen.tres")
-const OMEN_STYLEBOX := preload("res://scenes/card_ui/card_ui_omen.tres")
-const OMEN_DESC_STYLEBOX := preload("res://scenes/card_ui/card_ui_description_panel_omen.tres")
-const OMEN_DESC_LABEL_SETTINGS := preload("res://scenes/card_ui/omen_card_description_label.tres")
-const OMEN_REQUIREMENT_NONE_STYLEBOX := preload("res://scenes/card_ui/card_requirement_none_omen.tres")
-const OMEN_NO_REQUIREMENT_LABEL_SETTINGS := preload("res://scenes/card_ui/card_ui_no_requirement_ribbon_omen.tres")
-const OMEN_TITLE_COLOR := Color(0.729412, 0.74902, 0.705882)
-const OMEN_TITLE_OUTLINE_COLOR := Color(0.086275, 0.090196, 0.086275)
+const HEX_BANNER_STYLEBOX := preload("res://scenes/card_ui/card_banner_hex.tres")
+const HEX_STYLEBOX := preload("res://scenes/card_ui/card_ui_hex.tres")
+const HEX_DESC_STYLEBOX := preload("res://scenes/card_ui/card_ui_description_panel_hex.tres")
+const HEX_DESC_LABEL_SETTINGS := preload("res://scenes/card_ui/hex_card_description_label.tres")
+const HEX_REQUIREMENT_NONE_STYLEBOX := preload("res://scenes/card_ui/card_requirement_none_hex.tres")
+const HEX_NO_REQUIREMENT_LABEL_SETTINGS := preload("res://scenes/card_ui/card_ui_no_requirement_ribbon_hex.tres")
+const HEX_TITLE_COLOR := Color(0.729412, 0.74902, 0.705882)
+const HEX_TITLE_OUTLINE_COLOR := Color(0.086275, 0.090196, 0.086275)
 
 # Rarity gem in the banner's right slot (the old dead SupportIcon spot). Every tier shows a
 # gem - Common included (muted stone gray), per Julien: an empty slot on most cards read as
@@ -800,22 +800,22 @@ func _set_card(value: Card) -> void:
             requirement_panel.add_theme_stylebox_override("panel", CELESTIAL_REQUIREMENT_NONE_STYLEBOX)
         description.add_theme_color_override("font_outline_color", CELESTIAL_DESC_LABEL_SETTINGS.outline_color)
 
-    # Omen runs LAST on purpose. Junk is Celestial (you must always be able to bin it
+    # Hex runs LAST on purpose. Junk is Celestial (you must always be able to bin it
     # without spending a roll), so it would otherwise be repainted teal by the block above.
     # The type the enemy gave you has to outrank how the card happens to be played.
-    if card.type == Card.Type.OMEN:
-        card_banner.add_theme_stylebox_override("panel", OMEN_BANNER_STYLEBOX)
-        description_panel.add_theme_stylebox_override("panel", OMEN_DESC_STYLEBOX)
-        card_frame.add_theme_stylebox_override("panel", OMEN_STYLEBOX)
+    if card.type == Card.Type.HEX:
+        card_banner.add_theme_stylebox_override("panel", HEX_BANNER_STYLEBOX)
+        description_panel.add_theme_stylebox_override("panel", HEX_DESC_STYLEBOX)
+        card_frame.add_theme_stylebox_override("panel", HEX_STYLEBOX)
         # Same glow-cache resync as the two branches above: set_playable_visual() lazily
         # caches whatever stylebox CardFrame had on its first call, and would otherwise
         # keep re-applying that stale look every time the card returns to rest.
-        _base_frame_stylebox = OMEN_STYLEBOX
+        _base_frame_stylebox = HEX_STYLEBOX
         _hot_frame_stylebox = null
         if card.requirement == Card.Requirement.NONE:
-            requirement_panel.add_theme_stylebox_override("panel", OMEN_REQUIREMENT_NONE_STYLEBOX)
-            requirement_label.label_settings = OMEN_NO_REQUIREMENT_LABEL_SETTINGS
-        description.add_theme_color_override("font_outline_color", OMEN_DESC_LABEL_SETTINGS.outline_color)
+            requirement_panel.add_theme_stylebox_override("panel", HEX_REQUIREMENT_NONE_STYLEBOX)
+            requirement_label.label_settings = HEX_NO_REQUIREMENT_LABEL_SETTINGS
+        description.add_theme_color_override("font_outline_color", HEX_DESC_LABEL_SETTINGS.outline_color)
     # Fixed bonus requirement logic
     if card.bonus_requirement == Card.Requirement.NONE:
         bonus_effect.hide()
@@ -856,14 +856,14 @@ func _set_card(value: Card) -> void:
 func _apply_title_color() -> void:
     var settings := TITLE_LABEL_SETTINGS.duplicate()
     settings.font_size = title_font_size_for(card.name)
-    # Omen wins over upgraded: the type identity has to survive whatever else the card is.
+    # Hex wins over upgraded: the type identity has to survive whatever else the card is.
     # The title is the single most-read mark in the fan (the banner band is never covered by
     # the neighbouring card), so an ash title is what actually sells "not yours" at a glance.
     # This MUST go through the duplicated LabelSettings - a Label carrying one ignores
     # add_theme_color_override("font_color", ...) entirely, and silently.
-    if card.type == Card.Type.OMEN:
-        settings.font_color = OMEN_TITLE_COLOR
-        settings.outline_color = OMEN_TITLE_OUTLINE_COLOR
+    if card.type == Card.Type.HEX:
+        settings.font_color = HEX_TITLE_COLOR
+        settings.outline_color = HEX_TITLE_OUTLINE_COLOR
     elif card.upgraded:
         settings.font_color = UPGRADED_TITLE_COLOR
     title.label_settings = settings
@@ -1085,13 +1085,13 @@ func _on_card_frame_mouse_entered() -> void:
     if card.type == Card.Type.BLESSING:
         tooltips_to_show.append("Blessing")
 
-    if card.type == Card.Type.OMEN:
-        tooltips_to_show.append("Omen")
+    if card.type == Card.Type.HEX:
+        tooltips_to_show.append("Hex")
 
-    # Omen cards are Celestial so the player can always bin them, but leading with "needs no
-    # Dice or Power to play" frames an enemy gift as a perk. The Omen tooltip already carries
+    # Hex cards are Celestial so the player can always bin them, but leading with "needs no
+    # Dice or Power to play" frames an enemy gift as a perk. The Hex tooltip already carries
     # the only part that matters here, which is that playing it is how you get rid of it.
-    if card.can_play_without_dice and card.type != Card.Type.OMEN:
+    if card.can_play_without_dice and card.type != Card.Type.HEX:
         tooltips_to_show.append("Celestial")
 
     # Tags, dice types mentioned in the text, and Power - all ordered by where they read in the

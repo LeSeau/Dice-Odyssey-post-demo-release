@@ -1,12 +1,12 @@
 class_name Card
 extends Resource
 
-# OMEN = junk an enemy plants in your deck (Slander, and the planned Sludge/Cinder/Hex).
+# HEX = junk an enemy plants in your deck (Slander, and the planned Sludge/Cinder/Hex).
 # Appended deliberately: .tres files store the enum as an int, so adding a value at the END
 # cannot renumber ATTACK/SKILL/BLESSING under the ~219 existing cards. Safe to add because
 # SKILL is read NOWHERE in the project - only ATTACK (player.gd, the directional slash gate)
-# and BLESSING are ever branched on, so OMEN takes nothing away from an existing behaviour.
-enum Type {ATTACK, SKILL, BLESSING, OMEN}
+# and BLESSING are ever branched on, so HEX takes nothing away from an existing behaviour.
+enum Type {ATTACK, SKILL, BLESSING, HEX}
 enum Target {SELF, SINGLE_ENEMY, ALL_ENEMIES, EVERYONE}
 # NOT a drop-rarity axis despite the name - this is the "does playing this card reset your
 # Power" mechanic flag (see hand.gd:296). Drop rarity lives in RarityTier/rarity_tier below;
