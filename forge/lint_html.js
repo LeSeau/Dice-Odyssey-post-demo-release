@@ -56,8 +56,9 @@ sandbox.globalThis = sandbox;
 const fn = new Function('window', 'document', 'globalThis', 'sandbox', `
   with (sandbox) {
     ${code}
-    return { ENEMIES, ENCOUNTERS, STATUSES, RAMPTYPES:
-      (typeof RAMPTYPES !== 'undefined' ? RAMPTYPES : null) };
+    return { ENEMIES, ENCOUNTERS, STATUSES,
+      RAMPTYPES: (typeof RAMPTYPES !== 'undefined' ? RAMPTYPES : null),
+      GROUPS: (typeof GROUPS !== 'undefined' ? GROUPS : null) };
   }
 `);
 
@@ -69,7 +70,7 @@ try {
   process.exit(1);
 }
 
-const { ENEMIES, ENCOUNTERS, STATUSES, RAMPTYPES } = data;
+const { ENEMIES, ENCOUNTERS, STATUSES, RAMPTYPES, GROUPS } = data;
 const fails = [];
 const bad = (s) => fails.push(s);
 
@@ -92,6 +93,25 @@ for (const d of ENEMIES) {
   }
 }
 
+// The roster is drawn from the GROUPS table, not from ENEMIES, so an enemy missing from every
+// group is simply invisible in the page - no error, no gap, it just is not there. A typo in an
+// id does the same thing in reverse. Both are silent, so check them.
+if (GROUPS) {
+  const grouped = new Map();
+  for (const [g, ids] of GROUPS) {
+    for (const id of ids || []) {
+      if (!enemyIds.has(id)) bad(`group "${g}" lists unknown enemy id "${id}"`);
+      grouped.set(id, (grouped.get(id) || []).concat(g));
+    }
+  }
+  for (const d of ENEMIES) {
+    if (!grouped.has(d.id)) bad(`${d.id} is in no GROUPS entry, so it never appears in the roster`);
+  }
+  for (const [id, gs] of grouped) {
+    if (gs.length > 1) bad(`${id} appears in ${gs.length} groups: ${gs.join(', ')}`);
+  }
+}
+
 for (const enc of ENCOUNTERS) {
   for (const slot of enc.lineup || []) {
     if (!enemyIds.has(slot.e)) bad(`encounter ${enc.id}: unknown enemy "${slot.e}"`);
@@ -104,7 +124,8 @@ for (const enc of ENCOUNTERS) {
   }
 }
 
-console.log(`enemies ${ENEMIES.length} | encounters ${ENCOUNTERS.length} | statuses ${STATUSES.length}`);
+console.log(`enemies ${ENEMIES.length} | encounters ${ENCOUNTERS.length} | statuses ${STATUSES.length}`
+  + (GROUPS ? ` | roster groups ${GROUPS.length}` : ''));
 for (const f of fails) console.log('  FAIL ' + f);
 console.log(fails.length ? `\n${fails.length} FAILURE(S)` : '\n0 failures');
 process.exit(fails.length ? 1 : 0);
