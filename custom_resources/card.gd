@@ -436,3 +436,17 @@ func _on_thrown_die_landed(tree: SceneTree, target: Node, damage: int, hit_sound
     die_hit.popup_origin = thrown_impact_pos(final_target)
     die_hit.execute([final_target])
 
+
+# Damage that will land AFTER apply_effects() returns must bake the Berserker x1.5 in now.
+# Global.berserker_boost_active is opened and closed around apply_effects() by play(), so a hit
+# scheduled on a timer - or one that resumes after an await - sees it already false and silently
+# deals base damage. That is what made Flurry+ read 9 / 6 / 6 on an infused Red 6.
+#
+# Call this at SCHEDULE time, never at landing time, and never for a hit that executes inline:
+# damage_effect.gd applies the multiplier itself while the window is open, so pre-multiplying an
+# immediate hit would double it.
+#
+# Enemy-only is handled by the caller: every current consumer retargets within the "enemies"
+# group, and self-damage must never be boosted.
+static func deferred_berserker_damage(amount: int) -> int:
+    return ceili(amount * 1.5) if Global.berserker_boost_active else amount
