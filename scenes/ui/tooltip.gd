@@ -93,6 +93,17 @@ func get_tooltip_content(requirement):
         # The panel is fixed-height and silently clips past 3 lines; the old 95-char version
         # sat right on that limit.
         text += "Needs no Dice or Power to play, and doesn't reset your Power."
+    elif requirement == "Omen":
+        # Says nothing about what THIS card does - each Omen writes that in its own
+        # description. What the CATEGORY has to teach is where the card came from and how
+        # long it lasts, because a card the player never drafted is otherwise both an
+        # unexplained bad draw AND a scare (it reads as permanent deck damage until you
+        # know it is not). Verified in code, not assumed: player_handler.start_battle()
+        # rebuilds draw_pile from deck and makes a FRESH discard, and the injector writes
+        # to character.discard - nothing ever merges the fight piles back into deck.
+        # MEASURED at 57px against a 62px body budget, i.e. 3 lines with ~5px to spare.
+        # The panel clips in silence, so re-measure any rewrite instead of counting chars.
+        text += "An enemy forced this into your deck. It never helps you, and it is gone after this combat."
     # Rarity: say how often you'll see it AND what to expect from it. "A Common card." was
     # circular, and "the most frequent card rarity" told the player nothing they could act on.
     # The Rare line spends its third sentence on the one genuinely actionable fact - every

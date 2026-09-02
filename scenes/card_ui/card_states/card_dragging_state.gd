@@ -21,7 +21,10 @@ func enter() -> void:
         # Position card centered on mouse
         card_ui.global_position = mouse_pos - (card_ui.size / 2)
     
-    if card_ui.card.can_play_without_dice:
+    if card_ui.card.type == Card.Type.OMEN:
+        card_ui.panel.set("theme_override_styles/panel", card_ui.DRAG_STYLEBOX)
+        card_ui.card_frame.add_theme_stylebox_override("panel", card_ui.OMEN_STYLEBOX)
+    elif card_ui.card.can_play_without_dice:
         card_ui.panel.set("theme_override_styles/panel", card_ui.DRAG_CELESTIAL_STYLEBOX)
         card_ui.card_frame.add_theme_stylebox_override("panel", card_ui.SUPPORT_STYLEBOX)
     elif card_ui.card.type == Card.Type.BLESSING:

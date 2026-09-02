@@ -1,0 +1,14 @@
+[gd_resource type="LabelSettings" load_steps=3 format=3 uid="uid://c0m3nr1bb0n01"]
+
+[ext_resource type="FontFile" uid="uid://b2y60c4274gkj" path="res://fonts/Cinzel-Bold.otf" id="1_omnrb"]
+
+[sub_resource type="FontVariation" id="FontVariation_omnrb"]
+base_font = ExtResource("1_omnrb")
+spacing_glyph = 2
+
+[resource]
+line_spacing = 0.0
+font = SubResource("FontVariation_omnrb")
+font_size = 12
+font_color = Color(0.729412, 0.74902, 0.705882, 0.796078)
+shadow_size = 0
