@@ -14,7 +14,7 @@ extends Node
 const VIEW := Vector2i(1280, 720)
 const BG := "res://assets/backgrounds/combat_bg_act1_hallway_mountain_ruins.png"
 const SLUGS := [
-    "brother_odd", "dice_warper", "miser",
+    "brother_odd", "brother_even", "dice_warper", "miser",
     "dice_mimic", "pip_imp", "grave_grub", "amber_tick",
     "boar_knight", "gargoyle", "beetle_brute", "shackled_brute",
     "acolyte", "ash_priest", "stone_oracle", "plague_gambler",
