@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="EnemyStats" load_steps=4 format=3 uid="uid://igk7fqydky2p0"]
+
+[ext_resource type="PackedScene" uid="uid://h9erdr6nnlmvh" path="res://enemies/acolyte/acolyte_enemy_ai.tscn" id="1_ai"]
+[ext_resource type="Texture2D" uid="uid://dd62mknrbnwkj" path="res://assets/enemies/acolyte.png" id="2_art"]
+[ext_resource type="Script" path="res://custom_resources/enemy_stats.gd" id="3_stats"]
+
+[resource]
+script = ExtResource("3_stats")
+ai = ExtResource("1_ai")
+enemy_name = "Dice-Cult Acolyte"
+content_center_x = 0.5
+max_health = 26
+art = ExtResource("2_art")

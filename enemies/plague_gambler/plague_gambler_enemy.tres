@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="EnemyStats" load_steps=4 format=3 uid="uid://kmpkitcirpkib"]
+
+[ext_resource type="PackedScene" uid="uid://o9qszb1fleq5b" path="res://enemies/plague_gambler/plague_gambler_enemy_ai.tscn" id="1_ai"]
+[ext_resource type="Texture2D" uid="uid://cql3k4c144s3x" path="res://assets/enemies/plague_gambler.png" id="2_art"]
+[ext_resource type="Script" path="res://custom_resources/enemy_stats.gd" id="3_stats"]
+
+[resource]
+script = ExtResource("3_stats")
+ai = ExtResource("1_ai")
+enemy_name = "Plague Gambler"
+content_center_x = 0.5
+max_health = 30
+art = ExtResource("2_art")

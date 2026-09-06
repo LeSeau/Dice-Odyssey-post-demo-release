@@ -1,0 +1,24 @@
+[gd_scene load_steps=7 format=3 uid="uid://vkhqxfhuandfr"]
+
+[ext_resource type="Script" path="res://scenes/enemy/enemy_action_picker.gd" id="1_picker"]
+[ext_resource type="Script" path="res://enemies/placeholder_attack_action.gd" id="2_action"]
+[ext_resource type="Texture2D" uid="uid://cm56j6ual41dr" path="res://attack_icon_intent.png" id="3_icon"]
+[ext_resource type="Script" path="res://custom_resources/intent.gd" id="4_intent"]
+[ext_resource type="AudioStream" uid="uid://de2ryat1pxq6" path="res://art/enemy_attack.ogg" id="5_sound"]
+
+[sub_resource type="Resource" id="Resource_znh7z"]
+script = ExtResource("4_intent")
+base_text = "%s"
+icon = ExtResource("3_icon")
+
+[node name="DieKnightEnemyAI" type="Node"]
+script = ExtResource("1_picker")
+
+[node name="PlaceholderAttack" type="Node" parent="."]
+script = ExtResource("2_action")
+intent = SubResource("Resource_znh7z")
+sound = ExtResource("5_sound")
+type = 1
+chance_weight = 10.0
+action_id = "die_knight_attack"
+damage = 12

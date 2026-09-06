@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://dbenchenemy23a"]
+
+[ext_resource type="Script" path="res://debug_bench_enemies.gd" id="1_bench"]
+
+[node name="BenchEnemies" type="Node"]
+script = ExtResource("1_bench")
