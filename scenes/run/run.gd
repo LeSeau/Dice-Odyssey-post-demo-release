@@ -523,6 +523,16 @@ func _get_unique_battle_for_tier(tier: int) -> BattleStats:
         source_tier = ACT2_SOURCE_TIER[tier]
     var available_battles = battle_stats_pool._get_all_battles_for_tier(source_tier)
 
+    # Act gating (2026-09-06). BattleStats.act: 0 = any act, 1 = act 1 only, 2 = act 2
+    # only. Falls back to the unfiltered list if the filter empties the tier, so a bad
+    # act value can never leave a floor with no fight to serve.
+    var act_battles: Array[BattleStats] = []
+    for battle: BattleStats in available_battles:
+        if battle.act == 0 or battle.act == Global.current_act:
+            act_battles.append(battle)
+    if not act_battles.is_empty():
+        available_battles = act_battles
+
     # Filter out used battles
     var unused_battles: Array[BattleStats] = []
     for battle in available_battles:
@@ -555,9 +565,15 @@ func _get_unique_battle_for_tier(tier: int) -> BattleStats:
         current_weight += battle.weight
         if current_weight >= roll:
             used_battles.append(battle)
+            # A group burns its siblings IN THE SAME TIER only (Julien, 2026-09-06). It used
+            # to burn across the whole pool, so the T0 Marauder solo (picked in ~42% of
+            # runs) silently killed all four Marauder pairs of T1/T2 for the run - they
+            # landed at 7-11% each in a 20k-path sim. Per-tier = "no two Marauder fights
+            # in one floor band", which is what the group was for.
             if battle.group != "":
                 for other in battle_stats_pool.pool:
-                    if other.group == battle.group and not used_battles.has(other):
+                    if other.group == battle.group and other.battle_tier == battle.battle_tier \
+                            and not used_battles.has(other):
                         used_battles.append(other)
             return battle
     

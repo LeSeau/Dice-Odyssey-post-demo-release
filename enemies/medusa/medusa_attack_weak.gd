@@ -7,7 +7,9 @@ const WEAK_STATUS = preload("res://statuses/weak.tres")
 var exposed_duration := 2
 var weak_stacks := 2
 
-@export var damage := 12
+# 12 -> 9 (2026-09-06 spice pass): the floor drops so medusa_gaze_action's
+# telegraphed 22 can sit at the tier-2 cap without moving her 4-turn attrition.
+@export var damage := 9
 var base_damage = damage
 
 func is_performable() -> bool:

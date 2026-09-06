@@ -1,6 +1,8 @@
 extends EnemyAction
 
-@export var damage := 15
+# 15 -> 10 (2026-09-06 spice pass): see medusa_gaze_action.gd. This is now the
+# quiet beat, not a second spike.
+@export var damage := 10
 var base_damage = damage
 
 func is_performable() -> bool:

@@ -46,7 +46,7 @@ script = ExtResource("2_m1cal")
 intent = SubResource("Resource_233wy")
 sound = ExtResource("5_cidr0")
 type = 1
-chance_weight = 5.0
+chance_weight = 4.0
 action_id = "leviathan_ink_attack"
 
 [node name="weak_debuff_attack" type="Node" parent="."]
@@ -54,7 +54,7 @@ script = ExtResource("5_yomxc")
 intent = SubResource("Resource_e7v8n")
 sound = ExtResource("5_cidr0")
 type = 1
-chance_weight = 5.0
+chance_weight = 6.0
 action_id = "leviathan_weak_attack"
 
 [node name="dice_theft" type="Node" parent="."]

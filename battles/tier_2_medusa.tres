@@ -11,3 +11,4 @@ gold_reward_min = 40
 gold_reward_max = 50
 enemies = ExtResource("1_uc71j")
 group = ""
+act = 0

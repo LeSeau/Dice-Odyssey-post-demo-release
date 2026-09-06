@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://d3m8xv3lpd3t7"]
+[gd_scene load_steps=17 format=3 uid="uid://d3m8xv3lpd3t7"]
 
 [ext_resource type="Script" path="res://scenes/enemy/enemy_action_picker.gd" id="1_ml0uu"]
 [ext_resource type="Script" path="res://enemies/medusa/medusa_attack_weak.gd" id="2_23nwg"]
@@ -11,6 +11,7 @@
 [ext_resource type="Texture2D" path="res://block_icon_intent.png" id="8_blkic"]
 [ext_resource type="Texture2D" uid="uid://binq5gkgr3pre" path="res://buff_icon_intent.png" id="8_bufic"]
 [ext_resource type="AudioStream" uid="uid://k8m4o3hlwm7l" path="res://art/enemy_block.ogg" id="10_ixvgu"]
+[ext_resource type="Script" path="res://enemies/medusa/medusa_gaze_action.gd" id="12_gaze"]
 
 [sub_resource type="Resource" id="Resource_f0b2u"]
 script = ExtResource("4_6lvhs")
@@ -19,6 +20,11 @@ icon = ExtResource("3_yjgsv")
 icon2 = ExtResource("3_1p0h0")
 
 [sub_resource type="Resource" id="Resource_b5tb2"]
+script = ExtResource("4_6lvhs")
+base_text = "%s"
+icon = ExtResource("3_yjgsv")
+
+[sub_resource type="Resource" id="Resource_gaze1"]
 script = ExtResource("4_6lvhs")
 base_text = "%s"
 icon = ExtResource("3_yjgsv")
@@ -47,6 +53,12 @@ sound = ExtResource("5_317b0")
 type = 1
 chance_weight = 6.0
 action_id = "medusa_attack"
+
+[node name="GazeAction" type="Node" parent="."]
+script = ExtResource("12_gaze")
+intent = SubResource("Resource_gaze1")
+sound = ExtResource("5_317b0")
+action_id = "medusa_gaze"
 
 [node name="BlockAction" type="Node" parent="."]
 script = ExtResource("4_p5663")

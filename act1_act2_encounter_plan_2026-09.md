@@ -12,9 +12,14 @@ The one-line version: **act 1's roster is done; it needs spikes, better elites a
 |---|---|---|
 | 2026-09-06 | Group burn scoped to the tier (was whole-pool) | `scenes/run/run.gd` `_get_unique_battle_for_tier`, gdtoolkit-clean, NOT played |
 | 2026-09-06 | Dice Mimic and Quartermaster removed from the act-1 pool (files kept) — pool 35 → 33 | `battles/battle_stats_pool.tres` |
+| 2026-09-06 | **Spice pass shipped** (step 1): Medusa Petrifying Gaze, Leviathan Ink Tide | 1 new script, 2 AI scenes |
+| 2026-09-06 | **Lava Hound Molten Roar REVERTED same day** (Julien: "lets not add this hp threshold thing to the lava hound, i like how he was before") — second time this beat has been cut | Hound scene and `battle.gd` byte-identical to HEAD again |
+| 2026-09-06 | **Act gating shipped**: `BattleStats.act` + filter; Dice Mimic and Quartermaster back in the pool as act-2-only — pool 33 → 35 | `custom_resources/battle_stats.gd`, `run.gd`, 2 `.tres`, pool |
 | 2026-09-06 | Spike caps (G3) confirmed by Julien | this doc |
 
-⚠ Both game edits were made outside the editor: **restart the editor before playing.** ⚠ Until act 2 has its own pool (step 7), the Mimic and the Quartermaster appear **nowhere** — act 2 recycles act-1 tiers 1–2 through `ACT2_SOURCE_TIER`.
+⚠ All edits were made outside the editor: **restart the editor before playing.** `BattleStats` gained an `@export`, which is exactly the configuration of the documented strip incident — an editor left open with a stale copy would drop `act = 2` from the two `.tres` files and those fights would leak back into act 1.
+
+**Nothing below has been playtested.** Verified: gdtoolkit clean on all 10 touched scripts, the three AI scenes have no dangling references and correct `load_steps`, the pool has 35 entries with no dangling refs, and `enemy_action_picker.gd` was re-read to confirm conditionals are tried before chance beats, in child order.
 
 ---
 
@@ -59,11 +64,12 @@ Caps are on the **raw** number; Exposed on the player and the enemy's own Streng
 | Lurker / Oculus | T1–T2 | one-mechanic (Flux / Parasite) | Keep. |
 | Sigil Slug | T1 | one-mechanic solo | Keep — the model. |
 | Slanderer pair | T1 | junk giver | Keep. |
-| Medusa, Lava Hound | T2 | one-mechanic solos | **Spice** — table in §3 step 1. Parked by Julien ("later"), numbers ready. |
+| Medusa | T2 | one-mechanic solo | **Spiced 09-06** — Gaze 22 on a cadence. See §3 step 1. |
+| Lava Hound | T2 | stat check | **Unchanged.** Roar reverted 09-06; Julien will rework him himself. |
 | Maelstrom | T2 | one-mechanic (Chaos) | Keep — already quiet opener + rising line. |
 | Famished | T2 | Gorge | **Stays in act 1** (Julien). |
-| Dice Mimic | — | tool removal | **Removed 09-06** → act 2 list. |
-| Quartermaster | — | spend cap | **Removed 09-06** → act 2 list (the cap needs act-2 refuel engines to bite anyway). |
+| Dice Mimic | act 2 T0 | tool removal | **Moved to act 2 09-06** (`act = 2`, `battle_tier = 1`). |
+| Quartermaster | act 2 T1–T2 | spend cap | **Moved to act 2 09-06** (`act = 2`, `battle_tier = 2`) — the cap needs act-2 refuel engines to bite anyway. |
 | Dragon Priest | elite | greed tax | **Replaced by Parity Brothers** (step 4). |
 | Lich, Gargantua | elite | Absorb / Greedy | **Keep** (Julien: different questions). |
 | Leviathan | boss | the only ending | Second boss later (step 5). |
@@ -72,18 +78,23 @@ Caps are on the **raw** number; Exposed on the player and the enemy's own Streng
 
 ## 3. Ordered work list
 
-**Step 1 — Spice pass on the T2 solos and the boss (parked by Julien, numbers ready).** Exactly what changes under the G3 caps, all NON PLAYTESTÉ, to be run through the Forge Lab first:
+**Step 1 — Spice pass. SHIPPED 2026-09-06, NOT PLAYTESTED.** As built:
 
-| Enemy | Today | Proposed | Attrition check (per 4-turn cycle) |
+| Enemy | Before | Now | Attrition per 4-turn cycle |
 |---|---|---|---|
-| **Medusa** T2 58 HP | Hiss 12 + Weak 2 (w5) / Bite 15 (w6), both chance; Guard 9 + Str 3 on `% 4 == 3` | **Petrifying Gaze 22** on `% 4 == 2` (turn 3, telegraphed, COND); Hiss **10** + Weak 2 (w5) / Lash **7** (w6) on the two chance turns; Guard unchanged | ~41 → ~39. Spike 15 → 22 (33 %), floor 13.6 → 8.5. Cycle 2 gaze = 25 with her Str — that is her clock. |
-| **Lava Hound** T2 51 HP | Opener 6; Bite 11 / Exposed 1 / Double 7×2, equal weights | **Molten Roar** once at ≤ 50 % HP (interrupts intent): +2 Str, block 5 — first HP threshold in the hallway; after it, Double reads **9×2 = 18** and Bite 13 | EV 8.3 → ~8.3 before the roar, ~11 after. Raw spike 14 → 18 (+Exposed on you = 27; raw cap only). |
-| **Temple Defender** T2 42 HP variant | Strike 10 / Double 6×2 / Guard 5 + Str 1, fixed cycle | T2 variant only: Double **8×2 = 16**, Strike **8** | 27 → 29 per cycle; T1 variant untouched. Optional. |
-| **Famished** T2 56 HP | Gnaw 6 + Weak 1 / Burrow 6 blk + Str 1 / Devour 13, fixed cycle | Gnaw **5** + Weak 1, Devour **16** | 19 → 21 per 3-turn cycle; Devour 13 → 16 (24 %) before Gorge. Optional. |
-| **Leviathan** boss 140 HP | Ink Tide 18 (w5) / Crush 15 + Weak 2 + Exposed 1 (w5); Guard 8 + Str 4 on `% 4 == 2` | **Ink Tide 24** (w4) / Crush **11** + Weak 2 + Exposed 1 (w6); Guard unchanged | ~49.5 → ~52 per cycle. Spike 18 → 24 (36 %); with +4 Str per guard the 3rd Ink Tide is 32 — the boss clock, target fight 6–9 turns. |
+| **Medusa** T2 58 HP | Hiss 12 + Weak 2 (w5) / Bite 15 (w6), both chance; Guard 9 + Str 3 on `% 4 == 3` | New **Petrifying Gaze 22**, CONDITIONAL on `% 4 == 2` with a longer wind-up tween (`medusa_gaze_action.gd`); Hiss **9** + Weak 2 (w5) / Lash **10** (w6); Guard untouched | **40.9 → 41.1** (flat by design). Spike 15 → **22** (33 %), floor 13.6 → 9.5. Her +3 Muscle per cycle makes gaze 2 read 25 and gaze 3 read 28 — that ramp is her clock. |
+| **Lava Hound** T2 51 HP | Opener 6; Bite 11 / Exposed / Double 7×2, equal weights, no ramp | **UNCHANGED — Molten Roar built then reverted on Julien's call, 2026-09-06.** He likes the current shape and wants to change the Hound his own way later. ⚠ This beat has now been cut twice (08-29 and 09-06); do not re-propose it without him raising it first. | Unchanged: ~8.3 DPT, no clock. He is the last stall-safe T2 solo, knowingly. |
+| **Leviathan** boss 140 HP | Ink Tide 18 (w5) / Crush 15 + Weak 2 + Exposed 1 (w5) | **Ink Tide 24** (w4) / Crush **11** (w6); Guard untouched | **49.5 → 48.6** per cycle. Spike 18 → **24** (36 %). With +4 Str per guard the third Ink Tide reads 32, on a 6–9 turn fight. |
+| Temple Defender T2, Famished | — | **Not done.** Both were marked optional; left alone to keep this pass to three fights and one playtest. | — |
 | Skeleton, Sigil Slug, Maelstrom | — | **No change.** Skeleton's 12 is at the T0 cap; Maelstrom already rises 13 → 16 → 19 → 22. | — |
 
-*Where:* `enemies/<slug>/*_ai.tscn` (damage exports live in the scene, not the script) + one new COND action for the Gaze and one HP-threshold action for the Roar (first `health <= max/2` check in the roster — keep it on the action, not the status). *Proof:* Forge Lab DPT parity, then the fight harness; T2 attrition target 12–22 per fight unchanged. *Done when:* one "he's hitting for 22" turn per T2 solo without a fight leaving the ledger.
+⚠ **The damage numbers live in the SCRIPT, not the scene.** Every one of these actions does `var base_damage = damage` at class scope, which runs **before** Godot applies the scene's exported override — so a `damage = 22` line in a `.tscn` would set `damage` and be ignored by `perform_action()`. None of the touched actions had a scene override; the script default is the live value, and that is what was edited.
+
+⚠ **If a per-fight flag is ever added** (the reverted roar used one), it must be reset in **both** `reset_run_state()` and `battle.gd::start_battle()`. Miss either and it fires once per RUN instead of once per fight — the exact bug already fixed once on this enemy.
+
+⚠ **A new action node must never be child 0** of an AI scene, because `enemy_action_picker.gd` ends on a blind `return get_child(0)`.
+
+*Still to prove:* Forge Lab DPT parity, then a playtest. *Done when:* one "he's hitting for 22" turn per T2 solo without a fight leaving the ledger.
 
 **Step 2 — The statue → act 2.** Julien: the Shackled Brute belongs in act 2, and its art is already on the Quartermaster. So the act-2 list carries a countdown body (new art needed, or the Quartermaster body inherits the chained pattern), and act 1's countdown feeling comes from step 1's cadenced spikes (Medusa's turn-3 Gaze is the statue in miniature).
 
@@ -93,7 +104,9 @@ Caps are on the **raw** number; Exposed on the player and the enemy's own Streng
 
 **Step 5 — Second act-1 boss.** Later (Julien). Bone Colossus remains the candidate (HP threshold + split + summon in one body; builds the spawn hook the Necromancer needs).
 
-**Step 6 — Act 2 gets its own list (Julien: yes).** Design session first: a slate for act 2 with one question per fight, seeded by Dice Mimic, Quartermaster, the Brute countdown, the Forge's act-2 kits (Cinderlord, Necromancer, Gorgon, Harlequin, Bog Hag, Deepling, Tempest, Warden), and the junk ladder. Then plumbing: an `act` field on `BattleStats` + pool filtering by act, replacing `ACT2_SOURCE_TIER`. Reskins stay as the art of native bodies.
+**Step 6 — Act 2 gets its own list (Julien: yes).** **The plumbing is now done** (2026-09-06): `BattleStats.act` (0 = any act, 1 = act 1 only, 2 = act 2 only) and the filter in `run.gd::_get_unique_battle_for_tier`, which falls back to the unfiltered tier if the filter would empty it. Dice Mimic (`battle_tier = 1`, `act = 2`) and Quartermaster (`battle_tier = 2`, `act = 2`) are the first two users, so through `ACT2_SOURCE_TIER` the Mimic serves act-2 floors 1–3 and the Quartermaster act-2 floors 4–13. Both get the normal act-2 runtime treatment from `battle.gd::_apply_act2_scaling` — Mimic 20 HP → 31 and Goblin 22 → 34 at act-2 tier 0; Quartermaster 54 → 70 or 94 depending on the band.
+
+What remains is the **design session**: a slate for act 2 with one question per fight, seeded by those two, the Brute countdown, the Forge's act-2 kits (Cinderlord, Necromancer, Gorgon, Harlequin, Bog Hag, Deepling, Tempest, Warden) and the junk ladder. Then author act-2-only fights with `act = 2` and retire `ACT2_SOURCE_TIER` recycling once there are enough of them. Reskins stay as the art of native bodies.
 
 **Step 7 — More junk givers (Julien: yes).** Act 1: Leviathan's Ink beat injects 1 Sludge, cap 3 (baseline §4.1) once Sludge exists. Act 2: Sludge on Deepling cap 2, Cinder on Ember Fiend, Hex on Bog Hag cap 1.
 
@@ -113,5 +126,7 @@ Caps are on the **raw** number; Exposed on the player and the enemy's own Streng
 
 ## 5. Open
 
-1. Step 1 numbers: Forge Lab check, then a single playtest — when Julien wants it.
-2. Act-2 design session (step 6) — the next big one.
+1. **Playtest the spice pass.** Two fights to feel: Medusa (does the turn-3 gaze read as a wind-up?) and Leviathan (is 24 into a 32 too much on a 6–9 turn fight?). Forge Lab parity check first if you want the numbers double-checked before playing.
+2. **The Lava Hound is Julien's** — he wants to change him a bit, his own way. Until he says how, the fight ships as it is and act 1 has no HP-threshold beat.
+2. **Act-2 design session** (step 6) — the next big one. The plumbing is ready; it needs the list.
+3. Temple Defender T2 and Famished bumps were left undone as optional. Say if you want them.

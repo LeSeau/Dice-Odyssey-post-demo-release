@@ -7,7 +7,8 @@ const WEAK_STATUS = preload("res://statuses/weak.tres")
 var exposed_duration := 2
 var weak_stacks := 2
 
-@export var damage := 15
+# 15 -> 11 (2026-09-06 spice pass): the quiet beat. See 1.gd for the trade.
+@export var damage := 11
 var base_damage = damage
 
 func is_performable() -> bool:

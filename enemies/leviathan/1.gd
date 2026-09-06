@@ -7,7 +7,12 @@ const WEAK_STATUS = preload("res://statuses/weak.tres")
 var exposed_duration := 2
 var ink_duration := 3
 
-@export var damage := 18
+# 18 -> 24 (2026-09-06 spice pass): the boss's telegraphed beat, at the boss cap
+# (24 = 36% of the 66 HP pool). Its weight drops 5 -> 4 in the AI scene and the
+# Crush beat softens 15 -> 11 at weight 6, so expected damage per chance turn barely
+# moves (16.5 -> 16.2) while the worst turn goes from 18 to 24. With his +4 Muscle
+# guard every 4 turns the third Ink Tide reads 32, which is the fight ending.
+@export var damage := 24
 var base_damage = damage
 
 func is_performable() -> bool:
