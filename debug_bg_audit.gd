@@ -65,7 +65,7 @@ const FIGHTS_T12 := [
 	"res://battles/tier_2_defender_satyr.tscn",
 ]
 const FIGHTS_ELITE := [
-	"res://battles/tier_elite_dragonpriest.tscn",
+	"res://battles/tier_elite_brothers.tscn",
 	"res://battles/tier_elite_lich.tscn",
 	"res://battles/tier_elite_gargantua.tscn",
 ]

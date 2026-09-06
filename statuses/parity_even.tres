@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ParityFeedStatus" load_steps=3 format=3 uid="uid://bparityeven01"]
+
+[ext_resource type="Texture2D" uid="uid://bq5udms3e2sq4" path="res://debuff_icon_purple.png" id="1_icon"]
+[ext_resource type="Script" path="res://statuses/parity_feed.gd" id="2_script"]
+
+[resource]
+script = ExtResource("2_script")
+id = "parity_even"
+type = 2
+stack_type = 0
+can_expire = false
+duration = 0
+stacks = 1
+icon = ExtResource("1_icon")
+tooltip = ""
+hide_when_zero = false
+hide_counter_when_zero = false

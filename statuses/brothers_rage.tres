@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="BrothersRageStatus" load_steps=3 format=3 uid="uid://bbrorage0001"]
+
+[ext_resource type="Texture2D" uid="uid://c04ddi4gtse5k" path="res://gptfurystatus.png" id="1_icon"]
+[ext_resource type="Script" path="res://statuses/brothers_rage.gd" id="2_script"]
+
+[resource]
+script = ExtResource("2_script")
+id = "brothers_rage"
+type = 2
+stack_type = 0
+can_expire = false
+duration = 0
+stacks = 3
+icon = ExtResource("1_icon")
+tooltip = ""
+hide_when_zero = false
+hide_counter_when_zero = false

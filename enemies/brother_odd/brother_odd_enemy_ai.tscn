@@ -1,24 +1,37 @@
-[gd_scene load_steps=7 format=3 uid="uid://u5isdt7rtjyb2"]
+[gd_scene load_steps=9 format=3 uid="uid://u5isdt7rtjyb2"]
 
 [ext_resource type="Script" path="res://scenes/enemy/enemy_action_picker.gd" id="1_picker"]
-[ext_resource type="Script" path="res://enemies/placeholder_attack_action.gd" id="2_action"]
-[ext_resource type="Texture2D" uid="uid://cm56j6ual41dr" path="res://attack_icon_intent.png" id="3_icon"]
+[ext_resource type="Script" path="res://enemies/brother_strike_action.gd" id="2_strike"]
+[ext_resource type="Script" path="res://enemies/brother_guard_action.gd" id="3_guard"]
 [ext_resource type="Script" path="res://custom_resources/intent.gd" id="4_intent"]
-[ext_resource type="AudioStream" uid="uid://de2ryat1pxq6" path="res://art/enemy_attack.ogg" id="5_sound"]
+[ext_resource type="Texture2D" uid="uid://cm56j6ual41dr" path="res://attack_icon_intent.png" id="5_atkicon"]
+[ext_resource type="Texture2D" uid="uid://bm8mrkcar7cyh" path="res://block_icon_intent.png" id="6_blkicon"]
+[ext_resource type="AudioStream" uid="uid://de2ryat1pxq6" path="res://art/enemy_attack.ogg" id="7_atksound"]
+[ext_resource type="AudioStream" uid="uid://k8m4o3hlwm7l" path="res://art/enemy_block.ogg" id="8_blksound"]
 
-[sub_resource type="Resource" id="Resource_cho6h"]
+[sub_resource type="Resource" id="Resource_brother_odd_strike"]
 script = ExtResource("4_intent")
 base_text = "%s"
-icon = ExtResource("3_icon")
+icon = ExtResource("5_atkicon")
+
+[sub_resource type="Resource" id="Resource_brother_odd_guard"]
+script = ExtResource("4_intent")
+base_text = "%s"
+icon = ExtResource("6_blkicon")
 
 [node name="BrotherOddEnemyAI" type="Node"]
 script = ExtResource("1_picker")
 
-[node name="PlaceholderAttack" type="Node" parent="."]
-script = ExtResource("2_action")
-intent = SubResource("Resource_cho6h")
-sound = ExtResource("5_sound")
-type = 1
-chance_weight = 10.0
-action_id = "brother_odd_attack"
-damage = 8
+[node name="Strike" type="Node" parent="."]
+script = ExtResource("2_strike")
+intent = SubResource("Resource_brother_odd_strike")
+sound = ExtResource("7_atksound")
+action_id = "brother_odd_strike"
+turn_parity = 0
+
+[node name="Guard" type="Node" parent="."]
+script = ExtResource("3_guard")
+intent = SubResource("Resource_brother_odd_guard")
+sound = ExtResource("8_blksound")
+action_id = "brother_odd_guard"
+turn_parity = 1
