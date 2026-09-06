@@ -204,6 +204,10 @@ const CALM_HIGH_HANG := 0.05
 const CALM_HIGH_HANG_FRAC := 0.7
 const CALM_MAX_HANG := 0.15
 const CALM_MAX_FALL_TIME := 0.085
+# Squash and release steps of the launch. Named because _build_roll_calm now measures the
+# whole flight to time the air whoosh, and bare literals here would drift out of sync with
+# it silently.
+const CALM_SQUASH_TIME := 0.05
 # Landing rattle, every roll, scaled by value^2 so low rolls stay quiet: on a d6 a 1-3
 # doesn't shake at all (under LAND_SHAKE_MIN), a 4 barely trembles, a 6 rattles hard.
 const LAND_SHAKE_STRENGTH := 8.0
@@ -219,11 +223,41 @@ const LAND_THUD_SOUND := preload("res://sounds/dicerollsound3.mp3")
 # PLACEHOLDER landing audio, auditionable live in debug builds. The big-roll SMASH moved to
 # Global (Global.high_roll_sound()) so the debug panel's SFX button and the F9 shortcut share
 # one selection that also survives leaving the fight - F9 now just drives that same list.
-# The RISER (swell at the max-roll hang, leading INTO the smash) is still local and still
-# folder-driven: drop candidates into res://debug_sfx_candidates/riser/ and press F10 during
-# any fight - each press swaps the stream, previews it once and prints the filename. The
-# debug_* folder name rides the web export's exclude_filter, so candidates never ship.
-var land_riser_sound: AudioStream = null  # none by default - F10 auditions candidates
+# The RISER: the air whoosh that runs across a max-roll flight and leads INTO the smash.
+# Four of them, picked at random per max roll, so the biggest moment in a turn does not
+# play the identical sound every time (the landing smash is fixed, the approach is not).
+#
+# All four were cut against the measured flight and share one contract: audible within
+# ~15ms of the die leaving the pad, and ~0.435s long, the mean flight. The onset is the
+# part that matters. Julien judged five candidates purely on it - 15ms read as perfect,
+# 65ms as slightly late, 125ms as too late - while their peaks sat anywhere from 105 to
+# 300ms without him minding. Any future whoosh added here has to open immediately; where
+# it crests is taste.
+#
+# The 0.435s length is load-bearing: _play_land_riser stretches the sample onto each
+# roll's real airtime, and that only stays near 1.0 if candidates are cut to the mean.
+#
+# A fifth candidate (the stinger's own build-up) was cut - Julien did not like it - and
+# stays in res://debug_sfx_candidates/riser with the rest of the audition set. That folder
+# rides the web export's exclude_filter, which is why the shipped four live in sounds/.
+# Paths plus a runtime load(), NOT preload(): a preload of a file whose .import is missing
+# is a PARSE error that takes all of dice.gd down with it, so a freshly added audio file
+# would mean no dice at all until the editor next scanned. Same reason the red socket art
+# is loaded this way. Loaded once on first max roll and cached; a path that fails to load
+# is skipped, so the worst case is a quieter whoosh pool rather than a broken fight.
+const LAND_RISER_PATHS: Array[String] = [
+    "res://sounds/whoosh_throwhard.ogg",
+    "res://sounds/whoosh_powerful.ogg",
+    "res://sounds/whoosh_quickair.ogg",
+    "res://sounds/whoosh_air.ogg",
+]
+var _land_riser_streams: Array[AudioStream] = []
+var _land_riser_loaded := false
+# Riser gain. Was -4.0, which Julien could not hear at all (2026-09-06): whoosh material is
+# sparse, and it sits directly under a landing that fires LAND_THUD plus the max smash at
+# +4.0. Raised 7 dB so the swell reads as part of the beat rather than as room tone. This is
+# the single tuning lever if it ends up too loud instead.
+const LAND_RISER_VOLUME_DB := 3.0
 const LAND_THUD_BASE_PITCH := 0.72
 const LAND_THUD_CHAIN_PITCH_STEP := 0.07
 const LAND_THUD_CHAIN_PITCH_CAP := 6
@@ -1341,15 +1375,30 @@ func _build_roll_calm(tween: Tween, faces: Array, start_position: Vector2,
         if val_frac >= CALM_HIGH_HANG_FRAC:
             hang_time = CALM_HIGH_HANG * randf_range(0.7, 1.3)
 
+    # Air whoosh, max rolls only. Fires at the START of the flight, not at the hang it used
+    # to sit on (Julien, 2026-09-06: it should start almost exactly the same time as you hit
+    # the roll button, because the point of the sfx is to add impact to the die BEING in the
+    # air). It now covers the whole airtime rather than only the held beat before the smash.
+    #
+    # Called directly rather than through tween_callback: roll_dice() already fires its own
+    # roll sound this way, and a tweener would land one idle frame later for no gain.
+    #
+    # The airtime is not constant - rise and hang are both jittered per roll, giving 0.395 to
+    # 0.483s - so the sample is stretched onto THIS roll's flight inside _play_land_riser
+    # instead of being cut to a fixed guess and drifting up to ~45ms either side of the smash.
+    if is_max:
+        var squash_time := 0.0 if _die_coiled else CALM_SQUASH_TIME
+        _play_land_riser(squash_time + CALM_SQUASH_TIME + rise_time + hang_time + fall_time)
+
     # Anticipation squash - the only "wind-up" cue left now that there's no spin to
     # telegraph. Skipped when the ROLL button already coiled the die on button_down (the
     # held press IS the wind-up); the release step below then launches straight from the
     # held compression, which is the whole button->die weld.
     if not _die_coiled:
-        tween.tween_property(dice_display, "scale", Vector2(1.12, 0.82), 0.05) \
+        tween.tween_property(dice_display, "scale", Vector2(1.12, 0.82), CALM_SQUASH_TIME) \
             .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
     _die_coiled = false
-    tween.tween_property(dice_display, "scale", Vector2(1.0, 1.0), 0.05) \
+    tween.tween_property(dice_display, "scale", Vector2(1.0, 1.0), CALM_SQUASH_TIME) \
         .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
     var apex := start_position + Vector2(arc_x, -hop_height)
@@ -1360,9 +1409,6 @@ func _build_roll_calm(tween: Tween, faces: Array, start_position: Vector2,
 
     if hang_time > 0.0:
         if is_max:
-            # Pre-crush riser slot: fires as the max-roll hang begins, leading into the
-            # landing smash. Silent unless a riser candidate is selected (F10 audition).
-            tween.tween_callback(_play_land_riser)
             # The held beat before the smash, with a tiny shiver - the die vibrating
             # with potential rather than parking mid-air.
             var shiver_steps := 3
@@ -2246,11 +2292,8 @@ func _tween_emanation_shader_param(t: Tween, param_name: String, value, duration
 # F9 = crush (the big-roll smash), F10 = riser (the max-roll hang swell). F9 is now only a
 # keyboard shortcut for the debug panel's SFX button, so the two can never hold different
 # ideas of which crush candidate is selected; the riser stays local and folder-driven
-# (.ogg/.wav/.mp3 in res://debug_sfx_candidates/riser, cycling file 1..N then back to none).
+# (.ogg/.wav/.mp3 in res://debug_sfx_candidates/riser), both now driven by the debug panel.
 # Debug builds only; the folder rides the debug_* export exclusion so candidates never ship.
-var _riser_audition_index := -1
-
-
 func _unhandled_input(event: InputEvent) -> void:
     if not OS.is_debug_build():
         return
@@ -2261,7 +2304,8 @@ func _unhandled_input(event: InputEvent) -> void:
         if Global.debug_overlay != null:
             Global.debug_overlay.cycle_sfx(1)
     elif key.keycode == KEY_F10:
-        _cycle_riser_candidate()
+        if Global.debug_overlay != null:
+            Global.debug_overlay.cycle_riser(1)
     elif key.keycode == KEY_F11:
         _debug_stock_dice()
 
@@ -2296,41 +2340,41 @@ func _debug_stock_dice() -> void:
     print("[debug] stocked all 9 dice types to %d" % DEBUG_STOCK_AMOUNT)
 
 
-func _cycle_riser_candidate() -> void:
-    var dir_path := "res://debug_sfx_candidates/riser"
-    var files: Array[String] = []
-    var dir := DirAccess.open(dir_path)
-    if dir:
-        for f: String in dir.get_files():
-            var lower := f.to_lower()
-            if lower.ends_with(".ogg") or lower.ends_with(".wav") or lower.ends_with(".mp3"):
-                files.append(f)
-        files.sort()
-    if files.is_empty():
-        print("[sfx-audition] no candidates in %s - drop .ogg/.wav/.mp3 there first" % dir_path)
+# Fired by the CALM builder at the START of a max-roll flight, so the whoosh covers the
+# whole airtime and decays into the landing smash rather than peaking on top of it.
+func _ensure_land_riser_streams() -> void:
+    if _land_riser_loaded:
         return
-    var idx := _riser_audition_index + 1
-    if idx >= files.size():
-        idx = -1  # wrap through the default before cycling the files again
-    _riser_audition_index = idx
-    if idx == -1:
-        land_riser_sound = null
-        print("[sfx-audition] riser -> none (default)")
-        return
-    var stream := load(dir_path + "/" + files[idx]) as AudioStream
+    _land_riser_loaded = true
+    for path: String in LAND_RISER_PATHS:
+        var stream := load(path) as AudioStream
+        if stream == null:
+            push_warning("[dice] riser whoosh missing: %s" % path)
+            continue
+        _land_riser_streams.append(stream)
+
+
+func _play_land_riser(flight_time := 0.0) -> void:
+    # The debug panel's AIR button overrides the random pick when it is enabled; with the
+    # panel retired that stays null and every max roll draws from the shipped four.
+    var stream: AudioStream = Global.debug_land_riser_sound
     if stream == null:
-        print("[sfx-audition] could not load %s (not imported yet? refocus the editor once)" % files[idx])
+        _ensure_land_riser_streams()
+        if _land_riser_streams.is_empty():
+            return
+        stream = _land_riser_streams.pick_random()
+    if stream == null:
         return
-    land_riser_sound = stream
-    print("[sfx-audition] riser -> %s (%d of %d)" % [files[idx], idx + 1, files.size()])
-    SFXPlayer.play(stream, false, 1.0, -4.0)
-
-
-# Silent unless a riser candidate is selected via F10. Fired by the CALM builder as the
-# max-roll hang begins, so the swell leads into the landing smash.
-func _play_land_riser() -> void:
-    if land_riser_sound:
-        SFXPlayer.play(land_riser_sound, false, randf_range(0.96, 1.04), -4.0)
+    # Stretch the candidate onto this roll's actual airtime so its peak always meets the
+    # landing smash. Candidates are authored at ~0.435s (the mean flight), so the ratio sits
+    # near 1 and the shift lands around +-11%, which reads as variation on whoosh material
+    # rather than as a pitch change. Clamped so a candidate authored at a very different
+    # length plays near its own pace instead of being pitched into a cartoon.
+    var pitch := randf_range(0.96, 1.04)
+    var sample_len := stream.get_length()
+    if flight_time > 0.0 and sample_len > 0.0:
+        pitch = clampf(sample_len / flight_time, 0.85, 1.2)
+    SFXPlayer.play(stream, false, pitch, LAND_RISER_VOLUME_DB)
 
 
 # Helper function to apply the roll result (unified logic)

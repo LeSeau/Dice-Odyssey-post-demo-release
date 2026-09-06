@@ -163,15 +163,18 @@ func _ready() -> void:
     SettingsManager.load_and_apply()
     Input.set_custom_mouse_cursor(CURSOR_TEXTURE, Input.CURSOR_ARROW, CURSOR_HOTSPOT)
 
-    # The debug A/B picker panel (global/debug_overlay.gd) used to be constructed here in
-    # debug builds. RETIRED 2026-08-28 at Julien's request ("remove the debug top left"): its
-    # SFX job is finished (dicecrush2 was picked off it on 08-27 and is now the shipped
-    # DEFAULT_HIGH_ROLL_SOUND below). It never reached players either way - it was always
-    # behind OS.is_debug_build() - this only clears it off the editor-run screen.
-    # The script is still on disk (cut content stays, per project convention): re-enable by
-    # restoring the two lines below. Everything downstream already tolerates its absence -
-    # debug_overlay stays null and both readers (dice.gd's F9, player.gd's hero swap) are
-    # null-guarded, so the shipped sound and shipped hero art are what you get.
+    # The debug A/B picker panel (global/debug_overlay.gd), top-left, debug builds only.
+    # Three rows: SFX (max-roll smash), AIR (mid-air whoosh), HERO (player sprite).
+    #
+    # RETIRED TWICE, both times once its job was done: 2026-08-28 after the crush sound was
+    # picked, brought back 2026-09-06 to hunt the mid-air whoosh, retired again the same day
+    # once four whooshes were chosen off it. Re-enable by uncommenting the three lines below.
+    #
+    # Everything downstream tolerates its absence: debug_overlay stays null and all three
+    # readers (dice.gd's F9 and F10, player.gd's hero swap) are null-guarded, so you get the
+    # shipped sound, the random whoosh and the shipped hero art. F10 in particular does
+    # nothing while this is off - it delegates to the panel rather than owning a list of its
+    # own, which is why it silently did nothing during the first retirement.
     #   if OS.is_debug_build():
     #       debug_overlay = load("res://global/debug_overlay.gd").new()
     #       add_child(debug_overlay)
@@ -582,22 +585,50 @@ var debug_battle_entry := false
 # smash, and the player sprite. Both selections live here rather than on the node that uses
 # them so they survive scene changes and battle restarts - and are deliberately kept OUT of
 # reset_run_state() and the save dict: they are a dev preference, not run state.
-# detonationsound is the shipped max-roll smash since 2026-08-29 (Julien: "my dice crush sfx
-# is too aggressive"). It supersedes dicecrush2 (the 08-27 in-game A/B pick), which itself
-# superseded dicecrush3 and, before that, impact1.ogg - that file stays where it is either
-# way, it is still the card sound on ~40 .tres files and deleting it would silence them.
+# dicecrushsound is the shipped max-roll smash since 2026-09-06 (Julien picked it himself).
+# Source: Freesound 868220 by tommasomotteran, "mystic rune stinger viking percussion magic".
+# It supersedes detonationsound (08-29), which superseded dicecrush2 (the 08-27 in-game A/B
+# pick), which superseded dicecrush3 and, before that, impact1.ogg - impact1 stays where it
+# is either way, it is still the card sound on ~40 .tres files and deleting it would silence
+# them.
 #
-# The two samples are not interchangeable at the same gain, so the play gain at the call site
-# moved with this: measured, dicecrush2 is mean -8.1 dB / peak 0.0 dB over 3.24s (a hot,
-# clipped, long crunch) while detonationsound is mean -16.2 dB / peak -1.0 dB over 2.16s. A
-# straight swap would have dropped the celebration ~8 dB and buried it. See dice.gd's
-# is_max_roll branch.
+# The file was NOT dropped in raw. Measured, the download was 4.00s with 164ms of digital
+# silence at the head and a 190ms build-up swelling into the hit at 309ms, then 2.06s of dead
+# air. Shipped here: cut at the zero crossing 0.3ms before the transient (peak now lands at
+# 0ms), tail trimmed to 1.64s, 1.5ms fade-in against the click. Julien asked for the hit to be
+# at the very start, and this is the same trap as chargedicesound (273ms of leading silence,
+# read as a code timing bug for a whole session) - always measure the envelope of a new sample
+# before wiring it.
 #
-# Note it is also statuses/status_earthquake.gd's HIT_SOUND. The two rarely coincide (one is
-# a lucky roll, the other a start-of-turn payout) but it is now a shared boom, not a sound
-# that means one thing.
-const DEFAULT_HIGH_ROLL_SOUND := preload("res://detonationsound.mp3")
+# Shipped as .ogg, not .mp3, on purpose: Godot decodes mp3 with minimp3, which does not honour
+# the LAME gapless tag, so every mp3 gains roughly 25ms of encoder-delay silence at the head in
+# game that ffmpeg will not show you. Harmless on a sustained boom, but the whole point of this
+# file is that the hit is at sample zero. Ogg Vorbis has no such padding.
+#
+# Loudness: normalised, then soft-clipped (tanh, +8 dB drive) because Julien asked for louder
+# on 2026-09-06 and the straight normalise was not it. A sparse percussive stinger peaks fine
+# and still reads quiet, since perceived loudness follows the body rather than the transient.
+# Measured: RMS over the first 400ms went -19.2 -> -13.4 dBFS, so ~6 dB louder to the ear,
+# against detonationsound's -11.3. Peak stayed at -1.2 dBFS, so the call-site gain in dice.gd's
+# is_max_roll branch could stay at +4.0 and nothing newly clips. That +4.0 is the lever if it
+# needs to move again; do not chase loudness by raising it much past +5, the output peak is
+# already about +2.8 dBFS into a -0.5 dB SFX bus.
+#
+# A plain compressor was tried first and made it 6 dB QUIETER: a 90ms release held the gain
+# reduction over the body it was supposed to lift. Soft-clip drive is the right tool here.
+#
+# The 190ms build-up that got cut off is a candidate for the mid-air anticipation sound Julien
+# is still hunting for. Not wired to anything yet.
+#
+# Note statuses/status_earthquake.gd deliberately still uses detonationsound: the earthquake
+# payout keeps the old boom, so the two beats no longer share one sample.
+const DEFAULT_HIGH_ROLL_SOUND := preload("res://dicecrushsound.ogg")
 var debug_high_roll_sound: AudioStream = null  # null = shipped default
+# Debug override for the mid-air whoosh. null - the shipped behaviour, since the panel that
+# sets it is retired - means dice.gd draws at random from its four LAND_RISER_SOUNDS. Set
+# only by the panel's AIR button, and kept here rather than on dice.gd so the button, the
+# F10 shortcut and the die can never disagree about which candidate is selected.
+var debug_land_riser_sound: AudioStream = null
 var debug_player_texture: Texture2D = null  # null = the shipped CharacterStats.art
 # Untyped on purpose: typing it as Node would make dice.gd's call to cycle_sfx() a compile
 # error, since custom methods are invisible on a base-class-typed var (same reason

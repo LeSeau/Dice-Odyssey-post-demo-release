@@ -7,6 +7,11 @@ extends CanvasLayer
 #          plus sound_high_roll.wav, plus anything dropped into res://debug_sfx_candidates/
 #          crush (the folder dice.gd's F9 audition already used - F9 now drives THIS list, so
 #          the shortcut and the button can no longer disagree about what is selected).
+#   AIR  - cycles the mid-air whoosh that plays across a max-roll flight, from
+#          res://debug_sfx_candidates/riser. Selecting one previews the whoosh AND the
+#          landing smash 0.435s later, i.e. the pair as it actually lands in a fight -
+#          judging the whoosh on its own tells you almost nothing about the beat.
+#          F10 drives this same list.
 #   HERO - cycles the player sprite between the shipped art and whatever sits in
 #          res://debug_hero_candidates (the four Telegram recolours of the current hero).
 #
@@ -39,15 +44,22 @@ const SFX_CANDIDATES: Array[String] = [
     "res://sound_high_roll.wav",
 ]
 const SFX_CANDIDATE_DIR := "res://debug_sfx_candidates/crush"
+const RISER_CANDIDATE_DIR := "res://debug_sfx_candidates/riser"
+# Candidates are authored at the mean max-roll flight; the preview waits this long
+# before firing the smash so the pair is auditioned at its real spacing.
+const RISER_PREVIEW_GAP := 0.435
 # Scanned rather than hardcoded so dropping a fifth/sixth recolour in just works. The debug_*
 # name rides the web export's exclude_filter, so none of it can ever ship.
 const HERO_CANDIDATE_DIR := "res://debug_hero_candidates"
 
 var _sfx_paths: Array[String] = []
 var _hero_paths: Array[String] = []
+var _riser_paths: Array[String] = []
 var _sfx_index := 0
+var _riser_index := 0
 var _hero_index := 0
 var _sfx_button: Button
+var _riser_button: Button
 var _hero_button: Button
 var _collapse_button: Button
 
@@ -62,6 +74,9 @@ func _ready() -> void:
     for path: String in SFX_CANDIDATES:
         _sfx_paths.append(path)
     _sfx_paths.append_array(_scan_dir(SFX_CANDIDATE_DIR, [".ogg", ".wav", ".mp3"]))
+
+    _riser_paths.append("")
+    _riser_paths.append_array(_scan_dir(RISER_CANDIDATE_DIR, [".ogg", ".wav", ".mp3"]))
 
     _hero_paths.append("")
     _hero_paths.append_array(_scan_dir(HERO_CANDIDATE_DIR, [".png", ".jpg", ".webp"]))
@@ -125,6 +140,11 @@ func _build_ui() -> void:
     _sfx_button.gui_input.connect(_on_button_gui_input.bind(_cycle_sfx))
     body.add_child(_sfx_button)
 
+    _riser_button = _make_button(font, BUTTON_MIN_WIDTH)
+    _riser_button.pressed.connect(_cycle_riser.bind(1))
+    _riser_button.gui_input.connect(_on_button_gui_input.bind(_cycle_riser))
+    body.add_child(_riser_button)
+
     _hero_button = _make_button(font, BUTTON_MIN_WIDTH)
     _hero_button.pressed.connect(_cycle_hero.bind(1))
     _hero_button.gui_input.connect(_on_button_gui_input.bind(_cycle_hero))
@@ -184,6 +204,7 @@ func _on_button_gui_input(event: InputEvent, cycler: Callable) -> void:
 
 func _toggle_collapsed() -> void:
     _sfx_button.visible = not _sfx_button.visible
+    _riser_button.visible = _sfx_button.visible
     _hero_button.visible = _sfx_button.visible
     _collapse_button.text = "-" if _sfx_button.visible else "+"
 
@@ -204,6 +225,30 @@ func _cycle_sfx(step: int) -> void:
     # Audition it straight away - the whole point is judging candidates without having to roll
     # a max in a real fight first.
     SFXPlayer.play(Global.high_roll_sound(), false, 1.0, -2.0)
+
+
+# Public so the F10 shortcut in dice.gd drives the same index this panel displays.
+func cycle_riser(step: int) -> void:
+    _cycle_riser(step)
+
+
+func _cycle_riser(step: int) -> void:
+    _riser_index = wrapi(_riser_index + step, 0, _riser_paths.size())
+    var path := _riser_paths[_riser_index]
+    if path.is_empty():
+        Global.debug_land_riser_sound = null
+    else:
+        Global.debug_land_riser_sound = load(path) as AudioStream
+    _refresh_labels()
+    if Global.debug_land_riser_sound == null:
+        return
+    # Audition the PAIR, not the whoosh alone: the whole question is whether it meets
+    # the smash cleanly, and a lone whoosh cannot answer that. Matches the in-fight gain
+    # so what you hear here is what a max roll will sound like.
+    SFXPlayer.play(Global.debug_land_riser_sound, false, 1.0, 3.0)
+    var timer := get_tree().create_timer(RISER_PREVIEW_GAP)
+    timer.timeout.connect(func() -> void:
+        SFXPlayer.play(Global.high_roll_sound(), false, 1.0, 4.0))
 
 
 func _cycle_hero(step: int) -> void:
@@ -238,7 +283,10 @@ func _load_texture(path: String) -> Texture2D:
 
 func _refresh_labels() -> void:
     _sfx_button.text = "SFX  %d/%d  %s" % [
-            _sfx_index + 1, _sfx_paths.size(), _label_for(_sfx_paths[_sfx_index], "impact1")]
+            _sfx_index + 1, _sfx_paths.size(), _label_for(_sfx_paths[_sfx_index], "dicecrushsound")]
+    _riser_button.text = "AIR  %d/%d  %s" % [
+            _riser_index + 1, _riser_paths.size(),
+            _label_for(_riser_paths[_riser_index], "none")]
     _hero_button.text = "HERO %d/%d  %s" % [
             _hero_index + 1, _hero_paths.size(), _label_for(_hero_paths[_hero_index], "current")]
 
