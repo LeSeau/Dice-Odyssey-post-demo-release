@@ -20,6 +20,8 @@ func _ready()  -> void:
     var main_menu_theme = preload("res://main_menu_theme_v2.ogg")
     SFXPlayer.play(main_menu_theme)
     get_tree().paused = false
+    # Lift whatever curtain got us here (quitting a run covers before change_scene).
+    Curtain.reveal()
     # Load Run only shown when a run save actually exists. Both buttons share the
     # same ornate menu-button style (main_menu.tscn) - the background art itself
     # (menu_bg_dawn.png) no longer has any button or logo painted into it.
@@ -99,7 +101,9 @@ func _start_load_run() -> void:
     var new_run_sound = preload("res://success.mp3")
     SFXPlayer.stop()
     SFXPlayer.play(new_run_sound)
-    await get_tree().create_timer(new_run_sound.get_length()).timeout
+    # Fade out instead of freezing the menu for the sting's full 2.0s. SFXPlayer is an
+    # autoload, so the sting keeps playing across the scene change; run.gd reveals.
+    await Curtain.cover()
     get_tree().change_scene_to_packed(RUN_SCENE)
 
 func _on_new_run_pressed() -> void:
@@ -115,7 +119,9 @@ func _on_start_with_tutorial_pressed() -> void:
     var new_run_sound = preload("res://success.mp3")
     SFXPlayer.stop()
     SFXPlayer.play(new_run_sound)
-    await get_tree().create_timer(new_run_sound.get_length()).timeout
+    # Fade out instead of freezing the menu for the sting's full 2.0s. SFXPlayer is an
+    # autoload, so the sting keeps playing across the scene change; run.gd reveals.
+    await Curtain.cover()
     get_tree().change_scene_to_packed(RUN_SCENE)
 
 
@@ -124,7 +130,9 @@ func _on_start_without_tutorial_pressed() -> void:
     var new_run_sound = preload("res://success.mp3")
     SFXPlayer.stop()
     SFXPlayer.play(new_run_sound)
-    await get_tree().create_timer(new_run_sound.get_length()).timeout
+    # Fade out instead of freezing the menu for the sting's full 2.0s. SFXPlayer is an
+    # autoload, so the sting keeps playing across the scene change; run.gd reveals.
+    await Curtain.cover()
     get_tree().change_scene_to_packed(RUN_SCENE)
 
 

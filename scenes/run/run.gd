@@ -153,6 +153,11 @@ func _late_init() -> void:
         _start_run()
     _on_update_dice_top_bar()
     map_music.play()
+    # Lifts the curtain the main menu dropped before change_scene. Placed after the
+    # start/load branch so the map (or the loadout picker, which _start_run opens instead)
+    # is fully built underneath before anything becomes visible. Harmless when the run is
+    # booted directly from the editor: reveal() on an already-clear screen is a no-op.
+    Curtain.reveal()
 
 
 # The RelicBar and the Discord pin live on CanvasLayers, so they float above EVERY view -
@@ -366,10 +371,15 @@ func _change_view(scene: PackedScene) -> Node:
     return new_view
     
 func _show_map() -> void:
+    # One cover here buys the fade for every way back to the map: battle reward, shop,
+    # campfire, event, treasure and the act-2 entry all route through this function.
+    # Everything below runs behind the curtain, so the view swap is never seen.
+    await Curtain.cover()
     # Whatever hid the run HUD (an event panel, the card-reward picker, an end screen's
     # Continue) is done by the time we're back on the map, so restore it unconditionally
     # here rather than pairing every hide with its own show - one screen forgetting would
     # otherwise leave the player without a relic bar for the rest of the run.
+    # Restored AFTER the cover so the relic bar reappearing is hidden by it.
     Events.end_screen_hud_visibility.emit(true)
     # Act transition beat: the first return to the map after the act-1 boss (i.e. right
     # after the boss reward screen exits) is intercepted by the dice infusion screen.
@@ -378,6 +388,7 @@ func _show_map() -> void:
     if act_transition_pending:
         act_transition_pending = false
         _show_dice_infusion()
+        Curtain.reveal()
         return
     if Global.tutorial_dice_shop_explanation_needed:
         _align_dice_shop_explanation()
@@ -397,6 +408,8 @@ func _show_map() -> void:
     # resumes from here - i.e. back on the map, the room not yet re-entered (v1 scope:
     # no mid-combat saves, see save_manager.gd).
     _save_checkpoint()
+    # Not awaited: the map is already up and its own pulse/pawn can play under the fade.
+    Curtain.reveal()
 
 
 func _setup_event_connections() -> void:
@@ -738,6 +751,11 @@ func _on_map_exited(room: Room) -> void:
     # the map must never be able to trigger entering a new room.
     if map_consult_mode:
         return
+    # Leaving the map is the one transition with a beat in front of it already: the pawn
+    # hop (0.42s) and the room's select ring both finish before map.gd emits map_exited,
+    # so the order reads click -> hop -> land -> dip -> new screen. Everything below runs
+    # behind the curtain, floor label included.
+    await Curtain.cover()
     dice_shop_explanation_box.hide()
     _update_floor_label()
     match room.type:
@@ -758,6 +776,9 @@ func _on_map_exited(room: Room) -> void:
         Room.Type.EVENT:
             if room.is_secret_fight:
                 _on_battle_room_entered(room)
+                # This branch returns early, so it needs its own reveal - without it the
+                # curtain would stay up over the fight.
+                Curtain.reveal()
                 return
             # Check if we have events available
             if event_stats_pool.pool.size() > 0:
@@ -807,6 +828,10 @@ func _on_map_exited(room: Room) -> void:
             # full-screen panel had the room and was moved down instead (see the dice infusion
             # title, "Upgrade a Card", the dice shop panel). Restored by _show_map().
             Events.end_screen_hud_visibility.emit(false)
+
+    # Every match arm has finished building its screen by here (the one arm that returns
+    # early reveals for itself), so this is the single reveal for entering any room.
+    Curtain.reveal()
 
 
 

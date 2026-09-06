@@ -82,6 +82,9 @@ func _on_main_menu_pressed() -> void:
 	get_tree().paused = false
 	# Same recipe as the pause menu's quit: the music autoloads survive the scene
 	# change, so without these the run's music would keep looping under the menu.
+	# Dip to black before the swap, and let the music play through the dip - it is cut
+	# below, at full black, instead of at full brightness.
+	await Curtain.cover()
 	MusicPlayer.stop()
 	SFXPlayer.stop()
 	get_tree().change_scene_to_file(MAIN_MENU_SCENE_PATH)

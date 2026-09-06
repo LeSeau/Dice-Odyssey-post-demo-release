@@ -279,6 +279,9 @@ func _on_confirm_quit_pressed() -> void:
     # Fight music runs through the MusicPlayer autoload, which survives the scene
     # change - without this it would keep looping under the main menu's own theme
     # (the menu plays its theme via SFXPlayer and never stops MusicPlayer itself).
+    # Dip to black before the swap, and let the music play through the dip - it is cut
+    # below, at full black, instead of at full brightness.
+    await Curtain.cover()
     MusicPlayer.stop()
     SFXPlayer.stop()
     hide()
