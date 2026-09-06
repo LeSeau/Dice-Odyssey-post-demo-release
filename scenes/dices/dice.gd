@@ -164,13 +164,14 @@ var roll_style: RollStyle = ROLL_STYLE_DEFAULT
 # ---- Rare surprise flight -------------------------------------------------------------
 # A roll that already MATTERS occasionally arrives in a different presentation. Tuning
 # knobs, all in one place:
-#   CHANCE          how often an eligible roll gets one (Julien asked for ~2%)
+#   CHANCE          how often an eligible roll gets one (2% at first, raised to 5% on
+#                   2026-09-06 - Julien: "a little bit less rare")
 #   MIN_VAL_FRAC    "big roll" gate - fraction of the die's own top face, so a 3 on a d3
 #                   qualifies exactly like a 12 on a d12 (same ladder rule as the roll feel)
 #   MIN_POWER       "big power" gate - an alternative way in, for a modest roll landing on
 #                   an already-huge bank
 #   MAX_PER_FIGHT   hard cap: the beat has to stay a surprise, not a mechanic
-const SURPRISE_ROLL_CHANCE := 0.02
+const SURPRISE_ROLL_CHANCE := 0.05
 const SURPRISE_ROLL_MIN_VAL_FRAC := 0.8
 const SURPRISE_ROLL_MIN_POWER := 18
 const SURPRISE_ROLL_MAX_PER_FIGHT := 2
