@@ -52,7 +52,7 @@ const LOADOUTS: Array[Dictionary] = [
     {
         "id": "acrobat",
         "title": "The Acrobat",
-        "dice": {"odd": 2, "red": 1},
+        "dice": {"blue": 1, "red": 1, "odd": 1},
     },
     {
         "id": "elf",
