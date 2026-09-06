@@ -152,9 +152,26 @@ func shake_horizontal_impact(thing: Node2D, impact: Impact) -> void:
 #     singleton Object outside the scene tree.
 # Doing the interpolation manually sidesteps all three, and Tween.interpolate_value is
 # still available as a STATIC helper, so the easing curves cost nothing.
+#
+# CLOCK (2026-09-05, trailer capture). The wall clock below is right for the shipped game and
+# WRONG for every capture, because a forced timestep decouples wall time from output time:
+#   * --fixed-fps headless: a frame costs ~1 ms of wall time, so wall time crawls against
+#     frames and a 0.34 s freeze stretches past 4000 frames (measured, it never recovered);
+#   * --write-movie: a frame costs 50-100 ms to encode, so wall time races and the same
+#     freeze collapses to two frames, turning every impact in the video into a stutter.
+# Rather than re-derive output time from `delta` (which is scaled by the very value being
+# ramped, and lags a frame behind it, so the arithmetic is fragile exactly when frame times
+# jitter), a capture harness declares the timestep it is running at and the ramp counts
+# frames. `capture_frame_step` is 0.0 in every shipped build, so the wall-clock path here is
+# byte-for-byte the one that has always shipped and no playtested feel changes.
+# Pinned by debug_trailer_hitstop.gd, which asserts frames under a forced timestep and real
+# seconds under a variable one.
+var capture_frame_step := 0.0
+
 var _ramp_active := false
+var _ramp_elapsed := 0.0
 var _ramp_start_ms := 0
-var _ramp_duration_ms := 0
+var _ramp_duration := 0.0
 var _ramp_from := 1.0
 var _ramp_trans: Tween.TransitionType = Tween.TRANS_QUAD
 
@@ -169,16 +186,20 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
     if not _ramp_active:
         return
-    # Real elapsed time - deliberately not `delta`, which is scaled by the very value
-    # being animated.
-    var elapsed := float(Time.get_ticks_msec() - _ramp_start_ms)
-    if elapsed >= float(_ramp_duration_ms) or _ramp_duration_ms <= 0:
+    if capture_frame_step > 0.0:
+        # One rendered frame is one step of output time, whatever it cost to produce.
+        _ramp_elapsed += capture_frame_step
+    else:
+        # Real elapsed time - deliberately not `delta`, which is scaled by the very value
+        # being animated.
+        _ramp_elapsed = float(Time.get_ticks_msec() - _ramp_start_ms) / 1000.0
+    if _ramp_elapsed >= _ramp_duration or _ramp_duration <= 0.0:
         Engine.time_scale = 1.0
         _ramp_active = false
         return
     Engine.time_scale = Tween.interpolate_value(
         _ramp_from, 1.0 - _ramp_from,
-        elapsed, float(_ramp_duration_ms),
+        _ramp_elapsed, _ramp_duration,
         _ramp_trans, Tween.EASE_IN)
 
 
@@ -199,13 +220,16 @@ func hit_stop(duration: float = 0.05, time_scale: float = HIT_STOP_DEPTH,
     #
     # (The reference CANCELS its previous hit-stop instead of composing. Ours is
     # deliberately the other way round, for the AoE reason above.)
-    var now_ms := Time.get_ticks_msec()
-    var end_ms := now_ms + int(duration * 1000.0)
-    var current_end_ms := _ramp_start_ms + _ramp_duration_ms
-    if not _ramp_active or end_ms > current_end_ms:
+    # Compared as time REMAINING on the running ramp, which is the same test the old
+    # wall-clock end-stamp made, expressed on whichever clock the ramp is running on.
+    var remaining := 0.0
+    if _ramp_active:
+        remaining = _ramp_duration - _ramp_elapsed
+    if not _ramp_active or duration > remaining:
         _ramp_active = true
-        _ramp_start_ms = now_ms
-        _ramp_duration_ms = int(duration * 1000.0)
+        _ramp_elapsed = 0.0
+        _ramp_start_ms = Time.get_ticks_msec()
+        _ramp_duration = duration
         _ramp_from = Engine.time_scale
         _ramp_trans = trans
 

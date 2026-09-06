@@ -7,7 +7,7 @@
 script = ExtResource("1_w3x7t")
 id = "flux"
 type = 2
-stack_type = 2
+stack_type = 0
 can_expire = false
 duration = 1
 stacks = 1
