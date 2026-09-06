@@ -18,7 +18,9 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
             
             var damage_effect = DamageEffect.new()
             damage_effect.sound = sound
-            damage_effect.amount = modifiers.get_modified_value(Global.roll_value, Modifier.Type.DMG_DEALT)
+            # Waves after the first land past the Berserker window; bake the boost in.
+            var raw := modifiers.get_modified_value(Global.roll_value, Modifier.Type.DMG_DEALT)
+            damage_effect.amount = raw if i == 0 else Card.deferred_berserker_damage(raw)
             damage_effect.execute(live_targets)
             
             if i < hit_count - 1:

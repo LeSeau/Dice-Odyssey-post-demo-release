@@ -19,7 +19,11 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
             var base_damage = Global.roll_value
             damage_effect.sound = sound
 
-            damage_effect.amount = modifiers.get_modified_value(base_damage, Modifier.Type.DMG_DEALT)
+            # Hit 2 lands after an await, by which point Card.play() has closed the
+            # Berserker window - so bake the boost in now. Hit 1 stays raw because
+            # damage_effect applies the multiplier itself while the window is open.
+            var raw := modifiers.get_modified_value(base_damage, Modifier.Type.DMG_DEALT)
+            damage_effect.amount = raw if i == 0 else Card.deferred_berserker_damage(raw)
             damage_effect.execute(targets)
 
             if i == 0:

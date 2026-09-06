@@ -18,7 +18,7 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     var tree := target.get_tree()
     Events.coin_flip.emit(heads, Global.last_played_card_position, target)
     var timer := tree.create_timer(Global.COIN_FLIP_TIME, false)
-    timer.timeout.connect(_on_coin_resolved.bind(tree, target, heads, damage))
+    timer.timeout.connect(_on_coin_resolved.bind(tree, target, heads, Card.deferred_berserker_damage(damage)))
     Events.reset_charged_card.emit()
 
 

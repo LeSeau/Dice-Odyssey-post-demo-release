@@ -19,7 +19,7 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     _strike(target, damage)
     if _is_exposed(target):
         var timer := target.get_tree().create_timer(HIT_INTERVAL, false)
-        timer.timeout.connect(_on_second_hit.bind(target, damage))
+        timer.timeout.connect(_on_second_hit.bind(target, Card.deferred_berserker_damage(damage)))
     Events.dice_roll_reset.emit()
 
 

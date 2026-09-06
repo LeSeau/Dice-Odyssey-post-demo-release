@@ -32,7 +32,9 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
             if Global.dice_type == "red":
                 base_damage += 1
             
-            damage_effect.amount = modifiers.get_modified_value(base_damage, Modifier.Type.DMG_DEALT)
+            # Hits after the first land past the Berserker window; bake the boost in.
+            var raw := modifiers.get_modified_value(base_damage, Modifier.Type.DMG_DEALT)
+            damage_effect.amount = raw if i == 0 else Card.deferred_berserker_damage(raw)
             damage_effect.execute([random_enemy])
             
             if i == 0:

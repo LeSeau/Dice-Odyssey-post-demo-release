@@ -26,7 +26,7 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
         # Pause-safe timer, and the target is re-validated on arrival - it may have died to
         # the first hit (same pattern as stampede.gd / the thrown-die landings).
         var timer := target.get_tree().create_timer(HIT_INTERVAL, false)
-        timer.timeout.connect(_on_second_hit.bind(target, damage))
+        timer.timeout.connect(_on_second_hit.bind(target, Card.deferred_berserker_damage(damage)))
     Events.dice_roll_reset.emit()
 
 

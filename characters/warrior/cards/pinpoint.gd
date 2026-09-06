@@ -12,7 +12,9 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     if Global.has_rolled_6_this_turn:
         await targets[0].get_tree().create_timer(0.5).timeout
         var bonus_damage := DamageEffect.new()
-        bonus_damage.amount = modifiers.get_modified_value(base_damage, Modifier.Type.DMG_DEALT)
+        # Past the await, so the Berserker window is already closed - bake the boost in.
+        bonus_damage.amount = Card.deferred_berserker_damage(
+                modifiers.get_modified_value(base_damage, Modifier.Type.DMG_DEALT))
         bonus_damage.sound = sound
         bonus_damage.execute(targets)
     

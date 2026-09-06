@@ -19,7 +19,7 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
         var target: Node = targets[0]
         var tree := target.get_tree()
         var timer := tree.create_timer(0.25, false)
-        timer.timeout.connect(_on_second_hit.bind(tree, target, damage))
+        timer.timeout.connect(_on_second_hit.bind(tree, target, Card.deferred_berserker_damage(damage)))
     Events.dice_roll_reset.emit()
     Events.reset_charged_card.emit()
 
