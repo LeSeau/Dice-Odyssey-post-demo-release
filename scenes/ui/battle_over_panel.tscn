@@ -63,8 +63,8 @@ corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 shadow_color = Color(0, 0, 0, 0.35)
-shadow_size = 5
-shadow_offset = Vector2(0, 3)
+shadow_size = 4
+shadow_offset = Vector2(0, 2)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_discord_btn_normal"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
@@ -138,7 +138,7 @@ layout_mode = 0
 offset_left = 213.0
 offset_top = 85.0
 offset_right = 1068.0
-offset_bottom = 635.0
+offset_bottom = 660.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_lostpanel")
 
 [node name="TitleLabel" type="Label" parent="LostPanel"]
@@ -200,10 +200,10 @@ script = ExtResource("8_rstat")
 
 [node name="MainMenuButton" type="Button" parent="LostPanel"]
 layout_mode = 0
-offset_left = 36.0
+offset_left = 56.0
 offset_top = 496.0
-offset_right = 196.0
-offset_bottom = 542.0
+offset_right = 216.0
+offset_bottom = 544.0
 theme_override_colors/font_color = Color(0.85, 0.81, 0.72, 1)
 theme_override_colors/font_hover_color = Color(0.988235, 0.933333, 0.843137, 1)
 theme_override_fonts/font = ExtResource("6_f3kgd")
@@ -216,10 +216,10 @@ text = "Main Menu"
 [node name="TryAgainButton" type="Button" parent="LostPanel"]
 texture_filter = 2
 layout_mode = 0
-offset_left = 300.0
+offset_left = 242.0
 offset_top = 490.0
-offset_right = 540.0
-offset_bottom = 548.0
+offset_right = 527.0
+offset_bottom = 550.0
 theme_override_colors/font_color = Color(1, 0.964706, 0.886275, 1)
 theme_override_fonts/font = ExtResource("6_f3kgd")
 theme_override_font_sizes/font_size = 28
@@ -233,10 +233,10 @@ text = "Try Again"
 
 [node name="JoinDiscordControl" type="Control" parent="LostPanel"]
 layout_mode = 0
-offset_left = 576.0
+offset_left = 553.0
 offset_top = 490.0
-offset_right = 818.0
-offset_bottom = 548.0
+offset_right = 799.0
+offset_bottom = 550.0
 
 [node name="JoinDiscordOption" type="Panel" parent="LostPanel/JoinDiscordControl"]
 layout_mode = 1

@@ -80,8 +80,8 @@ corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 shadow_color = Color(0, 0, 0, 0.35)
-shadow_size = 5
-shadow_offset = Vector2(0, 3)
+shadow_size = 4
+shadow_offset = Vector2(0, 2)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_discord_btn_normal"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
@@ -313,7 +313,7 @@ layout_mode = 0
 offset_left = 213.0
 offset_top = 85.0
 offset_right = 1068.0
-offset_bottom = 635.0
+offset_bottom = 660.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_ggpanel")
 
 [node name="GGLabelTitle" type="Label" parent="GGPanel"]
@@ -332,7 +332,7 @@ layout_mode = 0
 offset_left = 90.0
 offset_top = 74.0
 offset_right = 765.0
-offset_bottom = 184.0
+offset_bottom = 176.0
 theme_override_colors/default_color = Color(0.92549, 0.890196, 0.815686, 1)
 theme_override_fonts/normal_font = ExtResource("11_nmt2g")
 theme_override_font_sizes/normal_font_size = 15
@@ -345,9 +345,9 @@ This is where the adventure ends... [color=#f0c040]for now[/color]. Dice Odyssey
 [node name="ArtFrame" type="Panel" parent="GGPanel"]
 layout_mode = 0
 offset_left = 36.0
-offset_top = 186.0
+offset_top = 178.0
 offset_right = 268.0
-offset_bottom = 472.0
+offset_bottom = 464.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_ggart")
 
 [node name="GGTexture" type="TextureRect" parent="GGPanel/ArtFrame"]
@@ -368,16 +368,16 @@ stretch_mode = 5
 [node name="GGRunStats" type="PanelContainer" parent="GGPanel"]
 layout_mode = 0
 offset_left = 298.0
-offset_top = 186.0
+offset_top = 178.0
 offset_right = 819.0
-offset_bottom = 472.0
+offset_bottom = 464.0
 script = ExtResource("16_rstat")
 
 [node name="JoinDiscordControl" type="Control" parent="GGPanel"]
 layout_mode = 0
-offset_left = 120.0
-offset_top = 490.0
-offset_right = 440.0
+offset_left = 92.0
+offset_top = 488.0
+offset_right = 412.0
 offset_bottom = 548.0
 
 [node name="JoinDiscordOption" type="Panel" parent="GGPanel/JoinDiscordControl"]
@@ -440,9 +440,9 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_discord_btn_pressed")
 texture_filter = 2
 visible = false
 layout_mode = 0
-offset_left = 480.0
-offset_top = 490.0
-offset_right = 820.0
+offset_left = 444.0
+offset_top = 488.0
+offset_right = 764.0
 offset_bottom = 548.0
 theme_override_colors/font_color = Color(1, 0.964706, 0.886275, 1)
 theme_override_colors/font_outline_color = Color(0.164706, 0.0901961, 0.0313726, 1)
@@ -457,9 +457,9 @@ text = "Continue to Act 2"
 [node name="GGMainMenuButton" type="Button" parent="GGPanel"]
 visible = false
 layout_mode = 0
-offset_left = 540.0
-offset_top = 496.0
-offset_right = 780.0
+offset_left = 474.0
+offset_top = 494.0
+offset_right = 734.0
 offset_bottom = 542.0
 theme_override_colors/font_color = Color(0.85, 0.81, 0.72, 1)
 theme_override_colors/font_hover_color = Color(0.988235, 0.933333, 0.843137, 1)
