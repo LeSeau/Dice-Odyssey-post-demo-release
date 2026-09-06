@@ -5,7 +5,7 @@
 
 [resource]
 script = ExtResource("1_gamblf")
-relic_name = "Gambler's Fan"
+relic_name = "Opening Bell"
 id = "gamblers_fan"
 type = 1
 has_counter = false
