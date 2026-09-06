@@ -58,7 +58,19 @@ func _ready() -> void:
     Events.fan_hand_requested.connect(_update_card_positions)
     Events.add_card_to_hand_requested.connect(_on_add_card_to_hand_requested)
     Events.hover_playable_cards.connect(_on_hover_playable_cards)
+    # A played card leaves the hand in _fly_to_discard_and_free, AFTER card_played fires, so
+    # this one has to be deferred or the badge would still count the card being played.
+    Events.card_played.connect(func(_c: Card) -> void: _refresh_held_badges())
     
+# Hand membership just changed, so the held half of Surge AND Strength may have. Deferred because two of
+# the four callers reparent the card on the same frame - reading the hand before that lands
+# would count a card that is already on its way out.
+#
+# Cheap enough to fire on every draw/discard: it walks a <=10 card hand and one status row.
+func _refresh_held_badges() -> void:
+    Global.call_deferred("refresh_held_badges")
+
+
 func tutorial_gate_allows(card_ui: CardUI) -> bool:
     if tutorial_card_gate == null:
         return true
@@ -84,6 +96,7 @@ func add_card(card: Card) -> void:
     new_card_ui.set_playable_visual(_get_glow_state(card))
     _play_draw_entrance(new_card_ui)
     call_deferred("_update_card_positions")
+    _refresh_held_badges()
 
 
 # Draw entrance: cards used to pop into the fan fully-formed in a single frame. Deliberately
@@ -116,6 +129,7 @@ func discard_card(card: CardUI) -> void:
     # player_handler's discard iteration both see it as already gone, same as queue_free did.
     card.fly_hand_discard()
     call_deferred("_update_card_positions")
+    _refresh_held_badges()
 
 func disable_hand() -> void:
     for card: CardUI in get_children():
@@ -130,6 +144,7 @@ func _on_card_ui_reparent_requested(child: CardUI) -> void:
     # must land back under whatever gate is in force, or the tutorial loses it for good.
     child.set_deferred("disabled", not tutorial_gate_allows(child))
     call_deferred("_update_card_positions")
+    _refresh_held_badges()
 
 func _update_card_positions() -> void:
     

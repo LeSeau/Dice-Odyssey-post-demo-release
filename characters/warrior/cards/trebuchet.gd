@@ -1,5 +1,10 @@
 extends Card
 
+# The bonus damage every thrown die gets for the rest of the fight. Named so the
+# balance harness can read it instead of hardcoding a copy - debug_audit_changes.gd
+# shipped stale for a week after the 2026-08-28 bump because it had its own 2/3.
+const BONUS := 3
+
 const TREBUCHET_STATUS = preload("res://statuses/status_trebuchet.tres")
 
 
@@ -8,7 +13,7 @@ func apply_effects(targets: Array[Node], _modifiers: ModifierHandler) -> void:
     if meets_requirement():
         # The real effect lives in this fight-scoped Global (reset by battle.gd::start_battle);
         # the status is the visible badge, same split as Emanation.
-        Global.thrown_dice_bonus_fight += 3
+        Global.thrown_dice_bonus_fight += BONUS
         var status_effect := StatusEffect.new()
         var trebuchet := TREBUCHET_STATUS.duplicate()
         status_effect.status = trebuchet

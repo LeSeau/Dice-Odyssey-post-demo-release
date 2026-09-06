@@ -2539,10 +2539,13 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
     # Deliberately applied HERE, after every natural-face trigger above: Arcane's 6, Gnome's 1,
     # Octet's 8 and Critical Edge's max face all read Global.last_roll, so a Surge roll can
     # never fake a natural face. Same ruling Boost already follows (Julien, 2026-07-14).
-    if Global.surge_amount > 0:
-        Global.roll_value += Global.surge_amount
+    # total_surge(), not surge_amount: a held Dead Weight IS Surge, so it has to arrive on the
+    # same line as cast Surge rather than through a private adder that no badge can see.
+    var surge_total: int = Global.total_surge()
+    if surge_total > 0:
+        Global.roll_value += surge_total
 
-    # Cards that buff rolls purely by being HELD (Blood Oath on Red, Dead Weight's Surge 1).
+    # Cards that buff rolls purely by being HELD and are NOT Surge (Blood Oath on Red).
     # Same placement rule as Surge: after every natural-face trigger, so a held card can never
     # fake a natural 6/1/8.
     var held_bonus: int = Global.in_hand_roll_bonus(dice_type)
@@ -5330,8 +5333,9 @@ func _refresh_empty_socket_look() -> void:
 # contrast, had NO presence on the die at all: its whole fantasy is "this die is weighted, every
 # roll pays extra", and the only tell was a badge over on the player, nowhere near the die.
 #
-# Density scales with Global.surge_amount, so building the ladder (Sleight -> Ringer -> a held
-# Dead Weight) shows on the die itself instead of only in a badge number.
+# Density scales with Global.total_surge(), so building the ladder (Sleight -> Ringer -> a held
+# Dead Weight) shows on the die itself instead of only in a badge number. total_surge() rather
+# than surge_amount since 2026-09-06: a held Dead Weight used to bypass this entirely.
 const SURGE_MOTE_INTERVAL_BASE := 0.55   # spawn gap at Surge 1; also the idle poll rate
 const SURGE_MOTE_INTERVAL_STEP := 0.09   # shaved off per extra stack
 const SURGE_MOTE_INTERVAL_FLOOR := 0.26  # never denser than the dice shop per-die rate
@@ -5409,7 +5413,9 @@ func _surge_mote_interval(surge: int) -> float:
 
 
 func _on_surge_mote_timer_timeout() -> void:
-    var surge: int = Global.surge_amount
+    # total_surge() so holding Dead Weight thickens the motes exactly like casting Sleight -
+    # the die is the other half of the "you have Surge" tell, alongside the badge.
+    var surge: int = Global.total_surge()
     # start() rather than assigning wait_time: Timer re-arms itself with the OLD value before
     # emitting, so a mid-turn Sleight (or its expiry) would otherwise take a full extra cycle
     # to change the density.

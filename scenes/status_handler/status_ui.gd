@@ -41,10 +41,16 @@ func _on_status_changed() -> void:
         queue_free()
     
     duration.text = str(status.duration)
-    stacks.text = str(status.stacks)
+    # display_stacks(), not stacks: an in-hand passive (Dead Weight+) lends the badge a count
+    # it deliberately does not own as a real stack - see Status.display_bonus. Identical to
+    # `stacks` for every other status, since display_bonus defaults to 0.
+    # The queue_free checks above stay on raw `stacks` on purpose: expiry is about the stacks
+    # a status actually owns, and a borrowed number must never keep a dead status alive.
+    var shown: int = status.display_stacks()
+    stacks.text = str(shown)
     stacks.visible = status.stack_type == Status.StackType.INTENSITY \
-        and not (status.hide_counter_when_zero and status.stacks == 0)
-    visible = not (status.hide_when_zero and status.stacks == 0)
+        and not (status.hide_counter_when_zero and shown == 0)
+    visible = not (status.hide_when_zero and shown == 0)
 
 
 var tooltip_instance_requirement: CanvasLayer

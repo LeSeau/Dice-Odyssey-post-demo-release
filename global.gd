@@ -73,6 +73,9 @@ func in_hand(card_id: String) -> bool:
 
 
 # Extra Power a roll gets purely from cards being HELD (never from playing them).
+# ⚠️ Held SURGE is NOT in here - it lives in in_hand_surge_bonus() below so it can flow into
+# the Surge badge and the Surge mote density like any other Surge. This function is now only
+# the bonuses that are NOT Surge, i.e. Blood Oath's red-only Power.
 func in_hand_roll_bonus(dice_type: String) -> int:
     var bonus := 0
     # Blood Oath: 2 (Julien, 2026-08-20 - same figure as the Blood Sword relic; they stack).
@@ -82,11 +85,64 @@ func in_hand_roll_bonus(dice_type: String) -> int:
             bonus += 2
         if in_hand(IN_HAND_RED_AURA_PLUS):
             bonus += 3
-    # Dead Weight is Surge 1 while held, and Surge applies to every type. The + keeps the
-    # same Surge 1 and adds its Strength through in_hand_damage_bonus() instead.
-    if in_hand(IN_HAND_DEAD_WEIGHT) or in_hand(IN_HAND_DEAD_WEIGHT_PLUS):
+    return bonus
+
+
+# Surge granted purely by cards being HELD. Split out of in_hand_roll_bonus() on 2026-09-06:
+# Dead Weight's "gain Surge 1" was a private adder that dice.gd applied alongside
+# Global.surge_amount, so the player got the Power but no badge, no tooltip and no extra
+# motes on the die - the card's own description promised a keyword the status row never
+# showed (Julien: "dead weight should show & affect the surge status").
+#
+# It stays SEPARATE from surge_amount rather than being added into it. Held state has no
+# reliable add/remove event to sync against - in_hand() scans the live Hand, which is the
+# only thing that cannot desync - and baking it into surge_amount would also corrupt
+# SurgeStatus.apply_status()'s surge_expiring subtraction. Everything that consumes Surge
+# reads total_surge() instead, so the split is invisible downstream.
+#
+# Both versions grant Surge 1 and both can be held at once, so these add.
+func in_hand_surge_bonus() -> int:
+    var bonus := 0
+    if in_hand(IN_HAND_DEAD_WEIGHT):
+        bonus += 1
+    if in_hand(IN_HAND_DEAD_WEIGHT_PLUS):
         bonus += 1
     return bonus
+
+
+# THE number every Surge consumer should read: cast Surge plus whatever is being held right
+# now. dice.gd adds it to each roll, the surge motes scale on it, and refresh_surge_badge()
+# pushes it onto the badge.
+func total_surge() -> int:
+    return surge_amount + in_hand_surge_bonus()
+
+
+# Pushes total_surge() onto the player's Surge badge, creating it if the player has never
+# cast Surge this fight (holding Dead Weight has to raise the icon on its own).
+#
+# Called from Hand whenever hand membership changes, because that is the only thing that can
+# move the held half. Safe to spam: it writes an absolute value, so it is idempotent, and the
+# card-cast path (StatusHandler.add_status stacking a delta) stays consistent with it because
+# the held part is a constant offset on top of surge_amount.
+#
+# ⚠️ Surge has can_expire = false and hide_when_zero = true, so a badge left at 0 stacks is
+# hidden, NOT freed (status_ui.gd only frees an INTENSITY status at 0 when it can expire).
+# That is what lets the icon come back when the card is drawn again without re-adding it.
+func refresh_surge_badge() -> void:
+    var handler := _player_status_handler()
+    if handler == null:
+        return
+    var total := total_surge()
+    for child in handler.get_children():
+        if child is StatusUI and child.status != null and child.status.id == "surge":
+            # set_stacks emits status_changed, which is what re-runs the hide_when_zero check.
+            child.status.stacks = total
+            return
+    if total <= 0:
+        return  # nothing to show yet, do not spawn an invisible badge
+    var badge: Status = load("res://statuses/surge.tres").duplicate()
+    badge.stacks = total
+    handler.add_status(badge)
 
 
 # Flat damage a card gets purely from cards being HELD - the damage-side twin of
@@ -98,6 +154,58 @@ func in_hand_damage_bonus() -> int:
     if in_hand(IN_HAND_DEAD_WEIGHT_PLUS):
         bonus += 1
     return bonus
+
+
+# Pushes in_hand_damage_bonus() onto the player's Strength badge as a DISPLAY-ONLY count.
+#
+# ⚠️ It is lent to the badge via Status.display_bonus, NOT added to `stacks`, and that is the
+# whole design. MuscleStatus._on_status_changed() writes `stacks` straight into the "muscle"
+# ModifierValue, so raising stacks would grant the damage a SECOND time on top of the copy
+# ModifierHandler already adds from in_hand_damage_bonus(). Leaving the effect where it is
+# (read at use time, so it cannot desync from the live hand) and lending only the number is
+# what lets the icon be honest without touching a single damage figure.
+#
+# A badge created here starts hidden at 0 so it vanishes when the card leaves the hand
+# instead of leaving a bare "0 Strength" behind. A badge the player already owns from a real
+# Strength card keeps whatever hide_when_zero it shipped with.
+func refresh_strength_badge() -> void:
+    var handler := _player_status_handler()
+    if handler == null:
+        return
+    var held := in_hand_damage_bonus()
+    for child in handler.get_children():
+        if child is StatusUI and child.status != null and child.status.id == "strength":
+            child.status.display_bonus = held
+            return
+    if held <= 0:
+        return
+    var badge: Status = load("res://statuses/muscle.tres").duplicate()
+    badge.stacks = 0          # owns nothing; the damage still comes from in_hand_damage_bonus()
+    badge.hide_when_zero = true
+    badge.display_bonus = held
+    handler.add_status(badge)
+
+
+# Both in-hand badges in one call, so Hand only has to know that "the hand changed".
+func refresh_held_badges() -> void:
+    refresh_surge_badge()
+    refresh_strength_badge()
+
+
+# ⚠️ The return type is NOT optional. Without it every `var handler := _player_status_handler()`
+# below fails to infer, which is a PARSE error that takes the whole Global autoload down with
+# it - and gdtoolkit reports the file clean, because it only checks syntax.
+func _player_status_handler() -> StatusHandler:
+    var tree := get_tree()
+    if tree == null:
+        return null
+    var player_node := tree.get_first_node_in_group("player")
+    if player_node == null or not is_instance_valid(player_node):
+        return null
+    var handler: Variant = player_node.get("status_handler")
+    if handler == null or not is_instance_valid(handler):
+        return null
+    return handler as StatusHandler
 
 
 # Block granted per natural 6 by Talisman being held. 0 when neither version is in hand.

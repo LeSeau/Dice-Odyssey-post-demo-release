@@ -40,6 +40,26 @@ enum StackType {NONE, INTENSITY, DURATION}
 # number at all reads as "this status exists, watch it climb."
 @export var hide_counter_when_zero: bool = false
 
+# Extra count shown on the badge that is NOT part of `stacks`. Exists for in-hand passives:
+# Dead Weight+ grants 1 Strength while HELD, and that half deliberately never becomes a real
+# Muscle stack, because MuscleStatus writes `stacks` straight into the "muscle" ModifierValue
+# - inflating stacks would hand the player the damage twice (once from the modifier, once
+# from ModifierHandler's read of Global.in_hand_damage_bonus()). Keeping the effect where it
+# is and only lending the BADGE a number is what lets the icon tell the truth without
+# touching the maths.
+#
+# ⚠️ A plain var, NOT @export: adding an export to Status would put a new property on ~30
+# status .tres files, which is exactly the live-editor strip incident this project has hit
+# three times. Nothing needs to persist it - it is pushed fresh from the live hand.
+var display_bonus: int = 0 : set = set_display_bonus
+
+
+# What the badge should print, and what the hide_when_zero / hide_counter_when_zero checks
+# should test. Identical to `stacks` for every status that does not set display_bonus.
+func display_stacks() -> int:
+    return stacks + display_bonus
+
+
 func initialize_status(_target: Node) -> void:
     pass
     
@@ -55,5 +75,9 @@ func set_duration(new_duration: int) -> void:
     
 func set_stacks(new_stacks: int) -> void:
     stacks = new_stacks
+    status_changed.emit()
+
+func set_display_bonus(new_bonus: int) -> void:
+    display_bonus = new_bonus
     status_changed.emit()
     
