@@ -74,7 +74,8 @@ func _on_relic_gui_input(event: InputEvent) -> void:
         if Global.gold < gold_cost:
             return
         _sold = true
-        Events.shop_relic_bought.emit(relic, gold_cost)
+        # Read before the queue_free() below - and a Vector2, never a node reference.
+        Events.shop_relic_bought.emit(relic, gold_cost, relic_container.get_global_rect().get_center())
         SFXPlayer.play(load("res://sounds/buydicesound.wav"))
         relic_container.queue_free()
         price.queue_free()

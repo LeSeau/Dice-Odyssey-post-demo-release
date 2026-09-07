@@ -601,8 +601,8 @@ func _on_shop_card_bought(card: Card, gold_cost: int) -> void:
     Events.gold_changed.emit()
 
 
-func _on_shop_relic_bought(relic: Relic, gold_cost: int) -> void:
-    relic_handler.add_relic(relic)
+func _on_shop_relic_bought(relic: Relic, gold_cost: int, from_global: Vector2) -> void:
+    relic_handler.add_relic(relic, true, from_global)
     Global.gold -= gold_cost
     _update_items()
     Events.gold_changed.emit()

@@ -190,7 +190,7 @@ func add_relic_reward(relic: Relic) -> void:
     relic_reward.mouse_entered.connect(_on_relic_reward_mouse_entered.bind(relic, relic_reward))
     relic_reward.mouse_exited.connect(_on_relic_reward_mouse_exited)
 
-    relic_reward.pressed.connect(_on_relic_reward_taken.bind(relic))
+    relic_reward.pressed.connect(_on_relic_reward_taken.bind(relic, relic_reward))
     rewards.add_child.call_deferred(relic_reward)
     _register_reward_entrance(relic_reward)
 
@@ -368,11 +368,16 @@ func _on_card_reward_taken(card: Card) -> void:
     character_stats.deck.add_card(card)
     SFXPlayer.play(Global.sfx_click)
     
-func _on_relic_reward_taken(relic: Relic) -> void:
+# source is the reward row that was clicked; the relic flies from it to the top bar so the
+# eye follows it there. Optional so any older/unbound connection still works.
+func _on_relic_reward_taken(relic: Relic, source: Control = null) -> void:
     if not relic or not relic_handler:
         return
-        
-    relic_handler.add_relic(relic)  
+
+    var from_global := RelicHandler.NO_ORIGIN
+    if is_instance_valid(source):
+        from_global = source.get_global_rect().get_center()
+    relic_handler.add_relic(relic, true, from_global)
  
 func on_gold_reward_taken(amount: int) -> void:
     SFXPlayer.play(Global.sfx_gold_pickup)

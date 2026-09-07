@@ -103,7 +103,10 @@ signal battle_reward_exited
 signal treasure_room_exited(found_relic: Relic)
 signal event_exited
 
-signal shop_relic_bought (relic: Relic, gold_cost: int)
+# from_global is the screen-space centre of the stall that was clicked, so the relic can
+# fly from there to the top bar (relic_handler.gd's acquisition beat). Emitted BEFORE the
+# stall frees itself, and passed by value, so the freed node never matters.
+signal shop_relic_bought (relic: Relic, gold_cost: int, from_global: Vector2)
 signal shop_card_bought(card: Card, gold_cost: int)
 
 #Dice-related events

@@ -88,7 +88,8 @@ func _on_trade_relic_pressed() -> void:
     if dice_chip == null:
         push_error("dice_chip.tres not found")
         return
-    relic_handler.add_relic(dice_chip)
+    # No stall/row to launch from, so this announces in place (pop + ring + sound only).
+    relic_handler.add_relic(dice_chip, true)
 
     Events.event_exited.emit()
 
