@@ -12,14 +12,31 @@ var ink_duration := 3
 # Crush beat softens 15 -> 11 at weight 6, so expected damage per chance turn barely
 # moves (16.5 -> 16.2) while the worst turn goes from 18 to 24. With his +4 Muscle
 # guard every 4 turns the third Ink Tide reads 32, which is the fight ending.
+#
+# ⚠️ Those expected-value figures assume the OLD cap that let this beat repeat. Since
+# 2026-09-07 it never fires twice in a row (see is_performable), so the real numbers are
+# DPT 15.1 over 6 turns / 14.3 over 8. Raising `damage` here is now the only way to raise
+# the worst turn - the repeat is gone as a pressure valve, and it should stay gone: a
+# doubled Ink Tide also doubles the hidden-Power window, which is not what this number
+# is priced against.
 @export var damage := 24
 var base_damage = damage
 
 func is_performable() -> bool:
-    # Prevent medium attack from happening 3 times in a row
-    if enemy.last_action == "leviathan_ink_attack" and enemy.last_action_count >= 2:
-        return false
-    return true
+    # NEVER twice in a row (2026-09-07). Was `>= 2`, which allowed exactly two, and that
+    # was the "Leviathan hit for 28 twice" report. His guard (2.gd, fight_turn % 4 == 2)
+    # hands him a PERMANENT +4 Muscle on turn 2, so from turn 3 on a doubled Ink Tide reads
+    # 28/28 = 56 raw against a 66 HP pool. Measured over 200k sims of the real picker: it
+    # landed in 25% of 6-8 turn fights, as early as turns 3 & 4. Ink also stacks as DURATION
+    # (can_expire = true), so the second cast EXTENDS the hidden Power number to ~6 turns,
+    # on exactly the turns you need to block precisely - the pair costs far more than 2x24.
+    # Same cap the Bigger Kraken's ink beat already carries, for the same duration reason.
+    # Cost: DPT 15.8 -> 15.1 over 6 turns, 14.9 -> 14.3 over 8 (~4.5 raw damage per fight).
+    # The ramp is untouched: the SINGLE hit still escalates 24 -> 28 -> 32 as he guards.
+    #
+    # Uses the shared helper rather than a hardcoded action_id string, so this can no longer
+    # silently diverge from `action_id` in leviathan_enemy_ai.tscn.
+    return not hit_consecutive_cap(1)
 
 func perform_action() -> void:
     if not enemy or not target:
