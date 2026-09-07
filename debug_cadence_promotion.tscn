@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bqk3cadence13x"]
+
+[ext_resource type="Script" path="res://debug_cadence_promotion.gd" id="1_cadnc"]
+
+[node name="DebugCadencePromotion" type="Node"]
+script = ExtResource("1_cadnc")
