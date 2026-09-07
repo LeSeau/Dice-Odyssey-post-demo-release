@@ -923,12 +923,22 @@ func _on_char_stats_changed() -> void:
 
 func _on_red_dice_rolled() -> void:
     # Only the card in socket ONE resolves off the signal. The charged-id LIST holds both
-    # socketed cards (Dual Cannon), so gating on it let whichever CardUI the signal reached
+    # socketed cards (Red Cannon), so gating on it let whichever CardUI the signal reached
     # first win the roll: a self-targeted card in socket 2 played immediately and its
     # reset_charged_card tore down socket 1's card while it was still waiting to be aimed.
     # dice.gd hands socket 2 off itself once socket 1 is done.
     if card.instance_id != 0 and Global.red_roll_active_socket_id == card.instance_id:
         Global.dice_type = "red"
+        # Reported BEFORE the card resolves, so Red matches Blue. On Blue, dice_rolled always
+        # lands before you play anything, so per-roll Power effects (Dice Echo doubling
+        # the turn's first roll, Sixth Gear, Metronome) are already banked by the time a card
+        # reads Global.roll_value. Reporting after card.play() meant a self/AoE card socketed
+        # on Red read the un-boosted number and the bonus arrived one beat too late to spend
+        # (Julien, 2026-09-07: Block + Dice Echo + Blood Sword on a 5 paid 7 Block
+        # instead of 12, and left 12 Power stranded in the bank). Aimed cards were already
+        # correct - they sit in AIMING while this runs - so this only moves the non-aimed
+        # branch onto the same footing.
+        _report_red_roll()
         if card.target == Card.Target.SINGLE_ENEMY:
             print("single enemy card")
             # Force staying in AIMING state if no target selected
@@ -950,20 +960,22 @@ func _on_red_dice_rolled() -> void:
             Global.playing_red_card = false
             queue_free()
         
-        # ⚠️ Exactly ONE dice_rolled per Red roll. dice.gd never emits it for Red, so this is
-        # what every per-roll relic actually hears - and with two cards socketed (Dual Cannon)
-        # BOTH CardUIs reach this line for a single roll. The token, armed by dice.gd just
-        # before red_dice_rolled, makes the first one here the only one that reports.
-        if Global.red_roll_pending_report:
-            Global.red_roll_pending_report = false
-            Events.dice_rolled.emit(Global.dice_type, Global.roll_value)
-        #Global.roll_value=0
-        
+
 
     
    
     
-# Dual Cannon's second socket. dice.gd calls this once socket 1's card has fully resolved,
+# ⚠️ Exactly ONE dice_rolled per Red roll. dice.gd never emits it for Red, so this is what
+# every per-roll relic actually hears - and with two cards socketed (Red Cannon) BOTH CardUIs
+# reach this for a single roll. The token, armed by dice.gd just before red_dice_rolled, makes
+# the first caller the only one that reports.
+func _report_red_roll() -> void:
+    if Global.red_roll_pending_report:
+        Global.red_roll_pending_report = false
+        Events.dice_rolled.emit(Global.dice_type, Global.roll_value)
+
+
+# Red Cannon's second socket. dice.gd calls this once socket 1's card has fully resolved,
 # instead of this CardUI reacting to red_dice_rolled on its own: the first card to handle that
 # signal emits reset_charged_card, which clears Global.charged_card_instance_ids before the
 # second CardUI's handler is dispatched - so the second card silently never played and its

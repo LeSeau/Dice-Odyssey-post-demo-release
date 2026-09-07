@@ -4882,17 +4882,39 @@ const MUSCLE_STATUS := preload("res://statuses/muscle.tres")
 # Socketless Red blessing: rolling the Red die with an EMPTY socket turns that roll into board
 # damage instead of a card play. Nothing here runs unless the blessing is up AND the socket is
 # genuinely empty, so a normal socketed red roll is completely unaffected.
+# The Red die is decremented by dice_interface._on_dice_rolled, which listens to dice_rolled -
+# and dice.gd never emits that for Red on the socketed path. With an empty socket the CardUI
+# that normally reports never runs, so without this the die is rolled for free forever
+# (Julien, 2026-08-16: "doesn't use the red dice"). It also feeds the per-roll relics (Crown,
+# Metronome) that a socketless roll should count towards, exactly like the socketed path.
+# No CardUI can have consumed the token here (an empty socket means none passed the charged-id
+# gate), but consume it explicitly so the "exactly one per Red roll" rule holds structurally
+# rather than by coincidence.
+func _report_socketless_red_roll() -> void:
+    if Global.red_roll_pending_report:
+        Global.red_roll_pending_report = false
+        Events.dice_rolled.emit("red", Global.roll_value)
+
+
 func _fire_socketless_red() -> void:
     if not Global.socketless_red:
         return
     if charged_card_texture.texture != null or is_instance_valid(socketed_card_ui):
         return
-    var amount: int = Global.roll_value
-    if amount <= 0:
+    if Global.roll_value <= 0:
         return
     var enemies := get_tree().get_nodes_in_group("enemies")
     if enemies.is_empty():
         return
+    # Report the roll BEFORE reading the damage number, for the same reason card_ui.gd does
+    # it before playing a socketed card: per-roll Power effects (Dice Echo doubling the
+    # turn's first roll, Sixth Gear, Metronome) listen to dice_rolled, and on Blue they are
+    # always banked before anything spends the Power. Reading roll_value first made the
+    # socketless blast pay out the un-boosted number and the bonus arrive too late to spend.
+    # Placed after the two early-returns above so neither of them changes behaviour - only
+    # the ordering between the report and the damage does.
+    _report_socketless_red_roll()
+    var amount: int = Global.roll_value
     # Routed through the PLAYER's DMG_DEALT modifiers rather than dealt flat, because that is
     # exactly how Berserk doubles it: "You deal double damage with Red Dice" is a PERCENT_BASED
     # modifier that switches itself on while Red is the active die (status_berserk.gd), so
@@ -4916,18 +4938,6 @@ func _fire_socketless_red() -> void:
         var status_effect := StatusEffect.new()
         status_effect.status = muscle
         status_effect.execute([player])
-    # The Red die is decremented by dice_interface._on_dice_rolled, which listens to
-    # dice_rolled - and dice.gd never emits that for Red. The ONLY thing that normally does is
-    # card_ui.gd:909, right after a socketed card plays. With an empty socket that never runs,
-    # so without this emit the die is rolled for free forever (Julien, 2026-08-16: "doesn't use
-    # the red dice"). Emitting it here also feeds the per-roll relics (Crown, Metronome) that a
-    # socketless roll should count towards, exactly like the socketed path already does.
-    # No CardUI can have consumed the token here (an empty socket means none passed the
-    # charged-id gate), but consume it explicitly so the "exactly one per Red roll" rule
-    # holds structurally rather than by coincidence.
-    if Global.red_roll_pending_report:
-        Global.red_roll_pending_report = false
-        Events.dice_rolled.emit("red", Global.roll_value)
     # The roll was spent on the board instead of on a card, so it still ends the chain.
     Events.dice_roll_reset.emit()
 

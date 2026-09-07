@@ -25,6 +25,8 @@ func activate_relic(owner: RelicUI) -> void:
     # Dice Bag uses for its extra Blue die.
     var bonus_field := chosen + "_dice_bonus_amount"
     Global.set(bonus_field, Global.get(bonus_field) + 1)
+    # GRANTS, never CHARGES - see relics/dice_chip.gd for the full reasoning (Runic Bones
+    # must not fire off a start-of-combat die, and a charge here landed before
+    # player_handler had a character at all).
     Events.dice_amount_changed.emit()
-    Events.dice_charged.emit(chosen, 1)
     Events.temporary_dice_added.emit(chosen)

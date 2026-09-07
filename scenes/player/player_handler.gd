@@ -285,7 +285,20 @@ func _on_block_reset():
 func _on_add_block(amount):
     character.block+=amount
 
+# A draw can be asked for BEFORE this fight has a character: battle.gd runs the
+# START_OF_COMBAT relic cascade first, and player_handler.start_battle() only runs on
+# relics_activated at the END of it. Dice Chip and Stray Die emit dice_charged from inside
+# that cascade, Runic Bones answers a charge with draw 2, and the draw landed on a null
+# `character` (Julien, 2026-09-07: crash on entering a fight).
+#
+# Folded into the opening hand instead of dropped, so the cards are not silently lost - the
+# same field and the same reasoning as Opening Bell (gamblers_fan.gd), which documented this
+# ordering trap and sidestepped it directly. One tween for the whole deal also keeps
+# player_hand_drawn firing at the true end of it.
 func _on_draw_card(amount):
+    if character == null:
+        Global.bonus_cards_first_hand += amount
+        return
     var tween := create_tween()
     for i in range(amount):
         tween.tween_callback(draw_card)
