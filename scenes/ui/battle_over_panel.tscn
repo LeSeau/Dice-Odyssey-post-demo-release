@@ -136,9 +136,9 @@ stream = ExtResource("3_4jgu0")
 visible = false
 layout_mode = 0
 offset_left = 213.0
-offset_top = 85.0
+offset_top = 130.0
 offset_right = 1068.0
-offset_bottom = 660.0
+offset_bottom = 705.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_lostpanel")
 
 [node name="TitleLabel" type="Label" parent="LostPanel"]

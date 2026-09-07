@@ -140,7 +140,6 @@ func _late_init() -> void:
     Events.start_map_music.connect(_on_start_map_music)
     Events.check_if_can_purchase_dice.connect(_on_check_if_can_purchase_dice)
     Events.dice_price_changed.connect(_on_dice_price_changed)
-    Events.end_screen_hud_visibility.connect(_on_end_screen_hud_visibility)
     # Blue/Red live in the .tscn; every other type is attached where it's duplicated
     # (runtime connects are non-persistent, so duplicate() does NOT copy these).
     _attach_dice_bar_tooltip(blue_dice, "blue")
@@ -160,18 +159,6 @@ func _late_init() -> void:
     Curtain.reveal()
 
 
-# The RelicBar and the Discord pin live on CanvasLayers, so they float above EVERY view -
-# including the full-screen end panels (Game Over / Act 1 Complete / Dungeon Conquered),
-# where 5+ relic icons land straight on the panel title. The panels ask for them to be
-# hidden while they're up; Act 1 Complete's Continue restores them (the one exit where the
-# run keeps going - every other exit destroys this scene anyway).
-func _on_end_screen_hud_visibility(hud_visible: bool) -> void:
-    var relic_bar := get_node_or_null("TopBar/RelicBar")
-    if relic_bar:
-        relic_bar.visible = hud_visible
-    var discord_pin := get_node_or_null("CanvasLayer/JoinDiscordControl")
-    if discord_pin:
-        discord_pin.visible = hud_visible
 
 
     
@@ -380,7 +367,6 @@ func _show_map() -> void:
     # here rather than pairing every hide with its own show - one screen forgetting would
     # otherwise leave the player without a relic bar for the rest of the run.
     # Restored AFTER the cover so the relic bar reappearing is hidden by it.
-    Events.end_screen_hud_visibility.emit(true)
     # Act transition beat: the first return to the map after the act-1 boss (i.e. right
     # after the boss reward screen exits) is intercepted by the dice infusion screen.
     # The actual act-2 entry (heal, new map, ACT 2 banner) happens in
@@ -821,13 +807,6 @@ func _on_map_exited(room: Room) -> void:
                 _change_view(EVENT_SCENE)
 
             dice_shop.set_available(false)
-            # Events are the one screen the relic row cannot share the top of the frame with.
-            # An event panel needs ~620px of height and starts directly under the 80px top bar,
-            # leaving ~15px of slack in a 720px frame - so pushing its title below a relic band
-            # only works if the band is ~15px tall, i.e. unusably small icons. Every other
-            # full-screen panel had the room and was moved down instead (see the dice infusion
-            # title, "Upgrade a Card", the dice shop panel). Restored by _show_map().
-            Events.end_screen_hud_visibility.emit(false)
 
     # Every match arm has finished building its screen by here (the one arm that returns
     # early reveals for itself), so this is the single reveal for entering any room.

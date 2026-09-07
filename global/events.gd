@@ -87,6 +87,9 @@ signal battle_over_screen_requested(text: String, type: BattleOverPanel.Type)
 # both on CanvasLayers) - with 5+ relics the bar renders straight over the panel title.
 # false = end screen showing, hide them; true = restore (Act 1 Complete's Continue button,
 # the one end-panel exit where the run keeps going).
+# RETIRED 2026-09-07: the relic bar is now always visible. It used to be hidden for events
+# and the end screens because relic icons landed on their titles; those screens were moved
+# clear of the band instead. Kept declared so a stray emit cannot error - no listeners.
 signal end_screen_hud_visibility(hud_visible: bool)
 signal battle_won
 signal show_reward

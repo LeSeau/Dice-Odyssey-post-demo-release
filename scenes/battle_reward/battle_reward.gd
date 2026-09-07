@@ -297,11 +297,6 @@ func _show_card_rewards() -> void:
     reward_panel.hide()
     # Same treatment for the RelicBar (and the Discord pin): the "Choose a card" banner renders
     # at y 102..187 and the relic row occupies y 90..126, so a late-run collection lands right
-    # on the banner. Every other full-screen panel was moved down out of that stripe instead,
-    # but this one can't be - its banner/card geometry is wound into the entrance stagger, the
-    # rare flash and the fly-to-deck animation. Hiding matches what the end screens already do,
-    # and the picker is a brief modal where the relics aren't actionable anyway.
-    Events.end_screen_hud_visibility.emit(false)
 
     var card_reward_array: Array[Card] = []
     var available_cards: Array[Card] = character_stats.draftable_cards.cards.duplicate(true)
@@ -361,7 +356,6 @@ func _rarity_source() -> CardRarityDraw.Source:
 func _on_card_reward_taken(card: Card) -> void:
     # Before the null guard - the panel and the HUD must come back on skip too.
     reward_panel.show()
-    Events.end_screen_hud_visibility.emit(true)
     if not character_stats or not card:
         return
     print("reward taken")
@@ -424,9 +418,6 @@ const GG_STATS_REVEAL_DELAY := 0.25
 # Settle-in pop for the GG panel, then hand off to the run-stats scoreboard's own
 # staggered reveal (same beat structure as the Game Over screen).
 func _show_gg_panel() -> void:
-    # The relic bar + Discord pin (run.tscn CanvasLayers) would render over the panel
-    # title otherwise - restored by the Continue button on the act-1 variant.
-    Events.end_screen_hud_visibility.emit(false)
     gg_panel.show()
     gg_panel.pivot_offset = gg_panel.size / 2.0
     gg_panel.modulate.a = 0.0
@@ -456,7 +447,6 @@ func _on_continue_act_2_button_pressed() -> void:
     SFXPlayer.play(Global.sfx_click)
     gg_panel.hide()
     # The run continues past this panel - bring the relic bar + Discord pin back.
-    Events.end_screen_hud_visibility.emit(true)
 
 
 func _on_gg_main_menu_button_pressed() -> void:

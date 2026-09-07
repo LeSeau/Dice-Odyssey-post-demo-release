@@ -311,9 +311,9 @@ text = "I know what I'm doing"
 visible = false
 layout_mode = 0
 offset_left = 213.0
-offset_top = 85.0
+offset_top = 130.0
 offset_right = 1068.0
-offset_bottom = 660.0
+offset_bottom = 705.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_ggpanel")
 
 [node name="GGLabelTitle" type="Label" parent="GGPanel"]
