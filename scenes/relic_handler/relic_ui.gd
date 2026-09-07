@@ -30,8 +30,30 @@ func set_relic(new_relic: Relic) -> void:
     if initialize_on_set:
         relic.initialize_relic(self)
 
+# Called by all 46 relic scripts when the relic FIRES. Since 2026-09-07 this is the same
+# beat as picking a relic up - punch, ring, warm flash - rather than the old scale-and-
+# blink, at reduced intensity and silent (see RelicHandler.pulse_relic_ui).
+#
+# Falls back to the old animation when there is no RelicHandler above us: relic_ui.tscn
+# is shared with shop_relic.tscn, whose instances live outside the bar and have nowhere
+# to hang the ring.
+const TRIGGER_INTENSITY := 0.6
+
 func flash() -> void:
-    animation_player.play("flash")
+    var handler := _find_relic_handler()
+    if handler:
+        handler.pulse_relic_ui(self, TRIGGER_INTENSITY, false)
+    else:
+        animation_player.play("flash")
+
+
+func _find_relic_handler() -> RelicHandler:
+    var node := get_parent()
+    while node != null:
+        if node is RelicHandler:
+            return node
+        node = node.get_parent()
+    return null
 
 # Tooltip instances are added under get_tree().root (not this node), so they don't get freed
 # automatically for free when RelicUI leaves the tree (e.g. exiting the shop while still
@@ -63,7 +85,9 @@ func _fit_tooltip_title(title_label: RichTextLabel, relic_name: String) -> void:
         title_label.add_theme_font_size_override("bold_font_size", 13)
 
 func _on_mouse_entered() -> void:
-    flash()
+    # Deliberately NOT flash(): hover keeps the small scale-and-blink so that the louder
+    # punch/ring beat means "this relic fired" and nothing else.
+    animation_player.play("flash")
     _hover_id += 1
     var my_id := _hover_id
 

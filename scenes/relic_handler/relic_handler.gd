@@ -277,49 +277,70 @@ func _fly_relic_icon(icon: Texture, from_global: Vector2, to_global: Vector2) ->
 
 
 func _play_arrival(relic_ui: RelicUI) -> void:
+    pulse_relic_ui(relic_ui, 1.0, true)
+
+
+# Public because this is ALSO the relic TRIGGER beat: RelicUI.flash(), which all 46 relic
+# scripts call when they fire, routes here at TRIGGER_INTENSITY instead of playing the old
+# scale-and-blink animation. Same language for "this relic did something" as for "you just
+# got this relic", only quieter.
+#
+# with_sound is false for triggers, and that is a decision rather than an oversight. A relic
+# can fire several times a turn (Blood Sword on every Red roll, Metronome every third die),
+# and start-of-combat activation walks the whole row 0.5s apart - a chime on each of those
+# turns the beat into noise within one fight. The ring and the punch carry it silently.
+func pulse_relic_ui(relic_ui: RelicUI, intensity := 1.0, with_sound := false) -> void:
+    if not is_instance_valid(relic_ui):
+        return
     var icon := relic_ui.get_node_or_null("Icon") as Control
     if icon == null:
         return
 
     # Icon already has a centred pivot from _resize_for_top_bar, so this punches from the
     # middle rather than growing out of its top-left corner.
+    var punch_scale := 1.0 + (ARRIVAL_PUNCH_SCALE - 1.0) * intensity
     var punch := icon.create_tween()
-    punch.tween_property(icon, "scale", Vector2.ONE * ARRIVAL_PUNCH_SCALE, ARRIVAL_PUNCH_TIME) \
+    punch.tween_property(icon, "scale", Vector2.ONE * punch_scale, ARRIVAL_PUNCH_TIME) \
         .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
     punch.tween_property(icon, "scale", Vector2.ONE, ARRIVAL_SETTLE_TIME) \
         .set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
 
-    # modulate, not the white flash material RelicUI.flash() swaps in: that material is the
-    # hover animation's, and borrowing it would put the two beats back in the same language.
+    # modulate, not the white flash material the old hover animation swaps in - that material
+    # still belongs to hover, and borrowing it would put the two beats back in one language.
     # Safe because the Icon carries no material of its own (relic_ui.tscn leaves it null).
     var flash := icon.create_tween()
-    flash.tween_property(icon, "modulate", ARRIVAL_FLASH_COLOR, ARRIVAL_FLASH_IN) \
+    flash.tween_property(icon, "modulate", Color.WHITE.lerp(ARRIVAL_FLASH_COLOR, intensity), ARRIVAL_FLASH_IN) \
         .set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
     flash.tween_property(icon, "modulate", Color.WHITE, ARRIVAL_FLASH_OUT) \
         .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
 
-    _spawn_arrival_ring(relic_ui.get_global_rect().get_center())
-    SFXPlayer.play(ARRIVAL_SFX, false, ARRIVAL_SFX_PITCH, ARRIVAL_SFX_VOLUME_DB)
+    _spawn_arrival_ring(relic_ui.get_global_rect().get_center(), intensity)
+    if with_sound:
+        SFXPlayer.play(ARRIVAL_SFX, false, ARRIVAL_SFX_PITCH, ARRIVAL_SFX_VOLUME_DB)
 
 
 # Expanding additive ring behind the slot. Additive so it can only add light and can never
 # darken the icon it lands on, and it fades on its OWN shorter curve so it never holds a
 # bright peak over the relic the player is trying to read.
-func _spawn_arrival_ring(center: Vector2) -> void:
+func _spawn_arrival_ring(center: Vector2, intensity := 1.0) -> void:
     var layer := CanvasLayer.new()
     layer.name = "RelicRing"
     layer.layer = FLIGHT_LAYER
     add_child(layer)
 
+    # A trigger ring stays tighter and dimmer than an acquisition one, so a relic firing
+    # every turn never reads as loudly as getting a new one.
+    var ring_size := ARRIVAL_RING_SIZE * (0.55 + 0.45 * intensity)
+    var ring_time := ARRIVAL_RING_TIME * (0.7 + 0.3 * intensity)
     var ring := TextureRect.new()
     ring.texture = _get_ring_texture()
     ring.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-    ring.custom_minimum_size = Vector2(ARRIVAL_RING_SIZE, ARRIVAL_RING_SIZE)
-    ring.size = Vector2(ARRIVAL_RING_SIZE, ARRIVAL_RING_SIZE)
+    ring.custom_minimum_size = Vector2(ring_size, ring_size)
+    ring.size = Vector2(ring_size, ring_size)
     ring.pivot_offset = ring.size * 0.5
     ring.position = center - ring.size * 0.5
     ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    ring.modulate = Color(ARRIVAL_RING_COLOR, 0.9)
+    ring.modulate = Color(ARRIVAL_RING_COLOR, 0.9 * intensity)
     ring.scale = Vector2.ONE * 0.35
     var material := CanvasItemMaterial.new()
     material.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
@@ -327,10 +348,10 @@ func _spawn_arrival_ring(center: Vector2) -> void:
     layer.add_child(ring)
 
     var grow := layer.create_tween()
-    grow.tween_property(ring, "scale", Vector2.ONE, ARRIVAL_RING_TIME) \
+    grow.tween_property(ring, "scale", Vector2.ONE, ring_time) \
         .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
     var fade := layer.create_tween()
-    fade.tween_property(ring, "modulate:a", 0.0, ARRIVAL_RING_TIME * 0.8) \
+    fade.tween_property(ring, "modulate:a", 0.0, ring_time * 0.8) \
         .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
     fade.tween_callback(layer.queue_free)
 
