@@ -12,6 +12,6 @@ can_expire = false
 duration = 0
 stacks = 3
 icon = ExtResource("1_icon")
-tooltip = ""
+tooltip = "Gains Strength when the other brother dies."
 hide_when_zero = false
 hide_counter_when_zero = false

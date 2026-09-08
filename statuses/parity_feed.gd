@@ -1,3 +1,10 @@
+# ⚠⚠ ORPHANED 2026-09-08 - NOT REFERENCED BY ANY .tres, DO NOT POINT ONE AT IT.
+# This was the FIRST, WRONG reading of the Parity Brothers: it made the player's odd/even
+# FACES feed the brothers Strength. Julien's actual concept is the opposite direction -
+# the brothers are odd/even SENSITIVE and take 50% more damage while the player's banked
+# Power has their parity (a vulnerability window, never a resistance, never a feed).
+# The live implementation is statuses/parity_sensitive.gd. Kept on disk only as history.
+
 class_name ParityFeedStatus
 extends Status
 

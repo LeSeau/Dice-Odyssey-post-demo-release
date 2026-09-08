@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://dbrotooltip01"]
+
+[ext_resource type="Script" path="res://debug_brothers_tooltip.gd" id="1_dbt"]
+
+[node name="DebugBrothersTooltip" type="Node"]
+script = ExtResource("1_dbt")

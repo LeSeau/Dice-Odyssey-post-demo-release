@@ -16,6 +16,7 @@ The one-line version: **act 1's roster is done; it needs spikes, better elites a
 | 2026-09-06 | **Lava Hound Molten Roar REVERTED same day** (Julien: "lets not add this hp threshold thing to the lava hound, i like how he was before") — second time this beat has been cut | Hound scene and `battle.gd` byte-identical to HEAD again |
 | 2026-09-06 | **Act gating shipped**: `BattleStats.act` + filter; Dice Mimic and Quartermaster back in the pool as act-2-only — pool 33 → 35 | `custom_resources/battle_stats.gd`, `run.gd`, 2 `.tres`, pool |
 | 2026-09-06 | Spike caps (G3) confirmed by Julien | this doc |
+| 2026-09-07 | **4 recycled comps cut** (Marauder+B.Kraken T1, Bloom+B.Kraken T1, Skeleton+Bloom T2, Marauder+2 B.Kraken T2) — pool 35 → 31, act-1 hallway 29 → 25 (T0 9 / T1 8 / T2 8). Files kept on disk. | `battles/battle_stats_pool.tres` |
 
 ⚠ All edits were made outside the editor: **restart the editor before playing.** `BattleStats` gained an `@export`, which is exactly the configuration of the documented strip incident — an editor left open with a stale copy would drop `act = 2` from the two `.tres` files and those fights would leak back into act 1.
 
@@ -50,6 +51,10 @@ Caps are on the **raw** number; Exposed on the player and the enemy's own Streng
 **G5 — Pool plumbing stays.** Fixed `.tscn` per fight (hand-tuned positions), groups (now per tier), no randomised lineups, no splitting `slimes`.
 
 **G6 — Every fight has a clock** (baseline §2.1 / §6). A telegraphed spike on a cadence is a clock.
+
+**G7 — A body with a solo fight in tier T may not appear in a comp in tier T.** Julien's rule from 2026-07-04 (Lurker solo + Lurker+Crab both in T1: *"the same tier had a fight that's literally the same, but harder"*), restated here because a 2026-09-07 proposal round broke it in 4 places. The same body one tier LATER is fine and is the shipped pattern (Temple Defender solo T1 → Defender+Marauder and Defender+2 Satyrs at T2).
+
+⚠ **The consequence, which is why T2 looks recycled.** Solos by tier today: T0 Skeleton / Venom Bloom / Marauder · T1 Temple Defender / Sigil Slug / Oculus · T2 Medusa / Lava Hound / Maelstrom / Famished. So **all four T2 device bodies are locked as solos**, and a legal T2 comp can only use bodies whose solo sits at T0 or T1, or bodies that have no solo at all (Kraken, Satyr, Goblin, Lurker, Slanderer). The only unused legal promotions into T2 are **Sigil Slug and Oculus** — the Defender promotion already shipped. **And T1 is device-saturated**: Defender, Sigil and Oculus are locked as T1 solos, and Lurker, Goblin and Slanderer already appear in T1 entries, so T1 cannot gain a new device body without a new body. That is the structural argument for the Acolyte and the Grave Grub, and it is stronger than the variety-count argument.
 
 ---
 
