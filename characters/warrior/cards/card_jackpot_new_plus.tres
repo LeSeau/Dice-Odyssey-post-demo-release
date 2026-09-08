@@ -7,7 +7,7 @@
 [resource]
 script = ExtResource("2_script")
 id = "card_jackpot_new_plus"
-name = "Jackpot+"
+name = "Sixplosion+"
 type = 0
 target = 1
 description = "Deal 6 damage for every 6 you rolled this fight"

@@ -77,6 +77,21 @@ func get_tooltip_content(status: Status) -> void:
             text = "Match this number with your Power to gain 1 Blue Dice. It changes each turn."
         "greedy":
             text = "Gains 2 Strength for every 6 Dice rolled this fight."
+        "odd_sensitive", "even_sensitive":
+            # The Parity Brothers. Both .tres share parity_sensitive.gd and differ only by
+            # this id, so one case covers the pair. It is a VULNERABILITY WINDOW, never a
+            # resistance: exactly one brother is soft at any moment and the player picks which
+            # by shaping the number (Mech +/-1 is the parity flipper). The percentage is the
+            # .tres `stacks` payload, which is the tuning dial - read it rather than retype it,
+            # the Canalize/Parasite lesson. stack_type is NONE so there is no number badge to
+            # point at with "this much"; it has to be spelled out.
+            var parity_word := "odd" if status.id == "odd_sensitive" else "even"
+            text = "Takes %d%% more damage while your Power is %s." % [
+                status.stacks, parity_word]
+        "brothers_rage":
+            # Fires on Events.enemy_died for the OTHER brother, never on an HP threshold - act
+            # 1 deliberately owns no HP-threshold beats. Amount is the .tres `stacks` dial.
+            text = "When the other brother dies, this enemy gains %d Strength." % status.stacks
         "parasite":
             # Read off ParasiteStatus's own constants rather than retyped here: those two
             # numbers are the tuning dial for how greedy the player may be, and the last time
@@ -114,16 +129,18 @@ func get_tooltip_content(status: Status) -> void:
 
 # A card-granted blessing badge must read as the CARD's name - a player who just played
 # Armageddon should not be told he has "Socketless Red". The badge title is derived from
-# status.id (capitalize() turns "dual_cannon" into "Dual Cannon"), so the ids ARE the
-# single source of truth and the legacy ones were renamed to match their cards
-# (socketless_red -> armageddon, second_socket -> dual_cannon, red_edge -> grindstone).
+# status.id (capitalize() turns "red_cannon" into "Red Cannon"), so the ids ARE the
+# single source of truth and every legacy one has been renamed to match its card
+# (socketless_red -> armageddon, second_socket -> red_cannon, red_edge -> refine,
+# dicelord_gift -> anarchy, opening_gambit -> dice_echo, hardened_grip -> die_hard,
+# coiled_spring -> buzzer_shot, quicksilver -> malleable).
 #
 # This map only exists for names capitalize() structurally CANNOT produce - punctuation.
-# Do not add an entry here for a plain rename: rename the status id instead, or the badge
-# and the id start drifting again. Keys are the base id, "_plus" already stripped.
-const TITLE_OVERRIDES := {
-    "dicelord_gift": "Dicelord's Gift",
-}
+# It is EMPTY as of the 2026-09-07 rename pass: Anarchy was the last apostrophe in the set
+# ("Anarchy"), and every current card name is plain words. Do not add an entry here
+# for a plain rename - rename the status id instead, or the badge and the id start drifting
+# again. Keys are the base id, "_plus" already stripped.
+const TITLE_OVERRIDES := {}
 
 
 func _title_for(status_id: String) -> String:

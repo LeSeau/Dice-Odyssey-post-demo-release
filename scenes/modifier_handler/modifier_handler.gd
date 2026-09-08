@@ -17,7 +17,7 @@ func get_modifier(type: Modifier.Type) -> Modifier:
 func get_modified_value(base: int, type: Modifier.Type) -> int:
     var value := base
     
-    # IN-HAND PASSIVES (Dead Weight+): flat damage granted by a card merely being HELD.
+    # IN-HAND PASSIVES (Dice Pillar+): flat damage granted by a card merely being HELD.
     # Folded into `base` here rather than pushed as a ModifierValue because in-hand state has
     # no add/remove event to sync against - Global.in_hand() scans the live Hand, so reading
     # it at use time is the only way it cannot desync. Adding before delegating makes it

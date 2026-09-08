@@ -1,6 +1,6 @@
 [gd_resource type="Resource" load_steps=4 format=3 uid="uid://c4trbcplus77z"]
 
-[ext_resource type="Texture2D" uid="uid://bhqtxybmbfujk" path="res://high_roller.png" id="1_icon"]
+[ext_resource type="Texture2D" path="res://trebuchet.png" id="1_icon"]
 [ext_resource type="Script" path="res://characters/warrior/cards/trebuchet_plus.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://b2l4kmoq5ivyx" path="res://whipsound.mp3" id="3_sound"]
 

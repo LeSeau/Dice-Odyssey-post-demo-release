@@ -8,7 +8,7 @@
 [resource]
 script = ExtResource("2_script")
 id = "card_dead_weight"
-name = "Dead Weight"
+name = "Dice Aura"
 type = 1
 target = 0
 description = "While this is in your hand, gain Surge 1. This card cannot be played"

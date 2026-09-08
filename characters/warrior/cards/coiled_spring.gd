@@ -2,7 +2,7 @@ extends Card
 
 # Wind up: next turn, your first Dice roll counts triple towards your Power (see
 # CoiledSpringStatus - arms at the next turn start, consumes on the first roll after).
-# Resets your Power (Julien, 2026-07-28). Exhausts. Shared by Coiled Spring+.
+# Resets your Power (Julien, 2026-07-28). Exhausts. Shared by Buzzer Shot+.
 
 const SPRING_STATUS = preload("res://statuses/status_coiled_spring.tres")
 

@@ -8,7 +8,7 @@
 [resource]
 script = ExtResource("2_script")
 id = "card_rigged"
-name = "Rigged"
+name = "Trickery"
 type = 1
 target = 0
 description = "Gain Lucky 2. Exhaust"

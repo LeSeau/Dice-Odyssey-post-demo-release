@@ -1,7 +1,7 @@
 extends Card
 
 # "This combat, your active Dice's highest face replaces its lowest." Blue becomes
-# 2/3/4/5/6/6 - EV up, and sixes density up, which feeds Jackpot, Effigy and Critical Edge.
+# 2/3/4/5/6/6 - EV up, and sixes density up, which feeds Sixplosion, Effigy and Critical Edge.
 # Exact 6 as its gate, so it belongs to the precision ladder that pays for itself.
 
 const COUNTERFEIT_STATUS = preload("res://statuses/status_counterfeit.tres")

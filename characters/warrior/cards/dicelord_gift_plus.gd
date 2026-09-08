@@ -1,6 +1,6 @@
 extends Card
 
-# Dicelord's Gift+: two random dice a turn instead of one. The count lives on
+# Anarchy+: two random dice a turn instead of one. The count lives on
 # status_dicelord_gift_plus.tres::stacks, which shares statuses/status_dicelord_gift.gd with
 # the base version.
 

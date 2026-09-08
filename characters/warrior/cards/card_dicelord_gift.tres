@@ -8,7 +8,7 @@
 [resource]
 script = ExtResource("2_script")
 id = "card_dicelord_gift"
-name = "Dicelord's Gift"
+name = "Anarchy"
 type = 2
 target = 0
 description = "Charge a random Dice each turn"

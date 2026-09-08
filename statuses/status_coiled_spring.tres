@@ -5,7 +5,7 @@
 
 [resource]
 script = ExtResource("2_script")
-id = "coiled_spring"
+id = "buzzer_shot"
 type = 2
 stack_type = 0
 can_expire = true

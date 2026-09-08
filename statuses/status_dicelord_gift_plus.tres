@@ -5,7 +5,7 @@
 
 [resource]
 script = ExtResource("2_script")
-id = "dicelord_gift_plus"
+id = "anarchy_plus"
 type = 0
 stack_type = 0
 can_expire = false

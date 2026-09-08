@@ -8,16 +8,16 @@
 [resource]
 script = ExtResource("2_script")
 id = "card_red_edge"
-name = "Grindstone"
+name = "Refine"
 type = 2
 target = 0
-description = "Remove the lowest face from Red Dice this combat"
+description = "Remove the 2 lowest faces from Red Dice this combat"
 rarity = 0
-rarity_tier = 1
+rarity_tier = 2
 red_only = false
 can_play_without_dice = false
-requirement = 0
-requirement_number = 0
+requirement = 1
+requirement_number = 6
 exhausts = true
 bonus_requirement = 0
 bonus_requirement_number = 0

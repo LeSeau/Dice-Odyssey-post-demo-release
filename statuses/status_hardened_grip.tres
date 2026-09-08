@@ -5,7 +5,7 @@
 
 [resource]
 script = ExtResource("2_script")
-id = "hardened_grip"
+id = "die_hard"
 type = 2
 stack_type = 0
 can_expire = false

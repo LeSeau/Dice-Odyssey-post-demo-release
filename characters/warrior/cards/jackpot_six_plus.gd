@@ -1,6 +1,6 @@
 extends Card
 
-# Jackpot+ drops the Exhaust (Julien, 2026-08-20). The tally it reads is fight-long and never
+# Sixplosion+ drops the Exhaust (Julien, 2026-08-20). The tally it reads is fight-long and never
 # resets, so being able to play it twice late in a fight is the entire upgrade - the second
 # copy hits for at least as much as the first.
 

@@ -7,7 +7,7 @@
 [resource]
 script = ExtResource("2_script")
 id = "card_overclock_plus"
-name = "Overclock+"
+name = "Haste+"
 type = 1
 target = 0
 description = "Draw 3 cards. Charge 3. Exhaust"

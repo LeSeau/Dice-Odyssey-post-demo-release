@@ -29,7 +29,7 @@ func apply_status(_target: Node) -> void:
     # delta when a card grants Surge, but only this line can take the count back DOWN when a
     # turn-scoped slice ends.
     #
-    # ⚠️ total_surge(), NOT surge_amount: the held half (Dead Weight) is deliberately kept out
+    # ⚠️ total_surge(), NOT surge_amount: the held half (Dice Pillar) is deliberately kept out
     # of surge_amount, so resyncing to surge_amount alone would erase it from the badge once a
     # turn. Harmless that the hand is still empty at this point in the turn (statuses resolve
     # before the draw) - Hand._refresh_held_badges() corrects the count as the cards land.

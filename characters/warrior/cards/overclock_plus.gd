@@ -1,6 +1,6 @@
 extends Card
 
-# Overclock+ : Draw 3, Charge 3 (base overclock.gd draws 2 / charges 2). Still Celestial,
+# Haste+ : Draw 3, Charge 3 (base overclock.gd draws 2 / charges 2). Still Celestial,
 # no-reset, Exhaust.
 
 

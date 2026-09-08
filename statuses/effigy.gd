@@ -2,7 +2,7 @@ class_name EffigyStatus
 extends Status
 
 # Effigy's curse: for the rest of the FIGHT, every natural 6 the player rolls hits this enemy
-# for its per-six damage. The sixes payoff aimed at a single target (Jackpot is the whole-fight
+# for its per-six damage. The sixes payoff aimed at a single target (Sixplosion is the whole-fight
 # lump); buying an Evil die - 75% sixes - is what turns this into a machine gun.
 #
 # Keyed on Global.last_roll, the face actually rolled, so a Boosted or Surge 5->6 never

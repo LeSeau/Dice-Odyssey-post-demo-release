@@ -1,11 +1,11 @@
 extends Card
 
 # Bigger Block per six, same rule: unplayable, amount in Global.TALISMAN_PLUS_SIX_BLOCK.
-# IN-HAND PASSIVE, and now a member of the sixes family alongside Jackpot and Effigy: while
+# IN-HAND PASSIVE, and now a member of the sixes family alongside Sixplosion and Effigy: while
 # it sits in your hand, every natural 6 you roll grants Block. It can never be played
 # (Julien, 2026-08-20) - holding it IS the effect, so there is no second mode to spend.
 #
-# The Block itself is granted by dice.gd at the same `last_roll == 6` check Jackpot and
+# The Block itself is granted by dice.gd at the same `last_roll == 6` check Sixplosion and
 # Effigy already key off, so all three agree on what a "6" is: the face actually rolled,
 # never a Boosted or Surge 5->6. The amount lives in Global.TALISMAN_SIX_BLOCK.
 #

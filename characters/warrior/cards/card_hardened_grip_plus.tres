@@ -7,7 +7,7 @@
 [resource]
 script = ExtResource("2_script")
 id = "card_hardened_grip_plus"
-name = "Hardened Grip+"
+name = "Die Hard+"
 type = 2
 target = 0
 description = "Gain 1 Block every time you roll a Dice"

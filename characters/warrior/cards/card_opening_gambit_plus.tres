@@ -7,7 +7,7 @@
 [resource]
 script = ExtResource("2_script")
 id = "card_opening_gambit_plus"
-name = "Opening Gambit+"
+name = "Dice Echo+"
 type = 2
 target = 0
 description = "Your first Dice roll each turn counts double towards your Power"

@@ -1,6 +1,6 @@
 [gd_resource type="Resource" load_steps=4 format=3 uid="uid://c3fc9plusaa04"]
 
-[ext_resource type="Texture2D" uid="uid://dev1pog5khyjv" path="res://assets/images/focus.jpg" id="1_cvx1d"]
+[ext_resource type="Texture2D" path="res://focus.png" id="1_cvx1d"]
 [ext_resource type="Script" path="res://characters/warrior/cards/focus_plus.gd" id="2_10vsx"]
 [ext_resource type="AudioStream" uid="uid://cy6owtfbf8sfv" path="res://sounds/fountainheal.wav" id="3_sjv1e"]
 

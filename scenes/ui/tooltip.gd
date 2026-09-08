@@ -76,7 +76,7 @@ func get_tooltip_content(requirement):
         # This one line is where the player learns that, so keep the distinction explicit.
         text += "An extra Dice that resolves on its own. It builds no Power and never counts as a roll."
     elif requirement == "Reroll":
-        # Ricochet's native ability, which Quicksilver grafts onto another type. Worded from
+        # Ricochet's native ability, which Malleable grafts onto another type. Worded from
         # the player's side ("you may") because the choice is theirs and it is optional.
         text += "Once per roll, you may roll that Dice again and keep the new result."
     elif requirement == "Support":

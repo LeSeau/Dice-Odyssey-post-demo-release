@@ -41,7 +41,7 @@ enum StackType {NONE, INTENSITY, DURATION}
 @export var hide_counter_when_zero: bool = false
 
 # Extra count shown on the badge that is NOT part of `stacks`. Exists for in-hand passives:
-# Dead Weight+ grants 1 Strength while HELD, and that half deliberately never becomes a real
+# Dice Aura+ grants 1 Strength while HELD, and that half deliberately never becomes a real
 # Muscle stack, because MuscleStatus writes `stacks` straight into the "muscle" ModifierValue
 # - inflating stacks would hand the player the damage twice (once from the modifier, once
 # from ModifierHandler's read of Global.in_hand_damage_bonus()). Keeping the effect where it

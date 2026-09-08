@@ -7,7 +7,7 @@
 [resource]
 script = ExtResource("2_script")
 id = "card_quicksilver_plus"
-name = "Quicksilver+"
+name = "Malleable+"
 type = 2
 target = 0
 description = "Your Blue Dice gain the Reroll ability for the rest of combat"

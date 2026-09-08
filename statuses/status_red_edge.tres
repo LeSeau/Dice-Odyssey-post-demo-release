@@ -5,7 +5,7 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "grindstone"
+id = "refine"
 type = 2
 stack_type = 0
 can_expire = false

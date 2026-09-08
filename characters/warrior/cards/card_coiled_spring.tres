@@ -8,7 +8,7 @@
 [resource]
 script = ExtResource("2_script")
 id = "card_coiled_spring"
-name = "Coiled Spring"
+name = "Buzzer Shot"
 type = 1
 target = 0
 description = "Next turn, your first roll counts triple. Exhaust"

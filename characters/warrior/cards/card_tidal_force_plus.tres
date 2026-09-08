@@ -7,7 +7,7 @@
 [resource]
 script = ExtResource("2_script")
 id = "card_tidal_force_plus"
-name = "Tidal Force+"
+name = "Pulverize+"
 type = 0
 target = 1
 description = "Deal X damage. Power above 8 counts double"

@@ -7,10 +7,10 @@ extends Status
 # arms on the first player_turn_started AFTER being applied, and consumes itself on the
 # first roll after that.
 #
-# Unlike Opening Gambit this disconnects its Events hooks once consumed AND whenever its
+# Unlike Dice Echo this disconnects its Events hooks once consumed AND whenever its
 # owner is gone - a Status is a Resource, and a still-connected Events signal holds a strong
 # reference to it, so without this the effect would silently persist into every later battle
-# of the run (see the Opening Gambit leak note, 2026-07-20).
+# of the run (see the Dice Echo leak note, 2026-07-20).
 
 var _armed := false
 var _owner: Node = null

@@ -1,6 +1,6 @@
 [gd_resource type="Resource" load_steps=5 format=3 uid="uid://bpix1ev0lley3"]
 
-[ext_resource type="Texture2D" uid="uid://b0271oj6u4bm1" path="res://fireflies.png" id="1_icon"]
+[ext_resource type="Texture2D" uid="uid://dulwe7hmldibr" path="res://fireflies_ok.png" id="1_icon"]
 [ext_resource type="Script" path="res://characters/warrior/cards/pixie_volley.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://cvjv56ti6hkis" path="res://impact1.ogg" id="3_sound"]
 [ext_resource type="Resource" uid="uid://bpix1ev0plus3" path="res://characters/warrior/cards/card_pixie_volley_plus.tres" id="4_plus"]

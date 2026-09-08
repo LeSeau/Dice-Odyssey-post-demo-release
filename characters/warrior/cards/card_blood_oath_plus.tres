@@ -7,10 +7,10 @@
 [resource]
 script = ExtResource("2_script")
 id = "card_blood_oath_plus"
-name = "Blood Oath+"
+name = "Blood Pact+"
 type = 1
 target = 0
-description = "While this is in your hand, your Red Dice rolls gain 3 bonus Power. This card cannot be played"
+description = "While this is in your hand, your Red Dice rolls gain 4 bonus Power. This card cannot be played"
 rarity = 0
 rarity_tier = 1
 red_only = false
