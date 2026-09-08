@@ -7,10 +7,10 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     Events.reset_charged_card.emit()
     # By the time this card resolves, the die that carried it is already spent -
     # "remaining" is every other die left in every pool, not just Red anymore.
-    # Each remaining die rolls from its OWN face set (thrown_faces_for = infusion-aware,
-    # so a Repented Evil can never contribute a 0 and a Bulky Giant rolls 7-12) and that
-    # same value drives both the damage bonus and the face shown on the thrown die -
-    # what the player sees smash into the enemy is exactly what got added.
+    # Each remaining die contributes its HIGHEST face from its OWN face set
+    # (thrown_faces_for = infusion-aware, so a Repented Evil gives 6 and a Bulky Giant 12)
+    # and that same value drives both the damage bonus and the face shown on the thrown
+    # die - what the player sees smash into the enemy is exactly what got added.
     var bonus := 0
     var throws: Array = []
     var target: Node = targets[0] if not targets.is_empty() else null
@@ -18,8 +18,15 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
         var prop := "%s_dice_current_amount" % dice_type
         var remaining: int = Global.get(prop)
         var faces: Array = thrown_faces_for(dice_type)
+        # Julien, 2026-09-06: a spent die does NOT roll - it lands on its highest face.
+        # Deterministic on purpose, so the number the card promises is the number you get.
+        # Guarded because this is now computed for every type, including the ones with no
+        # dice left - faces.max() on an empty array returns null and would not cast to int.
+        var best_value: int = 0
+        if not faces.is_empty():
+            best_value = faces.max()
         for i in remaining:
-            var rolled_value: int = faces[randi() % faces.size()]
+            var rolled_value: int = best_value
             bonus += rolled_value
             # "thud": these bashes carry no damage sound of their own (the total lands
             # once at the end), so dice.gd gives each impact a landing clack instead.
@@ -87,4 +94,4 @@ func _total_remaining() -> int:
 
 
 func get_dynamic_description(_modifiers: ModifierHandler, _target: Node = null) -> String:
-    return "Deal X damage. Spend all your remaining Dice: each adds its roll\n(%d Dice remaining)" % _total_remaining()
+    return "Deal X damage. Spend all your remaining Dice: each adds its highest face\n(%d Dice remaining)" % _total_remaining()

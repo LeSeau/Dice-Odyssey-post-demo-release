@@ -1,7 +1,7 @@
 [gd_scene load_steps=35 format=3 uid="uid://btktlydklchb4"]
 
 [ext_resource type="Script" path="res://main_menu.gd" id="1_vi5tj"]
-[ext_resource type="Texture2D" path="res://assets/images/ui/menu_bg_dawn.png" id="2_2uw4g"]
+[ext_resource type="Texture2D" uid="uid://c1rssgb6u0w03" path="res://assets/images/ui/menu_bg_dawn.png" id="2_2uw4g"]
 [ext_resource type="FontFile" uid="uid://c4mfyi0ta8qeq" path="res://fonts/MinionPro-Semibold.otf" id="3_lj8do"]
 [ext_resource type="Texture2D" uid="uid://bbhk8pdh4refe" path="res://assets/images/pause_menu_icon.png" id="4_gearicon"]
 [ext_resource type="PackedScene" uid="uid://c2mvqx4n1p0a1" path="res://scenes/ui/pause_menu.tscn" id="5_pausemenu"]

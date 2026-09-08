@@ -43,9 +43,8 @@
 [ext_resource type="Resource" path="res://relics/alms_box.tres" id="117_almsbo"]
 [ext_resource type="Resource" uid="uid://rhag2aqoupe" path="res://relics/hagglers_loupe.tres" id="118_haggle"]
 [ext_resource type="Resource" path="res://relics/golem_heart.tres" id="119_golemh"]
-
 [ext_resource type="Resource" uid="uid://dn1kbuqp83m6y" path="res://relics/spyglass.tres" id="130_spygls"]
-[ext_resource type="Resource" uid="uid://rgam20qsfan" path="res://relics/gamblers_fan.tres" id="131_gamblf"]
+[ext_resource type="Resource" path="res://relics/gamblers_fan.tres" id="131_gamblf"]
 
 [resource]
 script = ExtResource("2_tgoc2")

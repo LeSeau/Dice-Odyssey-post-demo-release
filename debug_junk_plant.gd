@@ -7,17 +7,20 @@ extends Node
 # Sections:
 #   A  the timing contract: the enemy's hold (Global.JUNK_PLANT_PRESENT_TIME) IS the
 #      presenter's conjure+glide+hold for one card, and the Whisper action reads that
-#      constant - plus the caption copy for every shape of batch
+#      constant
 #   B  one Slander into the DISCARD from a real enemy position: the pile write happens on the
 #      emit (before any visual), one real card face wearing the Hex chrome sits at reading
-#      size on the stage under a caption naming the pile, it lands ON the discard button at
-#      the contracted time, and NOTHING is left behind afterwards (the leak check runs on a
-#      path that never calls any manual cleanup - the scout comet lesson)
-#   C  two cards in one frame fan into two faces with a "2x" caption
+#      size on the stage, it lands ON the discard button at the contracted time, and NOTHING
+#      is left behind afterwards (the leak check runs on a path that never calls any manual
+#      cleanup - the scout comet lesson)
+#   C  two cards in one frame fan into two faces
 #   D  the DRAW-pile signal writes into draw_pile and the story goes to the draw button
 #   E  no on-screen source (Vector2.ZERO): no face, but the pile still punches
 #   F  a plant arriving mid-presentation queues behind it - never two fans on stage
 #   G  a same-frame batch split across both piles becomes two presentations
+#   Every section also pins that the presenter writes NO text: WHERE is told by the flight
+#   into the pile and the pile's own reaction, never by a caption (Julien, 2026-09-06).
+#
 #   H  the REAL Whisper move: lunge, hit, plant, and the Slanderer holds its pose for the
 #      whole presentation before walking back
 #
@@ -147,13 +150,17 @@ func _find_enemy(display_name: String) -> Enemy:
 func _faces() -> Array:
 	var out: Array = []
 	for child in _presenter.get_children():
-		# queue_free is end-of-frame: a face/caption freed on the landing frame is still a
+		# queue_free is end-of-frame: a face freed on the landing frame is still a
 		# child when presentation_finished fires (same trap as the corpses in enemy_handler).
 		if child is CardMenuUI and not child.is_queued_for_deletion():
 			out.append(child)
 	return out
 
 
+# Regression guard, not a lookup: the presenter must never put words on screen. It used to
+# float "2x Slander added to your Discard pile" under the fan; Julien cut it (2026-09-06) -
+# the card flying into the pile says WHERE on its own, the way STS2 does it. Any Label
+# turning up here again means the caption came back.
 func _caption() -> Label:
 	for child in _presenter.get_children():
 		if child is Label and not child.is_queued_for_deletion():
@@ -189,7 +196,7 @@ func _face_center(face: Control) -> Vector2:
 # ---------------------------------------------------------------- A: contract
 
 func _section_a() -> void:
-	print("\n--- A: timing contract + caption copy ---")
+	print("\n--- A: timing contract ---")
 	check("presenter is wired to the discard button",
 			_presenter.discard_pile_button == _battle.battle_ui.discard_pile_button)
 	check("presenter is wired to the draw button",
@@ -204,21 +211,11 @@ func _section_a() -> void:
 	check("the Whisper action holds its lunge on the SAME constant",
 			src.contains("tween_interval(Global.JUNK_PLANT_PRESENT_TIME)"))
 	check("...and no longer on the old flat 0.25s", not src.contains("tween_interval(0.25)"))
-
-	var a := _new_slander()
-	var b := _new_slander()
-	var other: Card = load("res://characters/warrior/cards/warrior_axe_attack1.tres")
-	var discard: int = PRESENTER_SCRIPT.Dest.DISCARD
-	var draw: int = PRESENTER_SCRIPT.Dest.DRAW
-	check("caption names one card and the pile",
-			PRESENTER_SCRIPT.caption_text_for([a], discard) == "Slander added to your Discard pile",
-			PRESENTER_SCRIPT.caption_text_for([a], discard))
-	check("caption counts identical cards",
-			PRESENTER_SCRIPT.caption_text_for([a, b], discard) == "2× Slander added to your Discard pile",
-			PRESENTER_SCRIPT.caption_text_for([a, b], discard))
-	check("caption falls back to a count for a mixed batch, and names the DRAW pile",
-			PRESENTER_SCRIPT.caption_text_for([a, other], draw) == "2 cards added to your Draw pile",
-			PRESENTER_SCRIPT.caption_text_for([a, other], draw))
+	# The presentation is pictures only now: no caption font, no caption copy left in the file.
+	var presenter_src := FileAccess.get_file_as_string("res://scenes/ui/junk_plant_presenter.gd")
+	check("the presenter carries no caption copy at all",
+			not presenter_src.contains("added to your"))
+	check("...and no longer loads a caption font", not presenter_src.contains("CAPTION_FONT"))
 
 
 # ---------------------------------------------------------------- B: one card, discard
@@ -275,16 +272,9 @@ func _section_b() -> void:
 			"body centre %s vs pivot centre %s" % [str(frame_rect.get_center()), str(_face_center(face))])
 	check("the face root kept its card size (no child grew the container)",
 			face.size.is_equal_approx(PRESENTER_SCRIPT.CARD_SIZE), str(face.size))
-	var caption := _caption()
-	check("a caption is up", caption != null)
-	if caption != null:
-		check("caption: 'Slander added to your Discard pile'",
-				caption.text == "Slander added to your Discard pile", caption.text)
-		var card_bottom: float = _face_center(face).y + face.pivot_offset.y * face.scale.y
-		check("caption sits BELOW the card, not over it", caption.position.y >= card_bottom - 2.0,
-				"caption y %.0f vs card bottom %.0f" % [caption.position.y, card_bottom])
-		check("caption is horizontally centred on the card",
-				absf((caption.position.x + caption.size.x / 2.0) - _face_center(face).x) < 3.0)
+	var stray := _caption()
+	check("no text on stage - the flight tells WHERE, not a caption", stray == null,
+			stray.text if stray != null else "")
 
 	await _await_until(func() -> bool: return _finished.size() >= 1, 6.0)
 	check("the presentation finished", _finished.size() == 1)
@@ -294,13 +284,13 @@ func _section_b() -> void:
 				_finished[0][0] == 1 and _finished[0][1] == PRESENTER_SCRIPT.Dest.DISCARD)
 	# Timing pin: emit -> land = the enemy's hold + the exit streak, measured in GAME time.
 	var expected: float = Global.JUNK_PLANT_PRESENT_TIME + PRESENTER_SCRIPT.EXIT_TIME
-	var got: float = _game_clock - t_emit - PRESENTER_SCRIPT.CAPTION_FADE
+	var got: float = _game_clock - t_emit
 	check("landed when the enemy's hold + exit says (game time)",
 			absf(got - expected) < 0.15, "%.2fs vs %.2fs" % [got, expected])
 
 	# LEAK CHECK on a path that calls NO manual cleanup: everything must free itself.
 	check("no face left on stage", _faces().is_empty())
-	check("no caption left", _caption() == null)
+	check("still no text anywhere", _caption() == null)
 	await _wait_game(0.9)
 	check("presenter is empty once the motes and bloom have died",
 			_presenter.get_child_count() == 0, "%d children" % _presenter.get_child_count())
@@ -335,10 +325,7 @@ func _section_c() -> void:
 		# never sit on the ROLL plate (the first numbers put it 54px in, seen on the strip).
 		var right_edge: float = maxf(_face_center(faces[0]).x, _face_center(faces[1]).x) + 70.0 * faces[0].scale.x
 		check("the fan's right edge stays off the ROLL plate", right_edge < 545.0, "right edge %.0f" % right_edge)
-	var caption := _caption()
-	check("caption counts them: '2× Slander added to your Discard pile'",
-			caption != null and caption.text == "2× Slander added to your Discard pile",
-			caption.text if caption else "<none>")
+	check("a fan of two still writes no text", _caption() == null)
 	await _await_until(func() -> bool: return _finished.size() >= 1, 6.0)
 	check("two catches on the pile", _landed.size() == 2, "%d landed" % _landed.size())
 	check("finished as one presentation of 2", _finished.size() == 1 and _finished[0][0] == 2)
@@ -364,9 +351,8 @@ func _section_d() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 	await _wait_game(0.55)
-	var caption := _caption()
-	check("caption names the DRAW pile", caption != null and caption.text == "Slander added to your Draw pile",
-			caption.text if caption else "<none>")
+	check("no text here either - the DRAW button's own punch says where it went",
+			_caption() == null)
 	await _await_until(func() -> bool: return _finished.size() >= 1, 6.0)
 	check("it landed on the DRAW button", _landed.size() == 1 and _landed[0] == draw_button)
 	if _finished.size() == 1:
@@ -426,7 +412,7 @@ func _section_g() -> void:
 	Events.add_card_to_discard_requested.emit(_new_slander(), origin)
 	Events.add_card_to_draw_pile_requested.emit(_new_slander(), origin)
 	await _await_until(func() -> bool: return _finished.size() >= 2, 10.0)
-	check("split into two presentations (one caption can only name one pile)",
+	check("split into two presentations (a fan flies into ONE pile)",
 			_finished.size() == 2 and _started == 2, "%d finished" % _finished.size())
 	if _finished.size() == 2:
 		var dests := [_finished[0][1], _finished[1][1]]
@@ -520,5 +506,6 @@ func _movie() -> void:
 #   2. Put the Whisper's tween_interval back to 0.25 -> A's two contract checks and H's hold
 #      go red.
 #   3. Make _flush_pending() queue each entry as its own batch -> C's "ONE presentation" and
-#      the "2×" caption go red.
+#      "two faces on stage" go red.
+#   5. Re-add a caption Label in _present() -> every "no text" check goes red.
 #   4. Swap the pile in _pile_for() -> D's "landed on the DRAW button" goes red.

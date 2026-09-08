@@ -16,13 +16,16 @@ extends Control
 #            spot every played card already presents at (card_ui.gd STAGE_HOLD_CENTER):
 #            the place the eye is trained to read a card. The ash/iron chrome is what says
 #            "not one of yours" while it sits there.
-#   HOW MANY - one face per card, fanned side by side (up to MAX_VISIBLE_CARDS), and the
-#            caption counts them: "2x Slander added to your Discard pile". Cards planted in
-#            the same FRAME batch into one fan (a multi-card action); anything later gets
-#            its own presentation, queued behind the current one so two never share the
-#            stage.
-#   WHERE  - the caption names the pile, and the pile itself answers: the card streaks
-#            into it, it punches on the catch and a ring of light pulses out of it.
+#   HOW MANY - one face per card, fanned side by side (up to MAX_VISIBLE_CARDS). Cards
+#            planted in the same FRAME batch into one fan (a multi-card action); anything
+#            later gets its own presentation, queued behind the current one so two never
+#            share the stage.
+#   WHERE  - the pile answers, and nothing else: the card streaks into it, the button
+#            punches on the catch and a ring of light pulses out of it. There is
+#            deliberately NO caption naming the pile (Julien, 2026-09-06: "no need to show
+#            'this is going to your discard pile' as text; rather show that the card goes
+#            to the discard pile, like STS2 does") - the flight IS the sentence, and a line
+#            of prose on top of it only says slower what the eye already followed.
 # The whole beat runs during the planting enemy's hold (Global.JUNK_PLANT_PRESENT_TIME):
 # the enemy stands there while you read, and walks back exactly as the card flies off. The
 # conjure + glide + hold are carved OUT of that budget, never added on top.
@@ -38,7 +41,6 @@ signal presentation_finished(count: int, dest: int)
 enum Dest { DRAW, DISCARD }
 
 const CARD_MENU_UI := preload("res://scenes/ui/card_menu_ui.tscn")
-const CAPTION_FONT: FontFile = preload("res://fonts/MinionPro-Bold.otf")
 const CARD_SIZE := Vector2(140, 210)
 
 const ACCENT := Color(0.62, 0.50, 0.86)
@@ -84,12 +86,6 @@ const EXIT_BANK_DEG := 20.0
 const EXIT_FADE := 0.16            # only the last stretch - the card stays visible travelling
 const MAX_VISIBLE_CARDS := 4
 
-# --- caption ------------------------------------------------------------------------
-const CAPTION_FONT_SIZE := 24
-const CAPTION_GAP := 26.0          # below the fan's bottom edge
-const CAPTION_IN_TIME := 0.18
-const CAPTION_FADE := 0.3
-
 # --- light --------------------------------------------------------------------------
 const FLARE_SIZE := 110.0          # cast pop at the enemy
 const FLARE_TIME := 0.24
@@ -119,7 +115,6 @@ const LAND_SFX_DB := -4.0
 const Z_BASE := 118
 const Z_FX := 0
 const Z_CARD := 2
-const Z_CAPTION := 3
 
 var draw_pile_button: CardPileOpener
 var discard_pile_button: CardPileOpener
@@ -128,7 +123,6 @@ var _pending: Array[Dictionary] = []
 var _flush_scheduled := false
 var _queue: Array = []
 var _busy := false
-var _caption: Label
 
 
 func _ready() -> void:
@@ -170,35 +164,14 @@ static func stage_time_for(count: int) -> float:
     return CONJURE_TIME + GLIDE_TIME + hold_time_for(count)
 
 
-static func pile_display_name(dest: int) -> String:
-    return "Draw pile" if dest == Dest.DRAW else "Discard pile"
-
-
-# Caption copy. One distinct card name -> it is named ("Slander added to your Discard
-# pile", "2x Slander added to ..."); a mixed batch falls back to the count alone.
-static func caption_text_for(cards: Array, dest: int) -> String:
-    var names := {}
-    for card in cards:
-        if card is Card:
-            names[(card as Card).name] = true
-    var count := cards.size()
-    var pile := pile_display_name(dest)
-    if names.size() == 1:
-        var only: String = names.keys()[0]
-        if count == 1:
-            return "%s added to your %s" % [only, pile]
-        return "%d× %s added to your %s" % [count, only, pile]
-    return "%d cards added to your %s" % [count, pile]
-
-
 # ---------------------------------------------------------------- sequencing
 
 func _flush_pending() -> void:
     _flush_scheduled = false
     if _pending.is_empty():
         return
-    # Split by destination, preserving arrival order: a fan has ONE caption, so it can only
-    # ever name one pile.
+    # Split by destination, preserving arrival order: a fan flies into ONE pile, so a batch
+    # that touches both has to become two presentations rather than a fan that splits mid-air.
     var by_dest := {}
     var order: Array = []
     for entry: Dictionary in _pending:
@@ -270,10 +243,6 @@ func _present(batch: Array) -> void:
 
     SFXPlayer.play(CONJURE_SFX, false, CONJURE_SFX_PITCH, CONJURE_SFX_DB)
 
-    var cards: Array = []
-    for entry: Dictionary in batch:
-        cards.append(entry["card"])
-
     for i in visible_n:
         var entry: Dictionary = batch[i]
         var ui := _make_card_face(entry["card"])
@@ -316,15 +285,9 @@ func _present(batch: Array) -> void:
             .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
         t.parallel().tween_property(ui, "modulate:a", 0.0, EXIT_FADE).set_delay(EXIT_TIME - EXIT_FADE)
         t.parallel().tween_method(_trail_step.bind(ui, trail_state), 0.0, 1.0, EXIT_TIME)
-        # 5. CATCH - punch, bloom, ring on the first, caption out + finish on the last.
+        # 5. CATCH - punch, bloom, ring on the first, finish on the last.
         t.tween_callback(_on_card_landed.bind(pile, pile_center, bright, i, visible_n, count, dest))
         t.tween_callback(ui.queue_free)
-
-    # The caption arrives as the fan settles - naming the pile once there is something to name.
-    var caption_center := Vector2(stage.x, stage.y + CARD_SIZE.y / 2.0 * hold_scale + CAPTION_GAP)
-    var caption_tween := create_tween()
-    caption_tween.tween_interval(CONJURE_TIME + GLIDE_TIME * 0.5)
-    caption_tween.tween_callback(_show_caption.bind(caption_text_for(cards, dest), caption_center))
 
 
 func _on_card_landed(pile: CardPileOpener, pile_center: Vector2, bright: Color, index: int, visible_n: int, count: int, dest: int) -> void:
@@ -335,8 +298,11 @@ func _on_card_landed(pile: CardPileOpener, pile_center: Vector2, bright: Color, 
         card_landed.emit(pile)
     _spawn_flare(pile_center, bright, BLOOM_SIZE, BLOOM_TIME)
     SFXPlayer.play(LAND_SFX, false, LAND_SFX_PITCH + 0.05 * float(index), LAND_SFX_DB)
+    # The last catch ends the presentation: the pile has the card and there is nothing left
+    # on stage to wait for. (It used to wait out the caption's 0.3s fade first, so anything
+    # queued behind a presentation now starts that much earlier.)
     if index == visible_n - 1:
-        _hide_caption_then_finish(count, dest)
+        _finish(count, dest)
 
 
 # ---------------------------------------------------------------- pieces
@@ -361,8 +327,8 @@ func _make_card_face(card: Card) -> Control:
 
 # Parented under Visuals (a plain Control), NEVER under the face's root: that root is a
 # CenterContainer, and a child with a bigger minimum size grows the container itself, which
-# re-centres the drawn card ~50px down-right of where position+pivot says it is (and on top
-# of its own caption) - seen on the strip, invisible to any check that reads position. First
+# re-centres the drawn card ~50px down-right of where position+pivot says it is - seen on
+# the strip, invisible to any check that reads position. First
 # child of Visuals, so it paints behind the card body, and it rides the face's transform.
 func _add_aura(ui: Control) -> void:
     var visuals: Control = ui.get_node("Visuals")
@@ -384,55 +350,6 @@ func _ignore_mouse(node: Node) -> void:
         (node as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
     for child in node.get_children():
         _ignore_mouse(child)
-
-
-func _show_caption(text: String, center: Vector2) -> void:
-    if is_instance_valid(_caption):
-        _caption.queue_free()
-    var label := Label.new()
-    var settings := LabelSettings.new()
-    settings.font = CAPTION_FONT
-    settings.font_size = CAPTION_FONT_SIZE
-    # The Hex title's ash on near-black: the caption wears the card's own "not yours" voice
-    # rather than the gold every player-side banner speaks in.
-    settings.font_color = CardMenuUI.HEX_TITLE_COLOR
-    settings.outline_size = 5
-    settings.outline_color = CardMenuUI.HEX_TITLE_OUTLINE_COLOR
-    settings.shadow_size = 6
-    settings.shadow_color = Color(0, 0, 0, 0.7)
-    settings.shadow_offset = Vector2(2, 2)
-    label.label_settings = settings
-    label.text = text
-    label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    label.z_index = Z_CAPTION
-    add_child(label)
-    label.size = label.get_minimum_size()
-    label.pivot_offset = label.size / 2.0
-    label.position = center - label.size / 2.0
-    label.modulate.a = 0.0
-    label.scale = Vector2(0.7, 0.7)
-    _caption = label
-    var t := create_tween()
-    t.tween_property(label, "modulate:a", 1.0, CAPTION_IN_TIME * 0.7)
-    t.parallel().tween_property(label, "scale", Vector2.ONE, CAPTION_IN_TIME) \
-        .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-
-
-# The caption outlives the flight on purpose - it keeps naming the pile until the last card
-# is caught - and only then fades. finish is chained after the fade so a listener that
-# checks for leftovers on presentation_finished sees none.
-func _hide_caption_then_finish(count: int, dest: int) -> void:
-    if not is_instance_valid(_caption):
-        _finish(count, dest)
-        return
-    var label := _caption
-    _caption = null
-    var t := create_tween()
-    t.tween_property(label, "modulate:a", 0.0, CAPTION_FADE) \
-        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-    t.tween_callback(label.queue_free)
-    t.tween_callback(_finish.bind(count, dest))
 
 
 func _make_light(size: float, color: Color) -> TextureRect:

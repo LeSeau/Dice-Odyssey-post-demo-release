@@ -14,8 +14,8 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     Events.temporary_dice_added.emit("blue")
     # By the time this card resolves, the die that carried it is already spent -
     # "remaining" is every other die left in every pool, not just Red anymore.
-    # Faces via thrown_faces_for = infusion-aware (Repented Evil can't roll a 0, Bulky
-    # Giant rolls 7-12); the same value drives the damage bonus AND the thrown face.
+    # Each die contributes its HIGHEST face; thrown_faces_for is infusion-aware (Repented
+    # Evil gives 6, Bulky Giant 12). The same value drives the bonus AND the thrown face.
     var bonus := 0
     var throws: Array = []
     var target: Node = targets[0] if not targets.is_empty() else null
@@ -23,8 +23,15 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
         var prop := "%s_dice_current_amount" % dice_type
         var remaining: int = Global.get(prop)
         var faces: Array = thrown_faces_for(dice_type)
+        # Julien, 2026-09-06: a spent die does NOT roll - it lands on its highest face.
+        # Deterministic on purpose, so the number the card promises is the number you get.
+        # Guarded because this is now computed for every type, including the ones with no
+        # dice left - faces.max() on an empty array returns null and would not cast to int.
+        var best_value: int = 0
+        if not faces.is_empty():
+            best_value = faces.max()
         for i in remaining:
-            var rolled_value: int = faces[randi() % faces.size()]
+            var rolled_value: int = best_value
             bonus += rolled_value
             # "thud": these bashes carry no damage sound of their own (the total lands
             # once at the end), so dice.gd gives each impact a landing clack instead.
@@ -83,4 +90,4 @@ func _total_remaining() -> int:
 
 
 func get_dynamic_description(_modifiers: ModifierHandler, _target: Node = null) -> String:
-    return "Charge 1 Blue Dice. Then, deal X damage: spend all your remaining Dice, each adds its roll\n(%d Dice remaining)" % _total_remaining()
+    return "Charge 1 Blue Dice. Then, deal X damage: spend all your remaining Dice, each adds its highest face\n(%d Dice remaining)" % _total_remaining()

@@ -515,7 +515,7 @@ const POWER_ORB_LAND_VOLUME_JITTER := 3.0
 # "power genuinely increased in the same frame as a card play" - Card.play() emits card_played
 # as its first line and every power-raising card emits change_current_power synchronously
 # inside that same play() call, which cleanly excludes roll-adjacent sources (Blood Sword,
-# Metronome, Opening Gambit all fire on a roll frame) and the ~19 display-refresh-only
+# Metronome, Dice Echo all fire on a roll frame) and the ~19 display-refresh-only
 # emitters (no actual power delta).
 const CARD_ORB_MIN_COUNT := 5
 const CARD_ORB_MAX_COUNT := 12
@@ -911,6 +911,10 @@ func _ready():
     # Surge motes: the timer polls forever and spawns nothing while Surge is 0, so there is
     # no signal to hook and no way for a grant/expiry path to forget to switch it on.
     _setup_surge_motes()
+    # Weak motes: same polled design, and the same reason for it - nothing emits when a Weak
+    # is stacked onto an existing one, so there is no signal to hook and no grant path that
+    # could forget to switch this on. Shares _cache_die_rest_rect below with the Surge motes.
+    _setup_weak_motes()
     _cache_die_rest_rect.call_deferred()
 
     # Overcharge: the ember timer polls forever and spawns nothing below its tier, same
@@ -2380,6 +2384,10 @@ func _play_land_riser(flight_time := 0.0) -> void:
 
 # Helper function to apply the roll result (unified logic)
 func _apply_roll_result(roll_index: int, values: Array, faces: Array):
+    # The bank BEFORE this roll touches it. The floating "+N" is spawned at the very end of
+    # this function from the difference, so it reports the Power actually gained rather than
+    # the raw face - see the comment on that call site.
+    var power_before: int = Global.roll_value
     Global.last_roll = values[roll_index]
     # Snake Eyes / Hot Hand / Ice Cold streaks - values/faces already carry the full set
     # this roll was drawn from (including infusion overrides), so min/max here match
@@ -2402,7 +2410,6 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
     Global.run_stat_dice_rolled += 1
     Global.run_stat_power_generated += Global.last_roll
     current_power.modulate.a = 1.0
-    _spawn_roll_popup(Global.last_roll)
     var power_punch = 1.2 + (Global.last_roll / 20.0)  # 1.25 on 1, 1.5 on 6, 1.8 on 12
     # Chain ladder: the deeper into a same-type chain this roll is, the harder the number
     # punches - the 4th consecutive roll HITS harder than the 1st even at the same face
@@ -2485,12 +2492,12 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
     # not the per-die max, so don't fold it into the check above.
     if Global.last_roll == 6:
         Global.has_rolled_6_this_turn = true
-        # Fight-long tally for Jackpot/Effigy. Keyed on the NATURAL face like the flag above,
+        # Fight-long tally for Sixplosion/Effigy. Keyed on the NATURAL face like the flag above,
         # so a Boosted or Surge 5->6 never counts.
         Global.sixes_rolled_this_fight += 1
 
         # Talisman, held in hand: every natural 6 grants Block (Julien, 2026-08-20). Sits
-        # here rather than in the card so it shares Jackpot's and Effigy's definition of a
+        # here rather than in the card so it shares Sixplosion's and Effigy's definition of a
         # "6" - three cards, one rule, and the sixes archetype can never disagree with itself.
         var talisman_block := Global.in_hand_six_block()
         if talisman_block > 0:
@@ -2539,18 +2546,36 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
     # Deliberately applied HERE, after every natural-face trigger above: Arcane's 6, Gnome's 1,
     # Octet's 8 and Critical Edge's max face all read Global.last_roll, so a Surge roll can
     # never fake a natural face. Same ruling Boost already follows (Julien, 2026-07-14).
-    # total_surge(), not surge_amount: a held Dead Weight IS Surge, so it has to arrive on the
+    # total_surge(), not surge_amount: a held Dice Pillar IS Surge, so it has to arrive on the
     # same line as cast Surge rather than through a private adder that no badge can see.
     var surge_total: int = Global.total_surge()
     if surge_total > 0:
         Global.roll_value += surge_total
 
-    # Cards that buff rolls purely by being HELD and are NOT Surge (Blood Oath on Red).
+    # Cards that buff rolls purely by being HELD and are NOT Surge (Blood Pact on Red).
     # Same placement rule as Surge: after every natural-face trigger, so a held card can never
     # fake a natural 6/1/8.
     var held_bonus: int = Global.in_hand_roll_bonus(dice_type)
     if held_bonus > 0:
         Global.roll_value += held_bonus
+
+    # ⚠️ THE POPUP IS SPAWNED HERE, NOT UP WHERE THE FACE IS BANKED (Julien, 2026-09-06:
+    # "lets show final result like the effective amount of power you are getting").
+    #
+    # FOUR separate things change this roll after the face lands, and every one of them used
+    # to happen after the popup had already printed the raw face: Weak (consumed just above),
+    # next_roll_modifier/Boost, Surge, and a held Blood Pact. So the number that floated up was
+    # wrong on any roll touched by any of them - under-reporting on Boost/Surge/Blood Pact and
+    # over-reporting on Weak, which is the only one that lies against the player.
+    #
+    # Measured as a DIFFERENCE rather than by re-adding the parts on purpose: every future
+    # modifier is covered for free, and max(0, ...) clamping falls out of it instead of having
+    # to be repeated. Everything between the capture and here is synchronous, so this still
+    # spawns on the same frame it always did.
+    #
+    # The die's own punch still scales on Global.last_roll, further up - the punch is about the
+    # FACE that landed, this number is about the POWER gained. They are allowed to disagree.
+    _spawn_roll_popup(Global.roll_value - power_before)
 
     _set_power_text(Global.roll_value)
     current_power.modulate.a = 0.4 if Global.roll_value == 0 else 1.0
@@ -2571,7 +2596,7 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
     else:
         # Arm the one-shot report token BEFORE the emit: whichever socketed CardUI handles
         # red_dice_rolled first consumes it and re-emits dice_rolled, so a Red roll produces
-        # exactly one dice_rolled no matter how many cards are socketed (Dual Cannon).
+        # exactly one dice_rolled no matter how many cards are socketed (Red Cannon).
         Global.red_roll_pending_report = true
         # Socket 1 only - see Global.red_roll_active_socket_id. Cleared straight after the
         # dispatch: a single-target card resolves later through card_released_state (gated on
@@ -2892,6 +2917,10 @@ func _on_player_turn_started() -> void:
     _ricochet_snapshot = {}
     Global.ricochet_reroll_active = false
     _update_ricochet_button()
+    # Last, and on this signal specifically: battle.gd un-dims the whole dice cluster on the
+    # same player_turn_started, so this is the exact frame the die stops being at 0.5 modulate
+    # and becomes the thing the player is looking at.
+    _announce_weak_if_pending()
 
 func _on_dice_roll_reset() -> void:
 
@@ -3082,7 +3111,7 @@ func _on_card_charged(card_ui):
 
 func _on_reset_charged_card():
     # Deferred and unconditional so it also runs on the early-return paths below - and so that
-    # playing Dual Cannon itself (which emits this signal right after raising the capacity)
+    # playing Red Cannon itself (which emits this signal right after raising the capacity)
     # makes the empty second slot appear straight away.
     _refresh_socket_2_slot.call_deferred()
     # This same signal fires from inside virtually every card's apply_effects() (a generic
@@ -3102,7 +3131,7 @@ func _on_reset_charged_card():
         socketed_card_ui = null
         Global.charged_card_instance_id = 0
         Global.charged_card_instance_ids.clear()
-        # Dual Cannon: socket 2's card has NOT played yet. Every CardUI listens to
+        # Red Cannon: socket 2's card has NOT played yet. Every CardUI listens to
         # red_dice_rolled, but the first one to handle it lands here and wipes the charged-id
         # list above, so by the time socket 2's own handler is dispatched its id is gone and it
         # silently never plays - it just stays hidden and disabled in the hand. Take the card
@@ -3949,6 +3978,12 @@ func _on_mech_decrease_mouse_exited() -> void:
 
 func _spawn_roll_popup(value: int) -> void:
     if ink_is_on:
+        return
+    # A roll whose Power was entirely eaten (Weak >= the face) shows no popup at all - Julien's
+    # call. The falling motes on the die are what explain it; a "+0" drifting up would be a
+    # second, louder claim about the same nothing. Also covers a face of 0 (the Evil crack),
+    # which used to float a pointless "+0" of its own.
+    if value <= 0:
         return
     var popup = Label.new()
     popup.text = "+" + str(value)
@@ -5020,7 +5055,7 @@ func _clear_socket_2() -> void:
 
 
 # Socket 2 only ever existed once a card had been dropped into it, so with the blessing up but
-# no second card yet the Red die looked EXACTLY like it does without Dual Cannon - which is what
+# no second card yet the Red die looked EXACTLY like it does without Red Cannon - which is what
 # "it didn't add a second card socket" describes. Paint the empty slot whenever the blessing is
 # live and Red is the active die, the same way socket 1 advertises itself.
 func _refresh_socket_2_slot() -> void:
@@ -5343,9 +5378,9 @@ func _refresh_empty_socket_look() -> void:
 # contrast, had NO presence on the die at all: its whole fantasy is "this die is weighted, every
 # roll pays extra", and the only tell was a badge over on the player, nowhere near the die.
 #
-# Density scales with Global.total_surge(), so building the ladder (Sleight -> Ringer -> a held
-# Dead Weight) shows on the die itself instead of only in a badge number. total_surge() rather
-# than surge_amount since 2026-09-06: a held Dead Weight used to bypass this entirely.
+# Density scales with Global.total_surge(), so building the ladder (Sleight -> Amplify -> a held
+# Dice Pillar) shows on the die itself instead of only in a badge number. total_surge() rather
+# than surge_amount since 2026-09-06: a held Dice Pillar used to bypass this entirely.
 const SURGE_MOTE_INTERVAL_BASE := 0.55   # spawn gap at Surge 1; also the idle poll rate
 const SURGE_MOTE_INTERVAL_STEP := 0.09   # shaved off per extra stack
 const SURGE_MOTE_INTERVAL_FLOOR := 0.26  # never denser than the dice shop per-die rate
@@ -5423,7 +5458,7 @@ func _surge_mote_interval(surge: int) -> float:
 
 
 func _on_surge_mote_timer_timeout() -> void:
-    # total_surge() so holding Dead Weight thickens the motes exactly like casting Sleight -
+    # total_surge() so holding Dice Pillar thickens the motes exactly like casting Sleight -
     # the die is the other half of the "you have Surge" tell, alongside the badge.
     var surge: int = Global.total_surge()
     # start() rather than assigning wait_time: Timer re-arms itself with the OLD value before
@@ -5477,6 +5512,173 @@ func _spawn_surge_mote(surge: int) -> void:
     t.tween_property(mote, "modulate:a", peak_alpha, duration * 0.3)
     t.tween_property(mote, "modulate:a", 0.0, duration * 0.45).set_delay(duration * 0.55)
     t.chain().tween_callback(mote.queue_free)
+
+
+# --- Weak motes --------------------------------------------------------------------------
+# Julien, 2026-09-06: "show weak on dice (like boost?)" - then, shown a shared Boost/Weak tag:
+# "i dont wanna have boost & weak fighting each other, if you have boost 5 it should show +5
+# even if you're weakened... i'd rather go for a visual cue on the dice like we're currently
+# doing with surge". So NextRollBonusPanel is left alone and Weak lives on the die instead.
+#
+# Surge got a die cue because its whole fantasy had no presence there. Weak is the same gap on
+# the other side: it is the per-ROLL debuff, applied by seven different enemy beats plus Blaze,
+# and until now the only tell was a badge over on the player, nowhere near the die.
+#
+# WHY THIS ADDS LIGHT INSTEAD OF DRAINING IT
+# The tempting mirror is to drain the aura/emanation while Weak is up. It cannot work, and not
+# by a little: Weak's dominant window runs from an enemy applying it to your FIRST roll of the
+# turn, and across that entire window Power is 0 - so the aura and the emanation already sit at
+# their idle floor with nothing left to take away. (The lone exception is Blaze, which
+# self-applies Weak mid-turn at high Power.) Adding a layer the idle die does not have is the
+# only thing that reads in the case that actually matters.
+#
+# Mirrors the Surge motes on every axis so the two read as one language, inverted:
+#   Surge: born at the die's bottom band, RISES, EASE_OUT (buoyant), warm gold, lively drift.
+#   Weak:  born across the die's top,     FALLS, EASE_IN  (weight),  bleached, barely drifts.
+#
+# COLOUR IS BLEACHED, NOT A HUE. A spark in the die's own accent is invisible inside that die's
+# light field (measured on the charge gust, 2026-08-25). Surge answers that with warm gold,
+# which is both already taken and reads as GOOD. Cold blue dies on the Blue die; sick green
+# collides with Green and Giant; the Weak icon's own rust is value 0.42, i.e. dim orange once
+# additive. Desaturating instead makes these read by being the only COLOURLESS thing in a field
+# of saturated colour, while staying additive light rather than the dark bodies Julien rejected
+# on the emanation ("small plastic floating in the sea"). Direction and easing carry the "this
+# is bad"; the colour only makes it legible.
+const WEAK_MOTE_NEUTRAL := Color(0.92, 0.94, 0.97)
+const WEAK_MOTE_BLEACH := 0.85
+# Denser than Surge at equal stacks, deliberately. Surge is a multi-turn state with all the
+# time in the world to establish itself; Weak's entire life can be the one second between the
+# turn starting and the first roll.
+const WEAK_MOTE_INTERVAL_BASE := 0.34
+const WEAK_MOTE_INTERVAL_STEP := 0.05
+const WEAK_MOTE_INTERVAL_FLOOR := 0.18
+const WEAK_MOTE_STACK_CAP := 4
+# Sized from the SURGE motes (14-26px), never from the shop/infusion motes (11-22px): at the
+# shop's values those measured 99 lit px against an 84px noise floor inside this die's own
+# light - they rendered and did not exist.
+const WEAK_MOTE_SIZE_MIN := 15.0
+const WEAK_MOTE_SIZE_MAX := 27.0
+const WEAK_MOTE_ALPHA_MIN := 0.42
+const WEAK_MOTE_ALPHA_MAX := 0.66
+const WEAK_MOTE_ALPHA_PER_STACK := 0.03
+const WEAK_MOTE_SPAWN_BAND := 34.0
+const WEAK_MOTE_FALL_MIN := 55.0
+const WEAK_MOTE_FALL_MAX := 95.0
+# Almost none, against Surge's +/-14: a lively wander reads as energy, which is the wrong word.
+const WEAK_MOTE_DRIFT_X := 4.0
+# Mirror of SURGE_MOTE_HEADROOM. The Surge motes clamp their RISE so none vanishes behind the
+# slot row; these clamp their FALL so none vanishes behind the ROLL button (z 12). Both derive
+# from the same cached _mote_spawn_base_y, taken from the button's REAL rect - used as a floor
+# here and as a ceiling there, so moving that button cannot quietly reopen either one.
+const WEAK_MOTE_FLOOR_GAP := 6.0
+# Same layer as the Surge motes: in front of the die face (DiceDisplay z 1), still under an
+# inked die, the socket panels and the ROLL button.
+const WEAK_MOTE_Z_INDEX := 8
+const WEAK_MOTE_GROUP := "weak_mote"
+# One-shot burst when the player's turn opens with Weak already pending. The ambient stream
+# cannot be the whole tell on its own: the moment Weak ARRIVES is mid-enemy-lunge, while
+# battle.gd holds the whole cluster at 0.5 modulate and the player is watching the enemy - and
+# a player who rolls straight away would see two or three sparks. This fires exactly when the
+# cluster un-dims and the die is the thing being looked at.
+const WEAK_ANNOUNCE_COUNT_BASE := 5
+const WEAK_ANNOUNCE_COUNT_PER_STACK := 2
+const WEAK_ANNOUNCE_COUNT_CAP := 11
+const WEAK_ANNOUNCE_STAGGER := 0.05
+
+var _weak_mote_timer: Timer
+
+
+func _setup_weak_motes() -> void:
+    _weak_mote_timer = Timer.new()
+    _weak_mote_timer.wait_time = WEAK_MOTE_INTERVAL_BASE
+    _weak_mote_timer.timeout.connect(_on_weak_mote_timer_timeout)
+    add_child(_weak_mote_timer)
+    _weak_mote_timer.start()
+
+
+func _weak_mote_interval(stacks: int) -> float:
+    if stacks <= 1:
+        return WEAK_MOTE_INTERVAL_BASE
+    return maxf(WEAK_MOTE_INTERVAL_FLOOR,
+            WEAK_MOTE_INTERVAL_BASE - WEAK_MOTE_INTERVAL_STEP * float(stacks - 1))
+
+
+# Polled rather than signalled, for the same reason the Surge motes are: applying Weak on top
+# of an existing Weak is a bare `stacks += n` inside StatusHandler.add_status() that emits
+# nothing, so there is no signal a density update could hook - and consume_stack(), sitting on
+# the hot roll path, must not have to remember this exists.
+func _on_weak_mote_timer_timeout() -> void:
+    var stacks: int = Global.player_weak_stacks()
+    # start() rather than assigning wait_time: a Timer re-arms itself with the OLD value before
+    # it emits, so a mid-turn change would otherwise take a full extra cycle to show up.
+    _weak_mote_timer.start(_weak_mote_interval(stacks))
+    if stacks <= 0:
+        return
+    _spawn_weak_mote(stacks)
+
+
+func _spawn_weak_mote(stacks: int) -> void:
+    # Guards the staggered announce burst, whose scene-tree timers can outlive a battle end.
+    if not is_inside_tree() or _die_rest_rect.size == Vector2.ZERO:
+        return
+    var tint := DicePalette.accent(dice_type).lerp(WEAK_MOTE_NEUTRAL, WEAK_MOTE_BLEACH)
+    var mote := TextureRect.new()
+    mote.texture = DicePalette.glow_texture()
+    mote.material = DicePalette.additive_material()
+    mote.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    mote.stretch_mode = TextureRect.STRETCH_SCALE
+    # IGNORE, not the Control default STOP: these sit over the die and would otherwise eat the
+    # hovers belonging to the Power number's tooltip zone and to the ROLL button.
+    mote.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    mote.z_index = WEAK_MOTE_Z_INDEX
+    # Group, not a name prefix: Godot renames duplicate siblings to "@WeakMote@2", which no
+    # begins_with("WeakMote") test would ever match - the bug that made debug_surge_motes see
+    # a single mote at a time.
+    mote.name = "WeakMote"
+    mote.add_to_group(WEAK_MOTE_GROUP)
+    var mote_size := randf_range(WEAK_MOTE_SIZE_MIN, WEAK_MOTE_SIZE_MAX)
+    mote.size = Vector2(mote_size, mote_size)
+    mote.modulate = Color(tint.r, tint.g, tint.b, 0.0)
+    mote.position = Vector2(
+            _die_rest_rect.position.x + randf_range(0.0, _die_rest_rect.size.x - mote_size),
+            _die_rest_rect.position.y + randf_range(0.0, WEAK_MOTE_SPAWN_BAND))
+    add_child(mote)
+
+    var extra_stacks := float(mini(stacks, WEAK_MOTE_STACK_CAP) - 1)
+    var peak_alpha := randf_range(WEAK_MOTE_ALPHA_MIN, WEAK_MOTE_ALPHA_MAX) \
+            + extra_stacks * WEAK_MOTE_ALPHA_PER_STACK
+    var floor_y := _mote_spawn_base_y - WEAK_MOTE_FLOOR_GAP - mote_size
+    var fall := minf(randf_range(WEAK_MOTE_FALL_MIN, WEAK_MOTE_FALL_MAX),
+            maxf(floor_y - mote.position.y, 0.0))
+    var duration := randf_range(0.9, 1.4)
+    var t := create_tween()
+    t.set_parallel(true)
+    # EASE_IN, the exact inverse of the Surge motes' EASE_OUT rise: accelerating downward reads
+    # as weight, decelerating upward reads as buoyancy. This is the half that carries "bad".
+    t.tween_property(mote, "position:y", mote.position.y + fall, duration) \
+            .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+    t.tween_property(mote, "position:x",
+            mote.position.x + randf_range(-WEAK_MOTE_DRIFT_X, WEAK_MOTE_DRIFT_X), duration)
+    t.tween_property(mote, "modulate:a", peak_alpha, duration * 0.25)
+    t.tween_property(mote, "modulate:a", 0.0, duration * 0.5).set_delay(duration * 0.5)
+    t.chain().tween_callback(mote.queue_free)
+
+
+func _announce_weak_if_pending() -> void:
+    var stacks: int = Global.player_weak_stacks()
+    if stacks <= 0:
+        return
+    var count: int = mini(WEAK_ANNOUNCE_COUNT_BASE
+            + WEAK_ANNOUNCE_COUNT_PER_STACK * (stacks - 1), WEAK_ANNOUNCE_COUNT_CAP)
+    for i in count:
+        var delay := WEAK_ANNOUNCE_STAGGER * float(i)
+        if delay <= 0.0:
+            _spawn_weak_mote(stacks)
+            continue
+        # Scene-tree timers rather than one chained tween: the burst overlaps the turn's first
+        # roll, and every tween on this node is fair game for the kill lists that roll runs.
+        # `false` = pauses with the tree, so opening the menu mid-burst does not spray it.
+        get_tree().create_timer(delay, false).timeout.connect(_spawn_weak_mote.bind(stacks))
 
 
 # --- Overcharge ------------------------------------------------------------------------------

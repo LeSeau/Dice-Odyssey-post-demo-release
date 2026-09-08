@@ -1,11 +1,9 @@
 extends Card
 
 const EXPOSED_STATUS = preload("res://statuses/exposed.tres")
-const WEAK_STATUS = preload("res://statuses/weak.tres")
 
 var base_damage := 4
 var exposed_duration := 2
-var weak_duration := 2
 
 func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     if Global.roll_value <= 2:

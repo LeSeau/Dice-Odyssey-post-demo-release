@@ -75,21 +75,22 @@ func in_hand(card_id: String) -> bool:
 # Extra Power a roll gets purely from cards being HELD (never from playing them).
 # ⚠️ Held SURGE is NOT in here - it lives in in_hand_surge_bonus() below so it can flow into
 # the Surge badge and the Surge mote density like any other Surge. This function is now only
-# the bonuses that are NOT Surge, i.e. Blood Oath's red-only Power.
+# the bonuses that are NOT Surge, i.e. Blood Pact's red-only Power.
 func in_hand_roll_bonus(dice_type: String) -> int:
     var bonus := 0
-    # Blood Oath: 2 (Julien, 2026-08-20 - same figure as the Blood Sword relic; they stack).
+    # Blood Pact: 3, upgraded 4 (Julien, 2026-09-06 - buffed from 2/3, so it now pays MORE
+    # than the Blood Sword relic's +2 rather than matching it; the two still stack).
     # Both versions can be held at once, so these add rather than pick the larger.
     if dice_type == "red":
         if in_hand(IN_HAND_RED_AURA):
-            bonus += 2
-        if in_hand(IN_HAND_RED_AURA_PLUS):
             bonus += 3
+        if in_hand(IN_HAND_RED_AURA_PLUS):
+            bonus += 4
     return bonus
 
 
 # Surge granted purely by cards being HELD. Split out of in_hand_roll_bonus() on 2026-09-06:
-# Dead Weight's "gain Surge 1" was a private adder that dice.gd applied alongside
+# Dice Aura's "gain Surge 1" was a private adder that dice.gd applied alongside
 # Global.surge_amount, so the player got the Power but no badge, no tooltip and no extra
 # motes on the die - the card's own description promised a keyword the status row never
 # showed (Julien: "dead weight should show & affect the surge status").
@@ -117,8 +118,33 @@ func total_surge() -> int:
     return surge_amount + in_hand_surge_bonus()
 
 
+# THE number every Weak consumer should read, and the die cue's only input.
+#
+# Weak is NOT next_roll_modifier until the roll that eats it. It sits on the player's
+# StatusHandler from the moment an enemy applies it (or Blaze self-applies it) until
+# _apply_roll_result() emits weak_effect_consumed - which is also the ONLY thing that can
+# clear it, because StatusHandler._on_status_applied() explicitly skips the duration
+# decrement for id "weak". No turn boundary expires it; exactly one roll does.
+#
+# Scanned live off the handler rather than mirrored into an int here, for the same reason
+# in_hand() and total_surge() are: a mirror can desync, and neither writer emits anything a
+# listener could hook - applying Weak on top of an existing Weak is a bare `stacks += n`
+# inside add_status().
+#
+# maxi(0, ...) because consume_stack() sets stacks = 0 and the StatusUI only frees itself on
+# the status_changed that follows, so there is one frame where a spent Weak is still findable.
+func player_weak_stacks() -> int:
+    var handler := _player_status_handler()
+    if handler == null:
+        return 0
+    var weak := handler._get_status("weak")
+    if weak == null:
+        return 0
+    return maxi(0, weak.stacks)
+
+
 # Pushes total_surge() onto the player's Surge badge, creating it if the player has never
-# cast Surge this fight (holding Dead Weight has to raise the icon on its own).
+# cast Surge this fight (holding Dice Aura has to raise the icon on its own).
 #
 # Called from Hand whenever hand membership changes, because that is the only thing that can
 # move the held half. Safe to spam: it writes an absolute value, so it is idempotent, and the
@@ -247,7 +273,7 @@ func current_face_values(dice_type: String) -> Array:
 #   fight_dice_rolled           (Tsunami, Crown, Metronome, Sixth Gear, Greedy)
 #   dice_amount_rolled_this_turn (Assault, Stampede, Turbo Mode)
 #   dice_types_rolled_this_turn  (Spectrum, Prismatic Lens)
-#   sixes_rolled_this_fight      (Jackpot)
+#   sixes_rolled_this_fight      (Sixplosion)
 #   run_stat_dice_rolled         (end-run "Dice Rolled" scoreboard row)
 # ...on top of the Power chain it already stayed out of (roll_value, roll_history,
 # last_roll, next_roll_modifier - Recombobulate must not refund a throw, a throw must not
@@ -466,7 +492,7 @@ var charged_card_instance_id: int = 0
 # Second Socket card works by appending rather than by rewriting the socket system.
 var charged_card_instance_ids: Array[int] = []
 # WHICH socketed card the current Red roll is resolving right now. Every CardUI listens to
-# red_dice_rolled, so with Dual Cannon's second socket the id LIST is the wrong gate: both cards
+# red_dice_rolled, so with Red Cannon's second socket the id LIST is the wrong gate: both cards
 # match it and whichever the signal happens to dispatch first wins - a self-targeted card in
 # socket 2 would resolve instantly and tear the socket down while socket 1's single-target card
 # was still waiting to be aimed. dice.gd arms this with socket 1's id only; socket 2 is handed
@@ -476,7 +502,7 @@ var playing_red_card = false
 # ⚠️ ONE dice_rolled per Red roll. dice.gd emits red_dice_rolled (never dice_rolled) for Red;
 # the dice_rolled that every per-roll relic listens to is re-emitted later, by whichever
 # socketed CardUI handles the roll (card_ui.gd) or by _fire_socketless_red for Armageddon.
-# With TWO cards socketed (Dual Cannon) both CardUIs passed that gate, so a single Red roll
+# With TWO cards socketed (Red Cannon) both CardUIs passed that gate, so a single Red roll
 # fired Hunting Bow / Snake Eyes / Needle Die / Underdog Ring / Metronome / Sixth Gear TWICE
 # while fight_dice_rolled only moved by one (measured 2026-08-29, debug_red_roll_counts).
 # dice.gd arms this when the Red roll resolves; the first emitter consumes it.
@@ -795,7 +821,7 @@ var thrown_dice_bonus_fight := 0
 # cleared by player_handler.gd::start_turn next to dice_amount_rolled_this_turn.
 var dice_types_rolled_this_turn := {}
 # Natural 6s rolled this FIGHT (the rolled face itself, never a Boosted/Surge 5->6). Drives
-# Jackpot and Effigy. Fight-scoped: reset by battle.gd::start_battle alongside ink_active.
+# Sixplosion and Effigy. Fight-scoped: reset by battle.gd::start_battle alongside ink_active.
 var sixes_rolled_this_fight := 0
 
 # Fight-scoped face-set edits from CARDS (Red trim, Counterfeit), keyed by dice type. Layered
@@ -829,7 +855,7 @@ const IN_HAND_DEAD_WEIGHT := "card_dead_weight"
 const IN_HAND_DEAD_WEIGHT_PLUS := "card_dead_weight_plus"
 
 # Talisman, held: every NATURAL 6 you roll grants this much Block. Read by dice.gd at the
-# same `last_roll == 6` check Jackpot and Effigy already key off, so all three agree on what
+# same `last_roll == 6` check Sixplosion and Effigy already key off, so all three agree on what
 # a "6" is (a rolled face, never a Boosted or Surge 5->6).
 const TALISMAN_SIX_BLOCK := 3
 const TALISMAN_PLUS_SIX_BLOCK := 5
@@ -909,7 +935,7 @@ var ricochet_reroll_active := false
 
 # Worm's Eye Lens: flat damage added to cards whose requirement is Max. Applied inside
 # ModifierHandler.get_modified_value so the real damage AND the dynamic description both
-# pick it up, exactly like Dead Weight+'s in-hand bonus.
+# pick it up, exactly like Dice Aura+'s in-hand bonus.
 var max_card_damage_bonus := 0
 # The requirement of the card currently resolving, or -1 outside a play. Scoped around
 # apply_effects() by Card.play() - same trick as berserker_boost_active, so damage from

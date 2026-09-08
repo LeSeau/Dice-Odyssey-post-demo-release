@@ -1,15 +1,20 @@
 extends Card
 
-# Red Edge+: trims the two lowest faces instead of one, behind a Min 4 gate.
+# ORPHANED 2026-09-06: card_grindstone_plus.tres now points at grindstone.gd, because
+# the "+" trims the same two faces as the base and only its gate differs (Min 4 vs Min 6).
+# Left on disk per project convention. Nothing loads this file.
 
-# "Remove the 2 lowest faces from Red Dice this combat" - Red becomes 3/4/5/6.
+# Refine+: trims the three lowest faces instead of two, behind a Min 4 gate.
+# (2026-09-06: base went 1 -> 2 faces, this one 2 -> 3.)
+
+# "Remove the 3 lowest faces from Red Dice this combat" - Red becomes 4/5/6.
 # The quiet payoff: Kamikaze's "if you roll a 1, lose 6 HP instead" clause stops existing.
 #
 # Computed from the die's CURRENT effective faces (Global.current_face_values) rather than the
 # printed ones, so it stacks correctly with an infusion or a previous trim; the result is
 # stored as the new fight-scoped override.
 
-const TRIM_COUNT := 2
+const TRIM_COUNT := 3
 const DICE_TYPE := "red"
 const RED_EDGE_STATUS = preload("res://statuses/status_red_edge.tres")
 

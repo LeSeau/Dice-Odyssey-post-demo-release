@@ -7,7 +7,8 @@ extends Card
 #
 # The bonus itself lives in Global.in_hand_roll_bonus(), which reads the live Hand, so the
 # aura switches off the instant the card is played, discarded or swept - no sync needed.
-# Same figure as the Blood Sword relic, and the two stack.
+# Buffed to 3 (upgraded 4) on 2026-09-06, so it now out-pays the Blood Sword
+# relic's +2 instead of matching it. The two still stack.
 
 
 func would_no_op_now() -> bool:

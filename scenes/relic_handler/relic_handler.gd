@@ -49,13 +49,22 @@ func add_relics(relics_array: Array[Relic]) -> void:
 # 64px put the band at y 84..164 - exactly the stripe the dice infusion title, "Upgrade a Card"
 # and the dice shop panel live in. At 46 the band is y 82..128 and those three were moved just
 # below it. Events are the exception and are not solved by size: an event panel needs ~620px
-# and starts under the 80px top bar, so no usable icon size fits above one - run.gd hides this
-# row for the duration of an event instead.
+# and starts under the 80px top bar, so no usable icon size fits above one. That used to be
+# handled by hiding this row for the duration of an event; since 2026-09-07 the row is always
+# visible and the event panel was moved clear of it instead.
 #
-# Sizing is also capacity: at 46 + 3 separation, ~23 relics fit on ONE line between x 20 and
-# x 1194 (past that the HFlowContainer wraps to a second row, which would land back on those
-# titles). A run realistically ends with 10-18, but if that ever stops being true the fix is a
-# "+N" overflow chip rather than shrinking these again.
+# Sizing is also capacity: at 46 + 3 separation, exactly 24 relics fit on ONE line between
+# x 20 and x 1194, and a 25th wraps to a second row. That wrap used to be destructive, because
+# %Relics grew from its CENTRE (grow_vertical = BOTH): the row got 50px taller by taking 25px
+# UP and 25px down, and the 25px going up put relic icons over the gold, HP, dice counters and
+# every top-bar button. %Relics now grows DOWNWARD only (grow_vertical = END in the scene), so
+# line 1 is pinned at y 82..128 whatever the count and line 2 stacks under it at y 132..178.
+#
+# Line 2 fills from the LEFT while every screen title underneath is centred, so at 26 relics it
+# is two icons in the far-left corner over empty banner space. It would take ~37 relics before
+# line 2 reached far enough right to touch a centred title, which is past what a run collects.
+# A "+N" overflow chip is still the answer if that ever stops being true - shrinking the icons
+# buys very little (40px only moves the wrap to 27, 36px to 30).
 const TOP_BAR_ICON_SIZE := 46.0
 
 # announce/from_global drive the acquisition beat - see the "Acquisition beat" section at
