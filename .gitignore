@@ -2,3 +2,17 @@ build/
 build_web/
 .claude/
 .godot/
+
+# Harness render output (screenshots, movie-maker frames) - regenerated on demand
+charge_delivery_frames/
+debug_endscreens_out/
+debug_sfx_candidates/
+debug_tutorial_welcome_out/
+font_ab_renders/
+layout_frames/
+layout_render/
+power_icon_renders/
+relic_band_shots/
+topscrim_renders/
+ward_renders/
+weak_render/
