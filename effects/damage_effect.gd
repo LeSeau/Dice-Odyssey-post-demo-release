@@ -188,6 +188,9 @@ func _try_die_strike(target: Node, final_amount: int, impact: int) -> bool:
                 or not final_target.is_in_group("enemies"):
             var alive := tree.get_nodes_in_group("enemies")
             if alive.is_empty():
+                # Still announce the card as resolved: there is simply nothing left to hit,
+                # and a listener left waiting forever would fire on the NEXT card instead.
+                Events.card_damage_resolved.emit()
                 return
             final_target = alive[randi() % alive.size()]
         # The Kaboom window is opened and closed synchronously inside Card.play(), so a hit
@@ -197,6 +200,9 @@ func _try_die_strike(target: Node, final_amount: int, impact: int) -> bool:
         AchievementManager.begin_card_damage_window()
         effect._resolve_hit(final_target, snapshot_amount, Card.thrown_impact_pos(final_target))
         AchievementManager.end_card_damage_window()
+        # The card's damage has NOW landed - Card.play() deliberately skipped this emit
+        # because the hit was still in the air (see Events.card_damage_resolved).
+        Events.card_damage_resolved.emit()
 
     if not player.strike_with_die(target, on_impact, lethal):
         return false

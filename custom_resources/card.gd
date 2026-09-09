@@ -342,6 +342,13 @@ func play(targets: Array[Node], char_stats: CharacterStats, modifiers: ModifierH
     if berserker_boost:
         Global.berserker_boost_active = false
 
+    # "This card is done dealing damage" - see Events.card_damage_resolved. Skipped when the
+    # held-die strike took this frame's hit, because that hit has NOT landed yet: it is flying,
+    # and its impact callback emits instead. Testing die_strike_frame rather than tracking a
+    # flag here keeps the two sides reading the same value damage_effect.gd already writes.
+    if Global.die_strike_frame != Engine.get_process_frames():
+        Events.card_damage_resolved.emit()
+
     # Bonus hit-stop for meeting a strict EXACT requirement - a "you nailed it" beat, on top
     # of whatever hit-stop the effect itself triggered (safe to overlap now that Shaker.hit_stop
     # is reference-counted). Deliberately a flat duration rather than scaled by damage: it's

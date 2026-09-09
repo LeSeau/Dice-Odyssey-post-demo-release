@@ -10,6 +10,19 @@ signal card_aim_ended(card_ui: CardUI)
 # red socket is HIDDEN while aiming, so dice.gd's socket display has to refresh off this.
 signal card_aim_target_changed(card_ui: CardUI)
 signal card_played(card: Card)
+# "The card that was just played has finished dealing its damage." Emitted exactly once per
+# play, and it is NOT the same moment as card_played: Card.play() emits card_played on its
+# FIRST line, long before apply_effects() runs, so a listener there sees the fight state as it
+# was BEFORE the card hit anything. Blood Chalice was applying Exposed from that signal, so the
+# very hit that earned the debuff was already taking +50% (Julien, 2026-09-09: 38 -> 57).
+#
+# ⚠️ Two emitters, because a big single-target attack DEFERS its damage: the held-die strike
+# flies for ~0.26s and resolves the hit on impact (damage_effect.gd::_try_die_strike). So
+# Card.play() only emits when no strike took the hit that frame; otherwise the strike's impact
+# callback emits it. Anything that must land AFTER a card's damage belongs on this signal, and
+# must never assume the play scope is still open (Global.playing_red_card is already cleared by
+# the time the deferred path fires - snapshot what you need on card_played instead).
+signal card_damage_resolved
 #signal card_tooltip_requested(card: Card)
 #signal tooltip_hide_requested
 signal card_charged(card_ui)
