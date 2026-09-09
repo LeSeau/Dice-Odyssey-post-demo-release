@@ -145,6 +145,16 @@ func end_turn() -> void:
 
 func draw_card() -> void:
     reshuffle_deck_from_discard()
+    # Nothing left anywhere: the reshuffle above already tried to refill the draw pile from
+    # the discard, so an empty pile here means the whole deck is in hand or has been burned
+    # through. Without this guard CardPile.draw_card() pops null off an empty array and
+    # hand.add_card(null) builds a CardUI with no Card, which then errors in _set_card and
+    # Hand._get_glow_state and leaves a blank card sitting in the hand for the rest of the
+    # turn. Pre-existing, but only reachable once a deck can out-draw itself - which the
+    # 2026-09-09 draw batch makes ordinary (Streak Charm, Tally Stick, Deep Pockets and
+    # Insight can add ten or more draws to one turn on a starting-size deck).
+    if character.draw_pile.empty():
+        return
     hand.add_card(character.draw_pile.draw_card())
     _punch_draw_pile()
     audio_stream_player_2d.stream = preload("res://drawcardsound.wav")

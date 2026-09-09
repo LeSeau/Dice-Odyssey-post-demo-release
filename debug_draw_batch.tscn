@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://ddrawbatch0001"]
+
+[ext_resource type="Script" path="res://debug_draw_batch.gd" id="1_drwbt"]
+
+[node name="DebugDrawBatch" type="Node"]
+script = ExtResource("1_drwbt")

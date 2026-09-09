@@ -1,0 +1,18 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://bvqwdh0cblcrx"]
+
+[ext_resource type="Script" path="res://relics/deep_pockets.gd" id="1_deep_p"]
+[ext_resource type="Texture2D" uid="uid://beagk5qnh8r4b" path="res://deep_pockets.png" id="2_deep_p"]
+
+[resource]
+script = ExtResource("1_deep_p")
+relic_name = "Deep Pockets"
+id = "deep_pockets"
+type = 4
+rarity_tier = 0
+shop_only = false
+has_counter = false
+counter = 0
+starter_relic = false
+icon = ExtResource("2_deep_p")
+tooltip = "Once per turn, when your hand empties while you still have a Dice, draw 2 cards"
+tags = ""

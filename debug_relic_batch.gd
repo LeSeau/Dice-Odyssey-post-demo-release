@@ -656,6 +656,15 @@ func _scenario_scout_and_hand() -> void:
 			"drew %d, want %d" % [hand_node.get_child_count() - cards_before, per_turn + 2])
 	check("Gambler's Fan: consumed by that deal", Global.bonus_cards_first_hand == 0)
 
+	# Top the draw pile back up first. This harness never ends a turn, so nothing ever reaches
+	# the discard pile to be reshuffled, and the starting deck is not deep enough for two full
+	# deals back to back. Before 2026-09-09 that went unnoticed because draw_card() popped null
+	# off the empty pile and Hand happily counted the resulting blank CardUIs as drawn cards;
+	# it now refuses, so the shortfall shows up here as a short deal. Refilling makes the check
+	# measure the DEAL SIZE, which is what it is about, instead of the deck depth.
+	for card: Card in _battle.player_handler.character.deck.cards:
+		_battle.player_handler.character.draw_pile.add_card(card)
+
 	cards_before = hand_node.get_child_count()
 	hands_at = hands_drawn
 	_battle.player_handler._on_statuses_applied(Status.Type.START_OF_TURN)

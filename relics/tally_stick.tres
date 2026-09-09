@@ -1,0 +1,18 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://cdm38rhs8i2yx"]
+
+[ext_resource type="Script" path="res://relics/tally_stick.gd" id="1_tally_"]
+[ext_resource type="Texture2D" uid="uid://2k5dnywdvkmh" path="res://tally_stick.png" id="2_tally_"]
+
+[resource]
+script = ExtResource("1_tally_")
+relic_name = "Tally Stick"
+id = "tally_stick"
+type = 4
+rarity_tier = 1
+shop_only = false
+has_counter = true
+counter = 0
+starter_relic = false
+icon = ExtResource("2_tally_")
+tooltip = "Every 10th Dice you roll in a fight draws 2 cards"
+tags = ""

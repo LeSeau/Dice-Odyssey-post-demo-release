@@ -1,0 +1,28 @@
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://cin51ghtplus0"]
+
+[ext_resource type="Texture2D" uid="uid://ceb83ua36xr7f" path="res://insight.png" id="1_insghp"]
+[ext_resource type="Script" path="res://characters/warrior/cards/insight.gd" id="2_insghp"]
+[ext_resource type="AudioStream" uid="uid://cgusw3wyairdh" path="res://drawcardsound.wav" id="3_insghp"]
+
+[resource]
+script = ExtResource("2_insghp")
+id = "card_insight_plus"
+name = "Insight+"
+type = 1
+target = 0
+description = "Draw 1 card per 2 Power"
+rarity = 0
+rarity_tier = 0
+red_only = false
+can_play_without_dice = false
+requirement = 2
+requirement_number = 12
+exhausts = false
+bonus_requirement = 0
+bonus_requirement_number = 0
+bonus_description_text = ""
+tags = ""
+upgraded = true
+icon = ExtResource("1_insghp")
+tooltip_text = ""
+sound = ExtResource("3_insghp")

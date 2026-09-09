@@ -1,0 +1,18 @@
+[gd_resource type="Resource" load_steps=3 format=3 uid="uid://co7a01vb7halx"]
+
+[ext_resource type="Script" path="res://relics/streak_charm.gd" id="1_streak"]
+[ext_resource type="Texture2D" uid="uid://ds83j7afc8w21" path="res://streak_charm.png" id="2_streak"]
+
+[resource]
+script = ExtResource("1_streak")
+relic_name = "Streak Charm"
+id = "streak_charm"
+type = 4
+rarity_tier = 1
+shop_only = false
+has_counter = true
+counter = 0
+starter_relic = false
+icon = ExtResource("2_streak")
+tooltip = "Every 3rd consecutive Dice roll draws 1 card"
+tags = ""

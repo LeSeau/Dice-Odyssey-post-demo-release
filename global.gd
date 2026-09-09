@@ -483,6 +483,14 @@ var charged_dice_this_turn := false
 var refueled_power_this_fight := 0
 # Echo Chamber is once per turn; reset next to charged_dice_this_turn in dice_interface.gd.
 var echo_chamber_fired_this_turn := false
+# Streak Charm remembers the chain length it last paid on. A Ricochet reroll re-emits
+# dice_rolled but REWINDS roll_history, so the chain size lands on the same number twice and
+# the relic would otherwise draw twice for one die. The relic assigns this on every roll, so
+# it self-heals at the first roll of a new fight and needs no reset of its own beyond the one
+# below.
+var streak_chain_seen := 0
+# Deep Pockets is once per turn; reset next to charged_dice_this_turn in dice_interface.gd.
+var deep_pockets_fired_this_turn := false
 var dice_amount_rolled_this_turn = 0
 var dice_type = "blue"
 var current_card = null
@@ -812,6 +820,12 @@ var no_reset: bool = false
 # reset_run_state() for run hygiene.
 var thrown_dice_bonus_fight := 0
 
+# OOGA BOOGA (Blessing): multiplier applied to your banked Power when a Red roll MISSES the
+# socketed card's requirement, dealt to every enemy. 0 = the Blessing is not installed, so
+# the whole feature is inert until a card sets it. Read in Card.play(); reset by
+# battle.gd::start_battle() alongside thrown_dice_bonus_fight, and in reset_run_state().
+var red_whiff_damage_mult := 0
+
 # SURGE: a flat Power bonus added to EVERY roll, unlike Boost (next_roll_modifier) which is
 # consumed by one roll. The status badge is display only - the effect has to live here because
 # dice.gd reads it inside _apply_roll_result (same split as Emanation's fight-scoped global).
@@ -1054,6 +1068,7 @@ func reset_run_state() -> void:
     power_generated_this_turn = 0
     no_reset = false
     thrown_dice_bonus_fight = 0
+    red_whiff_damage_mult = 0
     surge_amount = 0
     surge_expiring = 0
     dice_types_rolled_this_turn = {}
@@ -1098,6 +1113,8 @@ func reset_run_state() -> void:
     charged_dice_this_turn = false
     refueled_power_this_fight = 0
     echo_chamber_fired_this_turn = false
+    streak_chain_seen = 0
+    deep_pockets_fired_this_turn = false
     dice_amount_rolled_this_turn = 0
     dice_type = "blue"
     current_card = null
