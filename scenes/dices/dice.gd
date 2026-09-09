@@ -506,6 +506,104 @@ const POWER_ORB_LAND_PITCH_MAX := 1.25
 const POWER_ORB_LAND_VOLUME_DB := 2.0     # bumped again from -4 (Julien: still louder) - was -10 originally
 const POWER_ORB_LAND_VOLUME_JITTER := 3.0
 
+# Crush burst (2026-09-08, Julien: "go crazier with orbs emanating from the landing/crush
+# ... like the dice crushing the roll button caused a big crackle that freed so many orbs").
+# Max-roll only - it sits at the top of the same ladder the rest of the landing climbs, and
+# the max already owns the exclusive celebration (flash, flare, implosion ring, smash SFX).
+# Everything that existed on the max landing stays; this ADDS the one thing the crush never
+# had: light flying OUT of the impact point. (The GPUParticles2D "burst" is actually the
+# CONVERGING ring the charge beat reuses - nothing ever left the die before this.)
+#
+# Three beats, all from the seam where the die meets the ROLL plate:
+#   1. CRACKLE - three pops a few hundredths apart, each a small flash at the seam plus a
+#      volley of orbs and sparks. The landing hit-stop stretches these first hundredths ~10x,
+#      so the freeze frame shows the explosion developing in slow motion, then it snaps to
+#      speed. Pops (not one instant) are what make it read as a crackle instead of a puff.
+#   2. FLING + HANG - orbs decelerate outward on an upward fan, droop under a little gravity,
+#      inflate as they fly (freed, not thrown) and twinkle at their apex. Sparks streak
+#      further, faster, stretched along their own direction, and burn out in flight.
+#   3. COLLECT - every orb is inhaled into the Power number on its own swoop, a stream of
+#      arrivals rather than a clump. They ARE power: the crush freed them and the bank takes
+#      them, same verb as the roll orbs, just later and much louder.
+# Counts scale with the face value (a Giant 12 frees more than a Pixie 3), never with power.
+const CRUSH_ORB_BASE_COUNT := 16
+const CRUSH_ORB_MAX_COUNT := 34
+const CRUSH_SPARK_RATIO := 0.7            # sparks = orbs * ratio (uncollected, short-lived)
+const CRUSH_POP_INTERVAL := 0.045         # game time between pops (the hit-stop stretches it)
+# --- Per-burst variation (2026-09-09, Julien: "randomize a bit how many orbs go exactly
+# where, so it's not every time the exact same animation"). The first version already drew
+# every orb's angle, reach, size and timing at random, but the burst's SILHOUETTE was
+# identical every time: always exactly 3 evenly-sized pops, always a symmetric fan, always
+# the same orb count for a given face. Random details inside a fixed shape still read as
+# one canned animation. These roll the SHAPE itself once per burst.
+const CRUSH_COUNT_JITTER := 4             # +/- orbs on top of the face-driven count
+const CRUSH_SPARK_RATIO_JITTER := 0.28    # +/- fraction on the spark ratio
+const CRUSH_POP_COUNT_MIN := 2            # a burst is 2, 3 or 4 pops - this is what changes the
+const CRUSH_POP_COUNT_MAX := 4            # RHYTHM of the crackle, the most audible/visible variation
+const CRUSH_POP_INTERVAL_JITTER_MIN := 0.65   # each GAP is scaled separately, so the pops are
+const CRUSH_POP_INTERVAL_JITTER_MAX := 1.5    # uneven in time (bam-bam...bam), never a metronome
+const CRUSH_POP_WEIGHT_MIN := 0.45        # how many orbs each pop gets, drawn per pop - sometimes the
+const CRUSH_POP_WEIGHT_MAX := 1.65        # first pop is the big one, sometimes the last
+# A crack does not split evenly: the whole fan leans to one side and is lopsided.
+const CRUSH_FAN_LEAN := 26.0              # degrees the fan's centre tilts off straight up
+const CRUSH_FAN_ASYM_MIN := 0.68          # each SIDE's half-angle is scaled independently
+const CRUSH_FAN_ASYM_MAX := 1.15
+# Jets: 2-3 directions per burst that a share of the debris follows, so the spray comes out
+# in a few visible streams instead of a uniformly-filled arc. Orbs AND sparks share the same
+# jets, which is what makes a stream read as one jet of stuff rather than two effects.
+const CRUSH_JET_MIN := 2
+const CRUSH_JET_MAX := 3
+const CRUSH_JET_SHARE := 0.55             # probability a given orb/spark joins a jet instead of the open fan
+const CRUSH_JET_SPREAD := 17.0            # degrees of scatter around a jet's axis (sparks get 1.5x this)
+const CRUSH_GRAVITY_JITTER_MIN := 0.75    # some bursts arc high and hang, others fall back fast
+const CRUSH_GRAVITY_JITTER_MAX := 1.35
+const CRUSH_POP_FLASH_SIZE := 54.0        # the small per-pop flash at the seam (the big flare is pop 0)
+const CRUSH_POP_FLASH_ALPHA := 0.55
+const CRUSH_ORB_SIZE_MIN := 18.0
+const CRUSH_ORB_SIZE_MAX := 38.0
+const CRUSH_ORB_BRIGHTNESS := 2.0         # accent * this; additive, so >1 = overbright core
+const CRUSH_SPARK_SIZE_MIN := 9.0
+const CRUSH_SPARK_SIZE_MAX := 17.0
+const CRUSH_SPARK_BRIGHTNESS := 2.4
+const CRUSH_SPARK_WARMTH := 0.55          # DicePalette.burst warmth: sparks lean gold-white, orbs stay pure accent
+const CRUSH_ORB_REACH_MIN := 98.0         # px from the seam at the end of the fling - MUST clear the die's
+                                          # own light field (half-width 72): an accent orb sitting inside that
+                                          # glow is invisible, the same reason overcharge embers had to be
+                                          # whitened. Out on the dark plinth the pure accent reads fine.
+const CRUSH_ORB_REACH_MAX := 215.0
+const CRUSH_SPARK_REACH_MIN := 110.0
+const CRUSH_SPARK_REACH_MAX := 270.0
+const CRUSH_ORB_FLING_TIME_MIN := 0.30    # game seconds, seam -> apex
+const CRUSH_ORB_FLING_TIME_MAX := 0.46
+const CRUSH_SPARK_FLING_TIME_MIN := 0.22
+const CRUSH_SPARK_FLING_TIME_MAX := 0.40
+const CRUSH_ORB_GRAVITY := 70.0           # px of downward droop reached at the end of the fling (t^2)
+const CRUSH_SPARK_GRAVITY := 95.0
+const CRUSH_ORB_FAN_HALF_ANGLE := 105.0   # degrees either side of straight up: a 210-degree spray that also
+                                          # throws sideways past the die edges, instead of firing everything
+                                          # up THROUGH the die face where it disappears into the aura.
+const CRUSH_SPARK_FAN_HALF_ANGLE := 118.0 # sparks skim further sideways off the plate than the orbs
+const CRUSH_ORB_HANG_MIN := 0.06          # twinkle at the apex before the number inhales it
+const CRUSH_ORB_HANG_MAX := 0.34
+const CRUSH_ORB_COLLECT_TIME_MIN := 0.32
+const CRUSH_ORB_COLLECT_TIME_MAX := 0.55
+const CRUSH_ORB_Z := 60                   # same layer as the roll orbs: over the plate (12) and the slot row (5)
+const CRUSH_PLINK_EVERY := 2              # only every Nth collected orb plinks - 30 plinks in a second is a machine gun
+# Impact ripple on the plate: an accent-tinted ring that expands from the seam, squashed
+# into an ellipse so it reads as a ripple ACROSS the plate rather than a halo around the die.
+const CRUSH_RING_SIZE := 110.0
+const CRUSH_RING_PEAK_SCALE := 2.6
+const CRUSH_RING_SQUASH := 0.62
+const CRUSH_RING_TIME := 0.30
+const CRUSH_RING_ALPHA := 0.8
+# The crack itself: a thin horizontal bar of light that snaps open along the seam on the
+# impact frame and dies fast - the plate splitting under the die, the thing the orbs
+# escape FROM. Without it the burst reads as coming out of the die, not out of the crush.
+const CRUSH_SEAM_FLASH_WIDTH := 150.0
+const CRUSH_SEAM_FLASH_HEIGHT := 9.0
+const CRUSH_SEAM_FLASH_TIME := 0.24
+const CRUSH_SEAM_FLASH_ALPHA := 0.85
+
 # Support-card power orbs (2026-07-17): when a played CARD raises Power (Reinforce, Blaze,
 # From Nothing...), orbs fly from the card into the Power number - the same visual language
 # as the roll orbs above, but a card-driven gain is much rarer than a roll, so this burst is
@@ -1864,6 +1962,10 @@ func _on_roll_landed(roll_index: int, values: Array, faces: Array) -> void:
             .set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
         max_flash.tween_property(dice_display, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.22) \
             .set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
+        # The crush burst: the crackle of orbs the impact frees (CRUSH_* constants). Spawned
+        # in this same callback as the hit-stop above, so its first pops play inside the
+        # freeze - that is the whole point of the pop stagger.
+        _spawn_crush_burst(roll_val, dice_type)
 
 # Ghost-afterimage spawner for the max fall, driven 0->1 across the fall by tween_method.
 # Spawns at fixed progress thresholds (not per-frame) so the trail is 3 clean ghosts, not
@@ -2119,6 +2221,354 @@ func _spawn_power_orbs(roll_val: int, type: String, is_max_roll: bool) -> void:
             tw.tween_callback(_play_power_orb_arrival_reaction.bind(type))
         tw.tween_callback(_play_power_orb_land_sfx)
         tw.tween_callback(orb.queue_free)
+
+
+# ---------------------------------------------------------------------------------------
+# Crush burst (max roll). Design and every tunable in the CRUSH_* constants block; the
+# entry point is called from _on_roll_landed's max-roll branch. Three helpers below:
+# the pop flash and plate ripple at the seam, the outward fling step, and the collect
+# swoop that hands each orb to the Power number.
+# Collect swoops accelerate INTO the number (EASE_IN only): the orb was at rest at its
+# apex, so anything that started fast there would read as being thrown, not inhaled.
+const CRUSH_COLLECT_EASE_PROFILES := [
+    [Tween.TRANS_SINE, Tween.EASE_IN],
+    [Tween.TRANS_QUAD, Tween.EASE_IN],
+    [Tween.TRANS_CUBIC, Tween.EASE_IN],
+]
+
+
+func _spawn_crush_burst(roll_val: int, type: String) -> void:
+    var die_rect := dice_display.get_global_rect()
+    # The seam: after the landing snap the die's bottom edge sits on the ROLL plate's top
+    # edge - the point the crush happens at, a few px up so the light is born ON the seam
+    # rather than under the plate's rim.
+    var origin := Vector2(die_rect.get_center().x, die_rect.end.y - 6.0)
+    var accent := DicePalette.accent(type)
+    # Orbs keep the pure accent (they are THIS die's power); sparks lean gold-white like
+    # every other celebration burst, so the two populations read as different materials.
+    var orb_color := accent * CRUSH_ORB_BRIGHTNESS
+    var spark_color := DicePalette.burst(type, CRUSH_SPARK_WARMTH) * CRUSH_SPARK_BRIGHTNESS
+
+    # --- This burst's SHAPE, rolled once (see the CRUSH_COUNT_JITTER block). Everything
+    # below reads these instead of the constants directly, so no two max rolls share a
+    # silhouette even though the constants are fixed.
+    var orb_count := clampi(CRUSH_ORB_BASE_COUNT + roll_val + randi_range(-CRUSH_COUNT_JITTER, CRUSH_COUNT_JITTER),
+            CRUSH_ORB_BASE_COUNT - CRUSH_COUNT_JITTER, CRUSH_ORB_MAX_COUNT)
+    var spark_ratio := CRUSH_SPARK_RATIO \
+            + randf_range(-CRUSH_SPARK_RATIO_JITTER, CRUSH_SPARK_RATIO_JITTER)
+    var spark_count := maxi(1, int(round(orb_count * spark_ratio)))
+    var gravity_mult := randf_range(CRUSH_GRAVITY_JITTER_MIN, CRUSH_GRAVITY_JITTER_MAX)
+
+    # Pop schedule: how many cracks, and how they are spaced. Pop 0 is always at t=0 (it is
+    # the impact itself); each later gap is scaled separately so the rhythm is uneven.
+    var pop_count := randi_range(CRUSH_POP_COUNT_MIN, CRUSH_POP_COUNT_MAX)
+    var pop_times: Array[float] = []
+    var pop_weights: Array[float] = []
+    var weight_total := 0.0
+    var elapsed := 0.0
+    for p in pop_count:
+        pop_times.append(elapsed)
+        elapsed += CRUSH_POP_INTERVAL \
+                * randf_range(CRUSH_POP_INTERVAL_JITTER_MIN, CRUSH_POP_INTERVAL_JITTER_MAX)
+        var w := randf_range(CRUSH_POP_WEIGHT_MIN, CRUSH_POP_WEIGHT_MAX)
+        pop_weights.append(w)
+        weight_total += w
+
+    # Fan: leaned off vertical and lopsided, because a crack does not split evenly.
+    var fan_center := -90.0 + randf_range(-CRUSH_FAN_LEAN, CRUSH_FAN_LEAN)
+    var fan_left := CRUSH_ORB_FAN_HALF_ANGLE * randf_range(CRUSH_FAN_ASYM_MIN, CRUSH_FAN_ASYM_MAX)
+    var fan_right := CRUSH_ORB_FAN_HALF_ANGLE * randf_range(CRUSH_FAN_ASYM_MIN, CRUSH_FAN_ASYM_MAX)
+    # Jets: a few directions this particular crack vents through. Shared by orbs and sparks
+    # so a stream reads as one jet of debris rather than two unrelated sprays.
+    var jets: Array[float] = []
+    for j in randi_range(CRUSH_JET_MIN, CRUSH_JET_MAX):
+        jets.append(fan_center + randf_range(-fan_left, fan_right))
+
+    _spawn_crush_ring(origin, accent)
+    _spawn_crush_seam_flash(origin, accent)
+    # Pop 0's flash is the big thrown-die flare the max landing already fires at this
+    # spot; the later pops get their own smaller flicker so the crackle is heard AND seen.
+    for pop in range(1, pop_count):
+        var pop_tween := create_tween()
+        pop_tween.tween_interval(pop_times[pop])
+        pop_tween.tween_callback(_spawn_crush_pop_flash.bind(origin, DicePalette.burst(type)))
+
+    # Every orb's full timeline is drawn up front so the FIRST and LAST arrivals (which
+    # get the Power number's reaction) are the real ones, not index 0 / index n-1 - the
+    # same lesson as _spawn_power_orbs' earliest-arrival precompute.
+    var delays: Array[float] = []
+    var flings: Array[float] = []
+    var hangs: Array[float] = []
+    var collects: Array[float] = []
+    var first_index := 0
+    var last_index := 0
+    var first_arrival := INF
+    var last_arrival := -INF
+    for i in orb_count:
+        # Weighted, not round-robin: pops are deliberately uneven, so one crack throws the
+        # bulk of the debris and the others spit. Round-robin gave every pop the same size
+        # every time, which is most of what made the burst feel canned.
+        var pop := _pick_weighted(pop_weights, weight_total)
+        delays.append(pop_times[pop] + randf_range(0.0, 0.02))
+        flings.append(randf_range(CRUSH_ORB_FLING_TIME_MIN, CRUSH_ORB_FLING_TIME_MAX))
+        hangs.append(randf_range(CRUSH_ORB_HANG_MIN, CRUSH_ORB_HANG_MAX))
+        collects.append(randf_range(CRUSH_ORB_COLLECT_TIME_MIN, CRUSH_ORB_COLLECT_TIME_MAX))
+        var arrival: float = delays[i] + flings[i] + hangs[i] + collects[i]
+        if arrival < first_arrival:
+            first_arrival = arrival
+            first_index = i
+        if arrival > last_arrival:
+            last_arrival = arrival
+            last_index = i
+
+    for i in orb_count:
+        var angle := deg_to_rad(_crush_angle(jets, fan_center, fan_left, fan_right, 1.0))
+        var dir := Vector2.from_angle(angle)
+        var reach := randf_range(CRUSH_ORB_REACH_MIN, CRUSH_ORB_REACH_MAX)
+        var wobble_freq := randf_range(POWER_ORB_WOBBLE_FREQ_MIN, POWER_ORB_WOBBLE_FREQ_MAX)
+        var wobble_amp := randf_range(3.0, 9.0)
+        var wobble_phase := randf_range(0.0, TAU)
+        var orb := _make_crush_sprite(orb_color, randf_range(CRUSH_ORB_SIZE_MIN, CRUSH_ORB_SIZE_MAX))
+        orb.global_position = origin - orb.size / 2.0
+        # Born small and inflating as it flies: the crush FREED it, it wasn't thrown.
+        orb.scale = Vector2(0.45, 0.45)
+        var fling_time: float = flings[i]
+        var hang: float = hangs[i]
+        var tw := create_tween()
+        tw.tween_interval(delays[i])
+        # Emerges over the first few px of travel, so 30 sprites born on one point never
+        # stack into a single white blob under the flare (additive-stacking lesson).
+        tw.tween_property(orb, "modulate:a", 1.0, 0.06)
+        tw.parallel().tween_method(
+                _crush_fling_step.bind(orb, origin, dir, reach, CRUSH_ORB_GRAVITY * gravity_mult,
+                        wobble_freq, wobble_amp, wobble_phase, false),
+                0.0, 1.0, fling_time)
+        tw.parallel().tween_property(orb, "scale", Vector2.ONE, fling_time * 0.6) \
+            .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+        # Twinkle through the hang: a glitter beat between "freed" and "taken".
+        tw.tween_property(orb, "scale", Vector2(1.3, 1.3), hang * 0.5) \
+            .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+        tw.tween_property(orb, "scale", Vector2.ONE, hang * 0.5) \
+            .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+        tw.tween_callback(_start_crush_collect.bind(orb, origin, type, collects[i],
+                i % CRUSH_PLINK_EVERY == 0, i == first_index, i == last_index))
+
+    var spark_fan_scale := CRUSH_SPARK_FAN_HALF_ANGLE / CRUSH_ORB_FAN_HALF_ANGLE
+    for i in spark_count:
+        var pop := _pick_weighted(pop_weights, weight_total)
+        var delay := pop_times[pop] + randf_range(0.0, 0.03)
+        # Same jets as the orbs, wider scatter around them and a wider open fan - the sparks
+        # are the loose edge of the same vent, not a separate spray.
+        var angle := deg_to_rad(_crush_angle(jets, fan_center,
+                fan_left * spark_fan_scale, fan_right * spark_fan_scale, 1.5))
+        var dir := Vector2.from_angle(angle)
+        var reach := randf_range(CRUSH_SPARK_REACH_MIN, CRUSH_SPARK_REACH_MAX)
+        var fling_time := randf_range(CRUSH_SPARK_FLING_TIME_MIN, CRUSH_SPARK_FLING_TIME_MAX)
+        var spark := _make_crush_sprite(spark_color, randf_range(CRUSH_SPARK_SIZE_MIN, CRUSH_SPARK_SIZE_MAX))
+        spark.global_position = origin - spark.size / 2.0
+        # A streak, not a dot: stretched along its own direction (the step function keeps
+        # it pointed along its velocity), shortening as it slows.
+        spark.rotation = dir.angle()
+        spark.scale = Vector2(2.6, 0.9)
+        var tw := create_tween()
+        tw.tween_interval(delay)
+        tw.tween_property(spark, "modulate:a", 1.0, 0.04)
+        tw.parallel().tween_method(
+                _crush_fling_step.bind(spark, origin, dir, reach, CRUSH_SPARK_GRAVITY * gravity_mult,
+                        0.0, 0.0, 0.0, true),
+                0.0, 1.0, fling_time)
+        tw.parallel().tween_property(spark, "scale", Vector2(0.7, 0.7), fling_time) \
+            .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+        # Burns out over the back half of the flight. Its own tween because it has to start
+        # mid-fling, and the fling's alpha ramp above is over long before it begins.
+        var fade := create_tween()
+        fade.tween_interval(delay + fling_time * 0.45)
+        fade.tween_property(spark, "modulate:a", 0.0, fling_time * 0.55) \
+            .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+        fade.tween_callback(spark.queue_free)
+
+
+# Picks a pop index proportionally to that pop's weight. Falls back to the last index if
+# floating-point drift walks past the total (it cannot pick out of range).
+func _pick_weighted(weights: Array[float], total: float) -> int:
+    if weights.is_empty() or total <= 0.0:
+        return 0
+    var pick := randf() * total
+    for i in weights.size():
+        pick -= weights[i]
+        if pick <= 0.0:
+            return i
+    return weights.size() - 1
+
+
+# One debris direction, in DEGREES. Either it joins one of this burst's jets (a stream) or
+# it fills the open fan. Sparks pass a bigger spread_mult so their streams are looser than
+# the orbs' without needing a second jet list.
+func _crush_angle(jets: Array[float], fan_center: float, fan_left: float, fan_right: float,
+        spread_mult: float) -> float:
+    if not jets.is_empty() and randf() < CRUSH_JET_SHARE:
+        var jet: float = jets[randi() % jets.size()]
+        var spread := CRUSH_JET_SPREAD * spread_mult
+        return jet + randf_range(-spread, spread)
+    return fan_center + randf_range(-fan_left, fan_right)
+
+
+# One radial sprite for the burst, parented to this Dice control like the roll orbs (so
+# it renders over the plate and the slot row but stays local - never on the ui_layer).
+# Alpha starts at 0: every spawner ramps it in itself.
+func _make_crush_sprite(color: Color, size: float) -> TextureRect:
+    var sprite := TextureRect.new()
+    sprite.texture = _get_power_orb_texture()
+    sprite.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    sprite.stretch_mode = TextureRect.STRETCH_SCALE
+    sprite.material = _get_power_orb_material()
+    sprite.modulate = color
+    sprite.modulate.a = 0.0
+    sprite.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    sprite.z_index = CRUSH_ORB_Z
+    sprite.size = Vector2(size, size)
+    sprite.pivot_offset = sprite.size / 2.0
+    add_child(sprite)
+    return sprite
+
+
+# Small flicker at the seam for pops 1..n of the crackle (pop 0 is the big flare).
+# Peak alpha is deliberately low and the fade is EASE_OUT (drops immediately): the big
+# flare is still decaying at pop 1, and a held peak on top of it would wash the seam.
+func _spawn_crush_pop_flash(origin: Vector2, color: Color) -> void:
+    var flash := TextureRect.new()
+    flash.texture = _get_power_orb_texture()
+    flash.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    flash.stretch_mode = TextureRect.STRETCH_SCALE
+    flash.size = Vector2(CRUSH_POP_FLASH_SIZE, CRUSH_POP_FLASH_SIZE)
+    flash.pivot_offset = flash.size / 2.0
+    flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    flash.material = _get_power_orb_material()
+    flash.modulate = Color(color.r + 0.4, color.g + 0.4, color.b + 0.4, CRUSH_POP_FLASH_ALPHA)
+    flash.z_index = CRUSH_ORB_Z - 1
+    flash.scale = Vector2(0.5, 0.5)
+    add_child(flash)
+    flash.global_position = origin - flash.size / 2.0
+    var tw := flash.create_tween()
+    tw.tween_property(flash, "scale", Vector2(1.4, 1.4), 0.07) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    tw.parallel().tween_property(flash, "modulate:a", 0.0, 0.11) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    tw.tween_callback(flash.queue_free)
+
+
+# Impact ripple: an accent ring expanding from the seam, squashed into an ellipse so it
+# reads as a ripple ACROSS the plate (the dust puff's axis), not a halo around the die.
+# Rendered over the die like the flare - under the plate (z 12) nothing of it would show.
+func _spawn_crush_ring(origin: Vector2, accent: Color) -> void:
+    var ring := TextureRect.new()
+    ring.texture = DicePalette.ring_texture()
+    ring.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    ring.stretch_mode = TextureRect.STRETCH_SCALE
+    ring.size = Vector2(CRUSH_RING_SIZE, CRUSH_RING_SIZE)
+    ring.pivot_offset = ring.size / 2.0
+    ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    ring.material = _get_power_orb_material()
+    ring.modulate = accent.lerp(DicePalette.BURST_WARM_WHITE, 0.3)
+    ring.modulate.a = CRUSH_RING_ALPHA
+    ring.z_index = CRUSH_ORB_Z - 1
+    ring.scale = Vector2(0.35, 0.35 * CRUSH_RING_SQUASH)
+    add_child(ring)
+    ring.global_position = origin - ring.size / 2.0
+    var tw := ring.create_tween()
+    tw.tween_property(ring, "scale",
+            Vector2(CRUSH_RING_PEAK_SCALE, CRUSH_RING_PEAK_SCALE * CRUSH_RING_SQUASH), CRUSH_RING_TIME) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    tw.parallel().tween_property(ring, "modulate:a", 0.0, CRUSH_RING_TIME) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+    tw.tween_callback(ring.queue_free)
+
+
+# The crack along the seam (CRUSH_SEAM_FLASH_*): the orb texture stretched into a bar,
+# snapping open sideways from the impact point, fading before the orbs are half way out.
+func _spawn_crush_seam_flash(origin: Vector2, accent: Color) -> void:
+    var bar := TextureRect.new()
+    bar.texture = _get_power_orb_texture()
+    bar.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    bar.stretch_mode = TextureRect.STRETCH_SCALE
+    bar.size = Vector2(CRUSH_SEAM_FLASH_WIDTH, CRUSH_SEAM_FLASH_HEIGHT)
+    bar.pivot_offset = bar.size / 2.0
+    bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    bar.material = _get_power_orb_material()
+    bar.modulate = accent.lerp(DicePalette.BURST_WARM_WHITE, 0.6)
+    bar.modulate.a = CRUSH_SEAM_FLASH_ALPHA
+    bar.z_index = CRUSH_ORB_Z - 1
+    bar.scale = Vector2(0.25, 1.6)
+    add_child(bar)
+    bar.global_position = origin - bar.size / 2.0
+    var tw := bar.create_tween()
+    tw.tween_property(bar, "scale", Vector2(1.0, 1.0), 0.08) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    tw.parallel().tween_property(bar, "modulate:a", 0.0, CRUSH_SEAM_FLASH_TIME) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    tw.tween_callback(bar.queue_free)
+
+
+# Outward fling, driven 0->1 LINEARLY by tween_method; the curve lives here so the same
+# function serves orbs and sparks. Travel is 1-(1-t)^2.4: explosive out of the seam,
+# decelerating into the hang, still creeping over the last third (a dead stop reads as a
+# pause). Gravity is a t^2 droop, so the fan falls into a fountain shape. Streaks
+# (sparks) are re-pointed along their actual velocity every step, so the stretch follows
+# the bend gravity puts in their path.
+func _crush_fling_step(t: float, sprite: TextureRect, origin: Vector2, dir: Vector2,
+        reach: float, gravity: float, wobble_freq: float, wobble_amp: float,
+        wobble_phase: float, streak: bool) -> void:
+    if not is_instance_valid(sprite):
+        return
+    var travel := 1.0 - pow(1.0 - t, 2.4)
+    var pos := origin + dir * (reach * travel) + Vector2(0.0, gravity * t * t)
+    if wobble_amp > 0.0:
+        var perp := Vector2(-dir.y, dir.x)
+        pos += perp * (sin(t * wobble_freq * TAU + wobble_phase) * wobble_amp * sin(t * PI))
+    if streak:
+        var velocity := dir * (reach * 2.4 * pow(1.0 - t, 1.4)) + Vector2(0.0, 2.0 * gravity * t)
+        if velocity.length_squared() > 1.0:
+            sprite.rotation = velocity.angle()
+    # Setter semantics: Control.global_position writes the node's own position in parent
+    # space, untouched by the node's rotation/scale - so with the pivot at the centre, the
+    # visual centre lands exactly on pos whatever the streak's rotation is.
+    sprite.global_position = pos - sprite.size / 2.0
+
+
+# The inhale: from wherever the orb hung, swoop into the Power number. The control point
+# continues the orb's outward line a little before the curve turns in, so it swings into
+# the number rather than reversing on the spot. Reads the orb's centre as position +
+# pivot (never the global_position GETTER, which reports the transformed corner).
+func _start_crush_collect(orb: TextureRect, origin: Vector2, type: String, collect_time: float,
+        plink: bool, is_first: bool, is_last: bool) -> void:
+    if not is_instance_valid(orb):
+        return
+    var start: Vector2 = get_global_transform() * (orb.position + orb.pivot_offset)
+    var target := current_power.get_global_rect().get_center() \
+            + Vector2(randf_range(-10.0, 10.0), randf_range(-8.0, 8.0))
+    var outward: Vector2 = Vector2.UP
+    if (start - origin).length_squared() > 1.0:
+        outward = (start - origin).normalized()
+    var control := start + outward * randf_range(15.0, 55.0) + Vector2(0.0, -randf_range(10.0, 60.0))
+    var ease_profile: Array = CRUSH_COLLECT_EASE_PROFILES[randi() % CRUSH_COLLECT_EASE_PROFILES.size()]
+    var wobble_freq := randf_range(POWER_ORB_WOBBLE_FREQ_MIN, POWER_ORB_WOBBLE_FREQ_MAX)
+    var wobble_amp := randf_range(3.0, 10.0)
+    var wobble_phase := randf_range(0.0, TAU)
+    var tw := create_tween()
+    tw.tween_method(
+            _orb_bezier_step.bind(orb, start, control, target, wobble_freq, wobble_amp, wobble_phase),
+            0.0, 1.0, collect_time) \
+        .set_trans(ease_profile[0]).set_ease(ease_profile[1])
+    # Shrinks into the number exactly as it arrives - absorbed, same as the roll orbs.
+    tw.parallel().tween_property(orb, "scale", Vector2(0.2, 0.2), collect_time) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+    # The number reacts twice: when the stream starts landing and when it finishes (the
+    # payout). Every other orb plinks; the roll orbs already plinked the first wave.
+    if is_first or is_last:
+        tw.tween_callback(_play_power_orb_arrival_reaction.bind(type))
+    if plink:
+        tw.tween_callback(_play_power_orb_land_sfx)
+    tw.tween_callback(orb.queue_free)
 
 
 # Written by _on_card_played_track_frame on every card play, read by _on_change_current_power
