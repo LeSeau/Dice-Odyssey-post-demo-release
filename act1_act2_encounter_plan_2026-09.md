@@ -113,7 +113,7 @@ Caps are on the **raw** number; Exposed on the player and the enemy's own Streng
 
 What remains is the **design session**: a slate for act 2 with one question per fight, seeded by those two, the Brute countdown, the Forge's act-2 kits (Cinderlord, Necromancer, Gorgon, Harlequin, Bog Hag, Deepling, Tempest, Warden) and the junk ladder. Then author act-2-only fights with `act = 2` and retire `ACT2_SOURCE_TIER` recycling once there are enough of them. Reskins stay as the art of native bodies.
 
-**Step 7 — More junk givers (Julien: yes).** Act 1: Leviathan's Ink beat injects 1 Sludge, cap 3 (baseline §4.1) once Sludge exists. Act 2: Sludge on Deepling cap 2, Cinder on Ember Fiend, Hex on Bog Hag cap 1.
+**Step 7 — More junk givers (Julien: yes).** Act 1: Leviathan's Ink beat injects 1 Sludge, cap 3 (baseline §4.1) once Sludge exists. Act 2: Sludge on Deepling cap 2, Cinder on Ember Fiend, Shackles (the hand-lock junk card, specced as "Hex" before that word became the card type) on Bog Hag cap 1.
 
 **Later:** Acolyte protector, Grave Grub, third boss.
 

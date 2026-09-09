@@ -6,10 +6,10 @@
 [resource]
 script = ExtResource("1_slascr")
 id = "card_slander"
-name = "Slander"
+name = "Shade"
 type = 3
 target = 0
-description = "Does nothing. Play it to be rid of it. Exhaust"
+description = "Draw 1 card. Exhaust"
 rarity = 0
 rarity_tier = 0
 red_only = false

@@ -101,9 +101,10 @@ func get_tooltip_content(requirement):
         # know it is not). Verified in code, not assumed: player_handler.start_battle()
         # rebuilds draw_pile from deck and makes a FRESH discard, and the injector writes
         # to character.discard - nothing ever merges the fight piles back into deck.
-        # MEASURED at 57px against a 62px body budget, i.e. 3 lines with ~5px to spare.
+        # MEASURED for THIS copy on 09-08: 57px against a 62px body budget, i.e. 3 lines
+        # with ~5px to spare (debug_hex_check section D prints the numbers).
         # The panel clips in silence, so re-measure any rewrite instead of counting chars.
-        text += "An enemy forced this into your deck. It never helps you, and it is gone after this combat."
+        text += "Bad card that came from an enemy to pollute your deck. It disappears after each combat."
     # Rarity: say how often you'll see it AND what to expect from it. "A Common card." was
     # circular, and "the most frequent card rarity" told the player nothing they could act on.
     # The Rare line spends its third sentence on the one genuinely actionable fact - every

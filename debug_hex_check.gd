@@ -75,10 +75,17 @@ func _section_a() -> void:
 	if slander == null:
 		return
 	_check("Slander is a Hex", slander.type == Card.Type.HEX)
-	# Celestial is load-bearing: a junk card you cannot bin without first rolling would be a
-	# trap rather than a tax. The skin must beat it, not remove it.
-	_check("Slander is still Celestial", slander.can_play_without_dice)
-	_check("Slander still exhausts", slander.exhausts)
+	# NOT Celestial, and this assertion is inverted ON PURPOSE. It was written before the
+	# 09-02 rework and still asserted the opposite, so this section has been sitting red.
+	# Binning a Hex has to cost a roll or it is free tempo; the skin must beat that gate,
+	# not remove it.
+	_check("Shade is NOT Celestial (binning it costs a roll)",
+			not slander.can_play_without_dice)
+	_check("Shade still exhausts", slander.exhausts)
+	# Cheap strip guard. The draw lives in slander.gd, but if an editor re-save ever wiped
+	# the .tres description the card would quietly stop promising what it still does.
+	_check("Shade description promises the draw",
+			slander.description.find("Draw 1 card") != -1, slander.description)
 
 
 # --- B: the skin, plus the reuse reset ---------------------------------------------------

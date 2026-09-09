@@ -283,8 +283,18 @@ func _section_slander_injection() -> void:
 	Global.dice_type = "blue"
 	Global.roll_value = 9
 	Global.roll_history = [9]
+	# 09-08: it also draws 1, so the Hex replaces itself and the tax is TEMPO rather than
+	# card advantage. Counted on the real Hand and given several frames on purpose:
+	# _on_draw_card runs its draws off a tween (HAND_DRAW_INTERVAL apart), so a single
+	# process_frame is not enough and the check would flake.
+	var hand_node: Node = _battle.battle_ui.hand
+	var before_hand: int = hand_node.get_child_count()
 	planted.apply_effects([], null)
-	await get_tree().process_frame
+	for _i in range(8):
+		await get_tree().process_frame
+	check("playing it draws 1 card, so it replaces itself",
+			hand_node.get_child_count() == before_hand + 1,
+			"%d -> %d" % [before_hand, hand_node.get_child_count()])
 	check("playing it wipes the banked Power", Global.roll_value == 0,
 			"roll_value left at %d" % Global.roll_value)
 	check("and clears the roll chain, so the next card needs a fresh roll",

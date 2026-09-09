@@ -242,7 +242,7 @@ planned statuses — Strict, Stuck, Red Sensitive — this is partly your own ba
 | Apply Unlucky | exists (Goblin only) | give act-2 Bog Hag a 2-stack version; keep rare |
 | Extra damage from Red dice | = old planned "Red Sensitive" | Gorgon: +50% from red-socketed cards — "she can't petrify what doesn't look at her" (§4.3) |
 | Enemy rolls a die himself | the most on-brand idea of the list | Roll the Bones template (§3.3 rule 1, §4.5) |
-| Negative cards: must play first | junk "Hex" | §4.4 |
+| Negative cards: must play first | junk "Shackles" (ex-"Hex") | §4.4 |
 | Negative cards: reduce roll value | junk "Lead Die" (interactive junk, STS2-style) | §4.4 |
 | Negative cards: can't roll Red while held | junk "Cursed Pact" (wave 2) | §4.4 |
 | Negative cards: inert do-nothing | junk "Sludge" (= Slimed) | §4.4 |
@@ -405,7 +405,7 @@ pattern-upgraded vanilla:
 | Identity (act-1 body) | Thesis — "the question it asks" | Kit sketch | Ancestor | Cost |
 |---|---|---|---|---|
 | **Harlequin** (Lurker) | *"Rescue your die or play without it."* | On its first turn, **pickpockets 1 die — held until Harlequin dies** (returned on kill/fight end). Low HP (18–22) keeps it a 2-turn rescue. **Replaces Flux in act 2** (two lockouts on one body = overdose); flat 6 dmg stays. | Thieving Hopper / Stasis orb | M |
-| **Bog Hag** (Goblin) | *"Your deck is cursed."* | Keeps 7/7/5+Unlucky cycle; every 3rd turn **injects 1 Hex** (junk, §4.4) instead of the plain hit. The junk system's debut body. | Chosen's Hex / hag flavor | M (needs §4.4) |
+| **Bog Hag** (Goblin) | *"Your deck is cursed."* | Keeps 7/7/5+Unlucky cycle; every 3rd turn **injects 1 Shackles** (junk, §4.4) instead of the plain hit. The junk system's debut body. | Chosen's Hex / hag flavor | M (needs §4.4) |
 | **Onlooker** (Oculus) | *"Spend before it swings."* | Keeps Parasite + ramp. New beat every 3rd turn: **Mirror Gaze — damage = your banked Power at resolution** (intent live-updates as your bank moves). Punishes hoarding; the player controls the hit. | Spire Growth's player-state AI | M (live intent hook) |
 | **Warden** (Defender) | *"Kill the shield or the sword?"* | The 3-beat cycle's block move becomes **Block 6 to self AND each ally** in act 2. In its pair comps this creates the game's first protector. | Shield Gremlin / Centurion | S |
 | **Thornheart** (Plant) | *"Your throw/multi-hit deck meets its pincer."* | Keeps the Muscle ramp. Adds **Bristle: +1 Block per hit taken this turn, escalating** (2nd hit +2, 3rd +3…, resets each turn). The anti-multi-hit half of the attack-shape pincer (Flurry/Stampede/throw volleys finally have a bad matchup; big-bank single hits shine). | Snake Plant's Malleable | S |
@@ -433,20 +433,20 @@ STS's proven "second HP bar", with dice-native junk. Scope-checked against the c
   reshuffle mini-card-back flight already exists (`deck_reshuffled` → card-backs flying
   between piles) — reuse it to show a junk card flying INTO your discard pile. The
   unplayable-card refusal system (shake + reason, shipped 07-29) already handles "you can't play
-  this / you must play Hex first" messaging.
+  this / you must play Shackles first" messaging.
 - **Wave-1 junk designs (3 max — complexity threshold):**
   - **Sludge** — "Unplayable. Vanishes at end of turn." Pure hand-slot tax (STS Slimed). The
     gentle one; dose 1–2 per cast.
   - **Cinder** — "Unplayable. If in your hand at end of turn, take 2 damage." (STS Burn.)
     Ember Fiend's ammo.
-  - **Hex** — "You cannot play other cards while a Hex is in your hand. Play it (does nothing)
+  - **Shackles** — "You cannot play other cards while Shackles is in your hand. Play it (does nothing)
     to get rid of it." The must-play-first tempo tax — Julien's exact request, and the most
     dice-odyssey-feeling of the three because it eats a *card play*, which is tempo, not damage.
 - **Wave-2 (interactive junk, STS2-style):** **Lead Die** — "Unplayable. While in your hand,
   your rolls are −1." (hold-pain: dump it with discards or eat the roll tax); **Cursed Pact** —
   "While in your hand, you cannot roll Red." Both attack dice through the hand — the crossover
   only this game can do.
-- **Injectors**: Bog Hag (Hex), Ember Fiend (Cinder), one big act-2 body (Sludge ×2). Cap: ~2
+- **Injectors**: Bog Hag (Shackles), Ember Fiend (Cinder), one big act-2 body (Sludge ×2). Cap: ~2
   junk per enemy turn, act 2 only at first.
 
 ### 4.5 Bosses
@@ -542,7 +542,7 @@ Onlooker Mirror Gaze (M); Tempest Gale (M); Deepling Blind Roll (M); Gorgon Petr
 Sensitive (M); Dicelord Phase 2 + Roll the Bones (M-H).
 
 **Phase 5 — the junk system + its injectors:**
-Junk plumbing + Sludge/Cinder/Hex; Bog Hag + Ember Fiend as carriers; wave-2 junk (Lead Die,
+Junk plumbing + Sludge/Cinder/Shackles; Bog Hag + Ember Fiend as carriers; wave-2 junk (Lead Die,
 Cursed Pact) after playtest.
 
 **Phase 6 — the marquee heavy:**
@@ -562,7 +562,7 @@ enemy bodies).
 2. **Act-1 spice level**: are the two additive fights (Cutpurse, Shaman) + Hound threshold the
    right amount, or should act 1 stay 100% untouched until after the itch feedback wave?
 3. **Junk system go/no-go** — it's the one new SYSTEM here (everything else is action nodes and
-   statuses). If yes: are Hex's "must play first" semantics right, or too annoying at 5-card
+   statuses). If yes: are Shackles' "must play first" semantics right, or too annoying at 5-card
    hand size?
 4. **Harlequin**: replace Flux with the die hostage in act 2 (my recommendation), or stack both?
 5. **Enemy dice visuals**: Roll the Bones needs the enemy to visibly roll (a small die anim near
@@ -652,9 +652,9 @@ Two junk cards, carried by existing act-2 identities via act-gated beats (the Di
 `current_act >= 2` pattern) — act 1 stays clean, act 2 gets visible identity for cheap (which
 also serves the itch "act 2 is a preview" framing):
 
-- **Hex** — "Unplayable… almost: you cannot play other cards while a Hex is in your hand. Play
+- **Shackles** — "Unplayable… almost: you cannot play other cards while Shackles is in your hand. Play
   it (it does nothing) to discard it." Carrier: **Bog Hag** (act-2 Goblin) — in act 2 her
-  Unlucky beat becomes 5 dmg + inject 1 Hex into the discard pile. The must-play-first tempo tax.
+  Unlucky beat becomes 5 dmg + inject 1 Shackles into the discard pile. The must-play-first tempo tax.
 - **Cinder** — "Unplayable. If in your hand at end of turn, take 2 damage." Carrier: **Ember
   Fiend** (act-2 Hound) — his double-hit beat also injects 1 Cinder.
 - *(optional 3rd)* **Sludge** — "Unplayable. Vanishes at end of turn." Carrier: **Deepling**
@@ -662,10 +662,10 @@ also serves the itch "act 2 is a preview" framing):
 
 Implementation notes (why this is small): fight piles rebuild from the deck each battle →
 injection is fight-scoped with zero cleanup code; the 07-29 card-refusal system (shake + reason)
-already handles "you can't play this / play the Hex first" messaging; the `deck_reshuffled`
+already handles "you can't play this / play Shackles first" messaging; the `deck_reshuffled`
 mini-card-back flight can visualize the injection. Needs: 2-3 card .tres + tiny scripts, one
-end-of-turn hand hook (Cinder/Sludge), the Hex gate in the click path, 2 act-gated action edits,
-and 2-3 card arts from Julien. Order: Sludge (simplest) → Cinder → Hex.
+end-of-turn hand hook (Cinder/Sludge), the Shackles gate in the click path, 2 act-gated action edits,
+and 2-3 card arts from Julien. Order: Sludge (simplest) → Cinder → Shackles.
 
 ### 8.4 Prerequisites & order
 
@@ -679,7 +679,7 @@ and 2-3 card arts from Julien. Order: Sludge (simplest) → Cinder → Hex.
 5. Tier-0 caps + the optional B.Kraken desync whenever convenient (verdict first).
 
 Open verdicts needed from Julien before implementing: Venom Bloom's T0 propagation (take it or
-skip Plant), B.Kraken 50/50 opener (T0 propagation), Gargantua's mild buff (intended?), Hex
+skip Plant), B.Kraken 50/50 opener (T0 propagation), Gargantua's mild buff (intended?), Shackles
 semantics at 5-card hand size, and 2 vs 3 curse cards.
 
 ---
@@ -960,7 +960,7 @@ BASENAME.** A new icon with no matching `match` case silently falls through to t
 | Deepling Blind Roll | A2 | hidden-roll UI | M | 4 |
 | Gorgon Petrify + Red Sensitive | A2 | in-hand lock + dmg modifier | M | 4 |
 | Dicelord Phase 2 + Roll the Bones | A2 boss | threshold + enemy-die anim | M-H | 4 |
-| Junk system (Sludge/Cinder/Hex) + Hag/Fiend | A2 | injection + junk flags | M-H | 5 |
+| Junk system (Sludge/Cinder/Shackles) + Hag/Fiend | A2 | injection + junk flags | M-H | 5 |
 | Lead Die / Cursed Pact (junk wave 2) | A2 | in-hand passives | M | 5 |
 | Necromancer summons | A2 elite | mid-fight spawn | H | 6 |
 | Repetition-cap "ascension" dial | future | none | S | later |

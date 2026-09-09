@@ -294,13 +294,13 @@ the already-scoped three, with STS2's real doses:
 |---|---|---|---|---|
 | **Sludge** | unplayable, vanishes at end of turn | Dazed | **Deepling** (act-2 b.Kraken) ink beat | 1/cast, cap 2/fight |
 | **Cinder** | unplayable, take 2 if in hand at end of turn | Burn/Infection | **Ember Fiend** (act-2 Hound) double-hit | 1/cast |
-| **Hex** *(NAME TAKEN - see CLAUDE.md: "Hex" is now the card TYPE for enemy-planted junk, so this card needs a new name before implementation)* | "can't play other cards while a Hex is in hand; play it (does nothing) to discard" | *harsher than anything in their act 1* | **Bog Hag** (act-2 Goblin): Unlucky beat → 5 dmg + 1 Hex | 1, cap 1 in deck |
+| **Shackles** *(NAME RESERVED 2026-09-09 by Julien. Specced as "Hex" until that word was taken by the card TYPE for enemy-planted junk; the type keeps Hex, this card is Shackles. Do not rename it back.)* | "can't play other cards while Shackles is in hand; play it (does nothing) to discard" | *harsher than anything in their act 1* | **Bog Hag** (act-2 Goblin): Unlucky beat → 5 dmg + 1 Shackles | 1, cap 1 in deck |
 | *(wave 2)* Lead Die / Cursed Pact | rolls −1 while held / can't roll Red | Void-class | post-launch | — |
 
-**Hex semantics flag** (open verdict, sharpened by the data): none of STS2's act-1 junk locks
+**Shackles semantics flag** (open verdict, sharpened by the data): none of STS2's act-1 junk locks
 the whole hand — their harshest is Beckon (*lose 6 or pay 1 energy*). At a 5-card hand, one
-Hex locking everything is closer to a boss mechanic (their "play only 1 card" Ringing) than a
-hallway tax. Options: (a) keep as specced but hard-cap 1 Hex ever in deck; (b) soften to
+Shackles locking everything is closer to a boss mechanic (their "play only 1 card" Ringing) than a
+hallway tax. Options: (a) keep as specced but hard-cap 1 Shackles ever in deck; (b) soften to
 Wound-style "unplayable, persists" (the deck-thinning tax); (c) "while in hand, your rolls are
 −1" (moves Lead Die up a wave). **Recommend (a) with the cap** — it preserves the fantasy and
 the "play it first" puzzle without stacking into a soft-lock.
@@ -365,7 +365,7 @@ and the on-curve player reaches the boss with a survivable-but-tense pool — th
    check that enemy-applied Depleted decrements the die pool like Electrify's self-Depleted.
 4. **Wave B — §8 T1/elite texture batches** as planned → playtest → **N4 dials** (Hound 6→7,
    Maelstrom 12→13) only if T2 still reads soft.
-5. **Wave C — junk cards** Sludge → Cinder → Hex with act-2 carriers → playtest → act-1
+5. **Wave C — junk cards** Sludge → Cinder → Shackles with act-2 carriers → playtest → act-1
    backports (Leviathan, optional b.Kraken).
 6. Cadence-collision check: no new modulos introduced (riders sit on existing beats; Hound
    Roar is an HP-threshold CONDITIONAL, the WS2 pattern) — Medusa %4==3 / Leviathan %4==2 /
@@ -380,7 +380,7 @@ and the on-curve player reaches the boss with a survivable-but-tense pool — th
 3. **Lurker creep = SKIP** and **Lich rider = SKIP** — sign off on the two revisions (§4.3).
 4. **Gargantua §8 mild buff = YES** — sign off.
 5. **Backstop = SHELVED** — sign off (was "hold"; reference data says never).
-6. **Hex semantics** — option (a) cap-1 / (b) Wound-style / (c) roll-malus.
+6. **Shackles semantics** — option (a) cap-1 / (b) Wound-style / (c) roll-malus.
 7. **Act-1 junk backports** after act-2 proves out — Leviathan Sludge yes/no; b.Kraken act-1
    Sludge yes/no.
 8. Existing open §8 verdicts unchanged: Venom Bloom T0 propagation, slot-keyed openers on
