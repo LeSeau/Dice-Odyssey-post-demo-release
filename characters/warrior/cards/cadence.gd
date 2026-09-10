@@ -35,3 +35,9 @@ func get_dynamic_description(modifiers: ModifierHandler, target: Node = null) ->
     var total := apply_target_modifier(
         modifiers.get_modified_value(_damage(), Modifier.Type.DMG_DEALT), target)
     return "%s (%d)" % [base, total]
+
+# Exempt from the 0-Power refusal (Julien, 2026-09-10): this scales off the number of rolls in the chain, and the 0 roll is one of them,
+# so an empty bank costs it nothing. See Card.plays_at_zero_power().
+# Shared by Cadence and Cadence+.
+func plays_at_zero_power() -> bool:
+    return true

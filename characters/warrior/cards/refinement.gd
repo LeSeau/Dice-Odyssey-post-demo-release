@@ -23,3 +23,8 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     support_effect.sound = sound
     support_effect.execute(targets)
     Events.reset_charged_card.emit()
+
+# Exempt from the 0-Power refusal (Julien, 2026-09-10): this lifts the bank to the next multiple of 7, so an empty bank becomes 7,
+# so an empty bank costs it nothing. See Card.plays_at_zero_power().
+func plays_at_zero_power() -> bool:
+    return true

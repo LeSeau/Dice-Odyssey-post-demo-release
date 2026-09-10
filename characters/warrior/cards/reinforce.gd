@@ -8,3 +8,8 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     var support_effect := SupportEffect.new()
     support_effect.sound = sound
     support_effect.execute(targets)
+
+# Exempt from the 0-Power refusal (Julien, 2026-09-10): this adds a flat 2 Power,
+# so an empty bank costs it nothing. See Card.plays_at_zero_power().
+func plays_at_zero_power() -> bool:
+    return true

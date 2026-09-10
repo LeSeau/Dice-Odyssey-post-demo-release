@@ -455,10 +455,12 @@ func _get_glow_state(card: Card) -> CardUI.PlayableGlow:
             if card.requirement == Card.Requirement.NONE:
                 return CardUI.PlayableGlow.AVAILABLE
         return CardUI.PlayableGlow.NONE
-    # roll_value <= 0 alone would wrongly dim a card that's actually playable right now -
-    # has_active_roll() catches the "rolled and landed on Evil's crack face (0)" case, which
-    # is still a real roll, just an unlucky one (see card_released_state.gd's matching gate).
-    if Global.roll_value <= 0 and not card.has_active_roll():
+    # Empty bank: dim, whether nothing has been rolled yet or the roll resolved to 0 (Evil's
+    # crack face, a roll Weak ate whole). Cards that opt into plays_at_zero_power() stay lit,
+    # since they really are playable. Mirrors the play gate in card_released_state.gd and the
+    # pick-up refusal in Card.would_no_op_now() - the card must not glow as available and then
+    # refuse the drag.
+    if Global.roll_value <= 0 and (not card.has_active_roll() or not card.plays_at_zero_power()):
         return CardUI.PlayableGlow.NONE
     if card.requirement == Card.Requirement.NONE:
         return CardUI.PlayableGlow.AVAILABLE

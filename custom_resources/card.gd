@@ -168,12 +168,33 @@ func would_no_op_now() -> bool:
         # Socketing judges the requirement against a roll that has not happened yet, so it can
         # never be pre-judged. The one genuinely dead case is having no Red die left to roll.
         return Global.red_dice_current_amount <= 0
-    # Nothing rolled yet. has_active_roll() rather than roll_value alone so Evil's crack face
-    # (a real roll that resolved to 0) still counts - the same gate the play path and the hand
-    # dimming both already use.
-    if Global.roll_value <= 0 and not has_active_roll():
+    # No Power banked. Two separate reasons, both refused:
+    #   - nothing rolled yet (roll_history empty), the gate this has always had;
+    #   - rolled and the bank still came out 0 (Evil's crack face, or a roll Weak ate whole).
+    # The second used to be allowed, on the grounds that a real roll happened. Julien's ruling
+    # (2026-09-10): an empty bank is an empty bank, so a non-Celestial card is refused either
+    # way unless it opts in via plays_at_zero_power(). Strength on the hit and non-X riders
+    # (Dice Slap's +3 per roll, Eyepoke's draw, Fortify's Strength) do NOT buy an exemption -
+    # they were both raised and both rejected.
+    #
+    # roll_value > 0 with an empty roll_history is a real state (Stockpile carries Power into
+    # the turn), and it stays playable: this whole branch is skipped whenever there is Power.
+    if Global.roll_value <= 0 and (not has_active_roll() or not plays_at_zero_power()):
         return true
     return not meets_requirement()
+
+
+# Opt-in for the handful of cards that still do their whole job on an empty bank - the
+# "unless specified" half of the rule above. Default false, so any card added later is
+# refused at 0 Power until someone deliberately says otherwise, which is the safe way round:
+# forgetting to opt in shows up instantly as a card that will not pick up, while forgetting
+# to opt out would ship a card that plays for nothing.
+#
+# Only reached once a roll has actually happened (has_active_roll() above), so overriding
+# this can never make a card playable before the first roll of the turn - which matters for
+# Cataclysm in particular, whose 12 - X would otherwise pay out in full for no dice at all.
+func plays_at_zero_power() -> bool:
+    return false
 
 
 # Applies the target enemy's own DMG_TAKEN modifier (Exposed being the main one today) on top

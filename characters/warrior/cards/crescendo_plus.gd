@@ -18,3 +18,8 @@ func get_dynamic_description(modifiers: ModifierHandler, target: Node = null) ->
         return "Deal ? damage (all Power generated this turn)"
     var total := apply_target_modifier(modifiers.get_modified_value(Global.power_generated_this_turn, Modifier.Type.DMG_DEALT), target)
     return "Deal %d damage (all Power generated this turn)" % total
+
+# Exempt from the 0-Power refusal (Julien, 2026-09-10): this scales off Power generated this turn, which survives a spent chain,
+# so an empty bank costs it nothing. See Card.plays_at_zero_power().
+func plays_at_zero_power() -> bool:
+    return true

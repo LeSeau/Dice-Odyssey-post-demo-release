@@ -13,3 +13,8 @@ func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
 
 func _on_dice_rolled():
     print("adding dice to damage")
+
+# Exempt from the 0-Power refusal (Julien, 2026-09-10): this grants a flat Boost,
+# so an empty bank costs it nothing. See Card.plays_at_zero_power().
+func plays_at_zero_power() -> bool:
+    return true

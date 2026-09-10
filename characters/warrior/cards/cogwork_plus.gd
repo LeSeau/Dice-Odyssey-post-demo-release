@@ -14,3 +14,9 @@ func apply_effects(targets: Array [Node], modifiers: ModifierHandler) -> void:
         status_effect.execute(targets)
     Events.dice_roll_reset.emit()
     Events.reset_charged_card.emit()
+
+# Exempt from the 0-Power refusal (Julien, 2026-09-10): this grants a Mech Dice every turn, never reading the bank,
+# so an empty bank costs it nothing. See Card.plays_at_zero_power().
+# Base Cogwork is EXACT 6, so it cannot reach 0 Power in the first place.
+func plays_at_zero_power() -> bool:
+    return true

@@ -16,3 +16,8 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     Events.change_current_power.emit()
     Events.dice_amount_changed.emit()
     Events.reset_charged_card.emit()
+
+# Exempt from the 0-Power refusal (Julien, 2026-09-10): this refunds one die per roll in the current chain, plus one,
+# so an empty bank costs it nothing. See Card.plays_at_zero_power().
+func plays_at_zero_power() -> bool:
+    return true

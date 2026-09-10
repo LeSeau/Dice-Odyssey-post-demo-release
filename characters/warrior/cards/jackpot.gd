@@ -32,3 +32,8 @@ func get_dynamic_description(modifiers: ModifierHandler, target: Node = null) ->
     var total := apply_target_modifier(
         modifiers.get_modified_value(_damage(), Modifier.Type.DMG_DEALT), target)
     return "Deal %d damage for every 6 you rolled this fight (%d). Exhaust" % [DAMAGE_PER_SIX, total]
+
+# Exempt from the 0-Power refusal (Julien, 2026-09-10): this scales off the sixes rolled this fight, not the bank,
+# so an empty bank costs it nothing. See Card.plays_at_zero_power().
+func plays_at_zero_power() -> bool:
+    return true

@@ -70,12 +70,17 @@ func enter() -> void:
             
         elif not card_ui.targets.is_empty():
             if not (Global.dice_type != "red" and card_ui.card.red_only==true):
-                # roll_value > 0 alone wrongly blocks a legit play when the active dice's
-                # last roll genuinely happened but resolved to 0 (Evil dice's crack face) -
-                # has_active_roll() (roll_history not empty) distinguishes "rolled and got
-                # unlucky" from "haven't rolled yet", so cards like Recombobulate can still
-                # be played as the safety valve they're meant to be even on a crack roll.
-                if Global.roll_value > 0 or card_ui.card.has_active_roll() or card_ui.card.can_play_without_dice:
+                # An empty bank refuses the play, whether that is because nothing has been
+                # rolled yet or because the roll landed on 0 (Evil's crack face, or a roll
+                # Weak ate whole). has_active_roll() used to wave the second case through;
+                # Julien's ruling (2026-09-10) is that 0 Power is 0 Power, so a card now has
+                # to opt in via plays_at_zero_power() to be played on an empty bank. Kept in
+                # step with Card.would_no_op_now() and Hand._get_glow_state() - all three
+                # answer the same question and must not drift apart.
+                if (Global.roll_value > 0
+                        or card_ui.card.can_play_without_dice
+                        or (card_ui.card.has_active_roll()
+                                and card_ui.card.plays_at_zero_power())):
                     played = true
                     card_ui.play()
                     Events.reset_charged_card.emit()

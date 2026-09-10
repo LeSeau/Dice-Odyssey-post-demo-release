@@ -45,3 +45,9 @@ func get_dynamic_description(_modifiers: ModifierHandler, target: Node = null) -
     if target == null or not is_instance_valid(target) or not meets_requirement():
         return "Deal damage equal to the enemy's intended attack"
     return "Deal damage equal to the enemy's intended attack (%d)" % _intent_damage(target)
+
+# Exempt from the 0-Power refusal (Julien, 2026-09-10): this copies the enemy's intended attack, never the bank,
+# so an empty bank costs it nothing. See Card.plays_at_zero_power().
+# Shared with base Mirror Blow, which stays blocked anyway: its ODD requirement fails at 0, and meets_requirement() is still checked after this.
+func plays_at_zero_power() -> bool:
+    return true

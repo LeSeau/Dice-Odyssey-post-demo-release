@@ -27,3 +27,11 @@ func get_dynamic_description(modifiers: ModifierHandler, target: Node = null) ->
     var base := maxi(0, 12 - int(Global.roll_value))
     var total := apply_target_modifier(modifiers.get_modified_value(base, Modifier.Type.DMG_DEALT), target)
     return "Deal 12 - X damage (%d)" % total
+
+
+# The one confirmed exception to the 0-Power refusal (Julien, 2026-09-10). Inverted scaling
+# means an empty bank is this card's BEST case, not a dead one - refusing it there would
+# delete the payoff it exists for. Card.plays_at_zero_power() is only consulted once a roll
+# has happened, so this still cannot be played cold off a fresh reset for a free 12.
+func plays_at_zero_power() -> bool:
+    return true

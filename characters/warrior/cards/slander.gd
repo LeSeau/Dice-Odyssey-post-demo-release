@@ -5,8 +5,14 @@ extends Card
 #
 # Deliberately NOT Celestial: binning it has to cost a roll, or it would be free tempo. Being
 # non-Celestial routes it through the same gate every ordinary card uses
-# (card_released_state.gd: roll_value > 0 or has_active_roll()), so you cannot play it until you
-# have rolled at least once this turn.
+# (card_released_state.gd), so you cannot play it until you have Power banked.
+#
+# 2026-09-10: that gate tightened. It used to accept any turn where a roll had happened, so a
+# roll that resolved to 0 (Evil's crack face) was enough to bin this. Now an empty bank refuses
+# the play outright unless the card opts into Card.plays_at_zero_power(), and this one does not.
+# Net effect on the tax: binning a Shade off a crack roll is no longer possible, so the cheapest
+# exit is a roll that actually banks something. OPEN QUESTION for Julien - if the crack-roll bin
+# was part of the intended price, this card wants the opt-in.
 #
 # apply_effects draws a card, then resets your Power exactly like any ordinary card. The draw
 # is what turns this from a card-advantage tax into a TEMPO tax: the Hex replaces itself, so

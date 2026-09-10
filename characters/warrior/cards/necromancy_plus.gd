@@ -19,3 +19,8 @@ func apply_effects(targets: Array[Node], _modifiers: ModifierHandler) -> void:
     Events.dice_charged.emit("evil", CHARGE_COUNT)
     Events.temporary_dice_added.emit("evil")
     Events.reset_charged_card.emit()
+
+# Exempt from the 0-Power refusal (Julien, 2026-09-10): this charges Evil Dice,
+# so an empty bank costs it nothing. See Card.plays_at_zero_power().
+func plays_at_zero_power() -> bool:
+    return true
