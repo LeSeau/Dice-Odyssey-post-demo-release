@@ -7,7 +7,7 @@
 [resource]
 script = ExtResource("2_script")
 id = "card_low_roller_plus"
-name = "Low Roller+"
+name = "Cataclysm+"
 type = 0
 target = 1
 description = "Deal 15 - X damage"
