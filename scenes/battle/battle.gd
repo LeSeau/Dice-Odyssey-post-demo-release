@@ -209,6 +209,7 @@ func start_battle() -> void:
     Global.ink_active = false
     Global.dice_hostage_types = []
     Global.thrown_dice_bonus_fight = 0
+    Global.red_whiff_damage_mult = 0
     Global.surge_amount = 0
     Global.surge_expiring = 0
     Global.dice_types_rolled_this_turn = {}

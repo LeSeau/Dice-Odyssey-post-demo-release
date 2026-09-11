@@ -15,6 +15,11 @@ enum Rarity {NORMAL, SUPPORT}
 enum RarityTier {COMMON, UNCOMMON, RARE}
 enum Requirement {NONE, MIN, MAX, EVEN, ODD, RED, MULTIPLE, EXACT, PANDORA}
 
+# Heavy club impact for Ooga Booga's whiff payout (see _fire_red_whiff_payout). Needs its own
+# const because that payout fires for the card that MISSED, whose own `sound` belongs to its
+# own effect. PLACEHOLDER - swap freely.
+const RED_WHIFF_SOUND := preload("res://impact_power.ogg")
+
 const RARITY_COLORS := {
     Card.Rarity.NORMAL: Color.GRAY,
     Card.Rarity.SUPPORT: Color.GOLD
@@ -360,6 +365,14 @@ func play(targets: Array[Node], char_stats: CharacterStats, modifiers: ModifierH
 
     AchievementManager.end_card_damage_window()
 
+    # OOGA BOOGA: a Red roll that misses this card's requirement smashes the board instead of
+    # doing nothing. Placement is load-bearing on BOTH sides. AFTER playing_card_requirement
+    # is cleared, so Worm's Eye Lens cannot leak its Max-card bonus into a payout that is not
+    # the card's own damage. BEFORE berserker_boost_active closes, so the Red infusion's +50%
+    # still applies (Julien, 2026-09-09: it should scale "like a regular card").
+    if Global.red_whiff_damage_mult > 0 and Global.playing_red_card and not meets_requirement():
+        _fire_red_whiff_payout()
+
     if berserker_boost:
         Global.berserker_boost_active = false
 
@@ -483,3 +496,43 @@ func _on_thrown_die_landed(tree: SceneTree, target: Node, damage: int, hit_sound
 # group, and self-damage must never be boosted.
 static func deferred_berserker_damage(amount: int) -> int:
     return ceili(amount * 1.5) if Global.berserker_boost_active else amount
+
+
+# Ooga Booga's payout. Lives on Card, and fires from play(), because play() is the single
+# funnel BOTH Red play paths go through (the instant one and the aim-then-release one), and
+# because meets_requirement() is the one gate every card's miss is judged by - the same
+# reasoning that put the requirement migration here in the first place.
+#
+# Routed through the PLAYER's DMG_DEALT stack rather than dealt flat, exactly like
+# Armageddon's socketless blast (dice.gd::_fire_socketless_red). That is what makes Strength
+# apply, and it also lets BERSERK through - its "double damage with Red Dice" is a
+# PERCENT_BASED modifier that is live whenever Red is the active die. Both are deliberate.
+# The target's own DMG_TAKEN (Exposed) is applied later inside Enemy.take_damage().
+#
+# Deliberately NOT capped to one payout per Red roll: with a second socket open (Red Cannon)
+# both socketed cards resolve off the same roll, and both misses should pay (Julien,
+# 2026-09-09). Note this means both read the FULL bank, because the Red branch of
+# dice.gd::_on_dice_roll_reset defers its wipe by 1s - the reset below is visual bookkeeping
+# that lands after both have already been paid.
+func _fire_red_whiff_payout() -> void:
+    var player := Global.player
+    if player == null or not is_instance_valid(player):
+        return
+    var tree := player.get_tree()
+    if tree == null:
+        return
+    var enemies := tree.get_nodes_in_group("enemies")
+    if enemies.is_empty():
+        return
+    var amount: int = Global.roll_value * Global.red_whiff_damage_mult
+    if amount <= 0:
+        return
+    if player.get("modifier_handler") != null:
+        amount = player.modifier_handler.get_modified_value(amount, Modifier.Type.DMG_DEALT)
+    var damage_effect := DamageEffect.new()
+    damage_effect.amount = amount
+    damage_effect.sound = RED_WHIFF_SOUND
+    damage_effect.execute(enemies)
+    # The miss spent the bank. A card that MEETS its requirement resets Power itself; a miss
+    # normally leaves it standing, so this reset is the cost printed on Ooga Booga's face.
+    Events.dice_roll_reset.emit()
