@@ -1,11 +1,11 @@
 [gd_resource type="Resource" load_steps=3 format=3 uid="uid://cr3d3dg35t8b"]
 
-[ext_resource type="Script" path="res://statuses/status_red_edge.gd" id="1_script"]
+[ext_resource type="Script" path="res://statuses/status_forge.gd" id="1_script"]
 [ext_resource type="Texture2D" path="res://status_red_edge_icon.png" id="2_icon"]
 
 [resource]
 script = ExtResource("1_script")
-id = "refine"
+id = "forge"
 type = 2
 stack_type = 0
 can_expire = false

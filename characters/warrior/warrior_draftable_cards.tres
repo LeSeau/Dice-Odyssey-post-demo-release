@@ -71,7 +71,7 @@
 [ext_resource type="Resource" uid="uid://cj4ckp0t51x3" path="res://characters/warrior/cards/card_jackpot_new.tres" id="401_jackpot"]
 [ext_resource type="Resource" uid="uid://c3ff1gyc4rd7" path="res://characters/warrior/cards/card_effigy.tres" id="402_effigy"]
 [ext_resource type="Resource" uid="uid://c4cardsocketl" path="res://characters/warrior/cards/card_armageddon.tres" id="500_socketless"]
-[ext_resource type="Resource" uid="uid://c4cardrededge" path="res://characters/warrior/cards/card_grindstone.tres" id="501_rededge"]
+[ext_resource type="Resource" uid="uid://c4cardrededge" path="res://characters/warrior/cards/card_forge.tres" id="501_rededge"]
 [ext_resource type="Resource" uid="uid://c4cardcadence" path="res://characters/warrior/cards/card_cadence.tres" id="504_cadence"]
 [ext_resource type="Resource" uid="uid://c4cardgreed" path="res://characters/warrior/cards/card_greed.tres" id="507_greed"]
 [ext_resource type="Resource" uid="uid://c4cardartille" path="res://characters/warrior/cards/card_artillery.tres" id="508_artillery"]

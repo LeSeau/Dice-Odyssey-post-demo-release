@@ -131,7 +131,7 @@ func get_tooltip_content(status: Status) -> void:
 # Armageddon should not be told he has "Socketless Red". The badge title is derived from
 # status.id (capitalize() turns "red_cannon" into "Red Cannon"), so the ids ARE the
 # single source of truth and every legacy one has been renamed to match its card
-# (socketless_red -> armageddon, second_socket -> red_cannon, red_edge -> refine,
+# (socketless_red -> armageddon, second_socket -> red_cannon, red_edge -> forge,
 # dicelord_gift -> anarchy, opening_gambit -> dice_echo, hardened_grip -> die_hard,
 # coiled_spring -> buzzer_shot, quicksilver -> malleable).
 #

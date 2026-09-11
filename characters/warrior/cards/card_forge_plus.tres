@@ -1,14 +1,13 @@
-[gd_resource type="Resource" script_class="Card" load_steps=5 format=3 uid="uid://c4cardrededge"]
+[gd_resource type="Resource" load_steps=4 format=3 uid="uid://2exd7u6mfvlg"]
 
 [ext_resource type="Texture2D" uid="uid://c75csvpq1hxts" path="res://red_edge.png" id="1_icon"]
-[ext_resource type="Script" path="res://characters/warrior/cards/grindstone.gd" id="2_script"]
+[ext_resource type="Script" path="res://characters/warrior/cards/forge.gd" id="2_script"]
 [ext_resource type="AudioStream" uid="uid://df64e7qat73gs" path="res://art/block.ogg" id="3_sound"]
 
-[ext_resource type="Resource" uid="uid://cr3d3dg3p1u5aa" path="res://characters/warrior/cards/card_grindstone_plus.tres" id="red_edge_plus_up"]
 [resource]
 script = ExtResource("2_script")
-id = "card_red_edge"
-name = "Refine"
+id = "card_forge_plus"
+name = "Forge+"
 type = 2
 target = 0
 description = "Remove the 2 lowest faces from Red Dice this combat"
@@ -17,14 +16,13 @@ rarity_tier = 2
 red_only = false
 can_play_without_dice = false
 requirement = 1
-requirement_number = 6
+requirement_number = 4
 exhausts = true
 bonus_requirement = 0
 bonus_requirement_number = 0
 bonus_description_text = ""
 tags = "Exhaust, Red Dice"
-upgraded = false
-upgraded_version = ExtResource("red_edge_plus_up")
+upgraded = true
 icon = ExtResource("1_icon")
 tooltip_text = ""
 sound = ExtResource("3_sound")
