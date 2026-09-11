@@ -31,6 +31,31 @@ extends CanvasLayer
 # one constant for Color(0, 0, 0) if a true blackout is wanted.
 const CURTAIN_COLOR := Color(0.08, 0.102, 0.16)
 
+# SHAPE: the plate does not fade uniformly - it closes in from the screen edges towards the
+# centre on cover, and opens from the centre outwards on reveal, with a soft front. That is
+# what makes it read as a curtain rather than a crossfade. The shader reads the plate's own
+# alpha as the wipe progress (COLOR.a in), so everything below still just drives color.a:
+# at 0 nothing is covered, at 1 the plate is a solid flat fill everywhere. Built from a code
+# string, not a .gdshader, so there is no import step and no uniform to seed.
+const WIPE_SOFTNESS := 0.22
+const WIPE_SHADER_CODE := """
+shader_type canvas_item;
+
+const float SOFT = %s;
+
+void fragment() {
+    // Radial distance from the screen centre, aspect-corrected, normalised so a corner is 1.
+    vec2 px = 1.0 / SCREEN_PIXEL_SIZE;
+    vec2 c = (UV - 0.5) * vec2(px.x / px.y, 1.0);
+    float d = length(c) / length(vec2(0.5 * px.x / px.y, 0.5));
+    // Progress 0 -> the front sits beyond the corners (nothing covered); 1 -> it has passed
+    // the centre with its whole soft band (everything covered, flat).
+    float front = mix(1.0 + SOFT, -SOFT, COLOR.a);
+    float coverage = smoothstep(front - SOFT, front + SOFT, d);
+    COLOR.a = coverage;
+}
+""" % WIPE_SOFTNESS
+
 # Asymmetric on purpose: leaving is quick, arriving is unhurried. Together they add about
 # half a second to a screen change; much slower starts to read as a load.
 const COVER_TIME := 0.18
@@ -61,6 +86,11 @@ func _ready() -> void:
     # can never eat input while the player can see through it.
     _rect.mouse_filter = Control.MOUSE_FILTER_STOP
     _rect.visible = false
+    var shader := Shader.new()
+    shader.code = WIPE_SHADER_CODE
+    var material := ShaderMaterial.new()
+    material.shader = shader
+    _rect.material = material
     add_child(_rect)
     set_process(false)
 
@@ -80,6 +110,11 @@ func cover(duration := COVER_TIME) -> void:
 func reveal(duration := REVEAL_TIME) -> void:
     if not _rect.visible and is_equal_approx(_rect.color.a, 0.0):
         return
+    # One frame at full cover before the wipe opens. Callers reveal the moment the new
+    # screen is added, and Godot's containers lay out on a DEFERRED sort - so the relic
+    # bar, the hand and the dice row would otherwise settle on the first visible frame,
+    # a micro-jump seen through the fade. Costs ~16ms; emitted while paused too.
+    await get_tree().process_frame
     _begin(0.0, duration, Tween.EASE_OUT)
     await _await_fade()
 
@@ -114,12 +149,20 @@ func _begin(target_alpha: float, duration: float, ease_type: Tween.EaseType) -> 
     _to_alpha = target_alpha
     _duration = duration
     _ease = ease_type
-    _start_ms = Time.get_ticks_msec()
+    # The clock starts on the first PROCESSED frame, not here. reveal() is called right
+    # after a new screen is added, and the frame that follows is the first one to DRAW it
+    # (texture uploads, shader compiles) - often the slowest frame of the whole change.
+    # Anchored here, that frame's cost would be counted as fade time and the first visible
+    # step would already be a third open: the screen pops through the plate instead of
+    # fading in. Anchored on the first tick, the fade always starts from fully closed.
+    _start_ms = -1
     _fading = true
     set_process(true)
 
 
 func _process(_delta: float) -> void:
+    if _start_ms < 0:
+        _start_ms = Time.get_ticks_msec()
     var elapsed := float(Time.get_ticks_msec() - _start_ms) / 1000.0
     if elapsed >= _duration:
         _rect.color.a = _to_alpha
