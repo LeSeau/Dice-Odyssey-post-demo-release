@@ -40,7 +40,7 @@ const RENAMED := {
     "card_hardened_grip":  ["Die Hard", "Die Hard+"],
     "card_ringer":         ["Amplify", "Amplify+"],
     "card_dual_cannon":    ["Red Cannon", "Red Cannon+"],
-    "card_grindstone":     ["Refine", "Refine+"],
+    "card_forge":          ["Forge", "Forge+"],
     "card_quicksilver":    ["Malleable", "Malleable+"],
     "card_dicelord_gift":  ["Anarchy", "Anarchy+"],
 }
@@ -58,7 +58,7 @@ const STATUS_TITLES := {
     "res://statuses/status_dicelord_gift_plus.tres":"Anarchy",
     "res://statuses/status_hardened_grip.tres":     "Die Hard",
     "res://statuses/status_opening_gambit.tres":    "Dice Echo",
-    "res://statuses/status_red_edge.tres":          "Refine",
+    "res://statuses/status_forge.tres":             "Forge",
     "res://statuses/status_second_socket.tres":     "Red Cannon",
     "res://statuses/status_quicksilver.tres":       "Malleable",
     # untouched control: Steady Hand kept its name, so its badge must NOT have moved
@@ -96,7 +96,7 @@ func _ready() -> void:
             stale.append(c.name)
     _check("no OLD card name left in the pool", stale.is_empty(), str(stale))
     _check("no two pool cards share a name", dupes.is_empty(), str(dupes))
-    _check("pool still has 77 cards", pool.cards.size() == 77, str(pool.cards.size()))
+    _check("pool still has 78 cards", pool.cards.size() == 78, str(pool.cards.size()))
 
     print("\n--- D: status badge titles follow the card names ---")
     var tooltip_script = load("res://scenes/ui/status_tooltip.gd")
