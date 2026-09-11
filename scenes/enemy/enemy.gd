@@ -495,6 +495,15 @@ const STATUS_ROW_GAP := 2.0
 # which is what makes it legible. Pulling it inside the icon killed the contrast - and
 # status_ui.tscn is shared with the PLAYER, so it broke the player's readout too.
 const STATUS_UI_SCALE := 1.0
+# ...but full size RELATIVE TO WHAT? The row hangs off the HP bar, and that bar is already
+# sized to the body (BAR_SCALE_MIN..MAX below), so a locked-size icon under a shrinking bar
+# grows in relative terms exactly where there is least room: a 30px icon is 15% of a full
+# bar's width on the Leviathan and 23% on a medium Kraken (Julien 2026-09-08: "status icon
+# looks too big here"). The row therefore rides the SAME body ratio as the bar - the two are
+# read as one unit - but on its own, higher floor: the bar may drop to 0.55, an icon may not
+# (0.7 flat was rejected as unreadable on 2026-07-24). Ceiling stays 1.0 so no enemy that
+# looks right today changes at all.
+const STATUS_SCALE_MIN := 0.8
 # HP bar scales with the enemy, STS-style: a big body gets a long bar, a small one a short
 # bar. Flat-shrinking every bar made big solo enemies look weak ("hp bar too, looks really
 # small"). Ratio is body content width vs the authored bar width, floored so a tiny Satyr's
@@ -679,6 +688,10 @@ func update_enemy() -> void:
     var target_width := width if width > 0 else 256
     var target_height := height if height > 0 else 256
 
+    # Set inside the branch below from the measured body; stays 1.0 for a texture-less
+    # enemy so that fallback path keeps today's behaviour.
+    var status_body_scale := 1.0
+
     if tex_size.x > 0 and tex_size.y > 0:
         var width_scale = target_width / tex_size.x
         var height_scale = target_height / tex_size.y
@@ -713,8 +726,11 @@ func update_enemy() -> void:
         # already was, so every feet/centring calculation stays valid. With the default
         # (0,0) pivot the bar would shrink left-aligned and slide ~31px off the body.
         var content_width: float = content.size.x * final_scale
-        var bar_scale: float = clampf(content_width / STATS_UI_AUTHORED_WIDTH,
-            BAR_SCALE_MIN, BAR_SCALE_MAX)
+        # One ratio, two clamps: the bar and the status row under it must shrink together,
+        # so they are never allowed to be computed from different measurements.
+        var body_bar_ratio: float = content_width / STATS_UI_AUTHORED_WIDTH
+        var bar_scale: float = clampf(body_bar_ratio, BAR_SCALE_MIN, BAR_SCALE_MAX)
+        status_body_scale = clampf(body_bar_ratio, STATUS_SCALE_MIN, 1.0)
         var stats_ui_width: float = stats_ui.size.x if stats_ui.size.x > 0.0 else STATS_UI_AUTHORED_WIDTH
         stats_ui.pivot_offset = Vector2(stats_ui_width / 2.0, 0.0)
         stats_ui.scale = Vector2(bar_scale, bar_scale)
@@ -777,11 +793,13 @@ func update_enemy() -> void:
         sprite_2d.position.y = sprite_y_offset
 
     # Multi-enemy battle scenes set `scale` on the Enemy root to fit several bodies. The
-    # StatusHandler inherits that shrink; counter-scale it so status icons stay a constant
-    # size no matter the enemy's own scale - then apply STATUS_UI_SCALE on top so that
-    # constant size is the new, smaller one (see the HUD-scale note above).
+    # StatusHandler inherits that shrink; counter-scale it OUT so the row's size depends on
+    # the BODY, never on the per-fight packing scale - two Krakens at 1.0 and 0.75 in the
+    # same comp must read identically. status_body_scale is then the only thing that sizes
+    # it (see the HUD-scale note above).
     if scale.x != 0 and scale.y != 0:
-        status_handler.scale = Vector2(STATUS_UI_SCALE / scale.x, STATUS_UI_SCALE / scale.y)
+        var s_ui: float = STATUS_UI_SCALE * status_body_scale
+        status_handler.scale = Vector2(s_ui / scale.x, s_ui / scale.y)
     arrow.position = Vector2.RIGHT * (sprite_2d.get_rect().size.x * sprite_2d.scale.x / 2 + ARROW_OFFSET)
     setup_ai()
     update_stats()
