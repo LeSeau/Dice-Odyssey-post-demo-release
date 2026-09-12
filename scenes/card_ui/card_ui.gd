@@ -160,13 +160,21 @@ const DESC_FONT_SIZE_CANDIDATES: Array[int] = [12, 11, 10, 9, 8]
 # card_ui_description_panel_*.tres against card_ui_*.tres). So its height can grow into the 22px of
 # dead space below it - y188..210, which only the BonusEffect row ever occupies - with zero visual
 # change, buying long descriptions 1-2 font steps instead of making them pay for the side margins.
-# 56 rather than the full 66: the text is vertically centred in the panel, so an over-tall panel
-# lets a big block drift down until it crowds the card's bottom border - the same edge-crowding the
-# 6px side margins just removed, on the other axis. Cards WITH a bonus effect keep 44 (BonusSeparator
-# sits at y188). Must be applied BEFORE _apply_description(), which measures against this height.
+# The box spans the WHOLE band, 144..208, so DescriptionCenter's vertical centring is honest. At the
+# old 56 the box stopped at 200 while the card's visible inner edge is at 208, so the centred block
+# sat 8px high in the card - measured as an identical +8 skew on Strike, Crescendo, Ooga Booga,
+# Transmutation, All In+ and Resonance alike. Cards WITH a bonus effect keep 44 (BonusSeparator sits
+# at y188). Must be applied BEFORE _apply_description(), which measures against this height.
 const DESC_PANEL_TOP := 144.0
-const DESC_PANEL_HEIGHT := 56.0
+const DESC_PANEL_HEIGHT := 64.0
 const DESC_PANEL_HEIGHT_WITH_BONUS := 44.0
+
+# The font step-down deliberately measures against LESS than the box it centres in. Fitting to the
+# full 64 promotes the two longest cards (All In+, Resonance) from 11pt/4 lines to 12pt/5 lines,
+# which lands their block 0.5-1px off the gold border - the same edge-crowding the 6px side margins
+# removed, on the other axis. Capping the fit at 56 holds every card's worst gap at 7px while the
+# taller box still does the centring. Applied with minf(), so the 44 bonus case still fits to 44.
+const DESC_FIT_BUDGET := 56.0
 
 
 static func title_font_size_for(text: String) -> int:
@@ -1271,7 +1279,7 @@ func _resize_description_panel() -> void:
 func _apply_description(text: String) -> void:
     # Measured against the panel's real height rather than a char-count guess: the colorizer's
     # inline Power glyph and per-glyph width both move the wrap without moving the length.
-    var available := description_panel.size.y
+    var available := minf(description_panel.size.y, DESC_FIT_BUDGET)
     for desc_font_size: int in DESC_FONT_SIZE_CANDIDATES:
         description.add_theme_font_size_override("normal_font_size", desc_font_size)
         # Power glyph rides 2px above the font size so it reads at cap height on every step-down.

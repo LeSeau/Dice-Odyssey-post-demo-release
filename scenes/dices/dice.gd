@@ -911,7 +911,7 @@ func _set_charged_description(card: Card, text: String) -> void:
     description_panel.offset_bottom = CardUI.DESC_PANEL_TOP + (
         CardUI.DESC_PANEL_HEIGHT_WITH_BONUS if band_taken
         else CardUI.DESC_PANEL_HEIGHT)
-    var available := description_panel.size.y
+    var available := minf(description_panel.size.y, CardUI.DESC_FIT_BUDGET)
     for font_size: int in CHARGED_DESC_FONT_SIZE_CANDIDATES:
         charged_card_description.add_theme_font_size_override("normal_font_size", font_size)
         charged_card_description.text = "[center]%s[/center]" % card.get_colorized_description(
@@ -5779,8 +5779,12 @@ func _set_armed_socket_description() -> void:
     var text: String = ARMED_SOCKET_TEXT_PLUS if Global.socketless_red_strength > 0 \
             else ARMED_SOCKET_TEXT
     description_panel.offset_top = CardUI.DESC_PANEL_TOP
-    description_panel.offset_bottom = CardUI.DESC_PANEL_TOP + CardUI.DESC_PANEL_HEIGHT
-    var available := description_panel.size.y
+    # Same order-label guard the other four socket paths already carry: at red_socket_capacity 2
+    # the SocketOrderLabel sits at y188, so the taller box would centre this sentence over it.
+    description_panel.offset_bottom = CardUI.DESC_PANEL_TOP + (
+        CardUI.DESC_PANEL_HEIGHT_WITH_BONUS if _socket_order_visible()
+        else CardUI.DESC_PANEL_HEIGHT)
+    var available := minf(description_panel.size.y, CardUI.DESC_FIT_BUDGET)
     for font_size: int in CHARGED_DESC_FONT_SIZE_CANDIDATES:
         charged_card_description.add_theme_font_size_override("normal_font_size", font_size)
         charged_card_description.text = "[center]%s[/center]" % KeywordColorizer.colorize_tooltip(

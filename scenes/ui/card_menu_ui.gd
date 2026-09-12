@@ -119,12 +119,15 @@ const DESC_FONT_SIZE_CANDIDATES: Array[int] = [12, 11, 10, 9, 8]
 # card_ui_description_panel_*.tres against card_ui_*.tres). So its height can grow into the 22px of
 # dead space below it - y188..210, which only the BonusEffect row ever occupies - with zero visual
 # change, buying long descriptions 1-2 font steps instead of making them pay for the side margins.
-# 56 rather than the full 66: the text is vertically centred in the panel, so an over-tall panel
-# lets a big block drift down until it crowds the card's bottom border. Cards WITH a bonus effect
-# keep 44 (BonusSeparator sits at y188). Kept in sync with CardUI's copy of these constants.
+# The box spans the WHOLE band, 144..208, so DescriptionCenter's vertical centring is honest: at the
+# old 56 it stopped at 200 while the card's visible inner edge is at 208, leaving every description
+# sitting 8px high in the card. Cards WITH a bonus effect keep 44 (BonusSeparator sits at y188).
+# DESC_FIT_BUDGET is why the step-down still fits to 56 - CardUI owns the full reasoning. Kept in
+# sync with CardUI's copy of these constants.
 const DESC_PANEL_TOP := 144.0
-const DESC_PANEL_HEIGHT := 56.0
+const DESC_PANEL_HEIGHT := 64.0
 const DESC_PANEL_HEIGHT_WITH_BONUS := 44.0
+const DESC_FIT_BUDGET := 56.0
 
 
 static func title_font_size_for(text: String) -> int:
@@ -338,7 +341,7 @@ func _resize_description_panel() -> void:
 func _apply_description(text: String) -> void:
     # Measured against the panel's real height rather than a char-count guess: the colorizer's
     # inline Power glyph and per-glyph width both move the wrap without moving the length.
-    var available := description_panel.size.y
+    var available := minf(description_panel.size.y, DESC_FIT_BUDGET)
     for desc_font_size: int in DESC_FONT_SIZE_CANDIDATES:
         description.add_theme_font_size_override("normal_font_size", desc_font_size)
         # Power glyph rides 2px above the font size so it reads at cap height on every step-down.
