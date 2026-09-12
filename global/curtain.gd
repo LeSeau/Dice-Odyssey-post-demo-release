@@ -31,35 +31,17 @@ extends CanvasLayer
 # one constant for Color(0, 0, 0) if a true blackout is wanted.
 const CURTAIN_COLOR := Color(0.08, 0.102, 0.16)
 
-# SHAPE: the plate does not fade uniformly - it closes in from the screen edges towards the
-# centre on cover, and opens from the centre outwards on reveal, with a soft front. That is
-# what makes it read as a curtain rather than a crossfade. The shader reads the plate's own
-# alpha as the wipe progress (COLOR.a in), so everything below still just drives color.a:
-# at 0 nothing is covered, at 1 the plate is a solid flat fill everywhere. Built from a code
-# string, not a .gdshader, so there is no import step and no uniform to seed.
-const WIPE_SOFTNESS := 0.22
-const WIPE_SHADER_CODE := """
-shader_type canvas_item;
-
-const float SOFT = %s;
-
-void fragment() {
-    // Radial distance from the screen centre, aspect-corrected, normalised so a corner is 1.
-    vec2 px = 1.0 / SCREEN_PIXEL_SIZE;
-    vec2 c = (UV - 0.5) * vec2(px.x / px.y, 1.0);
-    float d = length(c) / length(vec2(0.5 * px.x / px.y, 0.5));
-    // Progress 0 -> the front sits beyond the corners (nothing covered); 1 -> it has passed
-    // the centre with its whole soft band (everything covered, flat).
-    float front = mix(1.0 + SOFT, -SOFT, COLOR.a);
-    float coverage = smoothstep(front - SOFT, front + SOFT, d);
-    COLOR.a = coverage;
-}
-""" % WIPE_SOFTNESS
-
-# Asymmetric on purpose: leaving is quick, arriving is unhurried. Together they add about
+# Asymmetric on purpose: leaving is quick, arriving is unhurried. Together they add under
 # half a second to a screen change; much slower starts to read as a load.
+#
+# The plate fades UNIFORMLY, and that is a decision, not an omission. A radial wipe was tried
+# and dropped (2026-09-12): tight enough to read as a curtain it is an iris, and the centre
+# was clear at 63ms of a 320ms reveal while the corners - where gold, HP and End Turn live -
+# stayed dark to the end. Softened until it stopped reading as an iris it was invisible, and
+# still cost perceived speed, because a front the eye can track makes a transition feel
+# longer than a uniform dip of the same length. Reach for REVEAL_TIME, not for a shape.
 const COVER_TIME := 0.18
-const REVEAL_TIME := 0.32
+const REVEAL_TIME := 0.26
 
 # Backstop only - see _await_fade. Generous on purpose: it must never cut a legitimate
 # fade short, only rescue a screen that would otherwise stay black forever.
@@ -86,11 +68,6 @@ func _ready() -> void:
     # can never eat input while the player can see through it.
     _rect.mouse_filter = Control.MOUSE_FILTER_STOP
     _rect.visible = false
-    var shader := Shader.new()
-    shader.code = WIPE_SHADER_CODE
-    var material := ShaderMaterial.new()
-    material.shader = shader
-    _rect.material = material
     add_child(_rect)
     set_process(false)
 
