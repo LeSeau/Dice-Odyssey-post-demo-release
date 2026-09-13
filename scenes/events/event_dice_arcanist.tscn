@@ -95,7 +95,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/margin_left = 50
-theme_override_constants/margin_top = 65
+theme_override_constants/margin_top = 95
 theme_override_constants/margin_right = 50
 theme_override_constants/margin_bottom = 35
 
@@ -166,7 +166,7 @@ size_flags_horizontal = 0
 theme_override_styles/panel = SubResource("StyleBoxFlat_artframe")
 
 [node name="TextureRect" type="TextureRect" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/ArtFrame"]
-custom_minimum_size = Vector2(500, 500)
+custom_minimum_size = Vector2(470, 470)
 layout_mode = 2
 texture = ExtResource("3_3ghim")
 expand_mode = 1
@@ -177,7 +177,7 @@ layout_mode = 2
 theme_override_constants/separation = 20
 
 [node name="RichTextLabel" type="RichTextLabel" parent="TextureRect/MarginContainer/Panel/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer"]
-custom_minimum_size = Vector2(400, 350)
+custom_minimum_size = Vector2(400, 310)
 layout_mode = 2
 mouse_filter = 2
 theme_override_fonts/normal_font = ExtResource("belwe_lbl")
