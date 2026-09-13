@@ -4,7 +4,7 @@
 [ext_resource type="Script" path="res://custom_resources/card_pile.gd" id="1_ncslu"]
 [ext_resource type="Resource" uid="uid://bx75rk8gt7tps" path="res://characters/warrior/cards/card_recombobulate.tres" id="2_8uutq"]
 [ext_resource type="Resource" uid="uid://xijgamtutf7w" path="res://characters/warrior/cards/card_scout3_no_exhaust.tres" id="2_cepbo"]
-[ext_resource type="Resource" uid="uid://bd3wak1xrm7qs" path="res://characters/warrior/cards/card_dead_weight.tres" id="2_upbfu"]
+[ext_resource type="Resource" uid="uid://cyeasiqyaw7j1" path="res://characters/warrior/cards/warrior_axe_attack1.tres" id="2_upbfu"]
 [ext_resource type="Resource" uid="uid://cexum1jvlid0b" path="res://characters/warrior/cards/warrior_axe_attack2.tres" id="3_l7ppy"]
 [ext_resource type="Resource" uid="uid://dspv7gyxpld63" path="res://characters/warrior/cards/warrior_axe_attack3.tres" id="4_4a81u"]
 [ext_resource type="Resource" uid="uid://bnk761lymhnou" path="res://characters/warrior/cards/warrior_block1.tres" id="4_oy516"]
