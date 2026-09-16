@@ -17,6 +17,7 @@ The one-line version: **act 1's roster is done; it needs spikes, better elites a
 | 2026-09-06 | **Act gating shipped**: `BattleStats.act` + filter; Dice Mimic and Quartermaster back in the pool as act-2-only — pool 33 → 35 | `custom_resources/battle_stats.gd`, `run.gd`, 2 `.tres`, pool |
 | 2026-09-06 | Spike caps (G3) confirmed by Julien | this doc |
 | 2026-09-07 | **4 recycled comps cut** (Marauder+B.Kraken T1, Bloom+B.Kraken T1, Skeleton+Bloom T2, Marauder+2 B.Kraken T2) — pool 35 → 31, act-1 hallway 29 → 25 (T0 9 / T1 8 / T2 8). Files kept on disk. | `battles/battle_stats_pool.tres` |
+| 2026-09-16 | **Tier-0-by-fight-count BUILT, MEASURED, then REVERTED the same day** so 0.3.0 could ship on the row rule (Julien: "i'll eventually switch to that system"). The finding is the reason to revisit: the row rule gives a path **1.5-2.4 tier-0 fights** depending on map shape, the fight-count rule gives a flat **3.0** — but it drains the T1 band hard (T1 mean roughly halves, and the share of paths seeing **zero** T1 fights goes from under 10 % to a third or more). Repro: `debug_tier_compare.gd` at the repo root, self-contained, runs both rules over the same maps. | none in game code; plan in `tier0_fight_count_plan_2026-09.md` |
 
 ⚠ All edits were made outside the editor: **restart the editor before playing.** `BattleStats` gained an `@export`, which is exactly the configuration of the documented strip incident — an editor left open with a stale copy would drop `act = 2` from the two `.tres` files and those fights would leak back into act 1.
 

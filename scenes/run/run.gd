@@ -18,8 +18,9 @@ const TREASURE_GOLD_REWARD := 50
 # The tutorial fight is a solo Skeleton, and so is this pool entry - drawing it on floor 1-3
 # right after the tutorial replays the exact same fight (Julien, 2026-07-31: "should be a
 # 1 time fight only"). Burned from the pool for the rest of the run the moment the tutorial
-# fight is served. Safe for tier 0: 12 entries, 9 of them collapse into the "slimes" group,
-# so 3 distinct picks remain for the 3 tier-0 floors even with this one gone.
+# fight is served. Safe for tier 0: 9 entries (counted 2026-09-16, the comment used to say 12),
+# 6 of them collapsing into the "slimes" group, so slimes + marauder + Venom Bloom + this
+# Skeleton = 4 distinct picks and 3 remain for the 3 tier-0 floors even with this one gone.
 const TUTORIAL_TWIN_BATTLE := "res://battles/tier_0_crab.tres"
 
 # --- Act 2 (placeholder content) -----------------------------------------
