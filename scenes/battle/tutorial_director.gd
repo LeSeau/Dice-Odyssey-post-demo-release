@@ -1181,7 +1181,7 @@ func _step_t3_3() -> void:
     # above_hand, not near_dice: the Scout panel opens top-centre and the hero-speech slot sits
     # right under it. A bottom box leaves all three faces readable.
     overlay.set_text(
-        "[center]Three possible rolls. You get to pick one. He has [color=gold]%d HP[/color], so none of them kills with a [color=#c896ff]Strike[/color], not even the 5. But [color=#c896ff]Low Blow[/color] triples a roll of 3 or less. [color=gold]Take the 3.[/color]" % _enemy_health(),
+        "[center]Three possible rolls. You get to pick one. He has [color=gold]%d HP[/color], so none of them kills with a [color=#c896ff]Strike[/color], not even the 5. But [color=#c896ff]Low Blow[/color] at [color=gold]3[/color] [color=red]Power[/color] would deal [color=gold]9 damage[/color]. [color=gold]Take the 3.[/color]" % _enemy_health(),
         "above_hand", false)
     _gate_scout_faces(1)
     _wait(Events.next_roll_determined)
