@@ -7,7 +7,9 @@ extends EnemyAction
 #
 # Strike and guard together form a TOTAL partition of fight_turn % 2 on each brother, which is
 # what keeps enemy_action_picker.gd's blind `return get_child(0)` fallback unreachable here -
-# the same contract the Skeleton's three-beat cycle relies on.
+# the same contract the Skeleton's three-beat cycle relies on. Once one twin is dead the
+# partition collapses the other way: strike becomes unconditionally legal and guard refuses
+# itself, so the survivor attacks every turn.
 #
 # fight_turn is 0 during PLAYER TURN 1 (player_handler.end_turn() is its only increment), so
 # turn_parity 0 strikes on player turns 1, 3, 5...
@@ -23,6 +25,11 @@ var base_damage = damage
 
 
 func is_performable() -> bool:
+    # Last one standing: no twin to alternate with, so the survivor stops guarding and swings
+    # every turn (Julien, 2026-09-16). Together with the guard refusing itself in the same
+    # case, the pair still partitions every turn, so get_child(0) stays unreachable.
+    if living_ally() == null:
+        return true
     return Global.fight_turn % 2 == turn_parity
 
 

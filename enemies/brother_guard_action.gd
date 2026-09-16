@@ -3,21 +3,47 @@ extends EnemyAction
 # Parity Brothers, beat B. The mirror of brother_strike_action: the twin who is not striking
 # this turn guards instead, and they swap every turn.
 #
-# ⚠ No Strength on this beat, unlike the Skeleton's guard. The Brothers' ONLY ramp is the
-# parity feed (the player's own odd/even faces) plus Rage on a brother's death. Adding a
-# per-turn creep here would give the fight a clock the player cannot influence, which is the
-# opposite of the encounter: the whole question is that the growth was decided in the dice
-# shop, so nothing may grow on its own.
+# The guard is ALSO the fight's only clock (Julien, 2026-09-14). It hands
+# `strength_to_brother` Strength to the OTHER twin, never to itself, so the brother who is
+# about to swing is the one who grows and the pair ramps +2 every two turns. That replaces
+# the old Rage-on-death payout, which is cut - statuses/brothers_rage.gd is orphaned on disk.
+#
+# ⚠ The old header here claimed this beat must never grant Strength, on the grounds that the
+# brothers' only ramp was the parity FEED. That feed was the first, wrong reading of the
+# encounter and has been orphaned since 09-08 (statuses/parity_feed.gd); the live status is
+# parity_sensitive, a vulnerability window that grants nothing. Without this rider the fight
+# had no clock at all, which is the opposite of the §9 direction. Do not restore that note.
+#
+# ⚠ Once one twin is down this beat REFUSES ITSELF (Julien, 2026-09-16): the survivor drops
+# the guard entirely and strikes every turn instead of blocking into an empty room. So the
+# first kill trades the pair's ramp for double the survivor's uptime, rather than making the
+# fight go soft. The two beats still form a total partition of the turn - guard is never
+# legal while alone, strike always is - so enemy_action_picker's blind get_child(0) fallback
+# stays unreachable either way.
+#
+# ⚠⚠ Buffing the OTHER body is why this cannot be the usual self-buff rider. On odd turns the
+# guard resolves BEFORE its brother's strike (Odd Brother is child 0 of the fight, and the
+# enemy turn walks children in order), so that strike lands `strength_to_brother` higher than
+# the intent read at planning time. The intent does refresh live off enemy_strength_changed,
+# so the number visibly ticks up while the guard animation plays, but the player has already
+# allocated block by then. Move the grant onto Events.enemy_turn_ended if that ever reads as
+# a lie rather than as a hand-off.
 #
 # Block takes no modifiers - Modifier.Type has no block entry - so there is nothing to run the
 # value through, and update_intent_text prints it directly. Without that override the base
 # class would print intent.base_text verbatim, which is the bug that once had the Skeleton's
 # guard showing a hardcoded "6" while its exported value said otherwise.
-@export var block := 9
+const MUSCLE_STATUS = preload("res://statuses/muscle.tres")
+
+@export var block := 6
+@export var strength_to_brother := 2
 @export var turn_parity := 1
 
 
 func is_performable() -> bool:
+    # Nobody left to guard for, and nobody left to hand Strength to.
+    if living_ally() == null:
+        return false
     return Global.fight_turn % 2 == turn_parity
 
 
@@ -31,6 +57,15 @@ func perform_action() -> void:
     block_effect.execute([enemy])
 
     Global.has_blocked_last_turn = true
+
+    var brother := living_ally()
+    if brother != null:
+        var muscle := MUSCLE_STATUS.duplicate()
+        muscle.stacks = strength_to_brother
+        var status_effect := StatusEffect.new()
+        status_effect.status = muscle
+        status_effect.execute([brother])
+        Events.enemy_strength_changed.emit()
 
     get_tree().create_timer(0.6, false).timeout.connect(
         func():

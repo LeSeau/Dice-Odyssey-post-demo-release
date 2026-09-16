@@ -89,8 +89,9 @@ func get_tooltip_content(status: Status) -> void:
             text = "Takes %d%% more damage while your Power is %s." % [
                 status.stacks, parity_word]
         "brothers_rage":
-            # Fires on Events.enemy_died for the OTHER brother, never on an HP threshold - act
-            # 1 deliberately owns no HP-threshold beats. Amount is the .tres `stacks` dial.
+            # UNREACHABLE since 2026-09-14 - no fight carries brothers_rage any more, the
+            # Brothers' ramp moved onto the guard beat. Left wired so re-enabling the status
+            # cannot silently fall through to the generic line; see statuses/brothers_rage.gd.
             text = "When the other brother dies, this enemy gains %d Strength." % status.stacks
         "parasite":
             # Read off ParasiteStatus's own constants rather than retyped here: those two

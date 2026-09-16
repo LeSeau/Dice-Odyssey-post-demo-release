@@ -106,7 +106,7 @@ Caps are on the **raw** number; Exposed on the player and the enemy's own Streng
 
 **Step 3 — Brace rider on Temple Defender.** Parked (Julien: later). Spec unchanged: block the first time it takes damage, once per fight; EVENT_BASED status with an owner check.
 
-**Step 4 — Elites: Parity Brothers replace Dragon Priest.** Lich and Gargantua stay (Julien). *Where:* `enemies/brother_odd/` scaffold + generate Even Brother (never done — same session as Odd, mirrored silhouette), `battles/tier_elite_brothers`, swap in `battle_stats_pool.tres`. *Proof:* harness for Rage-on-brother-death; elite no-repeat unchanged.
+**Step 4 — Elites: Parity Brothers replace Dragon Priest.** Lich and Gargantua stay (Julien). *Where:* `enemies/brother_odd/` scaffold + generate Even Brother (never done — same session as Odd, mirrored silhouette), `battles/tier_elite_brothers`, swap in `battle_stats_pool.tres`. *Proof:* `debug_parity_brothers.gd` (beats + the guard's Strength hand-off) and `debug_parity_sensitive.gd` (the vulnerability window); elite no-repeat unchanged. ⚠ As built the brothers are odd/even **sensitive**, not odd/even **fed**, and the Rage-on-brother-death payout was cut on 2026-09-14 — the ramp is the guard beat, which hands +2 Strength to the twin that is about to swing.
 
 **Step 5 — Second act-1 boss.** Later (Julien). Bone Colossus remains the candidate (HP threshold + split + summon in one body; builds the spawn hook the Necromancer needs).
 

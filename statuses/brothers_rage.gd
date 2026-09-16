@@ -1,3 +1,10 @@
+# ⚠⚠ ORPHANED 2026-09-14 - NOT CARRIED BY ANY FIGHT, DO NOT PUT IT BACK IN ONE.
+# Julien cut the death payout: the Parity Brothers' whole ramp now lives on the guard beat,
+# which hands Strength to the OTHER twin (enemies/brother_guard_action.gd). That makes
+# killing one brother stop the survivor's growth outright, which is the point - a rage
+# bonus on top would pay the player's focus-fire back with interest and blunt the choice.
+# Kept on disk only as history, same convention as statuses/parity_feed.gd.
+
 class_name BrothersRageStatus
 extends Status
 

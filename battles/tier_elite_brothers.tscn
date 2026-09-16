@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://bbrothersfight"]
+[gd_scene load_steps=7 format=3 uid="uid://bbrothersfight"]
 
 [ext_resource type="PackedScene" uid="uid://d0efyathkfg74" path="res://scenes/enemy/enemy.tscn" id="1_enemy"]
 [ext_resource type="Resource" uid="uid://uualz5i48m530" path="res://enemies/brother_odd/brother_odd_enemy.tres" id="2_odd"]
@@ -6,7 +6,6 @@
 [ext_resource type="Script" path="res://custom_resources/status.gd" id="4_status"]
 [ext_resource type="Resource" uid="uid://bparityodd001" path="res://statuses/parity_odd.tres" id="5_podd"]
 [ext_resource type="Resource" uid="uid://bparityeven01" path="res://statuses/parity_even.tres" id="6_peven"]
-[ext_resource type="Resource" uid="uid://bbrorage0001" path="res://statuses/brothers_rage.tres" id="7_rage"]
 
 [node name="TierEliteBrothers" type="Node2D"]
 
@@ -15,11 +14,11 @@ width = 240
 height = 290
 position = Vector2(806, 373)
 stats = ExtResource("2_odd")
-initial_statuses = Array[ExtResource("4_status")]([ExtResource("5_podd"), ExtResource("7_rage")])
+initial_statuses = Array[ExtResource("4_status")]([ExtResource("5_podd")])
 
 [node name="EvenBrother" parent="." instance=ExtResource("1_enemy")]
 width = 240
 height = 290
 position = Vector2(1016, 373)
 stats = ExtResource("3_even")
-initial_statuses = Array[ExtResource("4_status")]([ExtResource("6_peven"), ExtResource("7_rage")])
+initial_statuses = Array[ExtResource("4_status")]([ExtResource("6_peven")])

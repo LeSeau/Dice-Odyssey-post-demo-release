@@ -39,6 +39,29 @@ func hit_consecutive_cap(limit: int) -> bool:
     return enemy != null and enemy.last_action == action_id and enemy.last_action_count >= limit
 
 
+# The nearest other LIVING body in this fight, or null when this enemy is the last one up.
+# Centralises the one thing that is easy to get wrong about it: an Enemy leaves the `enemies`
+# group in the FIRST line of its death sequence, before the death animation gets any time, so
+# a corpse can never be returned here - a health check on top is belt-and-braces for the frame
+# in which stats hit 0 but the sequence has not run yet.
+#
+# Written for the Parity Brothers, where both beats branch on it: the guard hands its Strength
+# to the twin, and once the twin is gone the survivor drops the guard and strikes every turn.
+func living_ally() -> Enemy:
+    if enemy == null or not is_instance_valid(enemy):
+        return null
+    for node in enemy.get_tree().get_nodes_in_group("enemies"):
+        var other := node as Enemy
+        if other == null or other == enemy:
+            continue
+        if not is_instance_valid(other) or other.is_queued_for_deletion():
+            continue
+        if other.stats == null or other.stats.health <= 0:
+            continue
+        return other
+    return null
+
+
 func perform_action() -> void:
     pass
 

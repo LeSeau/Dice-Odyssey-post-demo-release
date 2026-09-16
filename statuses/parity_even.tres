@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="ParitySensitiveStatus" load_steps=3 format=3 uid="uid://bparityeven01"]
 
-[ext_resource type="Texture2D" uid="uid://bq5udms3e2sq4" path="res://debuff_icon_purple.png" id="1_icon"]
+[ext_resource type="Texture2D" path="res://even_sensitive_status_icon.png" id="1_icon"]
 [ext_resource type="Script" path="res://statuses/parity_sensitive.gd" id="2_script"]
 
 [resource]

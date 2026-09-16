@@ -12,10 +12,12 @@ extends Node
 # with it. The panel is fixed-height and clips SILENTLY, which is why this exists.
 
 const TOOLTIP := preload("res://scenes/ui/status_tooltip.tscn")
+# brothers_rage was dropped from this list on 2026-09-14: the status is cut from the fight
+# (statuses/brothers_rage.gd is orphaned on disk), so measuring a tooltip no player can reach
+# would just be a line that fails for the wrong reason the day someone edits the panel.
 const CASES := [
     ["res://statuses/parity_odd.tres", "Odd Sensitive"],
     ["res://statuses/parity_even.tres", "Even Sensitive"],
-    ["res://statuses/brothers_rage.tres", "Brothers Rage"],
 ]
 
 var _fail := 0

@@ -6,18 +6,25 @@ extends Node
 # debug_double_endturn / debug_new_enemies use, so the picker, the status handler and the
 # modifier chain are the shipped ones rather than a mock.
 #
-# What it pins, in order:
-#   A  wiring        - 90 HP across two 45s, both AIs are the shared strike/guard pair
-#   B  mirrored cycle- every turn exactly one brother strikes and the other guards, and they
-#                      swap; over 8 turns neither ever strikes twice in the same turn as the other
-#   C  parity feed   - an odd face feeds ONLY Odd, an even face feeds ONLY Even, the Evil 0
-#                      counts as even, and one roll never feeds twice (the red double-emit)
-#   D  rage          - killing one brother gives the survivor +3 Strength, exactly once
-#   E  no free ramp  - a turn with no rolls at all grows neither brother
+# ⚠ Sections C/D/E were REWRITTEN 2026-09-14 and the old ones were wrong twice over. The old
+# C measured the parity FEED (odd/even faces granting the brothers Strength), which has been
+# orphaned since 09-08 in favour of parity_sensitive - so it had been failing silently ever
+# since. The old D measured brothers_rage, which is now cut. The vulnerability window itself
+# is pinned by its own harness, debug_parity_sensitive.gd; this file owns the beats.
 #
-# Run:
-#   Godot_v4.3-stable_win64_console.exe --path . res://debug_parity_brothers.tscn
-#       --rendering-driver opengl3 --position 2000,2000
+# What it pins, in order:
+#   A  wiring        - 90 HP across two 45s, the shared strike/guard pair, block 6, and the
+#                      guard's rider icon so the intent cannot silently hide the buff again
+#   B  mirrored cycle- every turn exactly one brother strikes and the other guards, and they
+#                      swap; over 8 turns they are never on the same beat
+#   C  the hand-off  - a guard grants Strength to the OTHER twin and never to itself, in the
+#                      exported amount, with a NEGATIVE CONTROL
+#   D  no free ramp  - rolling faces grows nobody (the dead feed) and neither do idle turns
+#   E  death         - no payout when a brother dies; the survivor drops the guard and
+#                      strikes every turn instead
+#
+# Run (headless is fine, nothing here measures text):
+#   Godot_v4.3-stable_win64_console.exe --path . --headless res://debug_parity_brothers.tscn
 
 const BATTLE := preload("res://scenes/battle/battle.tscn")
 const BATTLE_STATS := preload("res://battles/tier_elite_brothers.tres")
@@ -80,14 +87,34 @@ func _brother(display_name: String) -> Enemy:
 func _strength(enemy: Enemy) -> int:
     if enemy == null or not is_instance_valid(enemy):
         return -1
+    # ⚠ muscle.tres carries id "strength", NOT "muscle" - a wrong id here returns 0 and turns
+    # every assertion below into a silent false failure.
     for child in enemy.status_handler.get_children():
         if child.status and child.status.id == "strength":
             return child.status.stacks
     return 0
 
 
-# Drive a real roll through dice.gd's own result path so the parity hook is exercised exactly
-# as it is in play, rather than by poking the status directly.
+func _action(enemy: Enemy, suffix: String) -> EnemyAction:
+    if enemy == null or not is_instance_valid(enemy):
+        return null
+    for a in enemy.enemy_action_picker.get_children():
+        var action: EnemyAction = a
+        if action.action_id.ends_with(suffix):
+            return action
+    return null
+
+
+# Run the real beat rather than poking the status: the picker has already wired enemy/target/
+# modifiers on every child, so perform_action() is exactly what the enemy turn would call.
+func _perform(action: EnemyAction) -> void:
+    action.perform_action()
+    await get_tree().process_frame
+    await get_tree().process_frame
+
+
+# Drive a face through dice.gd's own result path, so any roll hook is exercised as it is in
+# play rather than by hand.
 func _roll_face(face: int) -> void:
     Global.last_roll = face
     Global.fight_dice_rolled += 1
@@ -111,8 +138,18 @@ func _section_a() -> void:
         var ids := []
         for a in e.enemy_action_picker.get_children():
             ids.append(a.action_id)
-        _check("A4 %s has a strike and a guard" % pair[0], ids.size() == 2,
-            str(ids))
+        _check("A4 %s has a strike and a guard" % pair[0], ids.size() == 2, str(ids))
+
+    var guard := _action(odd, "_guard")
+    _check("A5 the guard blocks 6", guard != null and guard.block == 6,
+        "= %d" % (guard.block if guard else -1))
+    # The buff is invisible without a rider glyph, which is the intent-honesty bug this
+    # project has already fixed once across the whole roster. Pin it.
+    _check("A6 the guard intent carries a rider icon",
+        guard != null and guard.intent != null and guard.intent.icon2 != null)
+    # No brother may start the fight already carrying Strength - the ramp has to be earned.
+    _check("A7 both start at 0 Strength", _strength(odd) == 0 and _strength(even) == 0,
+        "odd %d, even %d" % [_strength(odd), _strength(even)])
 
 
 # The picker is asked what it would do on each turn. Both beats are CONDITIONAL and partition
@@ -145,85 +182,132 @@ func _section_b() -> void:
         opener.action_id)
 
 
+# The fight's whole clock. Read the exported amount instead of hardcoding 2, so retuning the
+# dial does not make this harness cry wolf about a change that was deliberate.
 func _section_c() -> void:
-    print("\n-- C. parity feed --")
+    print("\n-- C. the guard hands Strength to the other twin --")
     var odd := _brother("Odd Brother")
     var even := _brother("Even Brother")
     if odd == null or even == null:
         return
+
+    var odd_guard := _action(odd, "_guard")
+    var even_guard := _action(even, "_guard")
+    if odd_guard == null or even_guard == null:
+        _check("C0 both guards found", false)
+        return
+    var amount: int = odd_guard.strength_to_brother
 
     var odd0 := _strength(odd)
     var even0 := _strength(even)
-    await _roll_face(3)
-    _check("C1 an odd face feeds Odd only",
-        _strength(odd) == odd0 + 1 and _strength(even) == even0,
+    await _perform(odd_guard)
+    _check("C1 Odd's guard buffs Even, never itself",
+        _strength(even) == even0 + amount and _strength(odd) == odd0,
         "odd %d->%d, even %d->%d" % [odd0, _strength(odd), even0, _strength(even)])
 
     odd0 = _strength(odd)
     even0 = _strength(even)
-    await _roll_face(4)
-    _check("C2 an even face feeds Even only",
-        _strength(even) == even0 + 1 and _strength(odd) == odd0,
+    await _perform(even_guard)
+    _check("C2 Even's guard buffs Odd, never itself",
+        _strength(odd) == odd0 + amount and _strength(even) == even0,
         "odd %d->%d, even %d->%d" % [odd0, _strength(odd), even0, _strength(even)])
 
-    # The Evil die's crack face. Mathematically even, and the Slate leans on that: an Evil
-    # deck (6/6/6/0) is the Even Brother's prey.
+    # NEGATIVE CONTROL. Zero the rider and the whole movement must vanish - otherwise C1/C2
+    # were measuring something else that happens to bump Strength on a guard beat.
     odd0 = _strength(odd)
     even0 = _strength(even)
-    await _roll_face(0)
-    _check("C3 the Evil 0 counts as even",
-        _strength(even) == even0 + 1 and _strength(odd) == odd0,
+    odd_guard.strength_to_brother = 0
+    await _perform(odd_guard)
+    _check("C3 control: a 0 rider moves nothing",
+        _strength(odd) == odd0 and _strength(even) == even0,
         "odd %d->%d, even %d->%d" % [odd0, _strength(odd), even0, _strength(even)])
+    odd_guard.strength_to_brother = amount
 
-    # A single Red roll reaches the status twice (red_dice_rolled, then card_ui re-emits
-    # dice_rolled). fight_dice_rolled only moves once, which is what the token keys on.
-    odd0 = _strength(odd)
-    even0 = _strength(even)
-    Global.last_roll = 5
-    Global.fight_dice_rolled += 1
-    Events.red_dice_rolled.emit()
-    await get_tree().process_frame
-    Events.dice_rolled.emit("red", 5)
-    await get_tree().process_frame
-    _check("C4 one roll feeds once even when it double-emits",
-        _strength(odd) == odd0 + 1 and _strength(even) == even0,
-        "odd %d->%d" % [odd0, _strength(odd)])
+    # The block number the player reads has to be the number that lands; Modifier.Type has no
+    # block entry, so the exported value is the whole truth and update_intent_text prints it.
+    odd_guard.update_intent_text()
+    _check("C4 the guard intent prints its own block value",
+        odd_guard.intent.current_text == str(odd_guard.block),
+        "'%s' vs %d" % [odd_guard.intent.current_text, odd_guard.block])
 
 
 func _section_d() -> void:
-    print("\n-- D. Rage on a brother's death --")
+    print("\n-- D. nothing grows that the brothers did not earn --")
     var odd := _brother("Odd Brother")
     var even := _brother("Even Brother")
     if odd == null or even == null:
         return
-    var before := _strength(even)
-    odd.stats.take_damage(odd.stats.health + 50)
-    await get_tree().process_frame
-    await get_tree().process_frame
-    var after := _strength(even)
-    _check("D1 the survivor gains 3 Strength", after == before + 3,
-        "%d -> %d" % [before, after])
 
-    # Fires once. A second enemy_died must not pay out again.
-    Events.enemy_died.emit(odd)
-    await get_tree().process_frame
-    _check("D2 Rage is one-shot", _strength(even) == after,
-        "%d -> %d" % [after, _strength(even)])
+    # The orphaned parity FEED regression guard: faces must not buy the brothers anything.
+    # Odd, even, and the Evil die's crack face, which is mathematically even.
+    var odd0 := _strength(odd)
+    var even0 := _strength(even)
+    for face in [3, 4, 0, 6, 1]:
+        await _roll_face(face)
+    _check("D1 rolling faces grows nobody",
+        _strength(odd) == odd0 and _strength(even) == even0,
+        "odd %d->%d, even %d->%d" % [odd0, _strength(odd), even0, _strength(even)])
 
-
-func _section_e() -> void:
-    print("\n-- E. no ramp the player did not cause --")
-    var even := _brother("Even Brother")
-    if even == null:
-        return
-    var before := _strength(even)
-    # Three whole turns pass with no rolls at all. The guard beat grants no Strength on
-    # purpose, so nothing may move.
+    # And turns passing on their own do nothing either: the growth is on the beat, not the
+    # clock, so a turn in which neither brother acts must be free.
+    odd0 = _strength(odd)
+    even0 = _strength(even)
     for turn in range(3):
         Global.fight_turn = turn
         Events.player_turn_ended.emit()
         await get_tree().process_frame
         Events.player_turn_started.emit()
         await get_tree().process_frame
-    _check("E1 an unrolled turn grows nobody", _strength(even) == before,
+    _check("D2 an idle turn grows nobody",
+        _strength(odd) == odd0 and _strength(even) == even0,
+        "odd %d->%d, even %d->%d" % [odd0, _strength(odd), even0, _strength(even)])
+
+
+func _section_e() -> void:
+    print("\n-- E. death: no payout, and the survivor's guard goes quiet --")
+    var odd := _brother("Odd Brother")
+    var even := _brother("Even Brother")
+    if odd == null or even == null:
+        return
+    var even_guard := _action(even, "_guard")
+
+    var before := _strength(even)
+    # ⚠ Kill through Enemy.take_damage(), NOT stats.take_damage(): the death path (enemy_died,
+    # leaving the group, the death sequence) hangs off a 0.06s flash tween inside the Enemy,
+    # so poking the stats resource drops the HP to 0 and fires none of it. The previous
+    # version of this section did exactly that, which is why its rage assertion was worthless.
+    # Block has to be cleared too - section C left this body guarding.
+    odd.take_damage(odd.stats.health + odd.stats.block + 50, Modifier.Type.DMG_TAKEN)
+    await get_tree().create_timer(0.3).timeout
+    # brothers_rage is cut. A survivor that still gained Strength here would mean the status
+    # crept back into the fight scene.
+    _check("E1 the survivor gains nothing from the death", _strength(even) == before,
         "%d -> %d" % [before, _strength(even)])
+    _check("E2 the corpse left the enemies group", _brother("Odd Brother") == null)
+
+    # The load-bearing half. Ask the REAL picker, turn by turn: with no twin left the survivor
+    # must come up strike every single time, never the guard. This is also what keeps the
+    # blind get_child(0) fallback out of reach now that the % 2 partition no longer applies.
+    var guards := 0
+    var strikes := 0
+    for turn in range(8):
+        Global.fight_turn = turn
+        var picked: EnemyAction = even.enemy_action_picker.get_action()
+        if picked.action_id.ends_with("_guard"):
+            guards += 1
+        elif picked.action_id.ends_with("_strike"):
+            strikes += 1
+    _check("E3 the lone survivor strikes on all 8 turns", strikes == 8 and guards == 0,
+        "%d strikes / %d guards" % [strikes, guards])
+    _check("E4 its guard refuses itself on both parities",
+        even_guard != null and not even_guard.is_performable(),
+        "turn %d" % Global.fight_turn)
+
+    # Belt-and-braces: if a future picker change ever ran the guard while alone anyway, it must
+    # block and buff nobody rather than falling back to itself or erroring on a freed node.
+    before = _strength(even)
+    var block_before: int = even.stats.block
+    await _perform(even_guard)
+    _check("E5 running it anyway buffs nobody and still blocks",
+        _strength(even) == before and even.stats.block > block_before,
+        "str %d->%d, block %d->%d" % [before, _strength(even), block_before, even.stats.block])

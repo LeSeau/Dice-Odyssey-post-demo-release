@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://bevenbroai001"]
+[gd_scene load_steps=10 format=3 uid="uid://bevenbroai001"]
 
 [ext_resource type="Script" path="res://scenes/enemy/enemy_action_picker.gd" id="1_picker"]
 [ext_resource type="Script" path="res://enemies/brother_strike_action.gd" id="2_strike"]
@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://custom_resources/intent.gd" id="4_intent"]
 [ext_resource type="Texture2D" uid="uid://cm56j6ual41dr" path="res://attack_icon_intent.png" id="5_atkicon"]
 [ext_resource type="Texture2D" uid="uid://bm8mrkcar7cyh" path="res://block_icon_intent.png" id="6_blkicon"]
+[ext_resource type="Texture2D" uid="uid://binq5gkgr3pre" path="res://buff_icon_intent.png" id="9_buficon"]
 [ext_resource type="AudioStream" uid="uid://de2ryat1pxq6" path="res://art/enemy_attack.ogg" id="7_atksound"]
 [ext_resource type="AudioStream" uid="uid://k8m4o3hlwm7l" path="res://art/enemy_block.ogg" id="8_blksound"]
 
@@ -18,6 +19,7 @@ icon = ExtResource("5_atkicon")
 script = ExtResource("4_intent")
 base_text = "%s"
 icon = ExtResource("6_blkicon")
+icon2 = ExtResource("9_buficon")
 
 [node name="BrotherEvenEnemyAI" type="Node"]
 script = ExtResource("1_picker")
