@@ -140,11 +140,11 @@ func _tooltip_text_for_texture(texture: Texture2D) -> String:
         "junk_card_intent":
             return "This enemy will put a bad card into your deck."
         "buff_icon_intent":
-            return "This enemy will gain a positive effect."
+            return "This enemy will apply a positive effect."
         "buff_icon":
-            return "This enemy will gain a positive effect."
+            return "This enemy will apply a positive effect."
         "buff_block_intent":
-            return "This enemy will gain a positive effect and block damage next turn."
+            return "This enemy will apply a positive effect and block damage next turn."
         _:
             return "This enemy is preparing something."
 
@@ -167,9 +167,16 @@ func _rider_tooltip_text_for_texture(texture: Texture2D) -> String:
         "junk_card_intent":
             return "It will also put a bad card into your deck."
         "buff_icon_intent", "buff_icon":
-            return "It will also gain a positive effect."
+            return "It will also apply a positive effect."
+        # Wired ahead of its art. The Parity Brothers' guard beat empowers the OTHER twin, so
+        # it currently rides buff_icon_intent - which is why the buff lines say "apply" rather
+        # than "gain": "apply" is true whether the effect lands on the enemy itself or on an
+        # ally. Dropping ally_buff_intent.png in and repointing the two brother AI scenes gets
+        # the sharper wording with no code change - the match keys on the file basename.
+        "ally_buff_intent":
+            return "It will also make another enemy stronger."
         "buff_block_intent":
-            return "It will also gain a positive effect and block damage next turn."
+            return "It will also apply a positive effect and block damage next turn."
         _:
             return ""
 
