@@ -41,6 +41,7 @@ func _ready() -> void:
     await _section_b()
     await _section_c()
     await _section_d()
+    await _section_honesty()
     await _section_e()
     print("\n=== %d passed, %d failed ===" % [_pass, _fail])
     get_tree().quit(1 if _fail > 0 else 0)
@@ -110,6 +111,13 @@ func _action(enemy: Enemy, suffix: String) -> EnemyAction:
 func _perform(action: EnemyAction) -> void:
     action.perform_action()
     await get_tree().process_frame
+    await get_tree().process_frame
+
+
+# The guard's Strength rider is queued onto Events.enemy_turn_ended rather than granted inline,
+# so any section that wants to see it land has to close the turn first.
+func _end_enemy_turn() -> void:
+    Events.enemy_turn_ended.emit()
     await get_tree().process_frame
 
 
@@ -201,14 +209,20 @@ func _section_c() -> void:
     var odd0 := _strength(odd)
     var even0 := _strength(even)
     await _perform(odd_guard)
-    _check("C1 Odd's guard buffs Even, never itself",
+    # The grant is deferred on purpose (see the guard's header), so mid-turn nothing may move.
+    _check("C1 Odd's guard grants nothing mid-turn",
+        _strength(even) == even0 and _strength(odd) == odd0,
+        "odd %d->%d, even %d->%d" % [odd0, _strength(odd), even0, _strength(even)])
+    await _end_enemy_turn()
+    _check("C2 at end of turn it buffs Even, never itself",
         _strength(even) == even0 + amount and _strength(odd) == odd0,
         "odd %d->%d, even %d->%d" % [odd0, _strength(odd), even0, _strength(even)])
 
     odd0 = _strength(odd)
     even0 = _strength(even)
     await _perform(even_guard)
-    _check("C2 Even's guard buffs Odd, never itself",
+    await _end_enemy_turn()
+    _check("C2b Even's guard buffs Odd, never itself",
         _strength(odd) == odd0 + amount and _strength(even) == even0,
         "odd %d->%d, even %d->%d" % [odd0, _strength(odd), even0, _strength(even)])
 
@@ -218,6 +232,7 @@ func _section_c() -> void:
     even0 = _strength(even)
     odd_guard.strength_to_brother = 0
     await _perform(odd_guard)
+    await _end_enemy_turn()
     _check("C3 control: a 0 rider moves nothing",
         _strength(odd) == odd0 and _strength(even) == even0,
         "odd %d->%d, even %d->%d" % [odd0, _strength(odd), even0, _strength(even)])
@@ -261,6 +276,64 @@ func _section_d() -> void:
     _check("D2 an idle turn grows nobody",
         _strength(odd) == odd0 and _strength(even) == even0,
         "odd %d->%d, even %d->%d" % [odd0, _strength(odd), even0, _strength(even)])
+
+
+# THE REGRESSION THAT MATTERS, and the one this fight actually shipped with for two days.
+# Granting the guard's rider inline broke it on one parity in two: Odd Brother is child 0, the
+# enemy turn walks children in order, so on odd turns the guard resolved BEFORE its twin's
+# strike and that strike landed strength_to_brother above the number the player had already
+# allocated block against.
+#
+# Asserting on the intent TEXT rather than on damage dealt is deliberate. The intent is the
+# thing the player reads, and it is rendered from the same modifiers the DamageEffect runs the
+# hit through, so a lie in either direction shows up here. Runs before _section_e because that
+# one kills a brother.
+func _section_honesty() -> void:
+    print("\n" + "-- H. the number on screen is the number that lands --")
+    var odd := _brother("Odd Brother")
+    var even := _brother("Even Brother")
+    if odd == null or even == null:
+        return
+    var odd_guard := _action(odd, "_guard")
+    var even_guard := _action(even, "_guard")
+    var odd_strike := _action(odd, "_strike")
+    var even_strike := _action(even, "_strike")
+    if odd_guard == null or even_guard == null or odd_strike == null or even_strike == null:
+        _check("H0 all four beats found", false)
+        return
+
+    # Without this the equality checks below could both pass on two empty strings, which is
+    # exactly how a broken intent would look.
+    even_strike.update_intent_text()
+    odd_strike.update_intent_text()
+    _check("H0 both strikes print a number to compare",
+        even_strike.intent.current_text != "" and odd_strike.intent.current_text != "",
+        "'%s' / '%s'" % [odd_strike.intent.current_text, even_strike.intent.current_text])
+
+    # The parity that used to lie: Odd guards first, Even swings after it.
+    var shown: String = even_strike.intent.current_text
+    await _perform(odd_guard)
+    even_strike.update_intent_text()
+    _check("H1 Even's strike number survives its twin's guard",
+        even_strike.intent.current_text == shown,
+        "'%s' -> '%s'" % [shown, even_strike.intent.current_text])
+
+    # CONTROL. If the rider were simply dead, H1 would pass for the wrong reason, so closing
+    # the turn has to move that same number.
+    await _end_enemy_turn()
+    even_strike.update_intent_text()
+    _check("H2 control: closing the turn does move it",
+        even_strike.intent.current_text != shown,
+        "'%s' -> '%s'" % [shown, even_strike.intent.current_text])
+
+    # The parity that was always honest has to stay honest.
+    shown = odd_strike.intent.current_text
+    await _perform(even_guard)
+    odd_strike.update_intent_text()
+    _check("H3 Odd's strike number survives Even's guard",
+        odd_strike.intent.current_text == shown,
+        "'%s' -> '%s'" % [shown, odd_strike.intent.current_text])
+    await _end_enemy_turn()
 
 
 func _section_e() -> void:
