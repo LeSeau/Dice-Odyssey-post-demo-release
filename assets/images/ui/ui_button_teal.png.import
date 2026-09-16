@@ -15,9 +15,9 @@ dest_files=["res://.godot/imported/ui_button_teal.png-f474652101c9fb429e4f5acc73
 
 [params]
 
-compress/mode=0
+compress/mode=1
 compress/high_quality=false
-compress/lossy_quality=0.7
+compress/lossy_quality=0.5
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
