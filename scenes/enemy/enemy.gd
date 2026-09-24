@@ -95,11 +95,13 @@ static func _get_smear_material() -> CanvasItemMaterial:
 #              Small hit = one crescent; medium = two crossing; big = a three-slash flurry
 #              whose final blade is longer and holds longest. Built on CRESCENT's blade.
 # ===========================================================================
-enum SlashStyle { CURRENT, CRESCENT, WOUND, FLURRY }
-# CRESCENT is the shipped default as of 2026-08-26 (Julien's pick off the variant board,
-# for playtest). CURRENT is the pre-rework slash and is still intact below - switching back
-# is one word here, and WOUND / FLURRY stay available for a second look.
-static var slash_style: int = SlashStyle.CRESCENT
+enum SlashStyle { CURRENT, CRESCENT, WOUND, FLURRY, FLAT_SLASH, DIE_IMPACT }
+# DIE_IMPACT is the shipped default as of 2026-09-24 (Julien: "totally agree", after the
+# side-by-side render against CRESCENT and FLAT_SLASH; the per-card slash was dropped).
+# CRESCENT was the default from 2026-08-26. Every older style is still intact below and
+# switching back is one word here. The style only applies to attack-card blows: any other
+# damage draws sparks alone (see _spawn_hit_smear).
+static var slash_style: int = SlashStyle.DIE_IMPACT
 
 # --- Crescent blade (CRESCENT / FLURRY) ------------------------------------
 # Wide canvas: the blade is a shallow arc, not a half-moon. A fast sword swing reads as a
@@ -1081,7 +1083,9 @@ func do_turn() -> void:
         last_action_count = 1
 
 
-func take_damage(damage: int, which_modifier: Modifier.Type) -> void:
+# card_hit: true when an attack card's own blow lands (DamageEffect decides, see its HitFx).
+# It only picks the hit EFFECT: a card blow gets the attack effect, anything else sparks.
+func take_damage(damage: int, which_modifier: Modifier.Type, card_hit := false) -> void:
     if stats.health <= 0:
         return
 
@@ -1093,7 +1097,7 @@ func take_damage(damage: int, which_modifier: Modifier.Type) -> void:
     Global.damage_to_display = modified_damage - Global.blocked_to_display
 
     _play_hit_reaction(modified_damage)
-    _spawn_hit_smear(modified_damage)
+    _spawn_hit_smear(modified_damage, card_hit)
     stats.take_damage(modified_damage)
 
     # Short, sharp white flash. Was 0.17s, which left the enemy a featureless white
@@ -1321,8 +1325,18 @@ func flash_impact() -> void:
 # slash; Julien, 2026-08). Length/sparks scale with damage; hits under
 # HIT_SMEAR_MIN_DAMAGE (a true zero) stay smear-free. Spawned as children
 # of this enemy so multi-body fight scales (0.65-0.75 Enemy.scale) shrink it with the body.
-func _spawn_hit_smear(damage: int) -> void:
+func _spawn_hit_smear(damage: int, card_hit := false) -> void:
     if damage < HIT_SMEAR_MIN_DAMAGE:
+        return
+    # Julien, 2026-09-24: only an attack card's blow draws the attack effect. Magma burns,
+    # statuses, relics, thorns and thrown dice (which already have their own bash) get the
+    # spark burst alone - they used to draw a sword slash too, because this runs for every
+    # source of damage. Nothing at all when the shield took the whole hit, like STS2's
+    # hit spark: nothing broke through.
+    if not card_hit:
+        if Global.damage_to_display > 0:
+            _spawn_fx_sparks(sprite_2d.position, Vector2.RIGHT, 180.0,
+                    Shaker.impact_for_damage(damage), DicePalette.accent(Global.dice_type))
         return
     # Variant board dispatch. The three new styles all spawn on the IMPACT FRAME with no
     # deferral - dodging the white flash is exactly what cost the old slash its freeze
@@ -1338,6 +1352,12 @@ func _spawn_hit_smear(damage: int) -> void:
             return
         SlashStyle.FLURRY:
             _spawn_flurry(damage)
+            return
+        SlashStyle.FLAT_SLASH:
+            _spawn_flat_slash(damage)
+            return
+        SlashStyle.DIE_IMPACT:
+            _spawn_die_impact(damage)
             return
     # Deferred a beat past take_damage's white flash: the smear used to spawn in the same
     # instant the whole sprite went flat white, and additive light over a white silhouette
@@ -1721,6 +1741,447 @@ func _spawn_flurry(damage: int) -> void:
                 angle, base_length * mul, hold, is_last, damage))
 
 
+# ---------------------------------------------------------------------------
+# HIT FX (2026-09-24) - DIE_IMPACT is the shipped default. FLAT_SLASH is the slash built
+# the same way, kept for a per-card slash (bladed cards) that Julien set aside for now.
+#
+# Built from the STS2 reference (sts2_ref/pck/scenes/vfx/vfx_attack_slash.tscn and
+# vfx_attack_blunt.tscn), which differs from CRESCENT on every axis that matters:
+#   - hard-edged FLAT shapes (white fill, coloured rim), not gaussian glow. Our art is
+#     flat cel with thick outlines; a soft neon line reads as a different art style.
+#   - a flipbook: the SHAPE changes every beat (peak -> thinner -> shards -> specks).
+#     A single shape held still reads as a sticker on the body, not as a hit.
+#   - short: their whole slash is 4 frames at 15fps (~0.27s).
+#   - a fast spark burst on every damaging hit (their hit_spark_vfx: elongated sparks
+#     flung radially), where ours was slow round motes that read as dust.
+# The peak shape is shown ON the impact frame, so the hit-stop freezes the biggest shape
+# (the anime freeze-frame), then the breakup frames play at normal speed.
+# All layers are normal-blend flat colours: Julien's flat-fill preference, and a flat
+# rim survives both the light act-1 grounds and the dark act-2 ones.
+# ---------------------------------------------------------------------------
+const FX_Z := 9
+# take_damage's white silhouette lasts 0.06s of game time. The peak shape is drawn in two
+# versions: NEGATIVE (accent fill) while the body is white, POSITIVE (white fill, accent
+# rim) once the colours come back. First render: a peak held for exactly the flash length
+# was only ever seen on the white silhouette, as an outline, and the white-filled shape on
+# the coloured body never showed at all.
+const FX_FLASH_MATCH := 0.06
+# Game-time seconds the POSITIVE peak is held after the flash, per Shaker.Impact rung.
+const FX_PEAK_HOLD := [0.04, 0.05, 0.07, 0.09, 0.12]
+# Game-time seconds per breakup frame.
+const FX_STEP := [0.04, 0.045, 0.05, 0.055, 0.06]
+const FX_RIM_PX := 5.0
+const FX_OUTLINE_PX := 2.5
+const FX_OUTLINE_COLOR := Color(0.07, 0.05, 0.09, 0.9)
+const FLAT_SLASH_THICK := [18.0, 23.0, 30.0, 37.0, 44.0]
+const IMPACT_RADIUS := [24.0, 32.0, 44.0, 58.0, 74.0]
+# Rays and chips are the "big hit" vocabulary: a 5-damage poke with a full sunburst and
+# confetti read as louder than the hit (first render), so small rungs lose them.
+const IMPACT_RAYS := [0, 4, 6, 7, 8]
+const IMPACT_RAY_REACH := [1.6, 1.75, 2.0, 2.2, 2.45]
+const IMPACT_CHIPS := [0, 0, 3, 5, 8]
+const FX_SPARK_COUNT := [6, 9, 13, 18, 24]
+
+static var _rice_texture: ImageTexture
+static var _spark_scale_curve: Curve
+
+
+# A hard-edged grain of rice, long axis on Y (particle_flag_align_y points Y along the
+# velocity). ~1px of anti-aliasing and nothing softer: a spark with a gaussian falloff
+# reads as a mote of dust, a spark with an edge reads as something struck off.
+static func _get_rice_texture() -> ImageTexture:
+    if _rice_texture:
+        return _rice_texture
+    var w := 10
+    var h := 34
+    var img := Image.create(w, h, false, Image.FORMAT_RGBA8)
+    var rx := w * 0.5 - 0.5
+    var ry := h * 0.5 - 0.5
+    for y in h:
+        for x in w:
+            var px := (x + 0.5 - w * 0.5) / rx
+            var py := (y + 0.5 - h * 0.5) / ry
+            var d := sqrt(px * px + py * py)
+            var a := clampf((1.0 - d) * rx + 0.5, 0.0, 1.0)
+            img.set_pixel(x, y, Color(1, 1, 1, a))
+    _rice_texture = ImageTexture.create_from_image(img)
+    return _rice_texture
+
+
+static func _get_spark_scale_curve() -> Curve:
+    if _spark_scale_curve:
+        return _spark_scale_curve
+    var curve := Curve.new()
+    curve.add_point(Vector2(0.0, 1.0))
+    curve.add_point(Vector2(0.55, 0.8))
+    curve.add_point(Vector2(1.0, 0.0))
+    _spark_scale_curve = curve
+    return _spark_scale_curve
+
+
+# One flat shape = up to three stacked polygons: dark outline, dice-accent rim, white fill.
+# The rim and outline are true offsets (Geometry2D.offset_polygon), so their width stays
+# constant around sharp spikes instead of ballooning the way a uniform scale-up would.
+func _fx_shape(parent: Node2D, pts: PackedVector2Array, fill: Color, rim: Color,
+        with_outline: bool) -> void:
+    if with_outline:
+        _fx_poly(parent, _fx_offset(pts, FX_RIM_PX + FX_OUTLINE_PX), FX_OUTLINE_COLOR)
+    _fx_poly(parent, _fx_offset(pts, FX_RIM_PX), rim)
+    _fx_poly(parent, pts, fill)
+
+
+func _fx_poly(parent: Node2D, pts: PackedVector2Array, color: Color) -> void:
+    if pts.size() < 3:
+        return
+    var poly := Polygon2D.new()
+    poly.polygon = pts
+    poly.color = color
+    poly.antialiased = true
+    parent.add_child(poly)
+
+
+static func _fx_offset(pts: PackedVector2Array, delta: float) -> PackedVector2Array:
+    var grown: Array[PackedVector2Array] = Geometry2D.offset_polygon(pts, delta,
+            Geometry2D.JOIN_MITER)
+    if grown.is_empty():
+        return pts
+    # offset_polygon can split a shape into several; the largest one is the outline.
+    var best: PackedVector2Array = grown[0]
+    for p in grown:
+        if p.size() > best.size():
+            best = p
+    return best
+
+
+func _fx_line(parent: Node2D, pts: PackedVector2Array, width: float, color: Color,
+        closed: bool) -> void:
+    var line := Line2D.new()
+    line.points = pts
+    line.width = width
+    line.default_color = color
+    line.closed = closed
+    line.joint_mode = Line2D.LINE_JOINT_ROUND
+    line.begin_cap_mode = Line2D.LINE_CAP_ROUND
+    line.end_cap_mode = Line2D.LINE_CAP_ROUND
+    line.antialiased = true
+    parent.add_child(line)
+
+
+static func _arc_points(radius: float, from_angle: float, to_angle: float,
+        steps: int) -> PackedVector2Array:
+    var pts := PackedVector2Array()
+    for i in steps + 1:
+        var a := lerpf(from_angle, to_angle, float(i) / float(steps))
+        pts.append(Vector2(cos(a), sin(a)) * radius)
+    return pts
+
+
+# A full circle WITHOUT the repeated closing vertex: a duplicate point makes Polygon2D's
+# triangulation fail (it then draws nothing), and closed Line2Ds close themselves.
+static func _circle_points(radius: float, steps: int) -> PackedVector2Array:
+    var pts := PackedVector2Array()
+    for i in steps:
+        var a := TAU * float(i) / float(steps)
+        pts.append(Vector2(cos(a), sin(a)) * radius)
+    return pts
+
+
+# Plays `frames` one after another on game time, frame i for durations[i], then frees the
+# whole effect. The root's own tween, so a killing blow that frees the enemy (and with it
+# the root) cancels the rest cleanly.
+func _fx_play_flipbook(root: Node2D, frames: Array[Node2D], durations: Array[float]) -> void:
+    for i in frames.size():
+        frames[i].visible = i == 0
+    var tw := root.create_tween()
+    tw.tween_interval(durations[0])
+    for i in range(1, frames.size()):
+        var idx := i
+        tw.tween_callback(
+            func():
+                frames[idx - 1].visible = false
+                frames[idx].visible = true
+        )
+        tw.tween_interval(durations[idx])
+    tw.tween_callback(root.queue_free)
+
+
+func _fx_durations(rung: int, breakup_frames: int) -> Array[float]:
+    var peak: float = FX_PEAK_HOLD[rung]
+    var step: float = FX_STEP[rung]
+    var out: Array[float] = [FX_FLASH_MATCH, peak]
+    for i in breakup_frames:
+        out.append(step)
+    return out
+
+
+# The generic layer: fast hard-edged sparks, fired on the impact frame so the hit-stop
+# holds them at the point of contact and they burst out as time resumes. STS2 fires
+# theirs on EVERY damaging hit whatever the card; here it rides the two new styles.
+func _spawn_fx_sparks(origin: Vector2, dir: Vector2, spread_deg: float, rung: int,
+        accent: Color) -> void:
+    var p := CPUParticles2D.new()
+    p.one_shot = true
+    p.explosiveness = 1.0
+    p.amount = FX_SPARK_COUNT[rung]
+    p.lifetime = 0.3
+    p.lifetime_randomness = 0.45
+    p.texture = _get_rice_texture()
+    p.direction = dir
+    p.spread = spread_deg
+    p.gravity = Vector2.ZERO
+    p.initial_velocity_min = 520.0
+    p.initial_velocity_max = 1050.0
+    p.damping_min = 1600.0
+    p.damping_max = 2400.0
+    p.particle_flag_align_y = true
+    p.scale_amount_min = 0.55
+    p.scale_amount_max = 1.0
+    p.scale_amount_curve = _get_spark_scale_curve()
+    var ramp := Gradient.new()
+    ramp.set_color(0, Color(1, 1, 1, 1))
+    ramp.set_color(1, Color(accent.r, accent.g, accent.b, 0.0))
+    ramp.add_point(0.35, Color(accent.lerp(Color.WHITE, 0.35), 1.0))
+    p.color_ramp = ramp
+    p.z_index = FX_Z
+    # Groups, not names: Godot renames same-named siblings (@HitFxSparks@2), which is how a
+    # harness ends up counting one node out of three.
+    p.add_to_group("hit_fx_sparks")
+    add_child(p)
+    p.position = origin
+    p.emitting = true
+    var cleanup := p.create_tween()
+    cleanup.tween_interval(0.7)
+    cleanup.tween_callback(p.queue_free)
+
+
+# ---------------------------------------------------------------------------
+# STYLE: FLAT_SLASH
+# ---------------------------------------------------------------------------
+
+# Crescent in local space: tips at (+-half_len, 0), bowing toward -y. Fatter toward the
+# +x (leading) end and tapering long toward the trailing end, like a swing caught
+# mid-motion. `cut` (0..1) trims the trailing end away for the "tail catches up" frame.
+static func _crescent_poly(half_len: float, bow: float, thickness: float,
+        cut: float = 0.0, steps: int = 28) -> PackedVector2Array:
+    var u0 := -1.0 + 2.0 * cut
+    var outer := PackedVector2Array()
+    var inner := PackedVector2Array()
+    var peak := 0.0
+    var profile: Array[float] = []
+    for i in steps + 1:
+        var u := lerpf(u0, 1.0, float(i) / float(steps))
+        var k := maxf(1.0 - u * u, 0.0)
+        var t := k * (0.72 + 0.38 * u)
+        profile.append(t)
+        peak = maxf(peak, t)
+    for i in steps + 1:
+        var u := lerpf(u0, 1.0, float(i) / float(steps))
+        var k := maxf(1.0 - u * u, 0.0)
+        var y_out := -bow * k
+        var th := thickness * profile[i] / maxf(peak, 0.001)
+        outer.append(Vector2(u * half_len, y_out))
+        inner.append(Vector2(u * half_len, y_out + th))
+    var pts := PackedVector2Array()
+    pts.append_array(outer)
+    # Both ends are points when uncut, so the inner edge skips its endpoints; a cut trailing
+    # end is a real edge and keeps its inner corner.
+    var last_inner := 0 if cut > 0.0 else 1
+    for i in range(inner.size() - 2, last_inner - 1, -1):
+        pts.append(inner[i])
+    return pts
+
+
+func _spawn_flat_slash(damage: int) -> void:
+    var rung: int = Shaker.impact_for_damage(damage)
+    var accent := DicePalette.accent(Global.dice_type)
+    var length: float = CRESCENT_LENGTH[rung]
+    var half := length * 0.5
+    var thick: float = FLAT_SLASH_THICK[rung]
+    var bow := length * 0.1
+    var angle := CRESCENT_ANGLE + randf_range(-0.1, 0.1)
+    var dir := Vector2(cos(angle), sin(angle))
+    var origin := sprite_2d.position + Vector2(randf_range(-9.0, 9.0), randf_range(-12.0, 6.0))
+    var white := Color(1, 1, 1, 1)
+    var rim := Color(accent.r, accent.g, accent.b, 1.0)
+
+    var root := Node2D.new()
+    root.z_index = FX_Z
+    root.rotation = angle
+    root.add_to_group("hit_fx_slash")
+    add_child(root)
+    root.position = origin
+
+    var frames: Array[Node2D] = []
+    var blade := _crescent_poly(half, bow, thick)
+    # 0 - the peak, NEGATIVE: accent blade while the body is flashed white.
+    var f0n := Node2D.new()
+    _fx_shape(f0n, blade, rim, accent.darkened(0.45), true)
+    frames.append(f0n)
+    # 1 - the peak, POSITIVE: white blade with an accent rim once the colours are back.
+    var f0 := Node2D.new()
+    _fx_shape(f0, blade, white, rim, false)
+    frames.append(f0)
+    # 2 - thinner, the trailing third gone, nudged along the swing.
+    var f1 := Node2D.new()
+    f1.position = Vector2(length * 0.08, 0.0)
+    _fx_shape(f1, _crescent_poly(half, bow, thick * 0.5, 0.34), white, rim, false)
+    frames.append(f1)
+    # 3 - it breaks: two shards near the leading end.
+    var f2 := Node2D.new()
+    var shard_a := Node2D.new()
+    shard_a.position = Vector2(length * 0.2, -bow * 0.35)
+    _fx_shape(shard_a, _crescent_poly(half * 0.34, bow * 0.18, thick * 0.42), white, rim, false)
+    f2.add_child(shard_a)
+    var shard_b := Node2D.new()
+    shard_b.position = Vector2(length * 0.46, -bow * 0.05)
+    shard_b.rotation = 0.12
+    _fx_shape(shard_b, _crescent_poly(half * 0.2, bow * 0.08, thick * 0.3), white, rim, false)
+    f2.add_child(shard_b)
+    frames.append(f2)
+    # 4 - specks where the blade left the body.
+    var f3 := Node2D.new()
+    for i in 3:
+        var speck := Node2D.new()
+        speck.position = Vector2(length * randf_range(0.34, 0.62), randf_range(-bow * 0.6, bow * 0.2))
+        _fx_shape(speck, _circle_points(maxf(thick * 0.14, 2.5), 10), white, rim, false)
+        f3.add_child(speck)
+    frames.append(f3)
+
+    for f in frames:
+        root.add_child(f)
+    # A quick pop on the peak so it lands rather than appears. Game time, so inside the
+    # hit-stop this reads as the blade snapping to full length.
+    f0n.scale = Vector2(0.72, 1.0)
+    var pop := f0n.create_tween()
+    pop.tween_property(f0n, "scale", Vector2.ONE, 0.025) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    _fx_play_flipbook(root, frames, _fx_durations(rung, 3))
+    _spawn_fx_sparks(origin + dir * length * 0.12, dir, 38.0, rung, accent)
+
+
+# ---------------------------------------------------------------------------
+# STYLE: DIE_IMPACT
+# ---------------------------------------------------------------------------
+
+# The hero hits with a die (Strike's art is a fist driving a die, the held die thrusts on
+# every attack card, and a big hit flies the die itself into the body), so this is a
+# BLUNT hit: a comic "pow" star, then a ring with rays, then a broken ring - STS2's
+# vfx_attack_blunt beats - plus die-corner chips thrown off on medium hits and up.
+static func _star_poly(radius: float, spikes: int, inner_ratio: float) -> PackedVector2Array:
+    var pts := PackedVector2Array()
+    var n := spikes * 2
+    var rot := randf() * TAU
+    for i in n:
+        var a := rot + TAU * float(i) / float(n) + randf_range(-0.18, 0.18) * TAU / float(n)
+        var r := radius * inner_ratio * randf_range(0.88, 1.1)
+        if i % 2 == 0:
+            r = radius * randf_range(0.74, 1.14)
+        pts.append(Vector2(cos(a), sin(a)) * r)
+    return pts
+
+
+func _spawn_die_impact(damage: int) -> void:
+    var rung: int = Shaker.impact_for_damage(damage)
+    var accent := DicePalette.accent(Global.dice_type)
+    var r: float = IMPACT_RADIUS[rung]
+    var origin := sprite_2d.position + Vector2(randf_range(-12.0, 8.0), randf_range(-16.0, 4.0))
+    var white := Color(1, 1, 1, 1)
+    var rim := Color(accent.r, accent.g, accent.b, 1.0)
+
+    var root := Node2D.new()
+    root.z_index = FX_Z
+    root.add_to_group("hit_fx_impact")
+    add_child(root)
+    root.position = origin
+
+    var frames: Array[Node2D] = []
+    var star := _star_poly(r, 9, 0.46)
+    # 0 - the pow star, NEGATIVE: accent star while the body is flashed white. Outlined like
+    # the cel art so it reads as drawn.
+    var f0n := Node2D.new()
+    _fx_shape(f0n, star, rim, accent.darkened(0.45), true)
+    frames.append(f0n)
+    # 1 - the pow star, POSITIVE: white star on the coloured body.
+    var f0 := Node2D.new()
+    _fx_shape(f0, star, white, rim, true)
+    frames.append(f0)
+    # 2 - ring + rays flying off it (no rays at all on the smallest rung).
+    var f1 := Node2D.new()
+    var ring := _circle_points(r * 1.05, 40)
+    _fx_line(f1, ring, r * 0.24 + FX_RIM_PX * 2.0, rim, true)
+    _fx_line(f1, ring, r * 0.24, white, true)
+    var ray_count: int = IMPACT_RAYS[rung]
+    var reach: float = IMPACT_RAY_REACH[rung]
+    var ray_rot := randf() * TAU
+    for i in ray_count:
+        var a := ray_rot + TAU * float(i) / float(ray_count) + randf_range(-0.25, 0.25)
+        var d := Vector2(cos(a), sin(a))
+        var side := Vector2(-d.y, d.x)
+        var base := r * randf_range(1.3, 1.45)
+        var tip := r * reach * randf_range(0.85, 1.05)
+        var w := r * 0.1
+        var kite := PackedVector2Array([d * base + side * w, d * tip, d * base - side * w,
+                d * (base - w * 0.6)])
+        _fx_shape(f1, kite, white, rim, false)
+    frames.append(f1)
+    # 3 - the ring breaks into arcs and keeps expanding.
+    var f2 := Node2D.new()
+    var arc_rot := randf() * TAU
+    for i in 5:
+        var a0 := arc_rot + TAU * float(i) / 5.0
+        var span := randf_range(0.5, 0.85)
+        var arc := _arc_points(r * 1.4, a0, a0 + span, 8)
+        _fx_line(f2, arc, r * 0.12 + FX_RIM_PX, rim, false)
+        _fx_line(f2, arc, r * 0.12, white, false)
+    frames.append(f2)
+    # 4 - thin, wide, nearly gone.
+    var f3 := Node2D.new()
+    for i in 4:
+        var a0 := arc_rot + 0.3 + TAU * float(i) / 4.0
+        var arc := _arc_points(r * 1.65, a0, a0 + randf_range(0.25, 0.45), 6)
+        _fx_line(f3, arc, maxf(r * 0.05, 2.0), rim, false)
+    frames.append(f3)
+
+    for f in frames:
+        root.add_child(f)
+    f0n.scale = Vector2(0.62, 0.62)
+    var pop := f0n.create_tween()
+    pop.tween_property(f0n, "scale", Vector2.ONE, 0.03) \
+        .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+    _fx_play_flipbook(root, frames, _fx_durations(rung, 3))
+    _spawn_fx_sparks(origin, Vector2.RIGHT, 180.0, rung, accent)
+
+    var chip_count: int = IMPACT_CHIPS[rung]
+    if chip_count > 0:
+        var chips := CPUParticles2D.new()
+        chips.one_shot = true
+        chips.explosiveness = 0.95
+        chips.amount = chip_count
+        chips.lifetime = 0.6
+        chips.texture = _get_fragment_texture()
+        chips.direction = Vector2(0.35, -1.0)
+        chips.spread = 75.0
+        chips.initial_velocity_min = 240.0
+        chips.initial_velocity_max = 430.0
+        chips.gravity = Vector2(0.0, 950.0)
+        chips.angular_velocity_min = -420.0
+        chips.angular_velocity_max = 420.0
+        chips.angle_min = -180.0
+        chips.angle_max = 180.0
+        chips.scale_amount_min = 1.3
+        chips.scale_amount_max = 2.0
+        chips.scale_amount_curve = _get_fragment_scale_curve()
+        chips.color = rim
+        chips.z_index = FX_Z
+        chips.add_to_group("hit_fx_chips")
+        add_child(chips)
+        chips.position = origin
+        chips.emitting = true
+        var chip_cleanup := chips.create_tween()
+        chip_cleanup.tween_interval(1.0)
+        chip_cleanup.tween_callback(chips.queue_free)
+
+
 # Directional knockback + sprite squash on hit. Knockback rides self.position (the same
 # property Shaker.shake uses safely), squash rides Sprite2D.scale directly - the idle is
 # a shader deformation now, so nothing else fights over these transforms.
@@ -1769,6 +2230,37 @@ func _play_hit_reaction(amount: int = 10) -> void:
     _hit_squash_tween.tween_method(_set_hit_squash, squash, Vector2.ONE, 0.28) \
         .set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
     _hit_squash_tween.tween_callback(func(): _hit_squash_active = false)
+
+    _play_hit_flinch(tier)
+
+
+# Hit flinch (2026-09-24): the body leans away from the hero around its feet, then settles.
+# STS2 plays a hurt animation on every damaging hit; ours only flashed, squashed and recoiled,
+# which moves the sprite without the creature reacting. Rides the pose channel (SpriteRoot,
+# feet pivot), so the feet stay on the ground line and it never fights the knockback (root
+# position) or the squash (Sprite2D.scale). Radians per Shaker.Impact rung, + = away from the
+# hero. Small on purpose: Julien got dizzy on spinning dice, and a whole body leaning much
+# past ~5 degrees starts to read as toppling over.
+const HIT_FLINCH_LEAN_BY_TIER: Array[float] = [0.015, 0.028, 0.045, 0.065, 0.09]
+const HIT_FLINCH_IN := 0.05
+const HIT_FLINCH_OUT := 0.32
+
+
+func _play_hit_flinch(tier: int) -> void:
+    # An attacking enemy's motion owns the pose (a thorns reflect lands at contact).
+    if attack_motion_active:
+        return
+    _kill_pose_tween()
+    var lean: float = HIT_FLINCH_LEAN_BY_TIER[tier]
+    _pose_tween = create_tween()
+    _pose_tween.tween_property(self, "pose_lean", lean, HIT_FLINCH_IN) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    # A brace or flex cut short by this hit would otherwise leave its crouch, swell or tint on.
+    _pose_tween.parallel().tween_property(self, "pose_scale", Vector2.ONE, HIT_FLINCH_IN)
+    _pose_tween.parallel().tween_property(self, "pose_shift", Vector2.ZERO, HIT_FLINCH_IN)
+    _pose_tween.parallel().tween_property(self, "body_flash", 0.0, HIT_FLINCH_IN)
+    _pose_tween.tween_property(self, "pose_lean", 0.0, HIT_FLINCH_OUT) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
 
 # The sprite scales about its CENTRE, so squashing it used to lift the feet off the ground line

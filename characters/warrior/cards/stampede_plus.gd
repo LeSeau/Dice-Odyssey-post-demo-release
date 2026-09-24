@@ -11,6 +11,7 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
         return
     var damage := modifiers.get_modified_value(Global.roll_value, Modifier.Type.DMG_DEALT)
     var first_hit := DamageEffect.new()
+    first_hit.hit_fx = DamageEffect.HitFx.CARD
     first_hit.amount = damage
     first_hit.sound = sound
     first_hit.execute(targets)
@@ -32,6 +33,7 @@ func _on_extra_hit(tree: SceneTree, target: Node, damage: int) -> void:
             return
         final_target = alive[randi() % alive.size()]
     var hit := DamageEffect.new()
+    hit.hit_fx = DamageEffect.HitFx.CARD
     hit.amount = damage
     hit.sound = sound
     hit.execute([final_target])

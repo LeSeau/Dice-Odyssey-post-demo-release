@@ -27,6 +27,7 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
             var random_enemy = enemies[randi() % enemies.size()]
             
             var damage_effect = DamageEffect.new()
+            damage_effect.hit_fx = DamageEffect.HitFx.CARD
             var base_damage = Global.roll_value
             damage_effect.sound = sound
             if Global.dice_type == "red":

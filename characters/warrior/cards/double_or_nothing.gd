@@ -33,6 +33,7 @@ func _on_coin_resolved(tree: SceneTree, target: Node, heads: bool, damage: int) 
             return
         final_target = alive[randi() % alive.size()]
     var damage_effect := DamageEffect.new()
+    damage_effect.hit_fx = DamageEffect.HitFx.CARD
     damage_effect.amount = damage
     damage_effect.sound = sound
     damage_effect.execute([final_target])

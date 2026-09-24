@@ -5464,6 +5464,9 @@ func _fire_socketless_red() -> void:
         amount = player.modifier_handler.get_modified_value(amount, Modifier.Type.DMG_DEALT)
     var damage_effect := DamageEffect.new()
     damage_effect.amount = amount
+    # Armageddon's blast stands in for the socketed card's attack, so it draws the card hit
+    # effect rather than the sparks-only treatment other non-card damage gets.
+    damage_effect.hit_fx = DamageEffect.HitFx.CARD
     damage_effect.execute(enemies)
     # Socketless Red+ (Julien, 2026-08-20): EVERY empty-socket Red roll also grants Strength,
     # so the blessing compounds across the fight instead of paying out once. Granted here

@@ -572,6 +572,9 @@ func _fire_red_whiff_payout() -> void:
     var damage_effect := DamageEffect.new()
     damage_effect.amount = amount
     damage_effect.sound = RED_WHIFF_SOUND
+    # The miss smashes the board in the card's place, so it draws the card hit effect even
+    # when the missed card was a skill (only attacks stamp the play frame).
+    damage_effect.hit_fx = DamageEffect.HitFx.CARD
     damage_effect.execute(enemies)
     # The miss spent the bank. A card that MEETS its requirement resets Power itself; a miss
     # normally leaves it standing, so this reset is the cost printed on Ooga Booga's face.

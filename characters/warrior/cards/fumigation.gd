@@ -17,6 +17,7 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
                 break
             
             var damage_effect = DamageEffect.new()
+            damage_effect.hit_fx = DamageEffect.HitFx.CARD
             damage_effect.sound = sound
             # Waves after the first land past the Berserker window; bake the boost in.
             var raw := modifiers.get_modified_value(Global.roll_value, Modifier.Type.DMG_DEALT)

@@ -16,17 +16,27 @@ extends Node
 #       --rendering-driver opengl3 --resolution 1280x720 --position 2000,2000
 #
 # Env:
-#   SLASH_STYLE   = current | crescent | wound | flurry      (default current)
+#   SLASH_STYLE   = current | crescent | wound | flurry | flat | impact
+#                   (default: whatever Enemy.slash_style ships with, DIE_IMPACT since 09-24)
 #   SLASH_DICE    = blue | magma | red | green | ...          (default blue)
 #   SLASH_FIGHT   = res:// path to a battle scene             (default solo Marauder)
 #   SLASH_DAMAGES = comma list of hits to land                (default 5,12,22)
 #   SLASH_GAP     = frames between hits                       (default 62)
+#   SLASH_BG      = res:// path to a combat background        (default act-1 hallway)
+#   SLASH_SOURCE  = card | other                              (default card)
+#                   Since 2026-09-24 only an attack card's blow draws the attack effect, and
+#                   everything else draws sparks. "card" stamps the attack-card frame the way
+#                   Card.play() does, so a 15+ single-target hit also rides the held-die
+#                   strike exactly as in game; "other" shows a relic/magma/status hit.
+#   SLASH_AOE     = 1 to hit every enemy of the fight at once (default: the widest one)
 
 const STYLE_BY_NAME := {
 	"current": 0,
 	"crescent": 1,
 	"wound": 2,
 	"flurry": 3,
+	"flat": 4,
+	"impact": 5,
 }
 const HIT_SOUND := preload("res://art/slash.ogg")
 
@@ -45,9 +55,11 @@ func _ready() -> void:
 
 	var style_name := OS.get_environment("SLASH_STYLE").to_lower()
 	if style_name == "":
-		style_name = "current"
-	var style: int = STYLE_BY_NAME.get(style_name, 0)
-	Enemy.slash_style = style
+		style_name = "default"
+	else:
+		Enemy.slash_style = STYLE_BY_NAME.get(style_name, Enemy.slash_style)
+	var card_source := OS.get_environment("SLASH_SOURCE").to_lower() != "other"
+	var aoe := OS.get_environment("SLASH_AOE") == "1"
 
 	var dice := OS.get_environment("SLASH_DICE")
 	if dice == "":
@@ -71,7 +83,10 @@ func _ready() -> void:
 			damages.append(int(s))
 
 	var bg := TextureRect.new()
-	bg.texture = load("res://assets/backgrounds/combat_bg_act1_hallway_mountain_ruins.png")
+	var bg_path := OS.get_environment("SLASH_BG")
+	if bg_path == "":
+		bg_path = "res://assets/backgrounds/combat_bg_act1_hallway_mountain_ruins.png"
+	bg.texture = load(bg_path)
 	bg.stretch_mode = TextureRect.STRETCH_SCALE
 	bg.size = Vector2(1280, 720)
 	bg.modulate = Color(0.74, 0.74, 0.74)
@@ -86,6 +101,12 @@ func _ready() -> void:
 	cam.add_to_group("camera")
 	add_child(cam)
 	cam.make_current()
+
+	# The held-die strike flies its clone on the "ui_layer" (BattleUI in game); without one
+	# it refuses to start and a big card hit would land instantly, unlike in game.
+	var ui := CanvasLayer.new()
+	ui.add_to_group("ui_layer")
+	add_child(ui)
 
 	# Real player so the enemy AI's action picker has its "player" group target.
 	var player: Node = (load("res://scenes/player/player.tscn") as PackedScene).instantiate()
@@ -133,15 +154,21 @@ func _ready() -> void:
 
 	# Fat HP pool so no hit in the ladder can kill the body mid-capture: a freed target
 	# would abort the sequence AND leave Movie Maker writing frames forever.
-	var st = enemy.get("stats")
-	st.max_health = 999
-	st.health = 999
+	var targets: Array[Node] = []
+	for child in fight.get_children():
+		if child is Enemy:
+			var st = child.get("stats")
+			st.max_health = 999
+			st.health = 999
+			if aoe or child == enemy:
+				targets.append(child)
 
 	for i in 10:
 		await get_tree().process_frame
 
-	print("[slash] style=%s dice=%s fight=%s damages=%s (lead-in ends frame %d)"
-			% [style_name, dice, fight_path, str(damages), Engine.get_process_frames()])
+	print("[slash] style=%s (%d) source=%s aoe=%s dice=%s fight=%s damages=%s (lead-in ends frame %d)"
+			% [style_name, Enemy.slash_style, "card" if card_source else "other", str(aoe), dice,
+			fight_path, str(damages), Engine.get_process_frames()])
 
 	for idx in damages.size():
 		if not is_instance_valid(enemy):
@@ -154,15 +181,29 @@ func _ready() -> void:
 		Global.dice_type = dice
 		print("[slash]   hit %d = %d dmg at frame %d (dice_type=%s)"
 				% [idx + 1, dmg, Engine.get_process_frames(), Global.dice_type])
+		if card_source:
+			Global.last_attack_card_played_frame = Engine.get_process_frames()
+			Global.last_attack_card_single_target = targets.size() == 1
 		var eff := DamageEffect.new()
 		eff.amount = dmg
 		eff.sound = HIT_SOUND
-		var targets: Array[Node] = [enemy]
 		eff.execute(targets)
 		for f in gap:
 			await get_tree().process_frame
+			_guard_window()
 
 	for f in 40:
 		await get_tree().process_frame
+		_guard_window()
 	print("[slash] done (%s)" % style_name)
 	get_tree().quit()
+
+
+# Movie Maker keeps writing PNGs while the window is minimized, but they are copies of the
+# last drawn frame (2026-09-24: every frame after 50 was byte-identical). Restore it and say
+# so, so a frozen capture can never be mistaken for a frozen game.
+func _guard_window() -> void:
+	if DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_MINIMIZED:
+		print("[slash] window minimized at frame %d (drawn %d) - restoring"
+				% [Engine.get_process_frames(), Engine.get_frames_drawn()])
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)

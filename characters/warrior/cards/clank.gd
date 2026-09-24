@@ -16,6 +16,7 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
         
         for i in range(2):
             var damage_effect = DamageEffect.new()
+            damage_effect.hit_fx = DamageEffect.HitFx.CARD
             var base_damage = Global.roll_value
             damage_effect.sound = sound
             

@@ -32,6 +32,7 @@ func _on_second_hit(target: Node, damage: int) -> void:
 
 func _strike(target: Node, damage: int) -> void:
     var damage_effect := DamageEffect.new()
+    damage_effect.hit_fx = DamageEffect.HitFx.CARD
     damage_effect.amount = damage
     damage_effect.sound = sound
     damage_effect.execute([target])

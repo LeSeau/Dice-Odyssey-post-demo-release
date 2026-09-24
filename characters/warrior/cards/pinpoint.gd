@@ -4,6 +4,7 @@ extends Card
 func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     Events.reset_charged_card.emit()
     var damage_effect := DamageEffect.new()
+    damage_effect.hit_fx = DamageEffect.HitFx.CARD
     var base_damage = Global.roll_value
     damage_effect.amount = modifiers.get_modified_value(base_damage, Modifier.Type.DMG_DEALT)
     damage_effect.sound = sound
@@ -13,6 +14,7 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
         note_delayed_hit(0.5)
         await targets[0].get_tree().create_timer(0.5).timeout
         var bonus_damage := DamageEffect.new()
+        bonus_damage.hit_fx = DamageEffect.HitFx.CARD
         # Past the await, so the Berserker window is already closed - bake the boost in.
         bonus_damage.amount = Card.deferred_berserker_damage(
                 modifiers.get_modified_value(base_damage, Modifier.Type.DMG_DEALT))

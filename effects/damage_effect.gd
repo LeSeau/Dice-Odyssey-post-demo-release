@@ -7,6 +7,17 @@ var receiver_modifier_type := Modifier.Type.DMG_TAKEN
 # hits set this to the die's impact point (Card.thrown_impact_pos) so each number in a
 # sequenced volley pops off the exact spot its die smashed.
 var popup_origin := Vector2.ZERO
+# Which hit effect an ENEMY target draws (enemy.gd::_spawn_hit_smear, 2026-09-24). Julien's
+# rule: an attack card's blow gets the full attack effect (the die impact), everything else
+# - magma burns, Earthquake, relics, thorns, statuses, thrown dice - gets sparks only.
+#   AUTO   - decided in execute(): CARD when an attack card is being played THIS frame (the
+#            same stamp the held die reacts to), SPARKS otherwise.
+#   CARD   - set by cards whose blows land LATER than their play frame (timers, awaits:
+#            Flurry, Stampede, Clank...). By the time those land the stamp is stale, so AUTO
+#            would wrongly read them as a relic hit.
+#   SPARKS - forces the light treatment.
+enum HitFx { AUTO, CARD, SPARKS }
+var hit_fx := HitFx.AUTO
 const DAMAGE_POPUP_SCENE := preload("res://scenes/ui/damage_popup.tscn")  # or whereve
 
 # Hits at/above this get an extra camera punch zoom (below) on top of the always-on
@@ -47,13 +58,15 @@ func execute(targets: Array[Node]) -> void:
             # The hero's held die answers this hit: a laddered thrust, or - on a big or
             # lethal single-target blow - the die itself flying out to deliver it. When the
             # strike takes the hit, _resolve_hit runs on the die's impact instead of now.
-            if target is Enemy and Global.last_attack_card_played_frame == Engine.get_process_frames():
+            var card_frame := Global.last_attack_card_played_frame == Engine.get_process_frames()
+            if target is Enemy and card_frame:
                 var impact := Shaker.impact_for_damage(final_amount)
                 if _try_die_strike(target, final_amount, int(impact)):
                     continue
                 _react_held_die(int(impact), final_amount)
 
-            _resolve_hit(target, final_amount)
+            var card_hit := hit_fx == HitFx.CARD or (hit_fx == HitFx.AUTO and card_frame)
+            _resolve_hit(target, final_amount, Vector2.ZERO, card_hit)
 
 
 # Everything that happens when a hit actually lands. Extracted verbatim so the immediate path
@@ -61,14 +74,17 @@ func execute(targets: Array[Node]) -> void:
 # how two paths quietly drift apart. Note the ordering is load-bearing: take_damage writes
 # Global.damage_to_display / blocked_to_display, and every reporter and the popup below read
 # them, so nothing may be reordered across that call.
-func _resolve_hit(target: Node, final_amount: int, origin_override := Vector2.ZERO) -> void:
+func _resolve_hit(target: Node, final_amount: int, origin_override := Vector2.ZERO,
+        card_hit := false) -> void:
     if target == null or not is_instance_valid(target):
         return
     # Overkill achievement needs the target's HP BEFORE this hit lands.
     var hp_before := 0
     if target is Enemy:
         hp_before = target.stats.health
-    target.take_damage(final_amount, receiver_modifier_type)
+        target.take_damage(final_amount, receiver_modifier_type, card_hit)
+    else:
+        target.take_damage(final_amount, receiver_modifier_type)
     # Kaboom achievement: report the target-modified damage (take_damage just wrote
     # it into damage_to_display) - no-ops unless a card play window is open.
     if target is Enemy:
@@ -198,7 +214,9 @@ func _try_die_strike(target: Node, final_amount: int, impact: int) -> bool:
         # only ones that could earn the achievement. Re-open one around the deferred hit:
         # the strike is single-target and once per play, so this hit IS the card's damage.
         AchievementManager.begin_card_damage_window()
-        effect._resolve_hit(final_target, snapshot_amount, Card.thrown_impact_pos(final_target))
+        # A strike only ever carries an attack card's blow, so it always gets the card effect.
+        effect._resolve_hit(final_target, snapshot_amount, Card.thrown_impact_pos(final_target),
+                true)
         AchievementManager.end_card_damage_window()
         # The card's damage has NOW landed - Card.play() deliberately skipped this emit
         # because the hit was still in the air (see Events.card_damage_resolved).
