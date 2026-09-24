@@ -1005,6 +1005,9 @@ func _ready():
     # instead of clipping at the RichTextLabel's fixed width (fit_content grows height).
     roll_history.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
 
+    # Give the emanation's tweened uniforms a real value before anything tweens them. No
+    # change in game - see the function for why headless runs need it.
+    _seed_emanation_params()
     # Bounds of the slot-row clearance come from the row's real rect, once layout settles.
     _sync_emanation_row_clearance.call_deferred()
 
@@ -3281,6 +3284,26 @@ func _update_emanation_colors() -> void:
     mat.set_shader_parameter("deep_color", DicePalette.outline(dice_type))
     var speed: float = EMANATION_BASE_SPEED.get(dice_type, EMANATION_BASE_SPEED_DEFAULT)
     mat.set_shader_parameter("base_speed", speed)
+
+# Gives every emanation uniform that code TWEENS a real starting value. dice.tscn only
+# authors rect_size and die_center_uv, and a tween that starts from an unassigned (null)
+# shader parameter fails ("Type mismatch between initial and final value: Nil and float").
+#
+# In game this never bit: the material is resource_local_to_scene, and the copy made at
+# instantiation picks up the renderer's uniform defaults, so all five already read 0.0
+# (measured in a windowed run, 2026-09-24). Under --headless the dummy renderer reports no
+# defaults, so they stayed null: two errors on every power change, charge frozen at 0, a
+# charge delivered before the fight's first roll crashed in _on_charge_delivered
+# (.set_trans() on a null tweener, skipping the absorb beat), and every gust crashed in
+# _fire_gust (.from() on null - nothing else ever writes gust_radius).
+# Seeding with the shader's own defaults makes headless harnesses match the game and
+# changes nothing on screen. A newly tweened emanation uniform belongs in this list.
+func _seed_emanation_params() -> void:
+    var mat := emanation.material as ShaderMaterial
+    if mat == null:
+        return
+    for param: String in ["charge", "charge_heat", "surge", "gust", "gust_radius"]:
+        mat.set_shader_parameter(param, 0.0)
 
 # The emanation shader fades its light out beneath the dice-type slot row so the row stays
 # readable. Those bounds are read from the row's REAL rect instead of being baked into the
