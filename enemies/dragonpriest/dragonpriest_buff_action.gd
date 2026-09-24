@@ -9,6 +9,9 @@ func perform_action() -> void:
     if not enemy or not target:
         return
 
+    # Block/buff turns get a body beat too (2026-09-23): see Enemy.play_brace/play_flex.
+    enemy.play_flex()
+
     var target_array: Array[Node] = [target]
     var status_effect := StatusEffect.new()
     var canalize := CANALIZE_STATUS.duplicate()

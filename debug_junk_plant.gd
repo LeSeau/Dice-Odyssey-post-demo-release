@@ -208,8 +208,10 @@ func _section_a() -> void:
 	check("the hold is a readable beat, not a blink", Global.JUNK_PLANT_PRESENT_TIME >= 1.0
 			and Global.JUNK_PLANT_PRESENT_TIME <= 2.0)
 	var src := FileAccess.get_file_as_string(WHISPER_SCRIPT_PATH)
+	# Since 2026-09-23 every attack goes through EnemyAction.run_attack(), whose `hold` argument is
+	# the old tween_interval before the walk-back.
 	check("the Whisper action holds its lunge on the SAME constant",
-			src.contains("tween_interval(Global.JUNK_PLANT_PRESENT_TIME)"))
+			src.contains("run_attack(") and src.contains("Global.JUNK_PLANT_PRESENT_TIME"))
 	check("...and no longer on the old flat 0.25s", not src.contains("tween_interval(0.25)"))
 	# The presentation is pictures only now: no caption font, no caption copy left in the file.
 	var presenter_src := FileAccess.get_file_as_string("res://scenes/ui/junk_plant_presenter.gd")
@@ -243,7 +245,10 @@ func _section_b() -> void:
 	if faces.is_empty():
 		return
 	var face: CardMenuUI = faces[0]
-	check("it is the real card: title reads its name", face.title.text == "Slander", face.title.text)
+	# Read off the card resource: the junk card was renamed Slander -> Shade on 2026-09-09 and a
+	# hard-coded "Slander" here kept failing a presentation that was fine.
+	check("it is the real card: title reads its name", face.title.text == card.name,
+			"%s vs %s" % [face.title.text, card.name])
 	check("it wears the Hex chrome (frame)", face.card_frame.get_theme_stylebox("panel") == face.HEX_STYLEBOX)
 	check("it wears the Hex chrome (banner)", face.card_banner.get_theme_stylebox("panel") == face.HEX_BANNER_STYLEBOX)
 	check("born small at the enemy (conjure in progress)", face.scale.x < 0.7, "scale %.2f" % face.scale.x)
@@ -451,12 +456,17 @@ func _section_h() -> void:
 	var lunge_x := INF
 	sl.do_turn()
 	var t0 := _game_clock
+	# The attack motion (enemy_attack_motion.gd, 2026-09-23) recoils ~18px off the hero right
+	# after contact and settles there, so the held spot is read once the recoil has settled -
+	# measuring from the contact frame itself would mistake the recoil for the walk-back.
+	var recoil_settle: float = 0.25
 	while _game_clock - t0 < 4.0:
 		await get_tree().process_frame
 		if t_plant < 0.0 and _battle.char_stats.discard.cards.size() > before:
 			t_plant = _game_clock
+		elif t_plant >= 0.0 and lunge_x == INF and _game_clock - t_plant >= recoil_settle:
 			lunge_x = sl.global_position.x
-		elif t_plant >= 0.0 and t_return < 0.0 and sl.global_position.x > lunge_x + 0.05:
+		elif lunge_x != INF and t_return < 0.0 and sl.global_position.x > lunge_x + 0.05:
 			t_return = _game_clock
 		if t_return >= 0.0 and _finished.size() >= 1 and sl.global_position.distance_to(home) < 2.0:
 			break

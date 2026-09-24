@@ -67,3 +67,33 @@ func perform_action() -> void:
 
 func update_intent_text() -> void:
     intent.current_text = intent.base_text
+
+
+# ---------------------------------------------------------------------------------------------
+# Attack motion (2026-09-23). Every attack script used to hand-build the same glide tween; they
+# all go through here now, so how an enemy swings is tuned in ONE place
+# (scenes/enemy/enemy_attack_motion.gd).
+#
+# steps - exactly what used to sit between the arrival and the return in the old tween: a
+#         Callable runs on a contact, consecutive Callables share one contact (damage + a status),
+#         and a number is the gap before the NEXT contact (a multi-hit's later blow).
+# hold  - how long the attacker stays after its last contact before going home.
+# power - the per-hit damage, only used to size the wind-up (bigger hits coil longer).
+# motion - LUNGE for melee, CAST for casters (they throw a bolt instead of running over).
+#
+# Emits Events.enemy_action_completed when the motion ends, like the old tween did.
+# ---------------------------------------------------------------------------------------------
+enum Motion { LUNGE, CAST }
+
+const AttackMotion := preload("res://scenes/enemy/enemy_attack_motion.gd")
+const CAST_COLOR_DEFAULT := Color(0.75, 0.55, 1.0)
+
+
+func run_attack(steps: Array, hold := 0.25, power := 0, motion := Motion.LUNGE,
+        cast_color := CAST_COLOR_DEFAULT) -> void:
+    if enemy == null or not is_instance_valid(enemy) or target == null or not is_instance_valid(target):
+        return
+    if motion == Motion.CAST:
+        AttackMotion.cast(enemy, target, steps, hold, power, cast_color)
+    else:
+        AttackMotion.lunge(enemy, target, steps, hold, power)

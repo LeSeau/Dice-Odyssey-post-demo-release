@@ -20,21 +20,11 @@ func perform_action() -> void:
     if not is_instance_valid(enemy) or not is_instance_valid(target):
         return
 
-    var tween := create_tween().set_trans(Tween.TRANS_QUINT)
-    var start := enemy.global_position
-    var end := target.global_position + Vector2.RIGHT * 32
     var damage_effect := DamageEffect.new()
     var target_array: Array[Node] = [target]
     damage_effect.amount = modifiers.get_modified_value(damage, Modifier.Type.DMG_DEALT)
     damage_effect.sound = sound
-    tween.tween_property(enemy, "global_position", end, 0.4)
-    tween.tween_callback(damage_effect.execute.bind(target_array))
-    tween.tween_interval(0.25)
-    tween.tween_property(enemy, "global_position", start, 0.4)
-    tween.finished.connect(
-        func():
-            Events.enemy_action_completed.emit(enemy)
-    )
+    run_attack([damage_effect.execute.bind(target_array)], 0.25, damage_effect.amount)
 
 
 func update_intent_text() -> void:

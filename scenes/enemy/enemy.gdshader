@@ -26,6 +26,21 @@ uniform float drift_px = 0.0;     // whole-body hover, floaters (Kraken) only
 uniform float drift_hz = 0.25;
 uniform float sway_phase = 0.0;   // per-enemy random time offset so groups never sync
 uniform float sway_speed = 1.0;   // per-enemy speed jitter
+// Band ripple (2026-09-23): a travelling wave confined to one rectangle of the sprite, so parts
+// that should move on their own (tentacles, snake hair, a flame mane) do, while the body leans
+// as one piece above. ripple_band = (x_lo, x_hi, h_lo, h_hi) in texture UV, with h measured
+// like everywhere else here: 0 at the feet, 1 at the top. The weight is 0 where the band meets
+// the body and grows toward the free end, so there is never a seam. Off (0) by default.
+uniform float ripple_px = 0.0;    // horizontal displacement at the free end, TEXTURE pixels
+uniform float ripple_hz = 0.5;
+uniform float ripple_waves = 1.0; // wavelengths along the band
+uniform vec4 ripple_band = vec4(0.0, 1.0, 0.0, 0.4);
+uniform float ripple_free_top = 0.0; // 0: free end at the band's bottom (tentacles), 1: at its top (hair, flames)
+// Additive body flash (2026-09-23) for attack/guard/buff beats. modulate cannot do this job:
+// fragment() below overwrites COLOR with the raw texture, so it discards modulate entirely.
+// Weighted by the texel's alpha so the outline and transparent pixels never light up.
+uniform vec4 flash_color : source_color = vec4(1.0, 1.0, 1.0, 1.0);
+uniform float flash_amount = 0.0;
 // Bottom-anchored virtual margin: top/side sampling is inset by this many pixels so
 // displaced content can't clip at the texture edge on tightly-trimmed art. v=1 (the
 // feet line) maps exactly to itself, so grounding stays pixel-identical.
@@ -52,6 +67,18 @@ vec2 sway_uv(vec2 raw_uv, vec2 tex_size) {
 	// together and the lower body stretches to cover, feet planted.
 	float inhale = sin(TAU * breathe_hz * t) * 0.5 + 0.5;
 	float dy = (breathe_px * smoothstep(0.0, 0.6, h) * inhale + drift_px * sin(TAU * drift_hz * t + 0.4)) / tex_size.y;
+
+	if (ripple_px > 0.0) {
+		float band_h = max(ripple_band.w - ripple_band.z, 0.001);
+		float s = clamp((h - ripple_band.z) / band_h, 0.0, 1.0);
+		// 0 where the band is attached to the body, 1 at the free end
+		float free_s = mix(1.0 - s, s, ripple_free_top);
+		float mx = smoothstep(ripple_band.x - 0.05, ripple_band.x + 0.05, uv.x)
+				* (1.0 - smoothstep(ripple_band.y - 0.05, ripple_band.y + 0.05, uv.x));
+		float w = pow(free_s, 1.5) * mx;
+		// The wave travels toward the free end, like a tentacle curling or a flame licking up.
+		dx += ripple_px * w * sin(TAU * ripple_hz * t - free_s * TAU * ripple_waves) / tex_size.x;
+	}
 
 	return vec2(uv.x - dx, uv.y + dy);
 }
@@ -91,5 +118,6 @@ void fragment() {
 		COLOR = outline_color;
 	} else {
 		COLOR = tex_color;
+		COLOR.rgb += flash_color.rgb * flash_amount * tex_color.a;
 	}
 }

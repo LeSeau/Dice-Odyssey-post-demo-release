@@ -29,27 +29,17 @@ func perform_action() -> void:
     if not enemy or not target:
         return
 
-    var tween := create_tween().set_trans(Tween.TRANS_QUINT)
-    var start := enemy.global_position
-    var end := target.global_position + Vector2.RIGHT * 32
     var damage_effect := DamageEffect.new()
     damage_effect.amount = modifiers.get_modified_value(base_damage, Modifier.Type.DMG_DEALT)
     var target_array: Array[Node] = [target]
     damage_effect.sound = sound
     Global.has_blocked_last_turn = false
 
-    # A longer wind-up than her other beats: this is the one the player is meant to see
-    # coming and answer, so it gets its own beat of anticipation before the lunge.
-    tween.tween_interval(0.25)
-    tween.tween_property(enemy, "global_position", end, 0.35)
-    tween.tween_callback(damage_effect.execute.bind(target_array))
-    tween.tween_interval(0.25)
-    tween.tween_property(enemy, "global_position", start, 0.4)
-
-    tween.finished.connect(
-        func():
-            Events.enemy_action_completed.emit(enemy)
-    )
+    # The one beat the player is meant to see coming and answer. It no longer runs at the hero:
+    # she stays put and the gaze travels as a bolt, and its 22 damage lands on the HUGE rung,
+    # which gives it the longest charge in the game (enemy_attack_motion.gd CAST_CHARGE).
+    run_attack([damage_effect.execute.bind(target_array)],
+            0.25, damage_effect.amount, Motion.CAST, Color(0.95, 0.9, 0.45))
 
 
 func update_intent_text() -> void:

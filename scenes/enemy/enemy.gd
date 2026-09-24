@@ -788,6 +788,13 @@ func update_enemy() -> void:
         _ground_shadow.position = Vector2(content_center_x_local, feet_line_y + 5.0)
         _ground_shadow.scale = Vector2(shadow_width / 256.0, shadow_width * 0.24 / 256.0)
 
+        # Pose pivot (lean/crouch happen around the visible feet), body size (where a caster's
+        # bolt gathers) and the centre-to-feet distance (keeps the hit squash planted).
+        _feet_pivot = Vector2(content_center_x_local, feet_line_y)
+        _content_size_local = Vector2(content_width, content_height)
+        _sprite_feet_below_center = content_bottom_from_center
+        _apply_pose()
+
         _update_sway_params(final_scale)
     else:
         sprite_2d.position.y = sprite_y_offset
@@ -833,6 +840,52 @@ func _update_sway_params(final_scale: float) -> void:
     _base_sprite_material.set_shader_parameter("breathe_hz", preset["breathe_hz"])
     _base_sprite_material.set_shader_parameter("drift_px", preset["drift_px"] * to_tex)
     _base_sprite_material.set_shader_parameter("margin_px", 6.0 * to_tex)
+    _update_ripple_params(to_tex)
+    # Seed the flash uniforms so the setters above always have something to write over.
+    _base_sprite_material.set_shader_parameter("flash_color", body_flash_color)
+    _base_sprite_material.set_shader_parameter("flash_amount", body_flash)
+
+
+# Band ripple (2026-09-23): the part of the drawing that should move on its own. Keyed on the
+# ART path, not the enemy name - the band belongs to one drawing, and the act-2 reskin swaps the
+# art, which correctly turns the ripple off for art nobody has tuned a band on.
+# band = (x_lo, x_hi, h_lo, h_hi) measured on the art's CONTENT box (its alpha bbox), h from 0 at
+# the feet to 1 at the top - converted to texture UV below, since textures carry padding.
+# px is in SCREEN pixels at the free end, like the sway archetypes.
+const RIPPLE_BY_ART := {
+    # Tentacles, free at the bottom.
+    "res://small_octopus_jenya.png": {"px": 5.0, "hz": 0.45, "waves": 1.0, "band": Vector4(0.0, 1.0, 0.0, 0.48), "free_top": 0.0},
+    "res://medium_octopus_jenya.png": {"px": 5.0, "hz": 0.42, "waves": 1.0, "band": Vector4(0.0, 1.0, 0.0, 0.55), "free_top": 0.0},
+    "res://leviathan_jenya.png": {"px": 6.0, "hz": 0.35, "waves": 1.1, "band": Vector4(0.0, 1.0, 0.0, 0.45), "free_top": 0.0},
+    # Snake hair above the face, free at the top.
+    "res://medusa_perfect_v2.png": {"px": 3.5, "hz": 0.8, "waves": 1.4, "band": Vector4(0.0, 1.0, 0.74, 1.0), "free_top": 1.0},
+    # Flame mane and tail, not the head (x from 0.3 leaves the head on the left alone).
+    "res://hound_perfect_v2.png": {"px": 4.0, "hz": 1.0, "waves": 1.8, "band": Vector4(0.3, 1.0, 0.55, 1.0), "free_top": 1.0},
+    # Oculus's crown of flame above the eye.
+    "res://oculus.png": {"px": 4.0, "hz": 1.0, "waves": 1.6, "band": Vector4(0.0, 1.0, 0.62, 1.0), "free_top": 1.0},
+}
+
+
+func _update_ripple_params(to_tex: float) -> void:
+    var tex := sprite_2d.texture
+    var cfg: Dictionary = RIPPLE_BY_ART.get(tex.resource_path if tex != null else "", {})
+    if cfg.is_empty():
+        _base_sprite_material.set_shader_parameter("ripple_px", 0.0)
+        return
+    var tex_size: Vector2 = tex.get_size()
+    var content := _get_content_rect(tex)
+    var band: Vector4 = cfg["band"]
+    var u0: float = content.position.x / tex_size.x
+    var uw: float = content.size.x / tex_size.x
+    # h = 1 - v; the content's bottom edge sits at h = 1 - end.y / height.
+    var h0: float = 1.0 - content.end.y / tex_size.y
+    var hh: float = content.size.y / tex_size.y
+    var tex_band := Vector4(u0 + band.x * uw, u0 + band.y * uw, h0 + band.z * hh, h0 + band.w * hh)
+    _base_sprite_material.set_shader_parameter("ripple_px", float(cfg["px"]) * to_tex)
+    _base_sprite_material.set_shader_parameter("ripple_hz", float(cfg["hz"]))
+    _base_sprite_material.set_shader_parameter("ripple_waves", float(cfg["waves"]))
+    _base_sprite_material.set_shader_parameter("ripple_band", tex_band)
+    _base_sprite_material.set_shader_parameter("ripple_free_top", float(cfg["free_top"]))
 
 
 func update_intent() -> void:
@@ -841,15 +894,181 @@ func update_intent() -> void:
         intent_ui.update_intent(current_action.intent)
 
 
+# ===========================================================================
+# BODY POSE (2026-09-23) - attack wind-ups, braces and flexes
+#
+# One channel, SpriteRoot, posed around the FEET: a lean (radians, + = away from the hero,
+# since enemies face left), a scale and a small shift. Around the feet so a crouch or a
+# lean never lifts the creature off the ground line. Other channels stay untouched:
+# the root position belongs to knockback and the attack motion, Sprite2D.scale to the hit
+# squash, and the idle is a shader deformation, so none of them can fight this one.
+# ===========================================================================
+var pose_lean := 0.0 : set = _set_pose_lean
+var pose_scale := Vector2.ONE : set = _set_pose_scale
+var pose_shift := Vector2.ZERO : set = _set_pose_shift
+# Additive body tint on the shader (flash_color/flash_amount): modulate cannot light an enemy up,
+# because enemy.gdshader overwrites COLOR with the raw texture and discards it.
+var body_flash := 0.0 : set = _set_body_flash
+var body_flash_color := Color.WHITE : set = _set_body_flash_color
+# True while an attack motion owns this enemy's root position (see enemy_attack_motion.gd).
+var attack_motion_active := false
+
+# Enemy-local points measured in update_enemy(). Defaults only matter before the first sizing.
+var _feet_pivot := Vector2(124.0, 0.0)
+var _content_size_local := Vector2(160.0, 200.0)
+var _sprite_feet_below_center := 0.0
+var _pose_tween: Tween
+var _intent_flare_tween: Tween
+
+const INTENT_FLARE_COLOR := Color(2.0, 1.85, 1.5, 1.0)
+const BRACE_FLASH_COLOR := Color(0.55, 0.78, 1.0)
+const FLEX_FLASH_COLOR := Color(1.0, 0.5, 0.2)
+# The flash is ADDED to every pixel of the art (enemy.gdshader), so it is a wash, not a rim. The
+# first pass (0.42 / 0.6) turned the Venom Bloom flat orange and the Lich flat lilac on the render;
+# at these values the art keeps its own colours and the pose carries the beat.
+const BRACE_FLASH_PEAK := 0.22
+const FLEX_FLASH_PEAK := 0.28
+
+
+func _set_pose_lean(value: float) -> void:
+    pose_lean = value
+    _apply_pose()
+
+
+func _set_pose_scale(value: Vector2) -> void:
+    pose_scale = value
+    _apply_pose()
+
+
+func _set_pose_shift(value: Vector2) -> void:
+    pose_shift = value
+    _apply_pose()
+
+
+func _apply_pose() -> void:
+    if sprite_2d == null:
+        return
+    var root := sprite_2d.get_parent() as Node2D
+    if root == null:
+        return
+    var xf := Transform2D(pose_lean, pose_scale, 0.0, Vector2.ZERO)
+    xf.origin = _feet_pivot - xf.basis_xform(_feet_pivot) + pose_shift
+    root.transform = xf
+
+
+func _set_body_flash(value: float) -> void:
+    body_flash = value
+    if _base_sprite_material != null:
+        _base_sprite_material.set_shader_parameter("flash_amount", value)
+
+
+func _set_body_flash_color(value: Color) -> void:
+    body_flash_color = value
+    if _base_sprite_material != null:
+        _base_sprite_material.set_shader_parameter("flash_color", value)
+
+
+# tween_method target: a horizontal shiver whose amplitude rises and falls over t = 0..1.
+func set_pose_tremble(t: float, amplitude: float) -> void:
+    pose_shift = Vector2(sin(t * TAU * 7.0) * amplitude * sin(t * PI), 0.0)
+
+
+# Where a caster's bolt gathers: in front of the body (toward the hero, on the left) at
+# roughly chest height, in enemy-local space.
+func cast_point_local() -> Vector2:
+    return _feet_pivot + Vector2(-_content_size_local.x * 0.3, -_content_size_local.y * 0.55)
+
+
+func _kill_pose_tween() -> void:
+    if _pose_tween and _pose_tween.is_valid():
+        _pose_tween.kill()
+
+
+func begin_attack_motion() -> void:
+    _kill_pose_tween()
+    # A knockback still easing out would fight the attack for the root position. Snap it home.
+    if _hit_pos_tween and _hit_pos_tween.is_valid():
+        _hit_pos_tween.kill()
+        if _hit_reaction_active:
+            position = _hit_rest_position
+    _hit_reaction_active = false
+    attack_motion_active = true
+
+
+func end_attack_motion() -> void:
+    attack_motion_active = false
+    pose_lean = 0.0
+    pose_scale = Vector2.ONE
+    pose_shift = Vector2.ZERO
+    body_flash = 0.0
+
+
+# The telegraph fires: the intent icon flashes bright the moment the enemy acts on it, so the
+# player's eye goes from the promise to the body delivering it. Modulate on the IntentUI root;
+# nothing else writes it (its bob lives on child slots, its scale belongs to update_enemy()).
+func flare_intent() -> void:
+    if intent_ui == null or not intent_ui.visible:
+        return
+    if _intent_flare_tween and _intent_flare_tween.is_valid():
+        _intent_flare_tween.kill()
+    intent_ui.modulate = INTENT_FLARE_COLOR
+    _intent_flare_tween = create_tween()
+    _intent_flare_tween.tween_property(intent_ui, "modulate", Color.WHITE, 0.35) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+
+# Block turns: the body crouches into its guard and flashes a cool steel (warm when the same
+# beat also grants a buff), then stands back up. Used to stand perfectly still.
+func play_brace(with_buff := false) -> void:
+    if stats == null or stats.health <= 0:
+        return
+    _kill_pose_tween()
+    body_flash_color = FLEX_FLASH_COLOR if with_buff else BRACE_FLASH_COLOR
+    _pose_tween = create_tween()
+    _pose_tween.tween_property(self, "pose_scale", Vector2(1.08, 0.88), 0.09) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    _pose_tween.parallel().tween_property(self, "pose_lean", 0.035, 0.09) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    _pose_tween.parallel().tween_property(self, "body_flash", BRACE_FLASH_PEAK, 0.09)
+    _pose_tween.tween_interval(0.16)
+    _pose_tween.tween_property(self, "pose_scale", Vector2.ONE, 0.3) \
+        .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+    _pose_tween.parallel().tween_property(self, "pose_lean", 0.0, 0.3) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+    _pose_tween.parallel().tween_property(self, "body_flash", 0.0, 0.4) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+
+# Buff turns: the body swells taller, shivers with it and glows warm, then settles.
+func play_flex() -> void:
+    if stats == null or stats.health <= 0:
+        return
+    _kill_pose_tween()
+    body_flash_color = FLEX_FLASH_COLOR
+    _pose_tween = create_tween()
+    _pose_tween.tween_property(self, "pose_scale", Vector2(1.06, 1.12), 0.13) \
+        .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+    _pose_tween.parallel().tween_property(self, "body_flash", FLEX_FLASH_PEAK, 0.1)
+    _pose_tween.tween_method(set_pose_tremble.bind(2.5), 0.0, 1.0, 0.2)
+    _pose_tween.tween_property(self, "pose_scale", Vector2.ONE, 0.3) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+    _pose_tween.parallel().tween_property(self, "pose_shift", Vector2.ZERO, 0.08)
+    _pose_tween.parallel().tween_property(self, "body_flash", 0.0, 0.45) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+
 func do_turn() -> void:
     stats.block = 0
 
     if not current_action:
         return
 
+    flare_intent()
+
     # Thorned Plate needs to know who threw the punch: the damage pipeline only carries an
     # amount, never a source. Set around the action and cleared after, so anything happening
-    # outside an enemy's turn (a card backfiring on the player) leaves it null.
+    # outside an enemy's turn (a card backfiring on the player) leaves it null. Attacks resolve
+    # their damage LATER than this (at contact), so enemy_attack_motion.gd sets it again there.
     Global.acting_enemy = self
     current_action.perform_action()
     Global.acting_enemy = null
@@ -873,7 +1092,7 @@ func take_damage(damage: int, which_modifier: Modifier.Type) -> void:
     Global.blocked_to_display = mini(stats.block, modified_damage)
     Global.damage_to_display = modified_damage - Global.blocked_to_display
 
-    _play_hit_reaction()
+    _play_hit_reaction(modified_damage)
     _spawn_hit_smear(modified_damage)
     stats.take_damage(modified_damage)
 
@@ -1505,30 +1724,59 @@ func _spawn_flurry(damage: int) -> void:
 # Directional knockback + sprite squash on hit. Knockback rides self.position (the same
 # property Shaker.shake uses safely), squash rides Sprite2D.scale directly - the idle is
 # a shader deformation now, so nothing else fights over these transforms.
-func _play_hit_reaction() -> void:
-    if not _hit_reaction_active:
-        _hit_rest_position = position
-        _hit_rest_sprite_scale = sprite_2d.scale
-        _hit_reaction_active = true
+# Knockback and squash per Shaker.Impact rung of the hit (2026-09-23). Was a flat 16px and
+# 1.15/0.85 for every hit, 1 damage or 40 - the last hit reaction in combat that did not scale.
+# The MEDIUM rung is the old value, so a routine hit reads exactly as before; taps now barely
+# nudge and big blows rock the body. Typed reads: indexing a const Array yields Variant.
+const HIT_KNOCKBACK_BY_TIER: Array[float] = [6.0, 10.0, 16.0, 26.0, 38.0]
+const HIT_SQUASH_BY_TIER: Array[Vector2] = [
+    Vector2(1.04, 0.95), Vector2(1.08, 0.91), Vector2(1.15, 0.85), Vector2(1.2, 0.82), Vector2(1.25, 0.78)]
 
-    if _hit_pos_tween and _hit_pos_tween.is_valid():
-        _hit_pos_tween.kill()
+var _hit_squash_active := false
+var _hit_rest_sprite_y := 0.0
+
+
+func _play_hit_reaction(amount: int = 10) -> void:
+    var tier := clampi(int(Shaker.impact_for_damage(amount)), 0, 4)
+    var knock: float = HIT_KNOCKBACK_BY_TIER[tier]
+    var squash: Vector2 = HIT_SQUASH_BY_TIER[tier]
+
+    # While this enemy is mid-attack the motion owns its root position (a thorns reflect lands
+    # at contact) - two writers on `position` would yank it across the screen. Squash only.
+    if not attack_motion_active:
+        if not _hit_reaction_active:
+            _hit_rest_position = position
+            _hit_reaction_active = true
+        if _hit_pos_tween and _hit_pos_tween.is_valid():
+            _hit_pos_tween.kill()
+        # Enemies sit to the right of the player, so they recoil rightward (+x).
+        _hit_pos_tween = create_tween()
+        _hit_pos_tween.tween_property(self, "position", _hit_rest_position + Vector2(knock, 0), 0.05) \
+            .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+        _hit_pos_tween.tween_property(self, "position", _hit_rest_position, 0.3) \
+            .set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+        _hit_pos_tween.tween_callback(func(): _hit_reaction_active = false)
+
+    if not _hit_squash_active:
+        _hit_rest_sprite_scale = sprite_2d.scale
+        _hit_rest_sprite_y = sprite_2d.position.y
+        _hit_squash_active = true
     if _hit_squash_tween and _hit_squash_tween.is_valid():
         _hit_squash_tween.kill()
-
-    # Enemies sit to the right of the player, so they recoil rightward (+x).
-    _hit_pos_tween = create_tween()
-    _hit_pos_tween.tween_property(self, "position", _hit_rest_position + Vector2(16, 0), 0.05) \
-        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-    _hit_pos_tween.tween_property(self, "position", _hit_rest_position, 0.3) \
-        .set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
-    _hit_pos_tween.tween_callback(func(): _hit_reaction_active = false)
-
     _hit_squash_tween = create_tween()
-    _hit_squash_tween.tween_property(sprite_2d, "scale", Vector2(_hit_rest_sprite_scale.x * 1.15, _hit_rest_sprite_scale.y * 0.85), 0.05) \
+    _hit_squash_tween.tween_method(_set_hit_squash, Vector2.ONE, squash, 0.05) \
         .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-    _hit_squash_tween.tween_property(sprite_2d, "scale", _hit_rest_sprite_scale, 0.28) \
+    _hit_squash_tween.tween_method(_set_hit_squash, squash, Vector2.ONE, 0.28) \
         .set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+    _hit_squash_tween.tween_callback(func(): _hit_squash_active = false)
+
+
+# The sprite scales about its CENTRE, so squashing it used to lift the feet off the ground line
+# by (1 - k.y) of the centre-to-feet distance - 19px on a routine hit, and the bigger rungs above
+# would have floated it further. Moving the sprite down by that much keeps the feet planted.
+func _set_hit_squash(k: Vector2) -> void:
+    sprite_2d.scale = _hit_rest_sprite_scale * k
+    sprite_2d.position.y = _hit_rest_sprite_y + (1.0 - k.y) * _sprite_feet_below_center
 
 
 func _on_area_entered(_area: Area2D) -> void:

@@ -31,6 +31,9 @@ func perform_action() -> void:
 	if not enemy or not target:
 		return
 
+	# Block/buff turns get a body beat too (2026-09-23): see Enemy.play_brace/play_flex.
+	enemy.play_brace(true)
+
 	var block_effect := BlockEffect.new()
 	block_effect.amount = block
 	block_effect.sound = sound

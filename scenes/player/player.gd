@@ -474,7 +474,7 @@ func _process(delta: float) -> void:
     if _die_bob == null:
         return
     _die_bob_phase += delta * TAU / DIE_BOB_PERIOD
-    _die_bob.position.y = sin(_die_bob_phase) * DIE_BOB_AMPLITUDE
+    _die_bob.position.y = sin(_die_bob_phase) * DIE_BOB_AMPLITUDE + _die_squash_follow_y
 
 
 # --- Die strike ----------------------------------------------------------------------------
@@ -735,7 +735,7 @@ func take_damage(damage: int, which_modifier: Modifier.Type) -> void:
     Global.blocked_to_display = mini(stats.block, modified_damage)
     Global.damage_to_display = modified_damage - Global.blocked_to_display
 
-    _play_hit_reaction()
+    _play_hit_reaction(modified_damage)
     stats.take_damage(modified_damage)
     Events.hp_changed.emit()
 
@@ -760,13 +760,30 @@ func take_damage(damage: int, which_modifier: Modifier.Type) -> void:
 # Knockback + squash on hit. self.position and Sprite2D.scale are both free of the idle
 # (a shader-side deformation since 2026-07-23 - nothing animates SpriteRoot anymore),
 # so neither tween fights it.
-func _play_hit_reaction() -> void:
+# Knockback and squash per Shaker.Impact rung of the blow (2026-09-23), mirroring Enemy. Was a
+# flat 16px and 1.15/0.85 for a 1-damage chip and a 28-damage Ink Tide alike; now that enemies
+# slam in at full speed, the hero has to be rocked in proportion. MEDIUM is the old value.
+# Typed reads: indexing a const Array yields Variant.
+const HIT_KNOCKBACK_BY_TIER: Array[float] = [6.0, 10.0, 16.0, 24.0, 34.0]
+const HIT_SQUASH_BY_TIER: Array[Vector2] = [
+    Vector2(1.04, 0.95), Vector2(1.08, 0.91), Vector2(1.15, 0.85), Vector2(1.18, 0.82), Vector2(1.22, 0.79)]
+var _hit_rest_sprite_y := 0.0
+var _hit_feet_below_center := 0.0
+var _die_squash_follow_y := 0.0
+
+
+func _play_hit_reaction(amount: int = 10) -> void:
+    var tier := clampi(int(Shaker.impact_for_damage(amount)), 0, 4)
+    var knock: float = HIT_KNOCKBACK_BY_TIER[tier]
+    var squash: Vector2 = HIT_SQUASH_BY_TIER[tier]
     # Shares the body's single position tween slot with the attack lunge, and the same
     # canonical rest - so being hit mid-lunge (or lunging mid-recoil) still lands the hero
     # back exactly where he started instead of adopting a mid-animation spot as home.
     _capture_body_rest()
     if not _hit_squash_active:
         _hit_rest_sprite_scale = sprite_2d.scale
+        _hit_rest_sprite_y = sprite_2d.position.y
+        _hit_feet_below_center = _sprite_feet_below_center()
         _hit_squash_active = true
 
     if _body_move_tween and _body_move_tween.is_valid():
@@ -776,15 +793,15 @@ func _play_hit_reaction() -> void:
 
     # Player sits to the left of the enemies, so recoils leftward (-x).
     _body_move_tween = create_tween()
-    _body_move_tween.tween_property(self, "position", _body_rest_position + Vector2(-16, 0), 0.05) \
+    _body_move_tween.tween_property(self, "position", _body_rest_position + Vector2(-knock, 0), 0.05) \
         .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
     _body_move_tween.tween_property(self, "position", _body_rest_position, 0.3) \
         .set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
 
     _hit_squash_tween = create_tween()
-    _hit_squash_tween.tween_property(sprite_2d, "scale", Vector2(_hit_rest_sprite_scale.x * 1.15, _hit_rest_sprite_scale.y * 0.85), 0.05) \
+    _hit_squash_tween.tween_method(_set_hit_squash, Vector2.ONE, squash, 0.05) \
         .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-    _hit_squash_tween.tween_property(sprite_2d, "scale", _hit_rest_sprite_scale, 0.28) \
+    _hit_squash_tween.tween_method(_set_hit_squash, squash, Vector2.ONE, 0.28) \
         .set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
     # Released so the next hit re-reads the resting scale: the debug hero swap rewrites
     # sprite_2d.scale, and a value cached before that swap would squash to the wrong size.
@@ -794,6 +811,30 @@ func _play_hit_reaction() -> void:
     # on the pivot (and inherits its guard: a die that is currently mid-strike stays in the
     # air rather than being yanked back to the palm to flinch).
     punch_held_die(DIE_FLINCH_STRENGTH)
+
+
+# The sprite scales about its centre, so a squash lifts the feet off the ground by (1 - k.y) of
+# the centre-to-feet distance. Moving it down by that much keeps the hero planted, which matters
+# more now that big hits squash deeper.
+func _set_hit_squash(k: Vector2) -> void:
+    sprite_2d.scale = _hit_rest_sprite_scale * k
+    sprite_2d.position.y = _hit_rest_sprite_y + (1.0 - k.y) * _hit_feet_below_center
+    # The held die hovers over the palm but is NOT scaled with the body, so it has to be carried
+    # down with the palm by hand: a point at offset o from the sprite centre moves by
+    # (1 - k.y) * (feet_below - o) once the planted squash is applied.
+    if _die_bob != null:
+        var die_offset_y: float = _die_rest_position.y - _hit_rest_sprite_y
+        _die_squash_follow_y = (1.0 - k.y) * (_hit_feet_below_center - die_offset_y)
+
+
+# Distance from the sprite's centre down to the art's visible feet, in the sprite's parent space.
+func _sprite_feet_below_center() -> float:
+    if sprite_2d == null or sprite_2d.texture == null:
+        return 0.0
+    var tex_size: Vector2 = sprite_2d.texture.get_size()
+    var content: Rect2 = Enemy._get_content_rect(sprite_2d.texture)
+    return (content.end.y - tex_size.y / 2.0) * sprite_2d.scale.y
+
 
 func _on_event_damage(amount):
     print("taking damage from event")
