@@ -1,5 +1,7 @@
 extends Node
 
+const CaptureRig := preload("res://global/capture_rig.gd")
+
 # Achievement system (autoload "AchievementManager"). Profile-scoped, not run-scoped:
 # unlocks + lifetime counters persist in user://achievements.cfg across runs, mirroring
 # SettingsManager's storage. Unlike SettingsManager/SaveManager this is a Node autoload
@@ -257,6 +259,10 @@ func unlock(id: String) -> void:
 	# (tutorial_director.gd), so nothing is lost, just deferred.
 	if Global.tutorial_on:
 		return
+	# An F12 capture take is staged with forced rolls and a rigged deck - nothing it does
+	# is earned (global/capture_rig.gd).
+	if CaptureRig.active:
+		return
 	if _unlocked.get(id, false):
 		return
 	var def := _find_def(id)
@@ -276,7 +282,7 @@ func is_unlocked(id: String) -> bool:
 # Lifetime counters (power_generated / power_refueled). Auto-unlocks any achievement
 # whose "stat" matches once its target is reached.
 func add_stat(key: String, amount: int) -> void:
-	if amount <= 0:
+	if amount <= 0 or CaptureRig.active:
 		return
 	_stats[key] = int(_stats.get(key, 0)) + amount
 	_dirty = true

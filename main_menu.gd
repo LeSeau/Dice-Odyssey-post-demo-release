@@ -15,8 +15,13 @@ extends Control
 
 
 const RUN_SCENE := preload("res://scenes/run/run.tscn")
+const CaptureRig := preload("res://global/capture_rig.gd")
+
+var _capture_starting := false
 
 func _ready()  -> void:
+    # Back on the menu = any F12 capture session is over, so the next New Run is a real run.
+    CaptureRig.end()
     var main_menu_theme = preload("res://main_menu_theme_v2.ogg")
     SFXPlayer.play(main_menu_theme)
     get_tree().paused = false
@@ -105,6 +110,28 @@ func _start_load_run() -> void:
     # autoload, so the sting keeps playing across the scene change; run.gd reveals.
     await Curtain.cover()
     get_tree().change_scene_to_packed(RUN_SCENE)
+
+# F12 in a debug build: jump straight into the staged Reddit take (global/capture_rig.gd).
+func _unhandled_input(event: InputEvent) -> void:
+    if not OS.is_debug_build():
+        return
+    var key := event as InputEventKey
+    if key == null or not key.pressed or key.echo or key.keycode != CaptureRig.HOTKEY:
+        return
+    get_viewport().set_input_as_handled()
+    _start_capture_take()
+
+
+func _start_capture_take() -> void:
+    if _capture_starting:
+        return
+    _capture_starting = true
+    CaptureRig.begin()
+    Global.tutorial_on = false
+    SFXPlayer.stop()
+    await Curtain.cover()
+    get_tree().change_scene_to_packed(RUN_SCENE)
+
 
 func _on_new_run_pressed() -> void:
     enable_tutorial_panel.show()

@@ -1,6 +1,8 @@
 class_name SaveManager
 extends RefCounted
 
+const CaptureRig := preload("res://global/capture_rig.gd")
+
 # Single-slot run save (v1, designed 2026-07-02, built 2026-07-07). Deliberately scoped to
 # map-screen checkpoints only - never mid-combat (see CLAUDE.md "Système de sauvegarde" for
 # why mid-fight state is a much bigger chantier). run.gd writes a checkpoint every time the
@@ -29,6 +31,9 @@ static func has_save() -> bool:
 
 
 static func write_save(data: Dictionary) -> void:
+    # An F12 capture take is staged, not played: it must never replace the real run save.
+    if CaptureRig.active:
+        return
     data["version"] = SAVE_VERSION
     var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
     if file == null:
@@ -59,5 +64,7 @@ static func read_save() -> Dictionary:
 
 
 static func delete_save() -> void:
+    if CaptureRig.active:
+        return
     if has_save():
         DirAccess.remove_absolute(SAVE_PATH)

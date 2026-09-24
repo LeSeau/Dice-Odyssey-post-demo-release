@@ -10,6 +10,8 @@ extends Control
 # what the inline card glyph means. Same leak-safe pattern as card_ui.gd's tooltips
 # (kill-before-spawn, safety timer, _exit_tree cleanup).
 const PowerTooltipScene := preload("res://scenes/ui/tooltip.tscn")
+# F12 capture rig (debug builds): scripted Blue faces for the Reddit take. See the file.
+const CaptureRig := preload("res://global/capture_rig.gd")
 const POWER_TOOLTIP_POS := Vector2(788, 300)
 var _power_tooltip: Node = null
 @export var dice_type: String = "blue"
@@ -1014,6 +1016,9 @@ func _ready():
     # could forget to switch this on. Shares _cache_die_rest_rect below with the Surge motes.
     _setup_weak_motes()
     _cache_die_rest_rect.call_deferred()
+    # Lucky glints: polled for the same reason as the two above (re-applying Lucky is a bare
+    # duration bump that emits nothing).
+    _setup_lucky_glints()
 
     # Overcharge: the ember timer polls forever and spawns nothing below its tier, same
     # no-signal-to-forget design as the Surge motes above.
@@ -1283,6 +1288,15 @@ func roll_dice():
                     [str(target_value), str(values)])
             forced_index = randi() % values.size()
         roll_index = forced_index
+
+    # Capture rig (F12, debug builds only): the Reddit take's Blue faces, one per Blue roll.
+    # Keyed by type on purpose - the take's Scouted Mech roll and Lucky Red roll must keep
+    # their own mechanics, which the tutorial queue above would override. -1 = not scripted.
+    var capture_value: int = CaptureRig.pop_forced_roll(dice_type)
+    if capture_value != -1:
+        var capture_index: int = values.find(capture_value)
+        if capture_index != -1:
+            roll_index = capture_index
 
     # --- Testing mode: skip animation ---
     if Global.testing_mode:
@@ -3371,6 +3385,8 @@ func _on_player_turn_started() -> void:
     # same player_turn_started, so this is the exact frame the die stops being at 0.5 modulate
     # and becomes the thing the player is looking at.
     _announce_weak_if_pending()
+    # Same frame, same reason: the Goblin applies Unlucky mid-lunge, while the cluster is dimmed.
+    _announce_unlucky_if_pending()
 
 func _on_dice_roll_reset() -> void:
 
@@ -6133,6 +6149,410 @@ func _announce_weak_if_pending() -> void:
         # roll, and every tween on this node is fair game for the kill lists that roll runs.
         # `false` = pauses with the tree, so opening the menu mid-burst does not spray it.
         get_tree().create_timer(delay, false).timeout.connect(_spawn_weak_mote.bind(stacks))
+
+
+# --- Lucky glints ----------------------------------------------------------------------------
+# Julien, 2026-09-23: "dont you think it'd look better if we had a visual cue on the dice when
+# the player has lucky status? kinda like we already do with weak & surge". Asked while staging
+# the Reddit take, whose fourth beat IS Lucky: Catapult grants it, and the Red roll it turns into
+# a 6 is the payoff - with nothing on the die in between, that promise was invisible.
+#
+# Lucky is a PROMISE about the next roll (it lands on the die's best face), so it gets its own
+# verb instead of a third mote stream: Surge RISES, Weak FALLS, Lucky TWINKLES IN PLACE - thin
+# star glints popping on the die's rim like light catching a polished object. A spark that goes
+# nowhere reads as "charmed / shiny", never as energy (Surge) or weight (Weak).
+#
+# GOLD - the max-roll flash's colour, on purpose. lucky.gd spends the status inside roll_dice(),
+# so the glints stop the moment ROLL is pressed, and the landing that follows IS a max roll: the
+# promise and its payoff wear the same colour. Not the die's accent (a spark in the die's own
+# accent is invisible inside that die's light field, measured 2026-08-25) and not bleached
+# (that is Weak's). Surge is warm too, but it is round motes that travel; a four-arm glint that
+# stays put is a different shape doing a different thing.
+#
+# TWO LAYERS, and both are needed. The first render drew the whole glint additive, and on the
+# Blue die gold + blue summed to plain WHITE - the gold, i.e. the part that says "luck", was
+# gone on the most common die. Same failure and same fix as the damage slash: the star is drawn
+# in NORMAL blend so its gold survives any face colour, and a smaller additive core on top makes
+# it read as light rather than paint.
+#
+# Parented to DICE_DISPLAY, unlike the motes (which sit on the root so the hop can't drag them).
+# The opposite is wanted here: glints still alive when ROLL is pressed ride the die into its hop
+# and burn out mid-air instead of hanging where the die used to be.
+#
+# One-shot burst on the rising edge. Unlike Weak, Lucky is gained from the player's OWN play
+# (Catapult, Rigged, Clover Bath, Beanstalk, Prosperity, the Clover relic), so the gain moment is
+# one the player is already watching - announcing it there is enough.
+const LUCKY_GLINT_GOLD := Color(1.0, 0.8, 0.3)
+# The additive core on top of the gold star: warm white, a bit over half the star's size.
+const LUCKY_GLINT_CORE_COLOR := Color(1.0, 0.95, 0.82)
+const LUCKY_GLINT_CORE_SCALE := 0.55
+# How often Lucky is polled. Spawning runs on its own jittered clock inside this poll.
+const LUCKY_POLL := 0.1
+const LUCKY_GLINT_INTERVAL_MIN := 0.22
+const LUCKY_GLINT_INTERVAL_MAX := 0.42
+# Lucky 2+ (Rigged+, stacked grants) twinkles a little faster, capped like the motes.
+const LUCKY_GLINT_ROLLS_CAP := 3
+const LUCKY_GLINT_DENSITY_PER_ROLL := 0.35
+# Big for a 144px die because most of a glint is thin arm: the visible mass is the core and the
+# halo, roughly the middle third. The first render at 38-56 lit 680-1000 px against ~2,600 for
+# the Weak motes on the same die - they rendered and barely registered at 1x.
+const LUCKY_GLINT_SIZE_MIN := 58.0
+const LUCKY_GLINT_SIZE_MAX := 82.0
+const LUCKY_GLINT_ALPHA := 0.95
+# Pop fast, hold a beat, fade slower: without the hold a twinkle is over before the eye lands.
+const LUCKY_GLINT_POP_TIME := 0.11
+const LUCKY_GLINT_HOLD_TIME := 0.07
+const LUCKY_GLINT_FADE_TIME := 0.36
+# Degrees. Each glint starts at a random tilt and turns a little further while it lives.
+const LUCKY_GLINT_TILT := 25.0
+const LUCKY_GLINT_TURN_MIN := 15.0
+const LUCKY_GLINT_TURN_MAX := 40.0
+# The rim the glints sit on: the die's rect inset by this fraction of its width, +/- jitter.
+const LUCKY_GLINT_RIM_INSET := 0.14
+const LUCKY_GLINT_RIM_JITTER := 6.0
+# A new glint keeps clear of every glint still alive (Lucky and Unlucky alike): pure random rim
+# points clustered three in one corner in the first renders, which reads as a rendering blemish
+# rather than a twinkle. Avoiding only the PREVIOUS glint was not enough - the check caught two
+# glints of one burst stacked on the same spot with a third between them.
+const LUCKY_GLINT_PLACE_TRIES := 6
+# Fallback when the ROLL button can't be measured. Measured 2026-09-23 in battle.tscn, the
+# button's top edge sits just BELOW the face's rect, so today the whole face is visible and this
+# fallback is never used; it only matters if the button is ever moved up over the die.
+const LUCKY_GLINT_VISIBLE_FRACTION := 0.78
+# Relative to DiceDisplay (Panel 6 + DiceDisplay 1 + this = 8): the Surge/Weak layer, in front
+# of the face, under DiceInk (11) and the ROLL button (12) - an inked die hides its glints too.
+const LUCKY_GLINT_Z_INDEX := 1
+const LUCKY_GLINT_GROUP := "lucky_glint"
+const LUCKY_ANNOUNCE_COUNT := 6
+const LUCKY_ANNOUNCE_STAGGER := 0.06
+const LUCKY_GLINT_TEXTURE_SIZE := 64
+
+static var _lucky_glint_texture: Texture2D
+var _lucky_timer: Timer
+var _lucky_was_pending := false
+var _lucky_glint_wait := 0.0
+# Height of the die face NOT covered by the ROLL button, in dice_display's local space.
+var _lucky_visible_height := 0.0
+var _unlucky_was_pending := false
+var _unlucky_glint_wait := 0.0
+
+
+func _setup_lucky_glints() -> void:
+    _lucky_timer = Timer.new()
+    _lucky_timer.wait_time = LUCKY_POLL
+    _lucky_timer.timeout.connect(_on_lucky_timer_timeout)
+    add_child(_lucky_timer)
+    _lucky_timer.start()
+    _cache_lucky_visible_height.call_deferred()
+
+
+# Measured once, at rest, after layout: the ROLL button is a sibling of the Panel, so the part of
+# the face it hides has to come from both real rects. A hardcoded fraction would silently go
+# wrong the day either node moves - the same reason the motes derive their spawn line this way.
+func _cache_lucky_visible_height() -> void:
+    var roll_button := get_node_or_null("Button") as Control
+    if roll_button == null or dice_display.size.y <= 0.0:
+        return
+    var covered_from := roll_button.global_position.y - dice_display.global_position.y
+    _lucky_visible_height = clampf(covered_from, 0.0, dice_display.size.y)
+
+
+func _on_lucky_timer_timeout() -> void:
+    _tick_unlucky()
+    var rolls: int = Global.player_lucky_rolls()
+    var pending := rolls > 0
+    if pending and not _lucky_was_pending:
+        _announce_lucky()
+        # The burst already fills the next beat; the ambient clock starts after it.
+        _lucky_glint_wait = LUCKY_ANNOUNCE_STAGGER * float(LUCKY_ANNOUNCE_COUNT) \
+                + _lucky_glint_interval(rolls)
+    elif pending:
+        _lucky_glint_wait -= LUCKY_POLL
+        if _lucky_glint_wait <= 0.0:
+            _spawn_lucky_glint()
+            _lucky_glint_wait = _lucky_glint_interval(rolls)
+    _lucky_was_pending = pending
+
+
+func _lucky_glint_interval(rolls: int) -> float:
+    var extra := float(clampi(rolls, 1, LUCKY_GLINT_ROLLS_CAP) - 1)
+    return randf_range(LUCKY_GLINT_INTERVAL_MIN, LUCKY_GLINT_INTERVAL_MAX) \
+            / (1.0 + LUCKY_GLINT_DENSITY_PER_ROLL * extra)
+
+
+func _announce_lucky() -> void:
+    for i in LUCKY_ANNOUNCE_COUNT:
+        var delay := LUCKY_ANNOUNCE_STAGGER * float(i)
+        if delay <= 0.0:
+            _spawn_lucky_glint()
+            continue
+        # `false` = pauses with the tree, like the Weak announce burst.
+        get_tree().create_timer(delay, false).timeout.connect(_spawn_lucky_glint)
+
+
+func _spawn_lucky_glint() -> void:
+    # Guards the staggered announce timers, which can outlive a battle end.
+    if not is_inside_tree() or dice_display.size == Vector2.ZERO:
+        return
+    # The gold star, NORMAL blend (see "TWO LAYERS" above). Its colour goes on self_modulate so
+    # the plain modulate - which children inherit - carries only the alpha fade; otherwise the
+    # additive core below would be multiplied by gold too and lose its white heat.
+    var glint := TextureRect.new()
+    glint.texture = _get_lucky_glint_texture()
+    glint.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    glint.stretch_mode = TextureRect.STRETCH_SCALE
+    # IGNORE, not the Control default STOP: glints sit over the die and the ROLL button's edge.
+    glint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    glint.z_index = LUCKY_GLINT_Z_INDEX
+    # Group, not a name prefix (Godot renames duplicate siblings to "@LuckyGlint@2").
+    glint.name = "LuckyGlint"
+    glint.add_to_group(LUCKY_GLINT_GROUP)
+    var glint_size := randf_range(LUCKY_GLINT_SIZE_MIN, LUCKY_GLINT_SIZE_MAX)
+    glint.size = Vector2(glint_size, glint_size)
+    glint.pivot_offset = glint.size * 0.5
+    glint.position = _lucky_glint_point() - glint.pivot_offset
+    glint.self_modulate = LUCKY_GLINT_GOLD
+    glint.modulate = Color(1.0, 1.0, 1.0, LUCKY_GLINT_ALPHA)
+    glint.scale = Vector2.ZERO
+    # The additive white-hot core. A child, so it inherits the star's pop, spin and fade for free.
+    var core := TextureRect.new()
+    core.texture = glint.texture
+    core.material = DicePalette.additive_material()
+    core.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    core.stretch_mode = TextureRect.STRETCH_SCALE
+    core.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    core.size = glint.size * LUCKY_GLINT_CORE_SCALE
+    core.position = (glint.size - core.size) * 0.5
+    core.self_modulate = LUCKY_GLINT_CORE_COLOR
+    glint.add_child(core)
+    var tilt := randf_range(-LUCKY_GLINT_TILT, LUCKY_GLINT_TILT)
+    var turn := randf_range(LUCKY_GLINT_TURN_MIN, LUCKY_GLINT_TURN_MAX) \
+            * (1.0 if randf() < 0.5 else -1.0)
+    glint.rotation_degrees = tilt
+    dice_display.add_child(glint)
+
+    # Bound to the glint, not to this node: it lives and dies with the glint, and nothing that
+    # kills this node's roll tweens can strand one half-grown.
+    var t := glint.create_tween()
+    # Two steps, each with its own parallel legs. A single rotation leg spanning both would hold
+    # step one open until it finished, delaying the fade (a step waits for its longest tweener).
+    t.tween_property(glint, "scale", Vector2.ONE, LUCKY_GLINT_POP_TIME) \
+            .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+    t.parallel().tween_property(glint, "rotation_degrees", tilt + turn * 0.3,
+            LUCKY_GLINT_POP_TIME)
+    t.tween_interval(LUCKY_GLINT_HOLD_TIME)
+    t.tween_property(glint, "scale", Vector2.ZERO, LUCKY_GLINT_FADE_TIME) \
+            .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+    t.parallel().tween_property(glint, "modulate:a", 0.0, LUCKY_GLINT_FADE_TIME) \
+            .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+    t.parallel().tween_property(glint, "rotation_degrees", tilt + turn, LUCKY_GLINT_FADE_TIME)
+    t.tween_callback(glint.queue_free)
+
+
+# --- Unlucky glints ---------------------------------------------------------------------------
+# Julien, 2026-09-23, right after the Lucky glints: "yes do unlucky too". Unlucky forces the
+# next roll onto the die's LOWEST face; it had the same gap Lucky did - a badge on the player
+# and nothing on the die. The Goblin applies it, and Occultism applies it to yourself.
+#
+# Lucky's twin, inverted on every axis that carries meaning, so the pair reads as a pair:
+#   same star shape - Lucky and Unlucky are one idea, good and bad;
+#   Lucky shines (additive white-hot core) -> Unlucky has NO light of its own (plain star);
+#   Lucky pops cleanly and turns          -> Unlucky STUTTERS, flickering like a failing bulb,
+#                                            and sags as it dies, without turning;
+#   Lucky is the max-roll gold            -> Unlucky is the badge's violet (a cracked violet die).
+# The stutter is the part that says "bad": a light that cannot stay lit. It is also what keeps
+# it apart from Weak, whose motes are round, bleached and fall smoothly.
+#
+# VIOLET, PUSHED TOWARD MAGENTA: the badge's own violet is mid-dark and vanishes on the Evil and
+# Magma faces, and the first pale lavender tried here vanished on BLUE instead - lavender and the
+# Blue face are neighbouring hues, and it measured 631 changed px against Lucky's 1,983 on the
+# same die, i.e. smudges. The red in magenta is what separates it from blue; being light is what
+# separates it from the dark Evil and Magma faces. NORMAL blend, like the Lucky star, so the hue
+# survives any face colour.
+#
+# Announced twice, deliberately. On gain (the rising edge), which covers Occultism played on your
+# own turn; and again at turn start if still pending, which covers the Goblin - it applies
+# Unlucky during its lunge, while battle.gd holds the whole cluster at 0.5 and the player is
+# watching the enemy (the exact reasoning of the Weak announce).
+const UNLUCKY_GLINT_VIOLET := Color(0.92, 0.52, 1.0)
+const UNLUCKY_GLINT_ALPHA := 1.0
+const UNLUCKY_GLINT_INTERVAL_MIN := 0.26
+const UNLUCKY_GLINT_INTERVAL_MAX := 0.46
+# Lucky's size: the two are one idea, and a smaller twin read as the weaker effect.
+const UNLUCKY_GLINT_SIZE_MIN := 58.0
+const UNLUCKY_GLINT_SIZE_MAX := 82.0
+const UNLUCKY_GLINT_POP_TIME := 0.09
+# The stutter: alpha keyframes as fractions of UNLUCKY_GLINT_ALPHA, one per step. Each on-beat is
+# dimmer than the last, so it reads as dying rather than blinking. The dips stay well off zero:
+# the first version dropped to 0.05-0.15, which left the glint dark for half its life.
+const UNLUCKY_GLINT_FLICKER := [0.35, 1.0, 0.25, 0.8, 0.15, 0.5]
+const UNLUCKY_GLINT_FLICKER_STEP := 0.06
+const UNLUCKY_GLINT_FADE_TIME := 0.14
+# Pixels it sinks, and the scale it shrinks to, across the stutter and fade.
+const UNLUCKY_GLINT_SAG := 12.0
+const UNLUCKY_GLINT_END_SCALE := 0.55
+const UNLUCKY_GLINT_GROUP := "unlucky_glint"
+const UNLUCKY_ANNOUNCE_COUNT := 5
+const UNLUCKY_ANNOUNCE_STAGGER := 0.07
+
+
+func _tick_unlucky() -> void:
+    var rolls: int = Global.player_unlucky_rolls()
+    var pending := rolls > 0
+    if pending and not _unlucky_was_pending:
+        _announce_unlucky()
+        _unlucky_glint_wait = UNLUCKY_ANNOUNCE_STAGGER * float(UNLUCKY_ANNOUNCE_COUNT) \
+                + randf_range(UNLUCKY_GLINT_INTERVAL_MIN, UNLUCKY_GLINT_INTERVAL_MAX)
+    elif pending:
+        _unlucky_glint_wait -= LUCKY_POLL
+        if _unlucky_glint_wait <= 0.0:
+            _spawn_unlucky_glint()
+            _unlucky_glint_wait = randf_range(UNLUCKY_GLINT_INTERVAL_MIN,
+                    UNLUCKY_GLINT_INTERVAL_MAX)
+    _unlucky_was_pending = pending
+
+
+func _announce_unlucky_if_pending() -> void:
+    if Global.player_unlucky_rolls() > 0:
+        _announce_unlucky()
+
+
+func _announce_unlucky() -> void:
+    for i in UNLUCKY_ANNOUNCE_COUNT:
+        var delay := UNLUCKY_ANNOUNCE_STAGGER * float(i)
+        if delay <= 0.0:
+            _spawn_unlucky_glint()
+            continue
+        get_tree().create_timer(delay, false).timeout.connect(_spawn_unlucky_glint)
+
+
+func _spawn_unlucky_glint() -> void:
+    if not is_inside_tree() or dice_display.size == Vector2.ZERO:
+        return
+    var glint := TextureRect.new()
+    glint.texture = _get_lucky_glint_texture()
+    glint.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    glint.stretch_mode = TextureRect.STRETCH_SCALE
+    glint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    glint.z_index = LUCKY_GLINT_Z_INDEX
+    glint.name = "UnluckyGlint"
+    glint.add_to_group(UNLUCKY_GLINT_GROUP)
+    var glint_size := randf_range(UNLUCKY_GLINT_SIZE_MIN, UNLUCKY_GLINT_SIZE_MAX)
+    glint.size = Vector2(glint_size, glint_size)
+    glint.pivot_offset = glint.size * 0.5
+    glint.position = _lucky_glint_point() - glint.pivot_offset
+    glint.self_modulate = UNLUCKY_GLINT_VIOLET
+    glint.modulate = Color(1.0, 1.0, 1.0, UNLUCKY_GLINT_ALPHA)
+    glint.scale = Vector2.ZERO
+    # Tilted like a Lucky glint so the two share a shape, but it never turns while it lives.
+    glint.rotation_degrees = randf_range(-LUCKY_GLINT_TILT, LUCKY_GLINT_TILT)
+    dice_display.add_child(glint)
+
+    var stutter_time := UNLUCKY_GLINT_FLICKER_STEP * float(UNLUCKY_GLINT_FLICKER.size())
+    # The alpha story: pop in, stutter, go out.
+    var t := glint.create_tween()
+    t.tween_property(glint, "scale", Vector2.ONE, UNLUCKY_GLINT_POP_TIME) \
+            .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+    for level in UNLUCKY_GLINT_FLICKER:
+        t.tween_property(glint, "modulate:a", UNLUCKY_GLINT_ALPHA * float(level),
+                UNLUCKY_GLINT_FLICKER_STEP * 0.35)
+        t.tween_interval(UNLUCKY_GLINT_FLICKER_STEP * 0.65)
+    t.tween_property(glint, "modulate:a", 0.0, UNLUCKY_GLINT_FADE_TIME)
+    t.tween_callback(glint.queue_free)
+    # The body story, on its own tween so it can span every step above: sink and shrink from the
+    # end of the pop to the end of the fade. Delayed until the pop is done, so it samples the
+    # popped scale instead of fighting it.
+    var sag := glint.create_tween()
+    sag.set_parallel(true)
+    sag.tween_property(glint, "position:y", glint.position.y + UNLUCKY_GLINT_SAG,
+            stutter_time + UNLUCKY_GLINT_FADE_TIME) \
+            .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN) \
+            .set_delay(UNLUCKY_GLINT_POP_TIME)
+    sag.tween_property(glint, "scale", Vector2.ONE * UNLUCKY_GLINT_END_SCALE,
+            stutter_time + UNLUCKY_GLINT_FADE_TIME) \
+            .from(Vector2.ONE).set_delay(UNLUCKY_GLINT_POP_TIME)
+
+
+# Best of a few random rim points: the one farthest from every glint still on the die. A fixed
+# number of tries, so it can never stall however crowded the die gets.
+func _lucky_glint_point() -> Vector2:
+    var live: Array[Vector2] = []
+    for child in dice_display.get_children():
+        if child.is_in_group(LUCKY_GLINT_GROUP) or child.is_in_group(UNLUCKY_GLINT_GROUP):
+            var glint := child as Control
+            live.append(glint.position + glint.pivot_offset)
+    var best := _lucky_rim_point()
+    if live.is_empty():
+        return best
+    var best_clearance := _clearance(best, live)
+    for i in LUCKY_GLINT_PLACE_TRIES - 1:
+        var candidate := _lucky_rim_point()
+        var clearance := _clearance(candidate, live)
+        if clearance > best_clearance:
+            best = candidate
+            best_clearance = clearance
+    return best
+
+
+func _clearance(point: Vector2, others: Array[Vector2]) -> float:
+    var nearest := INF
+    for other in others:
+        nearest = minf(nearest, point.distance_to(other))
+    return nearest
+
+
+# A random point on the die's rim - where light would catch a polished object - in
+# dice_display's local space, kept above the part of the face the ROLL button hides.
+func _lucky_rim_point() -> Vector2:
+    var width := dice_display.size.x
+    var height := _lucky_visible_height if _lucky_visible_height > 0.0 \
+            else dice_display.size.y * LUCKY_GLINT_VISIBLE_FRACTION
+    var inset := width * LUCKY_GLINT_RIM_INSET
+    var rim := Rect2(inset, inset, maxf(width - inset * 2.0, 1.0),
+            maxf(height - inset * 2.0, 1.0))
+    var perimeter := 2.0 * (rim.size.x + rim.size.y)
+    var d := randf() * perimeter
+    var point := rim.position
+    if d < rim.size.x:
+        point += Vector2(d, 0.0)
+    elif d < rim.size.x + rim.size.y:
+        point += Vector2(rim.size.x, d - rim.size.x)
+    elif d < 2.0 * rim.size.x + rim.size.y:
+        point += Vector2(rim.size.x - (d - rim.size.x - rim.size.y), rim.size.y)
+    else:
+        point += Vector2(0.0, rim.size.y - (d - 2.0 * rim.size.x - rim.size.y))
+    return point + Vector2(randf_range(-LUCKY_GLINT_RIM_JITTER, LUCKY_GLINT_RIM_JITTER),
+            randf_range(-LUCKY_GLINT_RIM_JITTER, LUCKY_GLINT_RIM_JITTER))
+
+
+# Built in code, once: a lens-flare star (hot round core, soft halo, four long arms and four
+# short diagonal ones), white so modulate carries the gold. Deliberately NOT the filled
+# concave star of the Power glyph - that shape means "Power" in card text, and a glint on the
+# die must not read as a Power symbol.
+static func _get_lucky_glint_texture() -> Texture2D:
+    if _lucky_glint_texture != null:
+        return _lucky_glint_texture
+    var n := LUCKY_GLINT_TEXTURE_SIZE
+    var half := float(n) * 0.5
+    var img := Image.create(n, n, false, Image.FORMAT_RGBA8)
+    for y in n:
+        for x in n:
+            var u := (float(x) + 0.5 - half) / half
+            var v := (float(y) + 0.5 - half) / half
+            var r2 := u * u + v * v
+            var r := sqrt(r2)
+            var core := exp(-r2 / 0.03)
+            var halo := 0.45 * exp(-r2 / 0.1)
+            var arm_h := exp(-(v * v) / 0.006) * pow(maxf(0.0, 1.0 - absf(u)), 2.0)
+            var arm_v := exp(-(u * u) / 0.006) * pow(maxf(0.0, 1.0 - absf(v)), 2.0)
+            var diag_fade := pow(maxf(0.0, 1.0 - r * 1.7), 2.0)
+            var d1 := (u - v) * 0.7071
+            var d2 := (u + v) * 0.7071
+            var arms_d := 0.45 * (exp(-(d1 * d1) / 0.004) + exp(-(d2 * d2) / 0.004)) * diag_fade
+            var a := clampf(core + halo + arm_h + arm_v + arms_d, 0.0, 1.0)
+            img.set_pixel(x, y, Color(1.0, 1.0, 1.0, a))
+    _lucky_glint_texture = ImageTexture.create_from_image(img)
+    return _lucky_glint_texture
 
 
 # --- Overcharge ------------------------------------------------------------------------------

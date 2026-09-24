@@ -10,6 +10,7 @@ const EVENT_SCENE := preload("res://scenes/events/event_add_new_card.tscn")
 const DICE_SHOP_SCENE = preload("res://scenes/shop/dice_shop.tscn")
 const DICE_INFUSION_SCENE := preload("res://scenes/dice_infusion/dice_infusion.tscn")
 const DICE_LOADOUT_SCENE := preload("res://scenes/dice_loadout/dice_loadout.tscn")
+const CaptureRig := preload("res://global/capture_rig.gd")
 
 const SHOP_SCENE := preload ("res://scenes/shop/card_shop.tscn")
 
@@ -146,13 +147,18 @@ func _late_init() -> void:
     _attach_dice_bar_tooltip(blue_dice, "blue")
     _attach_dice_bar_tooltip(red_dice, "red")
 
-    if Global.load_run_requested:
+    if CaptureRig.active:
+        _start_capture_take()
+    elif Global.load_run_requested:
         Global.load_run_requested = false
         _load_run()
     else:
         _start_run()
     _on_update_dice_top_bar()
-    map_music.play()
+    # A capture take goes straight into its fight (deferred, below), whose music would
+    # otherwise play on top of this.
+    if not CaptureRig.active:
+        map_music.play()
     # Lifts the curtain the main menu dropped before change_scene. Placed after the
     # start/load branch so the map (or the loadout picker, which _start_run opens instead)
     # is fully built underneath before anything becomes visible. Harmless when the run is
@@ -1373,6 +1379,104 @@ const SAVED_TUTORIAL_FLAGS := [
     "tutorial_dice_shop_explanation_needed",
     "tutorial_blessing_explanation_needed",
 ]
+
+
+# ============================================================================
+# F12 capture rig - the staged Reddit gameplay take (Julien, 2026-09-23)
+# ============================================================================
+#
+# The data and the beat-by-beat script live in global/capture_rig.gd. This half APPLIES it,
+# mirroring _start_run + the dice loadout picker + the debug fight picker, so the take boots
+# through the same code a real run does. Never saves, never unlocks: SaveManager and
+# AchievementManager both check CaptureRig.active.
+
+var _capture_restarting := false
+
+
+# F12 during a take (or during any debug run) restarts the take from the top.
+func _unhandled_input(event: InputEvent) -> void:
+    if not OS.is_debug_build():
+        return
+    var key := event as InputEventKey
+    if key == null or not key.pressed or key.echo or key.keycode != CaptureRig.HOTKEY:
+        return
+    get_viewport().set_input_as_handled()
+    _restart_capture_take()
+
+
+func _restart_capture_take() -> void:
+    if _capture_restarting:
+        return
+    _capture_restarting = true
+    CaptureRig.begin()
+    await Curtain.cover()
+    MusicPlayer.stop()
+    SFXPlayer.stop()
+    get_tree().paused = false
+    Engine.time_scale = 1.0
+    get_tree().change_scene_to_file("res://scenes/run/run.tscn")
+
+
+func _start_capture_take() -> void:
+    Global.tutorial_on = false
+    stats = RunStats.new()
+    Global.current_act = 1
+    initial_event_pool = event_stats_pool.pool.duplicate()
+    _setup_event_connections()
+
+    # Same writes as the loadout picker (dice_loadout.gd::_apply_loadout): max AND current,
+    # inventory rebuilt, active die re-derived.
+    var inventory: Array = []
+    for dice_type: String in Global.DICE_TYPE_ORDER:
+        var count: int = CaptureRig.DICE.get(dice_type, 0)
+        Global.set(dice_type + "_dice_max_amount", count)
+        Global.set(dice_type + "_dice_current_amount", count)
+        if count > 0:
+            inventory.append(dice_type)
+    Global.dice_inventory = inventory
+    Global.dice_type = Global.default_active_dice_type()
+
+    # Gold and deck BEFORE _setup_top_bar: gold_ui reads the gold when its run_stats is
+    # assigned, and the deck button + deck view are wired to character.deck there.
+    Global.gold = CaptureRig.GOLD
+    var deck := CardPile.new()
+    for path: String in CaptureRig.DECK:
+        deck.add_card(load(path))
+    character.deck = deck
+    character.health = CaptureRig.HEALTH
+    Global.player_hp = character.health
+
+    _setup_top_bar()
+    for path: String in CaptureRig.EXTRA_RELICS:
+        relic_handler.add_relic(load(path))
+
+    map.generate_new_map()
+    map.unlock_floor(0)
+    # Display only: the floor label reads floors_climbed + 1.
+    map.floors_climbed = CaptureRig.FLOOR - 1
+    _update_floor_label()
+    _on_hp_changed()
+
+    # Clean frame: the dev column and the Discord pin are not part of the game being shown.
+    $DebugButtons.hide()
+    $CanvasLayer/JoinDiscordControl.hide()
+
+    # Consumed by the take's one Scout (battle.gd::_on_scout_effect).
+    Global.tutorial_forced_scout_faces.assign(CaptureRig.SCOUT_FACES)
+    # Deferred so _late_init finishes first (top bar refresh, curtain reveal).
+    call_deferred("_enter_capture_fight")
+
+
+func _enter_capture_fight() -> void:
+    _debug_start_fight(load(CaptureRig.FIGHT) as BattleStats, CaptureRig.FIGHT_TIER)
+    # The take's math is written against these numbers (see capture_rig.gd). Printed so a
+    # later retune shows up here, not as a Kraken that survives the Catapult.
+    for enemy in get_tree().get_nodes_in_group("enemies"):
+        if enemy.is_queued_for_deletion():
+            continue
+        var enemy_stats = enemy.get("stats")
+        if enemy_stats != null:
+            print("[capture] %s: %d HP" % [enemy.name, enemy_stats.health])
 
 
 func _save_checkpoint() -> void:

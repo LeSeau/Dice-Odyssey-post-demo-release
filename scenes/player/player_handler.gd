@@ -1,6 +1,8 @@
 class_name PlayerHandler
 extends Node
 
+const CaptureRig := preload("res://global/capture_rig.gd")
+
 const HAND_DRAW_INTERVAL := 0.25
 const HAND_DISCARD_INTERVAL := 0.25
 
@@ -108,6 +110,9 @@ func start_turn() -> void:
     Global.roll_history = []
     if Global.tutorial_on:
         _force_tutorial_hand()
+    elif CaptureRig.active and Global.fight_turn == 0:
+        # F12 capture take: the five cards the take plays, dealt in play order.
+        _force_hand(CaptureRig.OPENING_HAND)
     Global.dice_amount_rolled_this_turn = 0
     Global.dice_types_rolled_this_turn = {}
     Global.keep_power_on_type_change = false
@@ -122,7 +127,11 @@ func start_turn() -> void:
 # call deals them out first - anything beyond the forced list (turn 3 only forces 2 of its
 # 5 cards) is a genuine reshuffle draw from whatever's left in discard.
 func _force_tutorial_hand() -> void:
-    var paths: Array = TUTORIAL_HAND_BY_TURN.get(Global.fight_turn, [])
+    _force_hand(TUTORIAL_HAND_BY_TURN.get(Global.fight_turn, []))
+
+
+# Shared by the tutorial and the F12 capture rig (global/capture_rig.gd).
+func _force_hand(paths: Array) -> void:
     if paths.is_empty():
         return
     var forced_cards: Array[Card] = []

@@ -143,6 +143,31 @@ func player_weak_stacks() -> int:
     return maxi(0, weak.stacks)
 
 
+# How many upcoming rolls Lucky still guarantees (0 = none pending). Lucky is a DURATION
+# status - lucky.gd spends one point of duration per roll - so this reads duration, not stacks.
+# Drives the gold glints on the central die (dice.gd, "Lucky glints").
+func player_lucky_rolls() -> int:
+    var handler := _player_status_handler()
+    if handler == null:
+        return 0
+    var lucky := handler._get_status("lucky")
+    if lucky == null:
+        return 0
+    return maxi(0, lucky.duration)
+
+
+# Lucky's mirror: how many upcoming rolls Unlucky still forces onto the lowest face. Also a
+# DURATION status spent one roll at a time (unlucky.gd). Drives the violet glints on the die.
+func player_unlucky_rolls() -> int:
+    var handler := _player_status_handler()
+    if handler == null:
+        return 0
+    var unlucky := handler._get_status("unlucky")
+    if unlucky == null:
+        return 0
+    return maxi(0, unlucky.duration)
+
+
 # Pushes total_surge() onto the player's Surge badge, creating it if the player has never
 # cast Surge this fight (holding Dice Aura has to raise the icon on its own).
 #
