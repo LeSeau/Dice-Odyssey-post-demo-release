@@ -21,6 +21,7 @@ func apply_effects(targets: Array[Node], _modifiers: ModifierHandler) -> void:
         var value: int = faces[randi() % faces.size()]
         throws.append({"type": "blue", "value": value, "target": null})
         if player != null:
+            note_delayed_hit(Global.DICE_THROW_FLIGHT_TIME + stagger * i)
             var timer := player.get_tree().create_timer(Global.DICE_THROW_FLIGHT_TIME + stagger * i, false)
             timer.timeout.connect(_on_rampart_landed.bind(player, value))
     Events.dice_thrown.emit(throws, Global.last_played_card_position)

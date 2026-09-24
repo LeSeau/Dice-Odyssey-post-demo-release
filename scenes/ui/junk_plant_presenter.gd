@@ -13,7 +13,7 @@ extends Control
 # the discard) said none of the three: too small to name the card, one blob per card, and
 # no word about the pile. So:
 #   WHICH  - a real CardMenuUI face, the card's own Hex chrome, held at 1.15x on the stage
-#            spot every played card already presents at (card_ui.gd STAGE_HOLD_CENTER):
+#            spot every played card already presents at (card_send_off.gd STAGE_CENTER):
 #            the place the eye is trained to read a card. The ash/iron chrome is what says
 #            "not one of yours" while it sits there.
 #   HOW MANY - one face per card, fanned side by side (up to MAX_VISIBLE_CARDS). Cards
@@ -119,6 +119,10 @@ const Z_CARD := 2
 var draw_pile_button: CardPileOpener
 var discard_pile_button: CardPileOpener
 
+# Long enough to cover a presentation that waits behind another one in the queue. Only matters if
+# the presentation never lands (the fight ends first): the pile then counts the card anyway.
+const ARRIVAL_FAILSAFE := 8.0
+
 var _pending: Array[Dictionary] = []
 var _flush_scheduled := false
 var _queue: Array = []
@@ -140,7 +144,14 @@ func _ready() -> void:
 func plant(card: Card, source_global_position: Vector2, dest: int) -> void:
     if card == null:
         return
-    _pending.append({"card": card, "origin": source_global_position, "dest": dest})
+    # The pile counts the card when its face LANDS (2026-09-24, CardPileOpener.expect_arrival),
+    # the same as a played card. Registered now, on the emit that wrote the pile, so the number
+    # never shows the card early - including while this presentation waits in the queue.
+    var token := 0
+    var pile := _pile_for(dest)
+    if pile != null:
+        token = pile.expect_arrival(ARRIVAL_FAILSAFE)
+    _pending.append({"card": card, "origin": source_global_position, "dest": dest, "token": token})
     # One frame of collection: a multi-card action emits in a loop, same frame, and those
     # belong in ONE fan with ONE count. Anything arriving later is a different move.
     if not _flush_scheduled:
@@ -229,6 +240,8 @@ func _present(batch: Array) -> void:
     if pile == null or not has_origin:
         if pile != null:
             pile.receive_punch(1.12)
+            for entry: Dictionary in batch:
+                pile.land_arrival(int(entry.get("token", 0)), false)
         _finish(count, dest)
         return
 
@@ -286,12 +299,19 @@ func _present(batch: Array) -> void:
         t.parallel().tween_property(ui, "modulate:a", 0.0, EXIT_FADE).set_delay(EXIT_TIME - EXIT_FADE)
         t.parallel().tween_method(_trail_step.bind(ui, trail_state), 0.0, 1.0, EXIT_TIME)
         # 5. CATCH - punch, bloom, ring on the first, finish on the last.
-        t.tween_callback(_on_card_landed.bind(pile, pile_center, bright, i, visible_n, count, dest))
+        # The last face to land also brings in the cards the fan had no room to show.
+        var tokens: Array = [int(entry.get("token", 0))]
+        if i == visible_n - 1:
+            for extra in range(visible_n, count):
+                tokens.append(int((batch[extra] as Dictionary).get("token", 0)))
+        t.tween_callback(_on_card_landed.bind(pile, pile_center, bright, i, visible_n, count, dest, tokens))
         t.tween_callback(ui.queue_free)
 
 
-func _on_card_landed(pile: CardPileOpener, pile_center: Vector2, bright: Color, index: int, visible_n: int, count: int, dest: int) -> void:
+func _on_card_landed(pile: CardPileOpener, pile_center: Vector2, bright: Color, index: int, visible_n: int, count: int, dest: int, tokens: Array = []) -> void:
     if is_instance_valid(pile):
+        for token in tokens:
+            pile.land_arrival(int(token), false)
         pile.receive_punch(LAND_PUNCH)
         if index == 0:
             _spawn_pile_ring(pile)

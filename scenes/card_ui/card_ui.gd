@@ -34,10 +34,6 @@ const GLOW_PULSE_DURATION := 1.1
 const UNPLAYABLE_MODULATE_NO_POWER := Color(0.75, 0.75, 0.75, 1.0)
 const UNPLAYABLE_MODULATE_HAS_POWER := Color(0.6, 0.6, 0.6, 1.0)
 
-# Played-card send-off polish (2026-07-17): an overbright "resolve flash" the instant the card
-# is played, plus a sparse trail of dice-colored motes shed along the whole discard flight -
-# same additive-radial recipe as the power orbs / impact particles, so the flight reads as the
-# same magic moving through the world instead of a plain rectangle drifting away.
 # Warm overbright flash on the requirement ribbon when a pick-up is refused for failing it.
 const RIBBON_FLASH_COLOR := Color(1.9, 1.25, 1.25, 1.0)
 # Pick-up refusal message. Same recipe as the act/turn banners (MinionPro-Bold, brown
@@ -51,82 +47,23 @@ const REFUSAL_MSG_COLOR := Color(0.98, 0.44, 0.38, 1.0)
 const REFUSAL_MSG_WIDTH := 560.0
 const REFUSAL_MSG_HOLD := 1.0
 const REFUSAL_MSG_FONT_SIZE := 24
-const RESOLVE_FLASH_COLOR := Color(1.65, 1.55, 1.15, 1.0)
-const RESOLVE_FLASH_DECAY := 0.3
-const TRAIL_MOTE_INTERVAL := 0.045
-const TRAIL_MOTE_SIZE_MIN := 12.0  # bumped from 10-20 on Julien's "slightly increase the mote"
-const TRAIL_MOTE_SIZE_MAX := 24.0
-const TRAIL_MOTE_LIFETIME := 0.55
-const TRAIL_MOTE_ALPHA := 0.85
-# Motes render UNDER the card (z 90 vs the card's 100), so anything spawned near the card's
-# center is invisible until the card moves off it - which fast attack arcs do, but a staged
-# support card lingering at its pause point does not (Julien: "I can only see it on attack
-# cards"). Scattering across most of the card's half-extents lets motes spill past the
-# silhouette and stay visible even while the card idles on top of the emit point.
-const TRAIL_MOTE_SCATTER_X := 34.0
-const TRAIL_MOTE_SCATTER_Y := 46.0
-# Exhaust-bound cards smolder out in ember tones right before the fade - a quick visual
-# distinction between "went to discard" (plain fade) and "burned away forever".
-const EXHAUST_EMBER_COLOR := Color(1.7, 0.65, 0.3, 1.0)
-const EXHAUST_EMBER_TIME := 0.18
 
-# STS2-style FIXED-SPOT staged play for EVERY played card (attacks and non-attacks alike).
-# Julien picked this model explicitly (2026-07-18) after several release-relative versions all
-# read as "up AND right": the sideways motion was the DRAG system placing the card at the cursor
-# before the lift, so no vertical-only lift could remove it. The fix is to IGNORE the cursor
-# entirely - the card always flies to ONE fixed presentation spot, holds there readable while
-# the effect resolves, then streaks to the discard pile. Exactly like his STS2 recording (where
-# the attack card also holds at the fixed spot while the slash lands). STAGE_HOLD_CENTER is the
-# card's design-space CENTER at that spot: left of the dice interface (which sits center) so a
-# held card doesn't cover it, mid-height so it clears both the top bar and the hand fan.
-const STAGE_HOLD_CENTER := Vector2(470.0, 405.0)
-const STAGE_ENTER_TIME := 0.3     # glide from wherever the card was grabbed to the fixed spot
-const STAGE_HOLD_TIME := 0.24     # trimmed on Julien's feedback (0.5 -> 0.32 -> 0.24)
-const STAGE_HOLD_SCALE := Vector2(1.12, 1.12)
-# Exit: after the hold, the card streaks straight to the discard pile (bottom-right) and fades
-# as it arrives. This rightward flight is the ONLY horizontal motion, and it's fine - Julien:
-# "it flies to the discard pile and yes, of course that is to the right". The whole "go up" of
-# the play is the vertical GLIDE before the hold; there is deliberately NO separate up-launch
-# beat here anymore (an earlier one rose up-AND-slightly-right after the hold, which made the
-# post-play motion read as "top-right" instead of a clean "up, then over to the pile").
-const COMET_TO_PILE_TIME := 0.42
-const COMET_TILT_DEG := 20.0      # a slight bank as it flies off - small on purpose, a bank not a flip
-const COMET_MOTE_INTERVAL_MS := 20
-const COMET_MOTE_SIZE_MIN := 15.0
-const COMET_MOTE_SIZE_MAX := 26.0
-const COMET_MOTE_ALPHA := 0.9
-const COMET_MOTE_LIFETIME := 0.35
+# The played card's whole send-off (press, stage, hold, then the discard, the burn or the hero)
+# lives in card_send_off.gd since 2026-09-24, shared with the Red socket's display. Its tuning
+# levers (STAGE_CENTER, HOLD_*, EXIT_*, ABSORB_*, BURN_*) are there.
+const CardSendOff := preload("res://scenes/card_ui/card_send_off.gd")
+# Same resource as CardSendOff.BURN_SHADER (preload caches it), kept here for the harnesses.
+const BURN_SHADER := preload("res://scenes/card_ui/card_burn.gdshader")
 
-# Soft radial gradient + additive material for the flight trail, cached statically like
-# card_particles.gd does - every play spawns motes, no point rebuilding the same texture.
-static var _trail_texture: GradientTexture2D
-static var _trail_material: CanvasItemMaterial
-
-
-static func _get_trail_texture() -> GradientTexture2D:
-    if _trail_texture:
-        return _trail_texture
-    var gradient := Gradient.new()
-    gradient.set_color(0, Color(1, 1, 1, 1))
-    gradient.set_color(1, Color(1, 1, 1, 0))
-    var tex := GradientTexture2D.new()
-    tex.gradient = gradient
-    tex.width = 32
-    tex.height = 32
-    tex.fill = GradientTexture2D.FILL_RADIAL
-    tex.fill_from = Vector2(0.5, 0.5)
-    tex.fill_to = Vector2(1.0, 0.5)
-    _trail_texture = tex
-    return _trail_texture
-
-
-static func _get_trail_material() -> CanvasItemMaterial:
-    if _trail_material:
-        return _trail_material
-    var mat := CanvasItemMaterial.new()
-    mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
-    _trail_material = mat
-    return _trail_material
+# Aiming (2026-09-24, after STS2's NCardPlay.CenterCard): the card being aimed shrinks to 0.75
+# and leans toward the cursor, so the arrow and the target own the moment instead of a full-size
+# card parked over the hand. On the ART only: the root stays where the aim state put it, because
+# the arrow's hit probe, the drop detector and the tutorial all read the root.
+const AIM_SCALE := 0.75
+const AIM_POSE_TIME := 0.16
+const AIM_LEAN_GAIN := 0.16
+const AIM_LEAN_MAX := 0.13       # radians, ~7.5 degrees
+const AIM_LEAN_RESPONSE := 12.0  # 1/s, how fast the lean chases the cursor
 
 # Shared across every CardUI/CardMenuUI instance via the .tscn (sub-resources aren't
 # resource_local_to_scene by default) - never mutate this one directly, duplicate() it first
@@ -332,12 +269,14 @@ func play_pickup_refusal() -> void:
     # rotation and re-stomps both on every fan_hand_requested - which transitioning back to
     # BASE emits - so a shake there would be wiped mid-animation. CardBackground's parent is
     # a plain Control (not a container), so nothing re-lays it out behind our back.
+    # Through shake_x rather than CardBackground.position directly: the visual follower below
+    # also writes that position, and the two are composed in _apply_visual_transform().
     if _refusal_tween and _refusal_tween.is_valid():
         _refusal_tween.kill()
-    card_background.position = Vector2.ZERO
+    shake_x = 0.0
     _refusal_tween = create_tween()
     for offset: float in [9.0, -7.0, 5.0, -3.0, 0.0]:
-        _refusal_tween.tween_property(card_background, "position:x", offset, 0.045) \
+        _refusal_tween.tween_property(self, "shake_x", offset, 0.045) \
             .set_trans(Tween.TRANS_SINE)
 
     # Only flash the ribbon when the requirement is the actual reason. Blocks that happen
@@ -461,6 +400,271 @@ func _input(event: InputEvent) -> void:
     card_state_machine.on_input(event)
 
 
+# ===========================================================================
+# VISUAL FOLLOWER (2026-09-23)
+#
+# The Hand is an HBoxContainer: it teleports every CardUI root to its slot on each sort, and the
+# fan stomps rotation/y right after - so nothing in the hand could move smoothly. A played card's
+# neighbours snapped shut, a drawn card faded in where it landed, and hover snapped its scale and
+# rotation in one frame. Every pixel of the card lives under CardBackground (Aura is unused and
+# hidden), so the root is left to teleport and CardBackground carries a transform that keeps the
+# art where it was on screen, then glides it home. Anything that reads the ROOT (the hover hit
+# area, the drop detector, targeting, the tutorial) is unaffected.
+# ===========================================================================
+const FOLLOW_TIME := 0.22
+const DRAW_FLIGHT_TIME := 0.36
+const DRAW_ARC := 70.0            # px the drawn card rises mid-flight on its way out of the pile
+const DRAW_START_SCALE := 0.3
+const DRAW_START_ROTATION := -0.5 # radians, it leaves the pile tilted and rights itself
+const PICKUP_TIME := 0.1
+# Drag tilt (Balatro-style weight): the card leans with its horizontal speed and swings back.
+const DRAG_TILT_PER_SPEED := 0.00014  # radians per px/s
+const DRAG_TILT_MAX := 0.2
+const DRAG_SPEED_SMOOTHING := 20.0    # 1/s, low-pass on the raw per-frame speed
+const DRAG_TILT_RESPONSE := 14.0      # 1/s, how fast the tilt chases its target
+
+var shake_x := 0.0 : set = _set_shake_x
+var drag_tilt_active := false
+var _lag_offset := Vector2.ZERO
+var _lag_rotation := 0.0
+var _lag_scale := 1.0
+var _tilt := 0.0
+var _drag_speed := 0.0
+var _prev_drag_x := 0.0
+var _follow_tween: Tween
+var _follow_from_offset := Vector2.ZERO
+var _follow_from_rotation := 0.0
+var _follow_from_scale := 1.0
+var _follow_arc := 0.0
+var _anchored_root_xform := Transform2D()
+var _anchor_valid := false
+var _visual_record := Transform2D()
+var _has_visual_record := false
+# Global centre of the draw pile this card is being dealt from, consumed by the first
+# follow_to_slot() AFTER the container has placed the card. INF = not being dealt.
+var _pending_draw_from := Vector2.INF
+# Set by Hand once its container has sorted this card into a slot. Adding the first card also
+# resizes the hand, and that resize runs the fan BEFORE the sort - anchoring the flight then
+# would measure it from the card's pre-layout spot, and the sort would drag it across the screen.
+var _placed_by_container := false
+# Aim pose (see AIM_*), composed into the art on top of the follower lag.
+var _aim_scale := 1.0
+var _aim_lean := 0.0
+var _aim_tracking := false
+var _aim_tween: Tween
+# Set when the send-off takes the art over: from then on nothing on this card writes it.
+var _flight_owned := false
+# Set when the card is played. Its description stops following the dice from that moment.
+var _played := false
+
+
+func _set_shake_x(value: float) -> void:
+    shake_x = value
+    _apply_visual_transform()
+
+
+func _process(delta: float) -> void:
+    _update_drag_tilt(delta)
+    _update_aim_lean(delta)
+    # What was on screen last frame. _process runs before tweens and before the deferred flush in
+    # which the Hand re-sorts, so this is the pose to hold when the root is teleported this frame.
+    if card_background != null:
+        _visual_record = card_background.get_global_transform()
+        _has_visual_record = true
+
+
+func _apply_visual_transform() -> void:
+    if card_background == null or _flight_owned:
+        return
+    card_background.pivot_offset = card_background.size / 2.0
+    card_background.position = _lag_offset + Vector2(shake_x, 0.0)
+    card_background.rotation = _lag_rotation + _tilt + _aim_lean
+    var s := _lag_scale * _aim_scale
+    card_background.scale = Vector2(s, s)
+
+
+# The Hand calls this after placing the root (container sort + fan). Holds the art where it was
+# and glides it into the new slot; a no-op when the root did not actually move.
+func follow_to_slot(duration: float = FOLLOW_TIME) -> void:
+    if not is_node_ready() or card_background == null:
+        return
+    var root_xf := get_global_transform()
+    if _pending_draw_from != Vector2.INF:
+        if not _placed_by_container:
+            return
+        var from := _pending_draw_from
+        _pending_draw_from = Vector2.INF
+        _anchored_root_xform = root_xf
+        _anchor_valid = true
+        _anchor_visual(_xform_centered_at(from, DRAW_START_ROTATION, DRAW_START_SCALE),
+                DRAW_FLIGHT_TIME, DRAW_ARC)
+        return
+    if _anchor_valid and root_xf.is_equal_approx(_anchored_root_xform):
+        return
+    var had_history := _anchor_valid and _has_visual_record
+    _anchored_root_xform = root_xf
+    _anchor_valid = true
+    if had_history:
+        _anchor_visual(_visual_record, duration, 0.0)
+
+
+# For callers that teleport the root themselves (hover, drag pick-up): pass the art's global
+# transform from BEFORE the move, and it glides from there.
+func hold_visual(previous_global: Transform2D, duration: float) -> void:
+    if card_background == null:
+        return
+    _anchored_root_xform = get_global_transform()
+    _anchor_valid = true
+    _anchor_visual(previous_global, duration, 0.0)
+
+
+# Deal this card out of the draw pile instead of fading it in where it lands.
+func begin_draw_flight(pile_center: Vector2) -> void:
+    _pending_draw_from = pile_center
+
+
+func mark_placed_by_container() -> void:
+    _placed_by_container = true
+
+
+func _xform_centered_at(center: Vector2, rot: float, s: float) -> Transform2D:
+    var xf := Transform2D(rot, Vector2(s, s), 0.0, Vector2.ZERO)
+    xf.origin = center - xf.basis_xform(card_background.size / 2.0)
+    return xf
+
+
+func _anchor_visual(global_xf: Transform2D, duration: float, arc: float) -> void:
+    card_background.pivot_offset = card_background.size / 2.0
+    var local := get_global_transform().affine_inverse() * global_xf
+    var rot := local.get_rotation()
+    var sc := local.get_scale()
+    var s := (absf(sc.x) + absf(sc.y)) * 0.5
+    # Control local transform = translate(position + pivot) * rotate * scale * translate(-pivot),
+    # so the position that reproduces this origin is origin - pivot + R*S*pivot.
+    var c := card_background.pivot_offset
+    var p := local.origin - c + Transform2D(rot, Vector2(s, s), 0.0, Vector2.ZERO).basis_xform(c)
+    if _follow_tween and _follow_tween.is_valid():
+        _follow_tween.kill()
+    _lag_offset = p - Vector2(shake_x, 0.0)
+    _lag_rotation = rot - _tilt - _aim_lean
+    _lag_scale = s / maxf(_aim_scale, 0.001)
+    if _lag_offset.length() < 0.5 and absf(_lag_rotation) < 0.002 and absf(_lag_scale - 1.0) < 0.002:
+        _lag_offset = Vector2.ZERO
+        _lag_rotation = 0.0
+        _lag_scale = 1.0
+        _apply_visual_transform()
+        return
+    _follow_from_offset = _lag_offset
+    _follow_from_rotation = _lag_rotation
+    _follow_from_scale = _lag_scale
+    _follow_arc = arc
+    _apply_visual_transform()
+    _follow_tween = create_tween()
+    _follow_tween.tween_method(_follow_step, 0.0, 1.0, duration) \
+        .set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+
+
+func _follow_step(t: float) -> void:
+    var k := 1.0 - t
+    _lag_offset = _follow_from_offset * k + Vector2(0.0, -_follow_arc * sin(PI * t))
+    _lag_rotation = _follow_from_rotation * k
+    _lag_scale = lerpf(_follow_from_scale, 1.0, t)
+    _apply_visual_transform()
+
+
+func _update_drag_tilt(delta: float) -> void:
+    if delta <= 0.0:
+        return
+    var speed := 0.0
+    if drag_tilt_active:
+        speed = (global_position.x - _prev_drag_x) / delta
+    _prev_drag_x = global_position.x
+    _drag_speed = lerpf(_drag_speed, speed, 1.0 - exp(-DRAG_SPEED_SMOOTHING * delta))
+    var target: float = clampf(_drag_speed * DRAG_TILT_PER_SPEED, -DRAG_TILT_MAX, DRAG_TILT_MAX) \
+            if drag_tilt_active else 0.0
+    if absf(_tilt) < 0.0005 and absf(target) < 0.0005:
+        if _tilt != 0.0:
+            _tilt = 0.0
+            _apply_visual_transform()
+        return
+    _tilt = lerpf(_tilt, target, 1.0 - exp(-DRAG_TILT_RESPONSE * delta))
+    _apply_visual_transform()
+
+
+func start_drag_tilt() -> void:
+    drag_tilt_active = true
+    _prev_drag_x = global_position.x
+    _drag_speed = 0.0
+
+
+func stop_drag_tilt() -> void:
+    drag_tilt_active = false
+
+
+# --- Aim pose ---------------------------------------------------------------------------------
+# The socketed Red card is aimed while hidden (dice.gd shows the socket instead), so it gets no
+# pose - nothing would show it, and it must not carry one into its flight.
+func begin_aim_pose() -> void:
+    if _flight_owned or not visible or Global.playing_red_card:
+        return
+    _aim_tracking = true
+    if _aim_tween and _aim_tween.is_valid():
+        _aim_tween.kill()
+    _aim_tween = create_tween()
+    _aim_tween.tween_method(_set_aim_scale, _aim_scale, AIM_SCALE, AIM_POSE_TIME) \
+        .set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+
+
+# Leaving AIMING keeps the pose where it is: a play hands it to the send-off, a cancel folds it
+# back through end_aim_pose() when the card returns to BASE.
+func stop_aim_tracking() -> void:
+    _aim_tracking = false
+
+
+# Back to the hand: the art is held exactly where it is on screen and glides home, like any other
+# move of the root (hold_visual), instead of popping back to full size.
+func end_aim_pose() -> void:
+    if _aim_tween and _aim_tween.is_valid():
+        _aim_tween.kill()
+    _aim_tracking = false
+    if is_equal_approx(_aim_scale, 1.0) and is_zero_approx(_aim_lean):
+        return
+    if card_background == null or _flight_owned:
+        _aim_scale = 1.0
+        _aim_lean = 0.0
+        return
+    var art_before := card_background.get_global_transform()
+    _aim_scale = 1.0
+    _aim_lean = 0.0
+    hold_visual(art_before, PICKUP_TIME)
+
+
+func _set_aim_scale(v: float) -> void:
+    _aim_scale = v
+    _apply_visual_transform()
+
+
+func _update_aim_lean(delta: float) -> void:
+    if not _aim_tracking or card_background == null or delta <= 0.0:
+        return
+    var center := card_background.get_global_transform() * (card_background.size * 0.5)
+    var to_mouse := get_global_mouse_position() - center
+    var target := 0.0
+    if to_mouse.length() > 1.0:
+        # 0 when the cursor is straight above the card, positive (clockwise) when it is to the right.
+        target = clampf(atan2(to_mouse.x, -to_mouse.y) * AIM_LEAN_GAIN, -AIM_LEAN_MAX, AIM_LEAN_MAX)
+    _aim_lean = lerpf(_aim_lean, target, 1.0 - exp(-AIM_LEAN_RESPONSE * delta))
+    _apply_visual_transform()
+
+
+# Where the aim arrow starts: the middle of the art's top edge, so it follows the smaller, leaning
+# card instead of the root's untouched top edge.
+func aim_arrow_origin() -> Vector2:
+    if card_background == null:
+        return global_position + Vector2(size.x / 2.0, 0.0)
+    return card_background.get_global_transform() * Vector2(card_background.size.x / 2.0, 0.0)
+
+
 func animate_to_position(new_position: Vector2, duration: float) -> void:
     tween = create_tween().set_trans(Tween.TRANS_CIRC).set_ease(Tween.EASE_OUT)
     tween.tween_property(self, "global_position", new_position, duration)
@@ -469,205 +673,92 @@ func animate_to_position(new_position: Vector2, duration: float) -> void:
 func play() -> void:
     if not card:
         return
+    # Freeze the text BEFORE the play. The play resets Power, and this card listens to
+    # dice_roll_reset like every card in hand, so "Deal X3 damage (9)" used to drop back to
+    # "Deal X3 damage" while it was still on the stage (2026-09-24).
+    _played = true
     # Record where the card was played from, so effects like refuel can launch their "dice
     # fly back to the die" visual from the card itself. Set before card.play() because that's
     # what fires the effect (and the refuel signal) synchronously.
     Global.last_played_card_position = global_position + size / 2.0
     _prune_stale_targets()
     card.play(targets, char_stats, player_modifiers)
-    _fly_to_discard_and_free()
+    _fly_to_discard_and_free(Card.last_play_report())
 
 
-# The played card's visual send-off (the effect already fired above; by play() time the card
-# lives on the ui_layer, so it can move freely above the hand). One unified STS2-style
-# choreography for every card type since 2026-07-18 - attacks, Block, support, AoE alike
-# (aimed cards simply start their glide from near the enemy they were released on): glide to
-# the presentation spot, hold readable, comet-streak into the discard pile. See the
-# STAGE_*/COMET_* constants block for the full reasoning and tuning levers.
-func _fly_to_discard_and_free() -> void:
+# The played card's visual send-off - the effect already fired above, this only moves the card.
+# `report` is Card.last_play_report(): which pile the rules put it in, whether it missed (a
+# fizzle), and when its last delayed hit lands. Called without one (harnesses), it reads the card
+# as it stands.
+func _fly_to_discard_and_free(report: Dictionary = {}) -> void:
+    _played = true
     set_process_input(false)  # stop routing input into the now-discarding state machine
     mouse_filter = Control.MOUSE_FILTER_IGNORE
     disabled = true
     z_index = 100
     if tween and tween.is_valid():
         tween.kill()  # stop any in-progress positioning tween (e.g. the aim move-up) from fighting the fly
-
-    # Center the pivot for the whole send-off so the spin/shrink below act around the card's
-    # middle instead of its top-left corner (the default pivot the fan/hover system leaves).
-    # Safe to change here - the card has permanently left the hand by this point.
-    pivot_offset = size / 2.0
-
-    var target_pos := global_position + Vector2(0, 220)  # fallback if discard pile not found
-    var pile_button: Control = null
     var ui_layer := get_tree().get_first_node_in_group("ui_layer")
-    if ui_layer:
-        # A card played straight from the red-dice socket never went through the drag state
-        # on its final play (dice.gd forces BASE->AIMING->RELEASED on the red roll), so
-        # unlike every other play path it can still be a CHILD OF THE HAND here. It must
-        # leave the hand NOW: card.play() already added its Card to the discard pile via
-        # Events.card_played, so if End Turn fires during this ~1.3s fly-out,
-        # player_handler.discard_cards() would iterate it as a hand card and add the SAME
-        # Card object to the pile a second time - two copies drawn after the next reshuffle.
-        if get_parent() != ui_layer:
-            reparent(ui_layer)
-        # Exhausting cards fly to the exhaust pile instead of discard - they never actually
-        # land in the discard pile (see player_handler.gd::_on_card_played), so flying there
-        # was a visual lie. should_exhaust() reflects the same synchronous check
-        # player_handler.gd already made moments earlier via the same card.play() call.
-        var pile_name := "ExhaustPileButton" if card.should_exhaust() else "DiscardPileButton"
-        var discard: Node = ui_layer.get_node_or_null(pile_name)
-        if discard and discard is Control:
-            pile_button = discard as Control
-            # Aim the card's visual CENTER at the button's center: with the centered pivot
-            # above, the shrinking card's center stays at global_position + pivot_offset
-            # (pivot_offset is in local unscaled coords, unaffected by the scale-down).
-            target_pos = pile_button.global_position + pile_button.size / 2.0 - pivot_offset
-
-    # Resolve flash: the card discharges the instant its effect lands - a quick overbright
-    # pop on its own tween, so the sequential fly choreography below keeps its own timings.
-    modulate = RESOLVE_FLASH_COLOR
-    var flash_tween := create_tween()
-    flash_tween.tween_property(self, "modulate", Color.WHITE, RESOLVE_FLASH_DECAY) \
-        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-
-    var fly_tween := create_tween()
-
-    # STS2-style present-and-hold for EVERY played card (see the STAGE_*/COMET_* constants
-    # block) - attacks included, per Julien (his STS2 reference does the same: the attack card
-    # holds at the fixed spot while the slash lands). Three beats: a decelerating GLIDE to the
-    # ONE fixed presentation spot (ignoring wherever the cursor released the card - that cursor-
-    # follow was the "up AND right" he kept seeing) while it grows and rights itself, a readable
-    # HOLD while the effect resolves, then a fast comet EXIT into the discard pile. No separate
-    # play-punch: the entrance grow to STAGE_HOLD_SCALE is the punch.
-    # Glide to the fixed presentation spot (see the STAGE_HOLD_CENTER note). Decelerating cubic,
-    # no overshoot.
-    fly_tween.tween_property(self, "global_position", STAGE_HOLD_CENTER - pivot_offset, STAGE_ENTER_TIME) \
-        .set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-    fly_tween.parallel().tween_property(self, "scale", STAGE_HOLD_SCALE, STAGE_ENTER_TIME) \
-        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-    fly_tween.parallel().tween_property(self, "rotation", 0.0, STAGE_ENTER_TIME * 0.6) \
-        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-    fly_tween.tween_interval(STAGE_HOLD_TIME)
-    var pile_center := target_pos + pivot_offset
-    # Exit: straight streak from the hold to the discard pile (bottom-right), accelerating
-    # (EASE_IN), shrinking, with a slight bank. NO up-launch beat first - the "up" already
-    # happened as the glide; this leg is purely the "then it flies to the pile" that Julien is
-    # fine with. The card stays visible for the flight and fades as it nears the pile.
-    fly_tween.tween_property(self, "global_position", pile_center - pivot_offset, COMET_TO_PILE_TIME) \
-        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-    fly_tween.parallel().tween_property(self, "scale", Vector2(0.12, 0.12), COMET_TO_PILE_TIME) \
-        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-    fly_tween.parallel().tween_property(self, "rotation", deg_to_rad(COMET_TILT_DEG), COMET_TO_PILE_TIME) \
-        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
-
-    # Dense trail over the exit leg, on its own independent tween (a parallel of the position
-    # tween would work too, but this keeps it uniform with the sparse wake below). Only reads
-    # the card's live position and sheds motes - the position tween above owns movement.
-    var comet_color := DicePalette.accent(Global.dice_type) * 1.6
-    if ui_layer:
-        var comet_trail := create_tween()
-        comet_trail.tween_interval(STAGE_ENTER_TIME + STAGE_HOLD_TIME)
-        comet_trail.tween_method(_comet_trail_step.bind(ui_layer, comet_color), 0.0, 1.0, COMET_TO_PILE_TIME)
-
-    # Fade near the END of the flight so the card stays visible travelling to the pile.
-    var fade_delay := STAGE_ENTER_TIME + STAGE_HOLD_TIME + COMET_TO_PILE_TIME - 0.18
-
-    # Pile catch-punch on its OWN pile-owned tween, not chained on fly_tween: the card fades
-    # out and queue_frees right as it reaches the pile, which would kill fly_tween and any
-    # callback still queued on it. A pile-owned tween survives the card.
-    if pile_button is CardPileOpener:
-        var pb := pile_button as CardPileOpener
-        var punch_tween := pb.create_tween()
-        punch_tween.tween_interval(STAGE_ENTER_TIME + STAGE_HOLD_TIME + COMET_TO_PILE_TIME * 0.85)
-        punch_tween.tween_callback(pb.receive_punch)
-
-    # Sparse dice-colored wake shed at the card's position across the whole glide + hold + exit.
-    # Motes own their own fade tween (mote.create_tween()) so they outlive this card's queue_free.
-    if ui_layer:
-        var trail_color := DicePalette.accent(Global.dice_type) * 1.6
-        var trail_time := fade_delay + 0.2
-        var trail_tween := create_tween()
-        trail_tween.tween_method(_emit_flight_trail.bind(ui_layer, trail_color), 0.0, trail_time, trail_time)
-
-    # Fade out near the end of the flight. queue_free waits for the fade so it isn't cut.
-    # Exhaust-bound cards tint to ember tones just before fading - "burned", not "filed away".
-    var fade_tween := create_tween()
-    if card.should_exhaust():
-        fade_tween.tween_interval(maxf(fade_delay - EXHAUST_EMBER_TIME, 0.0))
-        fade_tween.tween_property(self, "modulate", EXHAUST_EMBER_COLOR, EXHAUST_EMBER_TIME) \
-            .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-    else:
-        fade_tween.tween_interval(fade_delay)
-    fade_tween.tween_property(self, "modulate:a", 0.0, 0.2) \
-        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-    fade_tween.tween_callback(queue_free)
-
-
-# tween_method target for the flight trail above: `elapsed` sweeps 0 -> total flight time
-# linearly, and a mote is dropped every TRAIL_MOTE_INTERVAL seconds of it at the card's
-# current visual center. Kept sparse and small - it should read as a wake, not fireworks.
-var _last_trail_emit := 0.0
-
-func _emit_flight_trail(elapsed: float, layer: Node, color: Color) -> void:
-    if elapsed - _last_trail_emit < TRAIL_MOTE_INTERVAL:
+    # A card played straight from the red-dice socket never went through the drag state on its
+    # final play, so unlike every other play path it can still be a CHILD OF THE HAND here. It must
+    # leave the hand NOW: card.play() already added its Card to the discard pile via
+    # Events.card_played, so if End Turn fires during this flight, player_handler.discard_cards()
+    # would iterate it as a hand card and add the SAME Card object to the pile a second time - two
+    # copies drawn after the next reshuffle.
+    if ui_layer != null and get_parent() != ui_layer:
+        reparent(ui_layer)
+    # Hidden = it sat in the Red socket (dice.gd hides the real card there). The socket's display
+    # is what the player was looking at, and dice.gd flies THAT, pile arrival included, so this
+    # card only had to leave the hand.
+    if not visible:
+        queue_free()
         return
-    _last_trail_emit = elapsed
-    if not is_instance_valid(layer):
-        return
-    _spawn_trail_mote(layer, color, TRAIL_MOTE_SIZE_MIN, TRAIL_MOTE_SIZE_MAX, TRAIL_MOTE_ALPHA, TRAIL_MOTE_LIFETIME)
+    var exhausted: bool = report.get("exhausted", card.should_exhaust())
+    var dice_type: String = report.get("dice_type", Global.dice_type)
+    _hand_art_to_flight()
+    var send_off = CardSendOff.new()
+    send_off.ui_layer = ui_layer
+    send_off.art = card_background
+    send_off.fizzled = report.get("fizzled", false)
+    send_off.hold_extra = report.get("hold_extra", 0.0)
+    send_off.accent = DicePalette.accent(dice_type)
+    send_off.route = CardSendOff.route_for(card, exhausted)
+    send_off.pile_button = CardSendOff.pile_for(ui_layer, send_off.route)
+    add_child(send_off)
+    send_off.start()
 
 
-# Dense-trail driver for the staged card's two-beat exit. Only sheds motes at the card's LIVE
-# position (the two exit position tweens own movement) - `_t` is ignored. Motes are throttled on
-# a REAL-TIME clock (ticks msec), not the tween's t: the exit accelerates (EASE_IN beat 2), so a
-# t-based interval would clump motes at the slow launch and leave the fast pile-rush bare.
-var _last_comet_mote_ms := 0
+# The send-off takes the art over from here. Whatever pose it is in (follower lag, aim pose, drag
+# tilt, a refusal shake) stays exactly as it is on screen and eases out over the glide, and
+# nothing on this card writes the art again.
+func _hand_art_to_flight() -> void:
+    if _follow_tween and _follow_tween.is_valid():
+        _follow_tween.kill()
+    if _aim_tween and _aim_tween.is_valid():
+        _aim_tween.kill()
+    if _refusal_tween and _refusal_tween.is_valid():
+        _refusal_tween.kill()
+    _aim_tracking = false
+    drag_tilt_active = false
+    _flight_owned = true
+    # Hover tooltips on a card that is already flying away read as the hand still being live.
+    _cleanup_card_tooltips()
 
-func _comet_trail_step(_t: float, layer: Node, color: Color) -> void:
-    if not is_instance_valid(layer):
-        return
-    var now := Time.get_ticks_msec()
-    if now - _last_comet_mote_ms < COMET_MOTE_INTERVAL_MS:
-        return
-    _last_comet_mote_ms = now
-    _spawn_trail_mote(layer, color, COMET_MOTE_SIZE_MIN, COMET_MOTE_SIZE_MAX, COMET_MOTE_ALPHA, COMET_MOTE_LIFETIME)
 
-
-# Shared mote factory for the sparse whole-flight wake AND the dense comet-exit streak.
-func _spawn_trail_mote(layer: Node, color: Color, size_min: float, size_max: float, alpha: float, lifetime: float) -> void:
-    var mote := TextureRect.new()
-    mote.texture = _get_trail_texture()
-    # Fixed 32x32 source texture - without EXPAND_IGNORE_SIZE it renders at native size no
-    # matter what .size says (same TextureRect gotcha as the power orbs / refuel icons).
-    mote.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-    mote.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-    mote.material = _get_trail_material()
-    mote.modulate = color
-    mote.modulate.a = alpha
-    mote.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    mote.z_index = 90  # just under the flying card itself (z 100)
-    layer.add_child(mote)
-    var s := randf_range(size_min, size_max)
-    mote.size = Vector2(s, s)
-    mote.pivot_offset = mote.size / 2.0
-    # Scatter follows the card's current scale: full spread while the card is big/idling,
-    # tightening into a point as it shrinks on the final arc - a fixed-size cloud around a
-    # 15%-scale card would read as detached specks instead of a wake.
-    var spread_x := TRAIL_MOTE_SCATTER_X * scale.x
-    var spread_y := TRAIL_MOTE_SCATTER_Y * scale.y
-    var center := global_position + pivot_offset + Vector2(
-        randf_range(-spread_x, spread_x),
-        randf_range(-spread_y, spread_y)
-    )
-    mote.global_position = center - mote.size / 2.0
-    var mote_tween := mote.create_tween()
-    mote_tween.tween_property(mote, "modulate:a", 0.0, lifetime) \
-        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-    mote_tween.parallel().tween_property(mote, "scale", Vector2(0.3, 0.3), lifetime) \
-        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
-    mote_tween.parallel().tween_property(mote, "position", mote.position + Vector2(randf_range(-8.0, 8.0), randf_range(4.0, 14.0)), lifetime) \
-        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-    mote_tween.tween_callback(mote.queue_free)
+func _reset_visual_lag() -> void:
+    if _follow_tween and _follow_tween.is_valid():
+        _follow_tween.kill()
+    if _aim_tween and _aim_tween.is_valid():
+        _aim_tween.kill()
+    _lag_offset = Vector2.ZERO
+    _lag_rotation = 0.0
+    _lag_scale = 1.0
+    _tilt = 0.0
+    _aim_scale = 1.0
+    _aim_lean = 0.0
+    _aim_tracking = false
+    drag_tilt_active = false
+    shake_x = 0.0
 
 
 # End-of-turn/random-discard send-off: a much quicker, plainer cousin of the played-card
@@ -697,6 +788,10 @@ func fly_hand_discard() -> void:
     if discard and discard is Control:
         pile_button = discard as Control
         target_pos = pile_button.global_position + pile_button.size / 2.0 - pivot_offset
+    # The pile counts this card when it lands, not when the sweep starts (2026-09-24).
+    var token := 0
+    if pile_button is CardPileOpener:
+        token = (pile_button as CardPileOpener).expect_arrival()
 
     var fly_time := 0.4
     var fly_tween := create_tween()
@@ -709,7 +804,7 @@ func fly_hand_discard() -> void:
     fly_tween.parallel().tween_property(self, "modulate:a", 0.0, 0.18) \
         .set_delay(fly_time - 0.18)
     if pile_button is CardPileOpener:
-        fly_tween.tween_callback((pile_button as CardPileOpener).receive_punch.bind(1.12))
+        fly_tween.tween_callback((pile_button as CardPileOpener).land_arrival.bind(token, true, 1.12))
     fly_tween.tween_callback(queue_free)
 
 # In your CardUI class:
@@ -1243,6 +1338,10 @@ func reapply_playable_visual() -> void:
     set_playable_visual(current_glow_state)
 
 func _on_dice_rolled_update_description(_a = null, _b = null) -> void:
+    # A played card keeps the number it was played at: the rest of the hand follows the dice, but
+    # this one is on the stage showing what it just did.
+    if _played:
+        return
     if card and card.has_method("get_dynamic_description"):
         _prune_stale_targets()
         # Same single-target collapse Card.play() performs, so when two hitboxes overlap under

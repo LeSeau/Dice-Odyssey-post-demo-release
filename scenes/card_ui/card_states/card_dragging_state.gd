@@ -11,15 +11,20 @@ func enter() -> void:
     if ui_layer:
         # Store the exact global position before reparenting
         var mouse_pos = card_ui.get_global_mouse_position()
-        
+        # Where the art is on screen before the root jumps to the cursor, so the pick-up eases
+        # over instead of teleporting (2026-09-23, CardUI visual follower).
+        var art_before: Transform2D = card_ui.card_background.get_global_transform()
+
         # Reparent to UI layer
-        card_ui.reparent(ui_layer) 
-        
+        card_ui.reparent(ui_layer)
+
         # Reset any rotation from the fan effect
         card_ui.rotation = 0
-        
+
         # Position card centered on mouse
         card_ui.global_position = mouse_pos - (card_ui.size / 2)
+        card_ui.hold_visual(art_before, card_ui.PICKUP_TIME)
+    card_ui.start_drag_tilt()
     
     if card_ui.card.type == Card.Type.HEX:
         card_ui.panel.set("theme_override_styles/panel", card_ui.DRAG_STYLEBOX)
@@ -40,7 +45,7 @@ func enter() -> void:
     Events.fan_hand_requested.emit()
 
 func exit() -> void:
-    
+    card_ui.stop_drag_tilt()
     Events.card_drag_ended.emit(card_ui)
     Events.fan_hand_requested.emit()
 #

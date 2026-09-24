@@ -8,6 +8,10 @@ func enter() -> void:
     if card_ui.tween and card_ui.tween.is_running():
         card_ui.tween.kill()
 
+    # Back from an aim: fold the small, leaning aim pose into the follower so the art glides home
+    # instead of popping to full size. A no-op for every other way into BASE.
+    card_ui.end_aim_pose()
+
     #card_ui.panel.set("theme_override_styles/panel", card_ui.BASE_STYLEBOX)
     card_ui.reparent_requested.emit(card_ui)
     card_ui.pivot_offset = Vector2.ZERO

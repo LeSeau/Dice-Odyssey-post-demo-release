@@ -24,6 +24,8 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
             damage_effect.execute(live_targets)
             
             if i < hit_count - 1:
+                if i == 0:
+                    note_delayed_hit(0.7 * (hit_count - 1))
                 await tree.create_timer(0.7).timeout
         
         Events.dice_roll_reset.emit()

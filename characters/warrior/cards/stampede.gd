@@ -18,6 +18,7 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     if Global.dice_amount_rolled_this_turn >= 5:
         var target: Node = targets[0]
         var tree := target.get_tree()
+        note_delayed_hit(0.25)
         var timer := tree.create_timer(0.25, false)
         timer.timeout.connect(_on_second_hit.bind(tree, target, Card.deferred_berserker_damage(damage)))
     Events.dice_roll_reset.emit()

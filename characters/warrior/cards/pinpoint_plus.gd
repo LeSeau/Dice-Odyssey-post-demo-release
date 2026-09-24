@@ -10,6 +10,7 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
     damage_effect.execute(targets)
 
     if Global.has_rolled_6_this_turn:
+        note_delayed_hit(0.5)
         await targets[0].get_tree().create_timer(0.5).timeout
         var bonus_damage := DamageEffect.new()
         # Past the await, so the Berserker window is already closed - bake the boost in.

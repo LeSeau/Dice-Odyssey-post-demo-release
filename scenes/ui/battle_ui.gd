@@ -104,13 +104,10 @@ func initialize_card_pile_ui() -> void:
     # showing an empty pile at 0 all game would just be clutter). Never re-hides once shown;
     # nothing in the current design removes cards FROM the exhaust pile mid-fight.
     exhaust_pile_button.visible = false
-    if not char_stats.exhaust.card_pile_size_changed.is_connected(_on_exhaust_pile_size_changed):
-        char_stats.exhaust.card_pile_size_changed.connect(_on_exhaust_pile_size_changed)
-
-
-func _on_exhaust_pile_size_changed(cards_amount: int) -> void:
-    if cards_amount > 0:
-        exhaust_pile_button.visible = true
+    # The opener reveals itself once it COUNTS a card, which since 2026-09-24 is when the first
+    # exhausted card lands (its ember reaches the pile, or a Blessing enters the hero), not the
+    # instant it is played.
+    exhaust_pile_button.reveal_when_counted = true
 
 
 func _set_char_stats(value: CharacterStats) -> void:

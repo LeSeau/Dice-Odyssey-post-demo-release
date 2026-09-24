@@ -3588,6 +3588,7 @@ func _on_reset_charged_card():
         return
     if Global.playing_red_card and is_instance_valid(socketed_card_ui):
         _flying_charged_card_to_discard = true
+        var played_card: Card = socketed_card_ui.card
         # Drop the reference NOW, not at the end of the fly tween: the fly only animates
         # card_drop_area visuals and never reads socketed_card_ui. Keeping the pointer
         # alive for the ~1s animation let End Turn's clear_socket "cancel" an already-
@@ -3605,7 +3606,7 @@ func _on_reset_charged_card():
         # sets Global.playing_red_card = false and frees its own CardUI right after we return.
         var pending_second: CardUI = socketed_card_ui_2
         _clear_socket_2()
-        _fly_charged_card_to_discard()
+        _fly_charged_card_to_discard(played_card)
         if is_instance_valid(pending_second):
             _resolve_second_socket.call_deferred(pending_second)
         return
@@ -5274,52 +5275,62 @@ func _on_refuel_happened(amount: int) -> void:
         .set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
         
         
-# Mirrors CardUI._fly_to_discard_and_free()'s single-targeted lift-then-arc, applied to the
-# socket's own display (card_drop_area) instead of the real CardUI: that node gets hidden the
-# whole time a card is socketed (see _on_card_charged's card_ui.hide()), so animating it would
-# be invisible - card_drop_area is what the player has actually been looking at.
-func _fly_charged_card_to_discard() -> void:
-    var origin_pos := card_drop_area.global_position
-    var origin_scale := card_drop_area.scale
-
-    var target_pos := origin_pos
+# The socketed card's send-off (2026-09-24). The real CardUI stays hidden the whole time a card
+# is socketed (_on_card_charged's card_ui.hide()), so the socket's display is what the player has
+# been looking at - and a SNAPSHOT of it now takes the same flight as a card played from the hand
+# (card_send_off.gd): press, stage, hold while the hits land, then the discard, the burn or the
+# hero, with the pile counting it on arrival. It used to lift and arc to the discard pile's
+# top-left corner with no stage, no trail, no flash and no catch, and it always went to the
+# discard, even for a card the rules had exhausted.
+#
+# A snapshot rather than the socket node itself: the socket is emptied at once and can take the
+# next card while this one is in the air. Flying the socket meant a card dropped in mid-flight
+# landed in a socket that was itself on its way to the discard.
+func _fly_charged_card_to_discard(played: Card = null) -> void:
     var ui_layer := get_tree().get_first_node_in_group("ui_layer")
-    if ui_layer:
-        var discard: Node = ui_layer.get_node_or_null("DiscardPileButton")
-        if discard and discard is Control:
-            target_pos = (discard as Control).global_position
-
-    var lift_pos := origin_pos + Vector2(0, -80)
-    var lift_time := 0.16
-    var arc_time := 0.7
-
-    var fly_tween := create_tween()
-    fly_tween.tween_property(card_drop_area, "global_position", lift_pos, lift_time) \
-        .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-    fly_tween.tween_property(card_drop_area, "global_position", target_pos, arc_time) \
-        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-    fly_tween.parallel().tween_property(card_drop_area, "scale", origin_scale * 0.15, arc_time) \
-        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
-    fly_tween.parallel().tween_property(card_drop_area, "rotation", deg_to_rad(randf_range(-35.0, 35.0)), arc_time) \
-        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-
-    var fade_tween := create_tween()
-    fade_tween.tween_interval(lift_time + arc_time - 0.2)
-    fade_tween.tween_property(card_drop_area, "modulate:a", 0.0, 0.2) \
-        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-    fade_tween.tween_callback(func():
-        # socketed_card_ui is deliberately NOT touched here anymore - it was already
-        # nulled when the fly started (_on_reset_charged_card), and nulling it again
-        # would clobber a NEW card socketed while this animation was still playing.
-        # Same reason for the guard below: only reset the display if nothing new
-        # took the socket mid-flight.
-        if socketed_card_ui == null:
-            _set_socket_empty()
-        card_drop_area.global_position = origin_pos
-        card_drop_area.rotation = 0.0
-        card_drop_area.modulate.a = 1.0
+    if ui_layer == null or played == null:
+        _set_socket_empty()
         _flying_charged_card_to_discard = false
-    )
+        return
+    # flags 0: geometry only - no scripts, signals or groups ride along into the copy.
+    var snapshot := card_drop_area.duplicate(0) as Control
+    for path: String in ["CardSocketGlow", "CancelRedCardPanel",
+            "CardBackground/CardFrame/SocketOrderLabel"]:
+        var extra := snapshot.get_node_or_null(path) as CanvasItem
+        if extra != null:
+            extra.hide()
+    # World (the die's canvas, under the battle camera) to the ui_layer's screen space.
+    var xf := get_viewport().get_canvas_transform() * card_drop_area.get_global_transform()
+    ui_layer.add_child(snapshot)
+    snapshot.pivot_offset = Vector2.ZERO
+    snapshot.rotation = xf.get_rotation()
+    snapshot.scale = xf.get_scale()
+    snapshot.position = xf.origin
+    snapshot.modulate = Color.WHITE
+    snapshot.z_index = 100
+
+    var report := Card.last_play_report()
+    var exhausted: bool = report["exhausted"]
+    var send_off = CardSendOff.new()
+    send_off.ui_layer = ui_layer
+    send_off.art = snapshot.get_node_or_null("CardBackground") as Control
+    send_off.fizzled = report["fizzled"]
+    send_off.accent = DicePalette.accent(String(report["dice_type"]))
+    send_off.route = CardSendOff.route_for(played, exhausted)
+    send_off.pile_button = CardSendOff.pile_for(ui_layer, send_off.route)
+    snapshot.add_child(send_off)
+    # The pile has to learn NOW that a card is on its way (see CardSendOff.prepare), but the
+    # flight itself starts at the end of the frame: this can run from inside the card's own
+    # apply_effects, before it has scheduled its delayed hits, and the hold is sized off those.
+    send_off.prepare()
+    var start_flight := func() -> void:
+        if is_instance_valid(send_off):
+            send_off.hold_extra = Card.last_play_hold_extra
+            send_off.start()
+    start_flight.call_deferred()
+
+    _set_socket_empty()
+    _flying_charged_card_to_discard = false
 
 
 func _set_socket_empty() -> void:
@@ -5378,6 +5389,8 @@ func _set_socket_filled() -> void:
 # Same resource as OCTET_MUSCLE_STATUS above; named separately so the socketless path reads
 # as what it is rather than borrowing the Octet infusion's name. preload() dedupes.
 const MUSCLE_STATUS := preload("res://statuses/muscle.tres")
+# The played card's send-off, shared with CardUI (see _fly_charged_card_to_discard).
+const CardSendOff := preload("res://scenes/card_ui/card_send_off.gd")
 
 
 # Socketless Red blessing: rolling the Red die with an EMPTY socket turns that roll into board

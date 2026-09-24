@@ -31,6 +31,9 @@ func execute(targets: Array[Node]) -> void:
         if target is Enemy or target is Player:
             target.stats.block += amount
             SFXPlayer.play(sound)
+            # The hero crouches into a guard when a CARD gave him this (player.gd decides).
+            if target.has_method("note_block_gained"):
+                target.call("note_block_gained")
 
             var tint := _ward_color(target)
             var tint_centre := Card.thrown_impact_pos(target)

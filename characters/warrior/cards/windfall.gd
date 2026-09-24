@@ -15,6 +15,7 @@ func apply_effects(targets: Array[Node], _modifiers: ModifierHandler) -> void:
     var value: int = faces[randi() % faces.size()]
     Events.dice_thrown.emit([{"type": "green", "value": value, "target": null}], Global.last_played_card_position)
     if not targets.is_empty():
+        note_delayed_hit(Global.DICE_THROW_FLIGHT_TIME)
         var timer := targets[0].get_tree().create_timer(Global.DICE_THROW_FLIGHT_TIME, false)
         timer.timeout.connect(_on_windfall_landed.bind(value))
     # Consumes your Power like a normal card (Julien, 2026-07-25) - the draw is the

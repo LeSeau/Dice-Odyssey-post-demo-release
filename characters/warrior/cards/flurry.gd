@@ -23,6 +23,7 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
         # Baked now: the flag is gone by the time these land. See Card.
         var boosted := Card.deferred_berserker_damage(damage)
         for i in range(1, HIT_COUNT):
+            note_delayed_hit(HIT_INTERVAL * i)
             var timer := tree.create_timer(HIT_INTERVAL * i, false)
             timer.timeout.connect(_on_follow_up_hit.bind(tree, target, boosted))
     Events.dice_roll_reset.emit()

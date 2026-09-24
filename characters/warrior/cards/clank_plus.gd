@@ -27,6 +27,7 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
             damage_effect.execute(targets)
 
             if i == 0:
+                note_delayed_hit(0.7)
                 await tree.create_timer(0.7).timeout
                 # Safety check: bail if target died from first hit
                 var still_alive = targets.filter(func(t): return is_instance_valid(t) and not t.is_queued_for_deletion())

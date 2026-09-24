@@ -52,6 +52,7 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
         var n := throws.size()
         var land_delay: float = Global.DICE_THROW_FLIGHT_TIME \
                 + Global.dice_throw_volley_stagger(n) * (n - 1)
+        note_delayed_hit(land_delay)
         var timer := target.get_tree().create_timer(land_delay, false)
         timer.timeout.connect(_on_all_in_landed.bind(target.get_tree(), target, final_damage))
     else:

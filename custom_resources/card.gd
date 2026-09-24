@@ -303,7 +303,46 @@ func _target_hitbox_centre(target: Node) -> Vector2:
     return node_2d.global_position
 
 
+# What the LAST play() did, for the card's send-off (scenes/card_ui/card_send_off.gd) to route by.
+# Read right after play() returns: CardUI.play() reads it at once, and dice.gd's Red socket
+# display reads it at the end of the same frame. No other play can land in between.
+#
+# Decided at the START of play(), for the same reason player_handler files the card from inside
+# the card_played emit: the effect can reset Power, and a Min 6 Blessing judged after its own
+# reset reads as a miss - it used to fly to the discard while the rules had exhausted it.
+static var last_play_exhausted := false
+# A requirement miss: the play did nothing. Only reachable on a Red roll or blind under Ink - the
+# pick-up refusal stops every other miss before the drag. Not a fizzle when Ooga Booga turns the
+# miss into damage.
+static var last_play_fizzled := false
+# Seconds after the play at which its LAST delayed hit lands (thrown dice, follow-up hits). The
+# card holds on the stage until then, so the player sees the hits it caused land.
+static var last_play_hold_extra := 0.0
+static var last_play_dice_type := ""
+
+
+# Any card that schedules damage after play() returns calls this with the delay, BEFORE its first
+# await (an await ends play() early and the send-off reads this the moment play() returns).
+static func note_delayed_hit(seconds: float) -> void:
+    last_play_hold_extra = maxf(last_play_hold_extra, seconds)
+
+
+static func last_play_report() -> Dictionary:
+    return {
+        "exhausted": last_play_exhausted,
+        "fizzled": last_play_fizzled,
+        "hold_extra": last_play_hold_extra,
+        "dice_type": last_play_dice_type,
+    }
+
+
 func play(targets: Array[Node], char_stats: CharacterStats, modifiers: ModifierHandler) -> void:
+
+    last_play_hold_extra = 0.0
+    last_play_dice_type = Global.dice_type
+    last_play_exhausted = should_exhaust()
+    last_play_fizzled = requirement != Requirement.NONE and not meets_requirement() \
+            and not (Global.red_whiff_damage_mult > 0 and Global.playing_red_card)
 
     Global.cards_played_this_turn+=1
     Global.run_stat_cards_played += 1
@@ -457,6 +496,7 @@ static func thrown_impact_pos(target: Node) -> Vector2:
 # mid-flight the die bounces to a random living enemy; if the fight is over, it lands on
 # nothing.
 func _land_thrown_die(tree: SceneTree, target: Node, damage: int, delay: float, hit_sound: AudioStream, dice_type: String, value: int) -> void:
+    note_delayed_hit(delay)
     var timer := tree.create_timer(delay, false)
     timer.timeout.connect(_on_thrown_die_landed.bind(tree, target, damage, hit_sound, dice_type, value))
 

@@ -192,6 +192,10 @@ func _ready() -> void:
     _sway_material.set_shader_parameter("breathe_hz", 0.38)
     _sway_material.set_shader_parameter("sway_phase", randf() * 60.0)
     _sway_material.set_shader_parameter("sway_speed", randf_range(0.9, 1.15))
+    # Seeded so the brace/flex tweens below always have a uniform to write over: an uniform that
+    # was never assigned reads back null and a tween on it silently does nothing.
+    _sway_material.set_shader_parameter("flash_color", body_flash_color)
+    _sway_material.set_shader_parameter("flash_amount", 0.0)
     sprite_2d.material = _sway_material
 
     # Hang the status row off the VISIBLE red HP bar's bottom-left corner, exactly like
@@ -607,6 +611,10 @@ func _on_active_dice_changed(active_dice) -> void:
 
 
 func _on_card_played(card: Card) -> void:
+    # Stamped before the card's effects run (card_played is emitted ahead of apply_effects), so the
+    # Block and statuses those effects grant can tell they came from THIS play (see note_*).
+    _card_play_frame = Engine.get_process_frames()
+    _card_play_is_blessing = card != null and card.type == Card.Type.BLESSING
     # Attacks only, matching the gate that spawns the directional slash on the enemy
     # (card.gd) - so the thrust and the cut that lands ~0.055s later read as one beat, and a
     # block or a blessing does not get a phantom attack tell.
@@ -838,3 +846,185 @@ func _sprite_feet_below_center() -> float:
 
 func _on_event_damage(amount):
     print("taking damage from event")
+
+
+# ===========================================================================
+# BRACE AND FLEX (2026-09-24)
+#
+# The hero only ever reacted to attacks. A Block card now crouches him into a guard with a cool
+# flash, and a buff swells him with a warm one - the beats the enemies got on 2026-09-23
+# (enemy.gd::play_brace / play_flex), on the same shader uniforms. One channel, SpriteRoot, posed
+# around the FEET so he never leaves the ground line. The root belongs to the lunge and the
+# knockback, Sprite2D.scale to the hit squash and the idle is a shader deformation, so none of
+# them can fight this one. The held die rides SpriteRoot, so it crouches with him.
+#
+# Card plays only. A relic or infusion that grants Block on every roll (Bulwark) would otherwise
+# have him flinching into a guard all turn. A Blessing flexes when its card ENTERS him
+# (card_send_off.gd's absorb), not when it is played.
+# ===========================================================================
+const HERO_BRACE_FLASH := Color(0.55, 0.78, 1.0)
+const HERO_FLEX_FLASH := Color(1.0, 0.5, 0.2)
+# The flash is ADDED to every pixel of the art, so it is a wash, not a rim - the enemy pass had
+# to come down from 0.42/0.6 to keep their colours. Same ballpark here.
+const HERO_BRACE_PEAK := 0.2
+const HERO_FLEX_PEAK := 0.26
+# He leans BACK into a guard, away from the enemies on his right: counter-clockwise, so negative.
+# The enemies' brace leans the other way for the same reason.
+const HERO_BRACE_LEAN := -0.035
+# Statuses his own cards put on him that are costs, not buffs (Blaze's Weak, Overdrive's
+# Depleted, Occultism's Unlucky...). Anything else a card gives him counts as a buff.
+const HERO_DEBUFF_IDS: Array[String] = ["weak", "exposed", "unlucky", "depleted", "ink", "chaos",
+        "dice_hostage", "rationed", "flux"]
+
+var pose_lean := 0.0 : set = _set_pose_lean
+var pose_scale := Vector2.ONE : set = _set_pose_scale
+var pose_shift := Vector2.ZERO : set = _set_pose_shift
+var body_flash := 0.0 : set = _set_body_flash
+var body_flash_color := Color(0.55, 0.78, 1.0) : set = _set_body_flash_color
+var _pose_tween: Tween
+var _feet_pivot := Vector2.ZERO
+var _card_play_frame := -1
+var _card_play_is_blessing := false
+var _pending_brace := false
+var _pending_flex := false
+var _pose_resolve_queued := false
+
+
+# Called by BlockEffect when a card gives him Block.
+func note_block_gained() -> void:
+    if Engine.get_process_frames() != _card_play_frame or _card_play_is_blessing:
+        return
+    _pending_brace = true
+    _queue_pose_resolve()
+
+
+# Called by StatusHandler.add_status for every status that lands on him.
+func note_status_gained(status: Status) -> void:
+    if status == null or Engine.get_process_frames() != _card_play_frame or _card_play_is_blessing:
+        return
+    if HERO_DEBUFF_IDS.has(status.id):
+        return
+    _pending_flex = true
+    _queue_pose_resolve()
+
+
+# One pose per play, decided once its effects have all run: a card that blocks AND buffs gets the
+# guard with the warm flash, like the enemies' block-and-buff beat.
+func _queue_pose_resolve() -> void:
+    if _pose_resolve_queued:
+        return
+    _pose_resolve_queued = true
+    _resolve_card_pose.call_deferred()
+
+
+func _resolve_card_pose() -> void:
+    _pose_resolve_queued = false
+    var brace := _pending_brace
+    var flex := _pending_flex
+    _pending_brace = false
+    _pending_flex = false
+    if brace:
+        play_brace(flex)
+    elif flex:
+        play_flex()
+
+
+func play_brace(with_buff := false) -> void:
+    if stats == null or stats.health <= 0:
+        return
+    _refresh_feet_pivot()
+    _kill_pose_tween()
+    body_flash_color = HERO_FLEX_FLASH if with_buff else HERO_BRACE_FLASH
+    _pose_tween = create_tween()
+    _pose_tween.tween_property(self, "pose_scale", Vector2(1.08, 0.88), 0.09) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    _pose_tween.parallel().tween_property(self, "pose_lean", HERO_BRACE_LEAN, 0.09) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    _pose_tween.parallel().tween_property(self, "body_flash", HERO_BRACE_PEAK, 0.09)
+    _pose_tween.tween_interval(0.16)
+    _pose_tween.tween_property(self, "pose_scale", Vector2.ONE, 0.3) \
+        .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+    _pose_tween.parallel().tween_property(self, "pose_lean", 0.0, 0.3) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+    _pose_tween.parallel().tween_property(self, "body_flash", 0.0, 0.4) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+
+# Also what a Blessing's card does when it swirls into him (card_send_off.gd).
+func play_flex() -> void:
+    if stats == null or stats.health <= 0:
+        return
+    _refresh_feet_pivot()
+    _kill_pose_tween()
+    body_flash_color = HERO_FLEX_FLASH
+    _pose_tween = create_tween()
+    _pose_tween.tween_property(self, "pose_scale", Vector2(1.06, 1.12), 0.13) \
+        .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+    _pose_tween.parallel().tween_property(self, "body_flash", HERO_FLEX_PEAK, 0.1)
+    _pose_tween.tween_method(set_pose_tremble.bind(2.5), 0.0, 1.0, 0.2)
+    _pose_tween.tween_property(self, "pose_scale", Vector2.ONE, 0.3) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+    _pose_tween.parallel().tween_property(self, "pose_shift", Vector2.ZERO, 0.08)
+    _pose_tween.parallel().tween_property(self, "body_flash", 0.0, 0.45) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+
+# tween_method target: a horizontal shiver whose amplitude rises and falls over t = 0..1.
+func set_pose_tremble(t: float, amplitude: float) -> void:
+    pose_shift = Vector2(sin(t * TAU * 7.0) * amplitude * sin(t * PI), 0.0)
+
+
+func _kill_pose_tween() -> void:
+    if _pose_tween and _pose_tween.is_valid():
+        _pose_tween.kill()
+
+
+# The feet in SpriteRoot space, from the art's alpha box. Read from the RESTING sprite: a hit
+# squash in progress moves and rescales the sprite for a moment.
+func _refresh_feet_pivot() -> void:
+    if sprite_2d == null or sprite_2d.texture == null:
+        return
+    var sprite_scale: Vector2 = _hit_rest_sprite_scale if _hit_squash_active else sprite_2d.scale
+    var sprite_y: float = _hit_rest_sprite_y if _hit_squash_active else sprite_2d.position.y
+    var tex_size: Vector2 = sprite_2d.texture.get_size()
+    var content: Rect2 = Enemy._get_content_rect(sprite_2d.texture)
+    var feet := Vector2(content.get_center().x - tex_size.x / 2.0, content.end.y - tex_size.y / 2.0)
+    _feet_pivot = Vector2(sprite_2d.position.x, sprite_y) + feet * sprite_scale
+
+
+func _set_pose_lean(value: float) -> void:
+    pose_lean = value
+    _apply_pose()
+
+
+func _set_pose_scale(value: Vector2) -> void:
+    pose_scale = value
+    _apply_pose()
+
+
+func _set_pose_shift(value: Vector2) -> void:
+    pose_shift = value
+    _apply_pose()
+
+
+func _apply_pose() -> void:
+    if sprite_2d == null:
+        return
+    var root := sprite_2d.get_parent() as Node2D
+    if root == null:
+        return
+    var xf := Transform2D(pose_lean, pose_scale, 0.0, Vector2.ZERO)
+    xf.origin = _feet_pivot - xf.basis_xform(_feet_pivot) + pose_shift
+    root.transform = xf
+
+
+func _set_body_flash(value: float) -> void:
+    body_flash = value
+    if _sway_material != null:
+        _sway_material.set_shader_parameter("flash_amount", value)
+
+
+func _set_body_flash_color(value: Color) -> void:
+    body_flash_color = value
+    if _sway_material != null:
+        _sway_material.set_shader_parameter("flash_color", value)

@@ -29,6 +29,9 @@ func apply_statuses_by_type(type: Status.Type) -> void:
     tween.finished.connect(func(): statuses_applied.emit(type))
     
 func add_status(status: Status) -> void:
+    # The hero flexes when one of his cards buffs him (player.gd filters for card plays and buffs).
+    if status_owner != null and status_owner.has_method("note_status_gained"):
+        status_owner.call("note_status_gained", status)
     var stackable := status.stack_type != Status.StackType.NONE
     
     #add if it's new

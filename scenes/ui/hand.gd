@@ -58,6 +58,10 @@ func _ready() -> void:
     # IN_HAND_* consts for why it reads the tree instead of a mirrored set.
     add_to_group("hand")
     resized.connect(_update_card_positions)
+    # sort_children fires right AFTER the container has placed its children, so the fan (and the
+    # CardUI visual follower) always runs on the final slots. Without it, a sort that nothing else
+    # followed up - a card leaving on drag, say - left the fan flat and the move un-smoothed.
+    sort_children.connect(_on_hand_sorted)
     Events.fan_hand_requested.connect(_update_card_positions)
     Events.add_card_to_hand_requested.connect(_on_add_card_to_hand_requested)
     Events.hover_playable_cards.connect(_on_hover_playable_cards)
@@ -102,24 +106,47 @@ func add_card(card: Card) -> void:
     _refresh_held_badges()
 
 
-# Draw entrance: cards used to pop into the fan fully-formed in a single frame. Deliberately
-# only touches `modulate` - the fan layout owns position/rotation (and re-stomps both on every
-# subsequent card of the same deal), and scale/pivot are owned by the hover system, so an
-# entrance on any of those either fights the layout or changes established hover behavior.
-# An overbright materialize settling into the card's real look, plus the draw pile physically
-# "dispensing" each card (receive_punch), reads as dealt without touching contested properties.
+# Draw entrance. The ROOT is still never animated here - the fan layout owns its position and
+# rotation (and re-stomps both on every card of the same deal), and scale/pivot belong to the
+# hover system. The flight out of the draw pile lives on the card's art instead (CardUI visual
+# follower, begin_draw_flight), which no layout pass touches; this function only adds the
+# modulate beats around it (fade in at the pile, flash on landing).
 func _play_draw_entrance(card_ui: CardUI) -> void:
     # set_playable_visual above may have dimmed the card (most draws land before any roll) -
     # the entrance must settle into THAT look, not force full white over the dim state.
     var resting_modulate := card_ui.modulate
     card_ui.modulate = Color(resting_modulate.r, resting_modulate.g, resting_modulate.b, 0.0)
+    # Dealt out of the draw pile (2026-09-23): the card's art flies from the pile into its slot
+    # (CardUI visual follower) while the fan opens to make room. It used to fade in where it
+    # landed. The flash below now lands WITH the card instead of at the spot it appears.
+    var pile_center := _draw_pile_center()
+    var flight := 0.0
+    if pile_center != Vector2.INF:
+        card_ui.begin_draw_flight(pile_center)
+        flight = CardUI.DRAW_FLIGHT_TIME
     # Tween owned by the card itself, not the Hand - if the card is freed mid-entrance the
     # tween dies with it instead of writing to a freed object.
     var entrance := card_ui.create_tween()
+    if flight > 0.0:
+        # Visible almost at once so it reads leaving the pile, then the landing flash.
+        entrance.tween_property(card_ui, "modulate", resting_modulate, 0.06)
+        entrance.tween_interval(maxf(flight - 0.1, 0.0))
     entrance.tween_property(card_ui, "modulate", Color(1.55, 1.45, 1.15, 1.0), 0.09) \
         .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
     entrance.tween_property(card_ui, "modulate", resting_modulate, 0.22) \
         .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+
+# Global centre of the Draw pile button, INF if there is none (a harness without BattleUI).
+# Same CanvasLayer as the hand, so the two share a coordinate space.
+func _draw_pile_center() -> Vector2:
+    var ui_layer := get_tree().get_first_node_in_group("ui_layer")
+    if ui_layer == null:
+        return Vector2.INF
+    var pile := ui_layer.get_node_or_null("DrawPileButton") as Control
+    if pile == null or not pile.is_visible_in_tree():
+        return Vector2.INF
+    return pile.get_global_rect().get_center()
 
 func discard_card(card: CardUI) -> void:
     if tutorial_locked_card == card:
@@ -149,6 +176,13 @@ func _on_card_ui_reparent_requested(child: CardUI) -> void:
     call_deferred("_update_card_positions")
     _refresh_held_badges()
 
+func _on_hand_sorted() -> void:
+    for child in get_children():
+        if child is CardUI:
+            (child as CardUI).mark_placed_by_container()
+    _update_card_positions()
+
+
 func _update_card_positions() -> void:
     
     var card_count := get_child_count()
@@ -170,12 +204,15 @@ func _update_card_positions() -> void:
                 # Store only the Y position
                 _original_positions[card] = Vector2(0, card.position.y)
                 #card.scale = Vector2(1.1, 1.1)
+                # The root just jumped to its slot; let the art glide there (2026-09-23).
+                card.follow_to_slot()
     else:
         var card := get_child(0) as CardUI
         if card:
             card.rotation_degrees = 0
             card.position.y = 0
             _original_positions[card] = Vector2(0, 0)
+            card.follow_to_slot()
 
     
 
@@ -189,12 +226,14 @@ func _on_card_mouse_entered(card: CardUI) -> void:
             highlight_card_lift(card)
         return
     if Global.dragging_card == false:
-        var tween := create_tween()
-        tween.tween_property(card, "position:y",
-            _original_positions[card].y + hover_lift, hover_time).set_ease(Tween.EASE_OUT)
+        # The root jumps to the hover pose and the art glides there (2026-09-23): the lift used to
+        # tween while the 1.12 scale and the straightening snapped in a single frame.
+        var art_before := card.card_background.get_global_transform()
+        card.position.y = _original_positions[card].y + hover_lift
         card.z_index = 50
         card.rotation_degrees = 0
         card.scale = Vector2(1.12, 1.12)
+        card.hold_visual(art_before, hover_time)
 
 func _on_card_mouse_exited(card: CardUI) -> void:
     if not _original_positions.has(card):
@@ -206,12 +245,12 @@ func _on_card_mouse_exited(card: CardUI) -> void:
             highlight_card_lift(card)
         return
     if Global.dragging_card == false:
-        var tween := create_tween()
-        tween.tween_property(card, "position:y",
-            _original_positions[card].y, hover_time).set_ease(Tween.EASE_IN)
+        var art_before := card.card_background.get_global_transform()
+        card.position.y = _original_positions[card].y
         card.z_index = _original_z_indices.get(card, 1)
         card.rotation_degrees = _get_card_fan_angle(card)
         card.scale = Vector2(1.0, 1.0)
+        card.hold_visual(art_before, hover_time)
 
 # Tutorial card highlight: lift+de-rotate+scale the actual card node (the same visual the
 # real hover produces) instead of drawing an external rectangle over it - a rectangle from

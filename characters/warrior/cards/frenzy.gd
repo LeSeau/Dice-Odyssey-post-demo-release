@@ -38,6 +38,7 @@ func apply_effects(targets: Array[Node], modifiers: ModifierHandler) -> void:
             damage_effect.execute([random_enemy])
             
             if i == 0:
+                note_delayed_hit(0.7)
                 await tree.create_timer(0.7).timeout
                 # Re-query live enemies from scene
                 enemies = []

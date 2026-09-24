@@ -9,10 +9,13 @@ func enter() -> void:
     offset.x -= card_ui.size.x / 2
     card_ui.animate_to_position(card_ui.parent.global_position + offset, 0.2)
     card_ui.drop_point_detector.monitoring = false
+    # Shrink the art and lean it at the cursor (2026-09-24). The root still goes to the same spot.
+    card_ui.begin_aim_pose()
     Events.card_aim_started.emit(card_ui)
 
 
 func exit() -> void:
+    card_ui.stop_aim_tracking()
     Events.card_aim_ended.emit(card_ui)
 
 

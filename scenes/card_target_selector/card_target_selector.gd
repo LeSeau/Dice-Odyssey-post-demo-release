@@ -35,10 +35,15 @@ func _process(_delta: float) -> void:
 
 func _get_points() -> Array:
     var points := []
-    var start := current_card.global_position
-    start.x += (current_card.size.x / 2)
-    if(Global.playing_red_card):
-        start.x+=40
+    var start: Vector2
+    if Global.playing_red_card:
+        # The socketed card is aimed while hidden (dice.gd shows the socket), so it has no art
+        # pose to follow. Unchanged from before the aim pose existed.
+        start = current_card.global_position
+        start.x += (current_card.size.x / 2) + 40
+    else:
+        # The top of the ART, which shrinks and leans while aiming (CardUI.begin_aim_pose).
+        start = current_card.aim_arrow_origin()
     var target := get_local_mouse_position()
     var distance := (target - start)
     
