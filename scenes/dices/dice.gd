@@ -74,6 +74,7 @@ func _process(delta: float) -> void:
         emanation.position = _emanation_rest_position + glow_offset * GLOW_FOLLOW_EMANATION
     _tick_overcharge_gust(delta)
     _tick_dormancy(delta)
+    _tick_face_light()
 
 
 # Called by the ROLL button on button_down: compress the die and hold. Refused when the
@@ -1126,6 +1127,8 @@ func _ready():
     _seed_emanation_params()
     # Bounds of the slot-row clearance come from the row's real rect, once layout settles.
     _sync_emanation_row_clearance.call_deferred()
+    # The charged die's inner light (veins + pips), laid over the face (H-184).
+    _setup_face_light()
 
     # Surge motes: the timer polls forever and spawns nothing while Surge is 0, so there is
     # no signal to hook and no way for a grant/expiry path to forget to switch it on.
@@ -1507,6 +1510,10 @@ func roll_dice():
         _:
             _build_roll_calm(tween, faces, start_position, roll_val_ahead,
                     float(roll_val_ahead) / maxf(1.0, float(values.max())), is_max_ahead, land)
+    # The CALM builder starts the charged die's breath with its own exact timing; the rare
+    # surprise flights get a generic one (H-184).
+    if flight_style in [RollStyle.TOSS, RollStyle.SPIN, RollStyle.DROP, RollStyle.HOP]:
+        _start_charge_inhale(0.08, 0.55)
 
 
 # CALM: the hop with the tumble taken out. Same leap, dust, landing squash and hit-stop
@@ -1650,6 +1657,10 @@ func _build_roll_calm(tween: Tween, faces: Array, start_position: Vector2,
         var squash_time := 0.0 if _die_coiled else CALM_SQUASH_TIME
         _play_land_riser(squash_time + CALM_SQUASH_TIME + rise_time + hang_time + fall_time)
 
+    # When the die leaves the plinth, for the charged die's breath (read before the coil
+    # flag is cleared just below).
+    var charge_launch := (0.0 if _die_coiled else CALM_SQUASH_TIME) + CALM_SQUASH_TIME
+
     # Anticipation squash - the only "wind-up" cue left now that there's no spin to
     # telegraph. Skipped when the ROLL button already coiled the die on button_down (the
     # held press IS the wind-up); the release step below then launches straight from the
@@ -1705,6 +1716,7 @@ func _build_roll_calm(tween: Tween, faces: Array, start_position: Vector2,
         _start_face_flips(faces, RED_SUSPENSE_FLIP_DELAYS, _red_suspense_values)
     else:
         _start_face_flips(faces, CALM_FLIP_DELAYS)
+    _start_charge_inhale(charge_launch, rise_time + hang_time + fall_time)
 
 
 # HOP: leap off the plinth, tumble, slam back down. Playful and physical; the per-roll
@@ -1947,7 +1959,11 @@ func _on_roll_landed(roll_index: int, values: Array, faces: Array) -> void:
     dice_display.rotation = 0.0
     dice_display.position = _dice_display_rest_position
     dice_display.scale = Vector2.ONE
+    # Charged die (H-184): the breath out comes BEFORE the result, whose Power change settles
+    # the aura from the flare; the vein and pip flash comes after, on the result face.
+    _charge_breath_land(values[roll_index], values)
     _apply_roll_result(roll_index, values, faces)
+    _charge_land_flash(values[roll_index], values)
     var roll_val = values[roll_index]
     var is_max_roll = roll_val == values.max()
 
@@ -2298,6 +2314,10 @@ func _orb_bezier_step(t: float, orb: TextureRect, p0: Vector2, p1: Vector2, p2: 
 func _spawn_power_orbs(roll_val: int, type: String, is_max_roll: bool) -> void:
     if roll_val <= 0:
         return  # evil dice's 0 face (and any other zero-value roll) adds nothing - no orbs, no reaction
+    # Since 2026-09-25 (H-184) the pips of the landed face become the orbs. The squeezed-out
+    # orbs below only fly for a face with no detectable pips.
+    if _spawn_pip_orbs(type, is_max_roll):
+        return
     # Orbs erupt from UNDER the die, spread along its bottom edge - squeezed out by the
     # slam rather than radiating from the die's heart. Fires on the landing frame, so
     # the read is impact -> power (Julien, 2026-08). The bezier control point sits above
@@ -2506,6 +2526,9 @@ func _spawn_crush_burst(roll_val: int, type: String) -> void:
         var wobble_amp := randf_range(3.0, 9.0)
         var wobble_phase := randf_range(0.0, TAU)
         var orb := _make_crush_sprite(orb_color, randf_range(CRUSH_ORB_SIZE_MIN, CRUSH_ORB_SIZE_MAX))
+        # Behind the die (H-184): the big orbs used to fly over the face that just rolled the
+        # max. The sparks stay on top.
+        orb.z_index = CRUSH_ORB_BEHIND_Z
         orb.global_position = origin - orb.size / 2.0
         # Born small and inflating as it flies: the crush FREED it, it wasn't thrown.
         orb.scale = Vector2(0.45, 0.45)
@@ -2894,6 +2917,8 @@ func _update_dice_aura_charge() -> void:
     # dice_emanation.gdshader.
     _tween_emanation_shader_param(charge_tween, "charge", t, 0.3)
     _tween_emanation_shader_param(charge_tween, "charge_heat", target_heat, 0.3)
+    # The charged die's veins and pips ride the same curve, without red's floor (H-184).
+    _update_face_light_charge()
 
     # Overcharge rides here rather than on its own set of hooks: this function is already the
     # one place every power change funnels through, so the tier climbs AND tears itself down
@@ -3344,6 +3369,9 @@ func _on_active_dice_changed(new_dice_type):
     if _power_clang_flash_tween and _power_clang_flash_tween.is_valid():
         _power_clang_flash_tween.kill()
     update_dice_display()
+    # The charged die's light takes the new die's colours and scans its faces (H-184).
+    _update_face_light_colors(new_dice_type)
+    _warm_pips_for(new_dice_type)
 
     # Small landing pop when the new die takes the socket - the swap was previously an
     # instant texture change with zero feedback. A switch from a tray click has a mini die
@@ -3517,6 +3545,8 @@ func _seed_emanation_params() -> void:
         return
     for param: String in ["charge", "charge_heat", "surge", "gust", "gust_radius"]:
         mat.set_shader_parameter(param, 0.0)
+    # Tweened by the charged die's breath (H-184). Full strength at rest, not 0.
+    mat.set_shader_parameter("master_alpha", 1.0)
 
 # The emanation shader fades its light out beneath the dice-type slot row so the row stays
 # readable. Those bounds are read from the row's REAL rect instead of being baked into the
@@ -7676,3 +7706,526 @@ func _shutdown_overcharge() -> void:
         _overcharge_heat_tween.kill()
     if current_power != null and current_power.material != null:
         current_power.material.set_shader_parameter("heat", 0.0)
+
+
+# ---------------------------------------------------------------------------------------
+# Charged die + pip orbs (2026-09-25, H-184). Proposals 2 and 3 of the roll/glow/orb review
+# (artifact "Roll, Glow & Orbs"), prototyped in .claude/worktrees/roll-glow-orb-proposals/ and
+# approved by Julien on video. NOT PLAYTESTED at the time of writing.
+#
+#   Charged die - the lighter lines painted on each face (cracks, bevel) and the pips glow
+#                 with the banked Power (dice_face_light.gdshader on the FaceLight layer). The
+#                 outer glow breathes in while the die is airborne and out on the landing,
+#                 and the veins and pips flash on landing, scaled by the roll. A low roll
+#                 never flares: its light stays out for a beat and comes back slowly.
+#   Pip orbs    - one orb per pip of the landed face, born white-hot on its pip with a short
+#                 comet tail, landing on the Power number in a quick rising ladder. The
+#                 number takes one gulp on the last arrival. A face with no detectable pips
+#                 falls back to the squeezed-out orbs (_spawn_power_orbs).
+# The tumble (proposal 1) was NOT kept, for its vertigo risk (Julien, 2026-09-25).
+const FACE_LIGHT_SHADER := preload("res://scenes/dices/dice_face_light.gdshader")
+const POWER_ORB_TRAIL := preload("res://scenes/dices/power_orb_trail.gd")
+
+# Breath (the outer glow: aura ring + emanation).
+const BREATH_EMANATION_LOW := 0.18  # emanation master_alpha at the top of the hop
+const BREATH_AURA_LOW := 0.35       # aura power_intensity multiplier at the top of the hop
+const BREATH_AURA_FLARE := 1.45     # aura power_intensity multiplier on a max landing
+const BREATH_DUD_DELAY := 0.12      # a low roll's light stays out this long...
+const BREATH_DUD_RETURN := 0.35     # ...then comes back over this long
+
+# Veins and pips (the inner light).
+const VEIN_MAX := 1.75              # vein_amount at full charge
+const VEIN_GATHER := 0.55           # vein_surge while the die is airborne (energy pulled in)
+const VEIN_LAND_FLASH := 1.6        # vein_surge on a max landing (half of it on the lowest face)
+const VEIN_LAND_DECAY := 0.38
+const PIP_GLOW_MAX := 1.35          # pip halo at full charge
+const PIP_LAND_FLASH := 2.2         # pip flash on a max landing
+const PIP_LAND_DECAY := 0.42
+# The shader's pip_radius was tuned on the standard d6 art, whose pips measure 0.076 face UV
+# (area-equivalent). Giant's measure 0.052: a fixed radius made its halos 1.5x too wide and
+# washed the 12 face white, so the radius (and the orb size) follow the measured pips.
+const PIP_RADIUS_SHADER := 0.085
+const PIP_RADIUS_REF := 0.076
+const PIP_SCAN_SIZE := 96           # faces are scanned at this resolution
+# Median body colour of each die's face art (measured from the PNGs, 2026-09-24). The vein
+# mask is "brighter than the body and saturated, not a cream pip".
+const VEIN_BODY := {
+    "blue": Color(0.004, 0.231, 0.545),
+    "red": Color(0.439, 0.031, 0.071),
+    "magma": Color(0.176, 0.176, 0.188),
+    "evil": Color(0.161, 0.071, 0.243),
+    "giant": Color(0.306, 0.306, 0.22),
+    "green": Color(0.161, 0.271, 0.153),
+    "mech": Color(0.282, 0.275, 0.267),
+    "even": Color(0.561, 0.443, 0.161),
+    "odd": Color(0.871, 0.329, 0.012),
+}
+
+# Pip orbs.
+const PIP_ORB_SIZE := 30.0
+const PIP_ORB_MAX_SIZE_BONUS := 8.0
+const PIP_POP_TIME := 0.07           # the pip flares before its orb leaves
+const PIP_ARRIVE_AT := 0.40          # the first orb lands this long after the landing frame...
+const PIP_ARRIVE_SPREAD := 0.026     # ...then one after another, this far apart (a quick ladder)
+const PIP_FLIGHT_SPEED := 620.0      # px/s along the path, sets each orb's own flight time
+const PIP_FLIGHT_MIN := 0.20
+const PIP_KICK_MIN := 34.0
+const PIP_KICK_MAX := 54.0
+const PIP_TRAIL_WIDTH := 9.0
+const PIP_TRAIL_LIFE := 0.14
+const PIP_PLINK_DB := -3.0
+const PIP_PLINK_PITCH_STEP := 0.06
+# Max roll: the big crush orbs fly BEHIND the die (the die Panel is z 6), so the face that
+# rolled the max stays readable. The sparks keep CRUSH_ORB_Z.
+const CRUSH_ORB_BEHIND_Z := 5
+
+var _face_light: ColorRect = null
+var _face_light_mat: ShaderMaterial = null
+var _face_light_tex: Texture2D = null
+var _face_light_type := ""
+var _breath_tween: Tween
+var _vein_tween: Tween
+var _vein_amount_tween: Tween
+var _pip_glow_tween: Tween
+var _pip_flash_tween: Tween
+var _pip_warm_queue: Array[Texture2D] = []
+# A face's pips never change within a session, so the scans outlive the battle.
+static var _pip_cache := {}         # resource_path -> Array of pip centres (face UV)
+static var _pip_radius_cache := {}  # resource_path -> mean pip radius (face UV)
+
+
+func _setup_face_light() -> void:
+    if _face_light != null:
+        return
+    _face_light = ColorRect.new()
+    _face_light.name = "FaceLight"
+    _face_light.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    _face_light.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+    _face_light_mat = ShaderMaterial.new()
+    _face_light_mat.shader = FACE_LIGHT_SHADER
+    # Seed every tweened uniform: an unassigned one reads null and its tween dies (H-004).
+    for param: String in ["vein_amount", "vein_surge", "pip_glow", "pip_flash"]:
+        _face_light_mat.set_shader_parameter(param, 0.0)
+    _face_light_mat.set_shader_parameter("pip_count", 0)
+    _face_light.material = _face_light_mat
+    dice_display.add_child(_face_light)
+    # First child, so DiceInk and the die's other overlays stay on top of the light.
+    dice_display.move_child(_face_light, 0)
+    _update_face_light_colors(dice_type)
+    _sync_face_light()
+    _warm_pips_for(dice_type)
+
+
+func _tick_face_light() -> void:
+    if _face_light_mat == null:
+        return
+    # dice_type also changes without active_dice_changed (roll_dice() re-reads Global.dice_type,
+    # a battle can open on another die), so the light follows the member itself.
+    if dice_type != _face_light_type:
+        _update_face_light_colors(dice_type)
+        _warm_pips_for(dice_type)
+    # One face scan per frame at most, so a type switch never lands them all on one frame.
+    if not _pip_warm_queue.is_empty():
+        _pip_centers(_pip_warm_queue.pop_front())
+    _sync_face_light()
+
+
+# Keeps the light's face in step with whatever DiceDisplay shows (flips, results, the blank
+# face, a type switch) without hooking every place that swaps the texture.
+func _sync_face_light() -> void:
+    if _face_light_mat == null:
+        return
+    var tex := dice_display.texture
+    if tex == _face_light_tex:
+        return
+    _face_light_tex = tex
+    _face_light_mat.set_shader_parameter("face_tex", tex)
+    var arr := PackedVector2Array()
+    for c: Vector2 in _pip_centers(tex):
+        if arr.size() >= 12:
+            break
+        arr.append(c)
+    var count := arr.size()
+    while arr.size() < 12:
+        arr.append(Vector2(-9, -9))
+    _face_light_mat.set_shader_parameter("pip_pos", arr)
+    _face_light_mat.set_shader_parameter("pip_count", count)
+    _face_light_mat.set_shader_parameter("pip_radius",
+            PIP_RADIUS_SHADER * clampf(_pip_radius_of(tex) / PIP_RADIUS_REF, 0.5, 1.3))
+
+
+# Additive colours stay <= 1 per channel (clamp trap); the brightness rides on the amounts.
+func _update_face_light_colors(type: String) -> void:
+    if _face_light_mat == null:
+        return
+    _face_light_type = type
+    var body: Color = VEIN_BODY.get(type, Color(0.2, 0.2, 0.2))
+    _face_light_mat.set_shader_parameter("vein_body", Vector3(body.r, body.g, body.b))
+    var glow := DicePalette.accent(type).lerp(Color.WHITE, 0.45)
+    _face_light_mat.set_shader_parameter("vein_color",
+            Color(minf(glow.r, 1.0), minf(glow.g, 1.0), minf(glow.b, 1.0), 1.0))
+    var pc := DicePalette.accent(type).lerp(Color.WHITE, 0.5)
+    _face_light_mat.set_shader_parameter("pip_color",
+            Color(minf(pc.r, 1.0), minf(pc.g, 1.0), minf(pc.b, 1.0), 1.0))
+
+
+# Veins and pips ride the same charge curve as the ring and the emanation, WITHOUT red's
+# floor: red rarely banks, and a red die with permanently lit veins would say "charged"
+# while empty. Called from _update_dice_aura_charge().
+func _update_face_light_charge() -> void:
+    if _face_light_mat == null:
+        return
+    var t := 1.0 - exp(-float(Global.roll_value) / AURA_CHARGE_SOFTNESS)
+    if _vein_amount_tween and _vein_amount_tween.is_valid():
+        _vein_amount_tween.kill()
+    _vein_amount_tween = create_tween()
+    _vein_amount_tween.tween_method(_set_face_light_param.bind("vein_amount"),
+            _face_light_param("vein_amount"), VEIN_MAX * pow(t, 1.15), 0.3) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+    if _pip_glow_tween and _pip_glow_tween.is_valid():
+        _pip_glow_tween.kill()
+    _pip_glow_tween = create_tween()
+    _pip_glow_tween.tween_method(_set_face_light_param.bind("pip_glow"),
+            _face_light_param("pip_glow"), PIP_GLOW_MAX * pow(t, 1.4), 0.3) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+
+func _set_face_light_param(value: float, param: String) -> void:
+    if _face_light_mat != null:
+        _face_light_mat.set_shader_parameter(param, value)
+
+
+func _face_light_param(param: String) -> float:
+    if _face_light_mat == null:
+        return 0.0
+    var v = _face_light_mat.get_shader_parameter(param)
+    return float(v) if v != null else 0.0
+
+
+# The breath in: the outer glow dims toward the top of the hop while the veins gather light
+# for the landing. launch = time until the die leaves the plinth, airtime = rise + hang + fall.
+func _start_charge_inhale(launch: float, airtime: float) -> void:
+    if _breath_tween and _breath_tween.is_valid():
+        _breath_tween.kill()
+    _breath_tween = create_tween()
+    _breath_tween.tween_interval(launch * 0.5)
+    if emanation.material is ShaderMaterial:
+        _breath_tween.tween_property(emanation.material, "shader_parameter/master_alpha",
+                BREATH_EMANATION_LOW, airtime * 0.7) \
+            .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    if aura.material is ShaderMaterial:
+        var cur = aura.material.get_shader_parameter("power_intensity")
+        var now: float = float(cur) if cur != null else AURA_INTENSITY_REST
+        _breath_tween.parallel().tween_property(aura.material, "shader_parameter/power_intensity",
+                now * BREATH_AURA_LOW, airtime * 0.7) \
+            .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    if _face_light_mat != null:
+        if _vein_tween and _vein_tween.is_valid():
+            _vein_tween.kill()
+        _vein_tween = create_tween()
+        _vein_tween.tween_interval(launch)
+        _vein_tween.tween_method(_set_face_light_param.bind("vein_surge"), 0.0, VEIN_GATHER,
+                airtime).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+
+
+# The breath out, on the landing frame, BEFORE _apply_roll_result: its Power change runs
+# _update_dice_aura_charge(), which then settles the aura from here back to the charge level
+# over 0.25s. The lowest face never flares.
+func _charge_breath_land(roll_val: int, values: Array) -> void:
+    if _breath_tween and _breath_tween.is_valid():
+        _breath_tween.kill()
+    var is_dud: bool = roll_val == values.min() and roll_val != values.max()
+    if is_dud:
+        if emanation.material is ShaderMaterial:
+            _breath_tween = create_tween()
+            _breath_tween.tween_interval(BREATH_DUD_DELAY)
+            _breath_tween.tween_property(emanation.material, "shader_parameter/master_alpha",
+                    1.0, BREATH_DUD_RETURN).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+        # Evil's 0 adds no Power, so nothing else would bring the dimmed ring back.
+        _update_dice_aura_charge()
+        return
+    if emanation.material is ShaderMaterial:
+        emanation.material.set_shader_parameter("master_alpha", 1.0)
+    if aura.material is ShaderMaterial:
+        var flare := lerpf(1.1, BREATH_AURA_FLARE, float(roll_val) / maxf(1.0, float(values.max())))
+        var cur = aura.material.get_shader_parameter("power_intensity")
+        var now: float = float(cur) if cur != null else AURA_INTENSITY_REST
+        aura.material.set_shader_parameter("power_intensity",
+                minf(2.0, maxf(now / BREATH_AURA_LOW, 1.1) * flare))
+
+
+# Veins and pips flash on the landing frame, scaled by the roll. The lowest face only drains
+# what the veins gathered in the air. Runs after _apply_roll_result, on the result face.
+func _charge_land_flash(roll_val: int, values: Array) -> void:
+    if _face_light_mat == null:
+        return
+    _sync_face_light()
+    if _vein_tween and _vein_tween.is_valid():
+        _vein_tween.kill()
+    if _pip_flash_tween and _pip_flash_tween.is_valid():
+        _pip_flash_tween.kill()
+    var vf := float(roll_val) / maxf(1.0, float(values.max()))
+    var is_dud: bool = roll_val == values.min() and roll_val != values.max()
+    if is_dud:
+        _vein_tween = create_tween()
+        _vein_tween.tween_method(_set_face_light_param.bind("vein_surge"),
+                _face_light_param("vein_surge"), 0.0, 0.18)
+        _face_light_mat.set_shader_parameter("pip_flash", 0.0)
+        return
+    var vein_peak := VEIN_LAND_FLASH * lerpf(0.5, 1.0, vf)
+    _face_light_mat.set_shader_parameter("vein_surge", vein_peak)
+    _vein_tween = create_tween()
+    _vein_tween.tween_method(_set_face_light_param.bind("vein_surge"), vein_peak, 0.0,
+            VEIN_LAND_DECAY).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    var pip_peak := PIP_LAND_FLASH * lerpf(0.45, 1.0, vf)
+    _face_light_mat.set_shader_parameter("pip_flash", pip_peak)
+    _pip_flash_tween = create_tween()
+    _pip_flash_tween.tween_method(_set_face_light_param.bind("pip_flash"), pip_peak, 0.0,
+            PIP_LAND_DECAY).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+
+# One orb per pip of the landed face. Returns false when the face has no detectable pips, so
+# _spawn_power_orbs falls back to its squeezed-out orbs.
+func _spawn_pip_orbs(type: String, is_max_roll: bool) -> bool:
+    var tex := dice_display.texture
+    var pips := _pip_centers(tex)
+    if pips.is_empty():
+        return false
+    var die_rect := dice_display.get_global_rect()
+    var die_center := die_rect.get_center()
+    var target := current_power.get_global_rect().get_center()
+    var accent := DicePalette.accent(type)
+    var hot := Color(1.0, 0.97, 0.9)
+    # Sized to the pips they come from: Giant's twelve small pips at full size popped into
+    # one white sheet over the whole face.
+    var pip_scale := clampf(_pip_radius_of(tex) / PIP_RADIUS_REF, 0.6, 1.0)
+    var size := (PIP_ORB_SIZE + (PIP_ORB_MAX_SIZE_BONUS if is_max_roll else 0.0)) * pip_scale
+    var pop := lerpf(1.25, 1.0, clampf((pips.size() - 6) / 6.0, 0.0, 1.0))
+
+    # Farthest pip lands first, nearest last: a small ladder of arrivals that climbs toward
+    # the number instead of a random dribble.
+    var order: Array = []
+    for c: Vector2 in pips:
+        var start := die_rect.position + c * die_rect.size
+        order.append({"start": start, "dist": start.distance_to(target)})
+    order.sort_custom(func(x, y): return x["dist"] > y["dist"])
+
+    var n := order.size()
+    for i in n:
+        var start: Vector2 = order[i]["start"]
+        var outward := start - die_center
+        if outward.length_squared() < 4.0:
+            outward = Vector2(0.3, -1.0)
+        outward = outward.normalized()
+        # Kick mostly UP and out, never down into the plate.
+        var kick_dir := (outward + Vector2(0.35, -0.9)).normalized()
+        var p1 := start + kick_dir * randf_range(PIP_KICK_MIN, PIP_KICK_MAX)
+        var p2 := target + Vector2(randf_range(-46.0, -18.0), randf_range(-82.0, -54.0))
+        var p3 := target + Vector2(randf_range(-6.0, 6.0), randf_range(-6.0, 6.0))
+        var path_len := start.distance_to(p1) + p1.distance_to(p2) + p2.distance_to(p3)
+        var flight := maxf(PIP_FLIGHT_MIN, path_len / PIP_FLIGHT_SPEED)
+        var arrive := PIP_ARRIVE_AT + PIP_ARRIVE_SPREAD * i
+        var launch_at := maxf(PIP_POP_TIME, arrive - flight)
+
+        var orb := TextureRect.new()
+        orb.texture = _get_power_orb_texture()
+        orb.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+        orb.stretch_mode = TextureRect.STRETCH_SCALE
+        orb.material = _get_power_orb_material()
+        orb.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        orb.z_index = 60  # same layer as the old orbs: above Panel/DiceDisplay
+        orb.size = Vector2(size, size)
+        orb.pivot_offset = orb.size / 2.0
+        orb.modulate = Color(hot.r, hot.g, hot.b, 0.0)
+        orb.scale = Vector2(0.35, 0.35)
+        add_child(orb)
+        orb.global_position = start - orb.size / 2.0
+
+        var tw := create_tween()
+        # The pip flares, and holds on the pip until its launch.
+        tw.tween_property(orb, "modulate:a", 1.0, 0.04)
+        tw.parallel().tween_property(orb, "scale", Vector2(pop, pop), PIP_POP_TIME) \
+            .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+        tw.tween_interval(maxf(0.0, launch_at - PIP_POP_TIME))
+        tw.tween_callback(_attach_pip_orb_trail.bind(orb, accent, size))
+        tw.tween_method(_pip_orb_step.bind(orb, start, p1, p2, p3, hot, accent), 0.0, 1.0, flight)
+        tw.parallel().tween_property(orb, "scale", Vector2(0.45, 0.45), flight) \
+            .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+        tw.tween_callback(_pip_orb_arrived.bind(i, n, type))
+        tw.tween_callback(orb.queue_free)
+    return true
+
+
+func _attach_pip_orb_trail(orb: TextureRect, accent: Color, size: float) -> void:
+    if not is_instance_valid(orb):
+        return
+    # Untyped on purpose: setup() lives on the script, not on Line2D.
+    var trail = POWER_ORB_TRAIL.new()
+    trail.z_index = 59
+    add_child(trail)
+    var col := accent.lerp(Color.WHITE, 0.2)
+    trail.setup(orb, Color(minf(col.r, 1.0), minf(col.g, 1.0), minf(col.b, 1.0)),
+            maxf(PIP_TRAIL_WIDTH, size * 0.34), PIP_TRAIL_LIFE)
+
+
+# Cubic bezier, linear parameter: the control points do the easing (fast kick off the pip,
+# slow crest, fast dive into the number). The colour cools from white-hot to the accent.
+func _pip_orb_step(t: float, orb: TextureRect, p0: Vector2, p1: Vector2, p2: Vector2,
+        p3: Vector2, hot: Color, accent: Color) -> void:
+    if not is_instance_valid(orb):
+        return
+    var u := 1.0 - t
+    var pos := p0 * (u * u * u) + p1 * (3.0 * u * u * t) + p2 * (3.0 * u * t * t) + p3 * (t * t * t)
+    orb.global_position = pos - orb.size / 2.0
+    var c := hot.lerp(accent.lerp(Color.WHITE, 0.25), clampf(t * 1.6, 0.0, 1.0))
+    orb.modulate = Color(c.r, c.g, c.b, orb.modulate.a)
+
+
+func _pip_orb_arrived(index: int, count: int, type: String) -> void:
+    # Rising pitch per arrival: the stream lands as a quick ascending ladder, not a clump.
+    # Low priority (-1) like every orb plink, so a burst never steals a gameplay voice.
+    var pitch := 0.95 + PIP_PLINK_PITCH_STEP * float(mini(index, 8))
+    SFXPlayer.play(POWER_ORB_LAND_SFX, false, pitch, PIP_PLINK_DB, -1)
+    if index == count - 1:
+        _pip_orb_gulp(type, count)
+
+
+# The number swallows the stream: one pop and a light ring, on the LAST arrival. Stands in for
+# _play_power_orb_arrival_reaction, which the squeezed-out orbs fire on their FIRST arrival.
+func _pip_orb_gulp(type: String, count: int) -> void:
+    var rest_scale := clampf(1.0 + Global.roll_value / 130.0, 1.0, 1.25)
+    var pop := create_tween()
+    var peak := 1.10 + 0.012 * float(mini(count, 12))
+    pop.tween_property(current_power, "scale", Vector2(rest_scale, rest_scale) * peak, 0.05) \
+        .set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+    pop.tween_property(current_power, "scale", Vector2(rest_scale, rest_scale), 0.16) \
+        .set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+    # Same rule as the other Power flashes: settle on the true per-type colour, never on a
+    # mid-flash modulate read.
+    var base_color := _power_resting_color()
+    if _power_color_flash_tween and _power_color_flash_tween.is_valid():
+        _power_color_flash_tween.kill()
+    _power_color_flash_tween = create_tween()
+    _power_color_flash_tween.tween_property(current_power, "modulate",
+            DicePalette.accent(type).lerp(Color.WHITE, 0.55), 0.04)
+    _power_color_flash_tween.tween_property(current_power, "modulate", base_color, 0.18)
+
+    var ring := TextureRect.new()
+    ring.texture = DicePalette.ring_texture()
+    ring.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    ring.stretch_mode = TextureRect.STRETCH_SCALE
+    ring.size = Vector2(120, 120)
+    ring.pivot_offset = ring.size / 2.0
+    ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    ring.material = _get_power_orb_material()
+    var rc := DicePalette.accent(type).lerp(Color.WHITE, 0.35)
+    ring.modulate = Color(minf(rc.r, 1.0), minf(rc.g, 1.0), minf(rc.b, 1.0), 0.85)
+    ring.z_index = 58
+    ring.scale = Vector2(0.35, 0.35)
+    add_child(ring)
+    ring.global_position = current_power.get_global_rect().get_center() - ring.size / 2.0
+    var rt := ring.create_tween()
+    rt.tween_property(ring, "scale", Vector2(1.35, 1.35), 0.26) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    rt.parallel().tween_property(ring, "modulate:a", 0.0, 0.26) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    rt.tween_callback(ring.queue_free)
+
+
+# Queues the scans of a die type's faces (one per frame, see _tick_face_light), so the first
+# landing on each face finds its pips already measured.
+func _warm_pips_for(type: String) -> void:
+    var vals: Array = [1, 2, 3, 4, 5, 6]
+    match type:
+        "evil":
+            vals = [0, 6]
+        "giant":
+            vals = range(1, 13)
+        "green":
+            vals = [1, 2, 3]
+        "even":
+            vals = [2, 4, 6, 8]
+        "odd":
+            vals = [1, 3, 5, 7]
+    for v in vals:
+        var tex := _get_dice_face_texture_for(type, int(v))
+        if tex != null and not _pip_cache.has(tex.resource_path) and not _pip_warm_queue.has(tex):
+            _pip_warm_queue.append(tex)
+
+
+func _pip_radius_of(tex: Texture2D) -> float:
+    if tex == null:
+        return PIP_RADIUS_REF
+    return float(_pip_radius_cache.get(tex.resource_path, PIP_RADIUS_REF))
+
+
+# Pip centres (face UV) of a face, found once per texture: cream, low-saturation blobs. Works
+# for every layout (Giant's 12, Golem's 8, Ricochet's 7) without a table, and keeps working
+# when the face art changes. Also records the mean pip radius in _pip_radius_cache.
+func _pip_centers(tex: Texture2D) -> Array:
+    if tex == null:
+        return []
+    var key := tex.resource_path
+    if _pip_cache.has(key):
+        return _pip_cache[key]
+    var img := tex.get_image()
+    if img == null:
+        _pip_cache[key] = []
+        return []
+    if img.is_compressed():
+        img.decompress()
+    if img.has_mipmaps():
+        img.clear_mipmaps()
+    img.convert(Image.FORMAT_RGBA8)
+    var n := PIP_SCAN_SIZE
+    img.resize(n, n, Image.INTERPOLATE_BILINEAR)
+    var data := img.get_data()
+    var mask := PackedByteArray()
+    mask.resize(n * n)
+    for i in n * n:
+        var o := i * 4
+        if data[o + 3] < 128:
+            continue
+        var r := data[o] / 255.0
+        var g := data[o + 1] / 255.0
+        var b := data[o + 2] / 255.0
+        var lum := r * 0.299 + g * 0.587 + b * 0.114
+        var sat := maxf(r, maxf(g, b)) - minf(r, minf(g, b))
+        if lum > 0.78 and sat < 0.2:
+            mask[i] = 1
+    var seen := PackedByteArray()
+    seen.resize(n * n)
+    var centers: Array = []
+    var area_sum := 0
+    for i in n * n:
+        if mask[i] == 0 or seen[i] == 1:
+            continue
+        var stack: Array[int] = [i]
+        seen[i] = 1
+        var sx := 0.0
+        var sy := 0.0
+        var count := 0
+        while not stack.is_empty():
+            var j: int = stack.pop_back()
+            var jx := j % n
+            var jy := j / n
+            sx += jx
+            sy += jy
+            count += 1
+            for off: Vector2i in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+                var nx := jx + off.x
+                var ny := jy + off.y
+                if nx < 0 or ny < 0 or nx >= n or ny >= n:
+                    continue
+                var k := ny * n + nx
+                if mask[k] == 1 and seen[k] == 0:
+                    seen[k] = 1
+                    stack.append(k)
+        # Anything smaller is a highlight or a speck of the art, not a pip.
+        if count >= 6:
+            centers.append(Vector2((sx / count + 0.5) / n, (sy / count + 0.5) / n))
+            area_sum += count
+    _pip_cache[key] = centers
+    if not centers.is_empty():
+        _pip_radius_cache[key] = sqrt(float(area_sum) / centers.size() / PI) / n
+    return centers
