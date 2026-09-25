@@ -10,6 +10,9 @@ const EVENT_SCENE := preload("res://scenes/events/event_add_new_card.tscn")
 const DICE_SHOP_SCENE = preload("res://scenes/shop/dice_shop.tscn")
 const DICE_INFUSION_SCENE := preload("res://scenes/dice_infusion/dice_infusion.tscn")
 const DICE_LOADOUT_SCENE := preload("res://scenes/dice_loadout/dice_loadout.tscn")
+# The run-start dice loadout picker ("the wish") is off (Julien, 2026-09-25): every run starts
+# on the classic 2 Blue + 1 Red. true brings it back exactly as it was (see _start_run).
+const OFFER_DICE_LOADOUT := false
 const CaptureRig := preload("res://global/capture_rig.gd")
 
 const SHOP_SCENE := preload ("res://scenes/shop/card_shop.tscn")
@@ -312,14 +315,15 @@ func _start_run() -> void:
     map.generate_new_map()
     map.unlock_floor(0)
     _update_floor_label()
-    # Run-identity beat (the "wish"): from the player's second run onward, the dice
-    # loadout picker (scenes/dice_loadout) precedes the map. Run #1 and tutorial runs
+    # Run-identity beat (the "wish"), OFF since 2026-09-25 (OFFER_DICE_LOADOUT). When on,
+    # from the player's second run onward the dice loadout picker (scenes/dice_loadout)
+    # precedes the map. Run #1 and tutorial runs
     # keep the classic 2 Blue + 1 Red already in place from reset_run_state - the
     # tutorial scripts Blue rolls and a Red socket, and a brand-new player shouldn't
     # face a 5-way archetype choice with zero context. The stat is counted BEFORE the
     # branch (so the run being started is itself run #N) and flushed immediately -
     # quitting from the very first map must still mark run #1 as played.
-    var offer_loadout: bool = AchievementManager.get_stat("runs_started") >= 1 and not Global.tutorial_on
+    var offer_loadout: bool = OFFER_DICE_LOADOUT and AchievementManager.get_stat("runs_started") >= 1 and not Global.tutorial_on
     AchievementManager.add_stat("runs_started", 1)
     AchievementManager.flush()
     if offer_loadout:
