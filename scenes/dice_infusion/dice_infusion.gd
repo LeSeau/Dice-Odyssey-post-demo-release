@@ -218,6 +218,7 @@ func _build_option_panel(dice_type: String) -> PanelContainer:
     # Not always "6": Green is a d3, Even/Odd cap at 8/7, Giant shows its new 12 (see
     # DiceInfusions.preview_face) - loading %s6.png for green would fail outright.
     die.texture = load("res://assets/images/%s%d.png" % [dice_type, DiceInfusions.preview_face(dice_type)])
+    DicePalette.crisp_face(die)
     die.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
     die.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
     die.size = Vector2(DIE_SIZE, DIE_SIZE)

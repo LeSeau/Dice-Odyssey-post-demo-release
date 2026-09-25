@@ -281,6 +281,7 @@ func _setup_deal_stall() -> void:
     deal_title.text = KeywordColorizer.dice_display_name(_deal_type) + " Dice"
     deal_title.add_theme_color_override("font_color", DicePalette.accent(_deal_type))
     deal_die_texture.texture = load(DICE_DEAL_TEXTURES[_deal_type])
+    DicePalette.crisp_face(deal_die_texture)
     _setup_deal_glow()
     _build_deal_badge()
     _build_deal_row()

@@ -296,6 +296,7 @@ func _build_die_cell(set_id: String, dice_type: String, count: int, die_px: floa
 
     var die := TextureRect.new()
     die.texture = load("res://assets/images/%s%d.png" % [dice_type, DISPLAY_FACES[dice_type]])
+    DicePalette.crisp_face(die)
     die.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
     die.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
     die.size = Vector2(die_px, die_px)

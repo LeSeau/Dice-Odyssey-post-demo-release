@@ -124,6 +124,10 @@ func _ready() -> void:
     # this row by hand. Safe: the flying charge-delivery icons live on the ui_layer
     # CanvasLayer at z 150 and the ROLL button is z 10, so both still draw over this.
     z_index = 5
+    # The slot faces sample their mipmaps (see DicePalette.crisp_face).
+    for tex in [dice_1_texture, dice_2_texture, dice_3_texture, dice_4_texture, dice_5_texture,
+            dice_6_texture, dice_7_texture, dice_8_texture, dice_9_texture]:
+        DicePalette.crisp_face(tex)
     dice_1_label.text = str(Global.blue_dice_current_amount, "/", Global.blue_dice_max_amount)
     dice_2_label.text = str(Global.red_dice_current_amount, "/", Global.red_dice_max_amount)
     dice_3_label.text = str(Global.evil_dice_current_amount, "/", Global.evil_dice_max_amount)
@@ -220,6 +224,7 @@ func _on_dice_1_gui_input(event: InputEvent) -> void:
             Global.tutorial_reset_power_warning = false 
             return
         Global.power_at_last_switch = Global.roll_value
+        _begin_pickup("blue")
         Events.active_dice_changed.emit("blue")
         Events.update_roll_history_ui.emit()
         
@@ -233,6 +238,7 @@ func _on_dice_2_gui_input(event: InputEvent) -> void:
             Global.tutorial_reset_power_warning = false 
             return
         Global.power_at_last_switch = Global.roll_value
+        _begin_pickup("red")
         Events.active_dice_changed.emit("red")
         Global.dice_type = "red"
         Events.reset_charged_card.emit()
@@ -246,6 +252,7 @@ func _on_dice_3_gui_input(event: InputEvent) -> void:
             Global.tutorial_reset_power_warning = false 
             return
         Global.power_at_last_switch = Global.roll_value
+        _begin_pickup("evil")
         Events.active_dice_changed.emit("evil")
         Global.dice_type = "evil"
         Events.update_roll_history_ui.emit()
@@ -258,6 +265,7 @@ func _on_dice_4_gui_input(event: InputEvent) -> void:
             Global.tutorial_reset_power_warning = false 
             return
         Global.power_at_last_switch = Global.roll_value
+        _begin_pickup("giant")
         Events.active_dice_changed.emit("giant")
         Global.dice_type = "giant"
         Events.update_roll_history_ui.emit()
@@ -270,6 +278,7 @@ func _on_dice_5_gui_input(event: InputEvent) -> void:
             Global.tutorial_reset_power_warning = false 
             return
         Global.power_at_last_switch = Global.roll_value
+        _begin_pickup("magma")
         Events.active_dice_changed.emit("magma")
         Global.dice_type = "magma"
         Events.update_roll_history_ui.emit()      
@@ -282,6 +291,7 @@ func _on_dice_6_gui_input(event: InputEvent) -> void:
             Global.tutorial_reset_power_warning = false 
             return
         Global.power_at_last_switch = Global.roll_value
+        _begin_pickup("even")
         Events.active_dice_changed.emit("even")
         Global.dice_type = "even"
         Events.update_roll_history_ui.emit()
@@ -294,6 +304,7 @@ func _on_dice_7_gui_input(event: InputEvent) -> void:
             Global.tutorial_reset_power_warning = false 
             return
         Global.power_at_last_switch = Global.roll_value
+        _begin_pickup("odd")
         Events.active_dice_changed.emit("odd")
         Global.dice_type = "odd"
         Events.update_roll_history_ui.emit()  
@@ -306,6 +317,7 @@ func _on_dice_8_gui_input(event: InputEvent) -> void:
             Global.tutorial_reset_power_warning = false 
             return
         Global.power_at_last_switch = Global.roll_value
+        _begin_pickup("green")
         Events.active_dice_changed.emit("green")
         Global.dice_type = "green"
         Events.update_roll_history_ui.emit()
@@ -318,6 +330,7 @@ func _on_dice_9_gui_input(event: InputEvent) -> void:
             Global.tutorial_reset_power_warning = false 
             return
         Global.power_at_last_switch = Global.roll_value
+        _begin_pickup("mech")
         Events.active_dice_changed.emit("mech")
         Global.dice_type = "mech"
         Events.update_roll_history_ui.emit()
@@ -348,9 +361,13 @@ func _on_player_turn_ended() -> void:
             var amount: int = Global.get(type + "_dice_current_amount")
             if amount > 0:
                 Global.kept_dice[type] = amount
+    # Everything not carried over is lost: show it (display only, see _drain_tray).
+    _drain_tray()
 
 
 func _on_player_turn_started() -> void:
+    # The drained look from End Turn ends with the refill below.
+    _end_tray_drain()
     Global.blue_dice_current_amount = Global.blue_dice_max_amount + Global.blue_dice_bonus_amount + Global.blue_dice_bonus_amount_fight
     Global.red_dice_current_amount = Global.red_dice_max_amount + Global.red_dice_bonus_amount
     Global.evil_dice_current_amount = Global.evil_dice_max_amount + Global.evil_dice_bonus_amount
@@ -421,15 +438,9 @@ func _on_hover_playable_cards() -> void:
     update_selected_highlight()
 
 func _on_dice_amount_changed():
-    dice_1_label.text = str(Global.blue_dice_current_amount, "/", Global.blue_dice_max_amount)
-    dice_2_label.text = str(Global.red_dice_current_amount, "/", Global.red_dice_max_amount)
-    dice_3_label.text = str(Global.evil_dice_current_amount, "/", Global.evil_dice_max_amount)
-    dice_4_label.text = str(Global.giant_dice_current_amount, "/", Global.giant_dice_max_amount)
-    dice_5_label.text = str(Global.magma_dice_current_amount, "/", Global.magma_dice_max_amount)
-    dice_6_label.text = str(Global.even_dice_current_amount, "/", Global.even_dice_max_amount)
-    dice_7_label.text = str(Global.odd_dice_current_amount, "/", Global.odd_dice_max_amount)
-    dice_8_label.text = str(Global.green_dice_current_amount, "/", Global.green_dice_max_amount)
-    dice_9_label.text = str(Global.mech_dice_current_amount, "/", Global.mech_dice_max_amount)
+    # Through _displayed_amount, so a count change during the enemy turn (a theft, a hostage)
+    # cannot bring the dice drained at End Turn back onto the tray.
+    _refresh_slot_labels()
     update_selected_highlight()
 
 func initialize_dices():
@@ -670,13 +681,14 @@ func _on_dice_9_mouse_exited() -> void:
 
 
 func update_selected_highlight(selected_type: String = Global.dice_type) -> void:
-    var active_empty: bool = Global.get(DICE_TYPE_TO_AMOUNT.get(selected_type, "blue_dice_current_amount")) <= 0
+    var active_empty: bool = _displayed_amount(selected_type) <= 0
     # Nudge toward another die only once the current die is spent AND no Power is banked -
     # otherwise it nags "switch to me!" while you still have Power to spend on a card first
     # (you rolled blue, blue's now empty, but you're about to Strike with that Power). Once
     # a card consumes the Power (roll_value -> 0), hover_playable_cards fires and the nudge
     # kicks in. Suppressed during the tutorial - it gates/spotlights slots itself.
-    var want_nudge := active_empty and Global.roll_value <= 0 and not Global.tutorial_on
+    var want_nudge := active_empty and Global.roll_value <= 0 and not Global.tutorial_on \
+            and not _tray_drained
 
     # Which slots should be pulsing this pass (deterministic dict order, so the array can be
     # compared by value below).
@@ -686,7 +698,7 @@ func update_selected_highlight(selected_type: String = Global.dice_type) -> void
             if dice_type == selected_type:
                 continue
             var n = get(DICE_TYPE_TO_NODE[dice_type])
-            if Global.get(DICE_TYPE_TO_AMOUNT[dice_type]) > 0 and n.visible \
+            if _displayed_amount(dice_type) > 0 and n.visible \
                     and n not in _materializing_slots:
                 new_nudge.append(n)
 
@@ -710,7 +722,7 @@ func update_selected_highlight(selected_type: String = Global.dice_type) -> void
             if nudge_changed:
                 _start_nudge_pulse(node)
             continue
-        var amount: int = Global.get(DICE_TYPE_TO_AMOUNT[dice_type])
+        var amount: int = _displayed_amount(dice_type)
         var depleted := amount <= 0
         if dice_type == selected_type and not depleted:
             var base_color: Color = DicePalette.accent(dice_type)
@@ -718,7 +730,7 @@ func update_selected_highlight(selected_type: String = Global.dice_type) -> void
             node.modulate = Color(highlight.r * 1.3, highlight.g * 1.3, highlight.b * 1.3, 1.0)
             node.scale = Vector2(1.15, 1.15)
         elif depleted:
-            node.modulate = Color(0.32, 0.32, 0.32, 0.55)
+            node.modulate = SLOT_DEPLETED_MODULATE
             node.scale = Vector2(1.0, 1.0)
         else:
             node.modulate = Color(0.72, 0.72, 0.72, 1.0)
@@ -892,6 +904,7 @@ func _animate_charge_die(parent_layer: Node, charged_type: String, origin: Vecto
     icon.size = Vector2(CHARGE_ICON_SIZE, CHARGE_ICON_SIZE)
     icon.pivot_offset = icon.size / 2.0
     icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    DicePalette.crisp_face(icon)
     icon.z_index = 150  # ui_layer flourish convention (refuel return / thrown dice)
     icon.set_meta("accent", accent)  # read back by _charge_flight_step for the mote trail
     parent_layer.add_child(icon)
@@ -1177,6 +1190,7 @@ func _spawn_slot_ghost(slot_tex: TextureRect, rect: Rect2, big: bool) -> void:
     ghost.size = rect.size
     ghost.pivot_offset = ghost.size / 2.0
     ghost.material = DicePalette.additive_material()
+    DicePalette.crisp_face(ghost)
     var b := CHARGE_GHOST_BRIGHTNESS
     ghost.modulate = Color(b, b, b, 0.8)
     ghost.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -1257,3 +1271,174 @@ func _spawn_charge_mote(parent: Node, pos: Vector2, accent: Color, still: bool) 
                 mote.global_position.y - randf_range(6.0, 16.0), 0.38)
         mt.chain().tween_callback(mote.queue_free)
     return mote
+
+
+# ── End Turn drain (2026-09-24) ───────────────────────────────────────────────────────────
+# Dice left unspent at End Turn are lost (the next turn refills to max), yet the tray used to
+# keep showing them through the whole enemy turn. Now their counts drain to 0 and the slots
+# grey out as the turn ends, while the dice that DO carry over - Golem's leftovers, Keep your
+# Dice / Golem Heart - keep their count and get a warm glint. That teaches use-it-or-lose-it
+# and shows the Golem's identity in one beat.
+#
+# DISPLAY ONLY. Global counts are never touched here: Famished (Gorge) reads
+# Global.dice_pool_empty() on player_turn_ended, and _on_player_turn_ended above computes the
+# Golem carry from the live counts. The refill at the next turn start clears the flag.
+const DRAIN_STEP_TIME := 0.045       # per tick of the count running down
+const DRAIN_MAX_STEPS := 4
+const DRAIN_GREY_TIME := 0.2
+const SLOT_DEPLETED_MODULATE := Color(0.32, 0.32, 0.32, 0.55)
+const KEPT_GLINT_COLOR := Color(1.0, 0.84, 0.42)  # warm gold: "this one stays"
+var _tray_drained := false
+var _kept_types: Array[String] = []
+var _drain_tweens: Array[Tween] = []
+
+
+# What the tray shows for a type: the live count, except for dice drained at End Turn.
+func _displayed_amount(dice_type: String) -> int:
+    var amount := int(Global.get(DICE_TYPE_TO_AMOUNT.get(dice_type, "blue_dice_current_amount")))
+    if _tray_drained and not _kept_types.has(dice_type):
+        return 0
+    return amount
+
+
+func _refresh_slot_labels() -> void:
+    for dice_type in DICE_TYPE_TO_NODE:
+        var label: Label = get(DICE_TYPE_TO_NODE[dice_type] + "_label")
+        if label != null:
+            label.text = str(_displayed_amount(dice_type), "/",
+                    Global.get(dice_type + "_dice_max_amount"))
+
+
+func _drain_tray() -> void:
+    _kept_types.clear()
+    if int(Global.golem_dice_carryover) > 0:
+        _kept_types.append("even")
+    for kept_type in Global.kept_dice:
+        if not _kept_types.has(kept_type):
+            _kept_types.append(kept_type)
+    _tray_drained = true
+    for t in _drain_tweens:
+        if t and t.is_valid():
+            t.kill()
+    _drain_tweens.clear()
+    # Restyle first: the nudge stops at once (a kept Golem slot would otherwise pulse "switch
+    # to me" through the whole enemy turn) and kept slots keep their look. The drains below
+    # then start each emptied slot from full light so the count visibly runs down.
+    update_selected_highlight()
+    for dice_type in DICE_TYPE_TO_NODE:
+        var slot: Control = get(DICE_TYPE_TO_NODE[dice_type])
+        if slot == null or not slot.visible:
+            continue
+        var amount := int(Global.get(DICE_TYPE_TO_AMOUNT[dice_type]))
+        if amount <= 0:
+            continue
+        if _kept_types.has(dice_type):
+            _glint_kept_slot(dice_type)
+        else:
+            _drain_slot(dice_type, amount)
+
+
+func _drain_slot(dice_type: String, amount: int) -> void:
+    var label: Label = get(DICE_TYPE_TO_NODE[dice_type] + "_label")
+    var slot: Control = get(DICE_TYPE_TO_NODE[dice_type])
+    var max_amount = Global.get(dice_type + "_dice_max_amount")
+    # _drain_tray's highlight pass already greyed it; start from full light so the count
+    # visibly empties before the slot goes out.
+    slot.modulate = Color(1.0, 1.0, 1.0, 1.0)
+    var steps := mini(amount, DRAIN_MAX_STEPS)
+    var t := slot.create_tween()
+    for i in steps:
+        var shown := int(round(float(amount) * (1.0 - float(i + 1) / float(steps))))
+        t.tween_interval(DRAIN_STEP_TIME)
+        t.tween_callback(_set_slot_label.bind(label, str(shown, "/", max_amount)))
+    t.tween_property(slot, "modulate", SLOT_DEPLETED_MODULATE, DRAIN_GREY_TIME) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+    _drain_tweens.append(t)
+
+
+func _set_slot_label(label: Label, text: String) -> void:
+    if is_instance_valid(label):
+        label.text = text
+
+
+func _glint_kept_slot(dice_type: String) -> void:
+    var slot_tex := _slot_texture_for_type(dice_type)
+    if slot_tex == null:
+        return
+    _spawn_slot_flash(slot_tex.get_global_rect(), KEPT_GLINT_COLOR, false)
+    _punch_slot_label(dice_type, KEPT_GLINT_COLOR)
+
+
+func _end_tray_drain() -> void:
+    _tray_drained = false
+    _kept_types.clear()
+    for t in _drain_tweens:
+        if t and t.is_valid():
+            t.kill()
+    _drain_tweens.clear()
+
+
+# ── Pickup (2026-09-24) ───────────────────────────────────────────────────────────────────
+# Clicking a slot drops a mini copy of its die into the big die, so the tray reads as the pool
+# the die in play comes from. The big die gives way while it falls and pops when it catches it
+# (dice.gd begin_pickup / catch_pickup). Purely cosmetic: the switch itself is instant, and a
+# roll started mid-fall simply owns the die.
+const PICKUP_TIME := 0.18
+const PICKUP_END_FILL := 0.62   # size at arrival, as a share of the big die
+const PICKUP_LIFT := 16.0       # it rises out of the slot a little before it drops
+
+
+func _begin_pickup(dice_type: String) -> void:
+    var die := get_node_or_null("../ActiveDice")
+    var slot_tex := _slot_texture_for_type(dice_type)
+    var layer := get_tree().get_first_node_in_group("ui_layer")
+    if die == null or not die.has_method("begin_pickup") or slot_tex == null \
+            or layer == null or not slot_tex.is_visible_in_tree():
+        return
+    die.begin_pickup()
+    var rect := slot_tex.get_global_rect()
+    var icon := TextureRect.new()
+    icon.name = "PickupDie"
+    icon.texture = slot_tex.texture
+    icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+    icon.size = rect.size
+    icon.pivot_offset = icon.size / 2.0
+    icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    icon.z_index = 150  # ui_layer flourish convention
+    icon.add_to_group("dice_pickup_flight")
+    DicePalette.crisp_face(icon)
+    layer.add_child(icon)
+    var from := rect.get_center()
+    var to := _active_die_center()
+    var ctrl := Vector2(lerpf(from.x, to.x, 0.3), from.y - PICKUP_LIFT)
+    var die_size := 140.0
+    if "dice_display" in die and die.dice_display != null:
+        die_size = die.dice_display.size.x
+    var end_scale := clampf(die_size * PICKUP_END_FILL / maxf(rect.size.x, 1.0), 1.0, 3.5)
+    icon.position = from - icon.pivot_offset
+    var t := icon.create_tween()
+    t.tween_method(_pickup_step.bind(icon, from, ctrl, to, end_scale), 0.0, 1.0, PICKUP_TIME) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+    t.tween_callback(_on_pickup_landed.bind(icon, die))
+
+
+func _pickup_step(t: float, icon: TextureRect, p0: Vector2, p1: Vector2, p2: Vector2,
+        end_scale: float) -> void:
+    if not is_instance_valid(icon):
+        return
+    var pos := p0.lerp(p1, t).lerp(p1.lerp(p2, t), t)
+    # position, not global_position: on a Control scaled around its pivot, global_position is
+    # the TRANSFORMED corner, so writing it would push the visual centre off by
+    # (scale - 1) * size / 2 as the die grows (~26px at arrival). The icon sits at (0,0) in
+    # the ui_layer, so position is screen space and the centre is position + pivot.
+    icon.position = pos - icon.pivot_offset
+    var s := lerpf(1.0, end_scale, t)
+    icon.scale = Vector2(s, s)
+
+
+func _on_pickup_landed(icon: TextureRect, die: Node) -> void:
+    if is_instance_valid(icon):
+        icon.queue_free()
+    if is_instance_valid(die) and die.has_method("catch_pickup"):
+        die.catch_pickup()

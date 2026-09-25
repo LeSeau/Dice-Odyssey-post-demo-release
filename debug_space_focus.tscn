@@ -1,0 +1,4 @@
+[gd_scene load_steps=2 format=3]
+[ext_resource type="Script" path="res://debug_space_focus.gd" id="1"]
+[node name="DebugSpaceFocus" type="Node"]
+script = ExtResource("1")

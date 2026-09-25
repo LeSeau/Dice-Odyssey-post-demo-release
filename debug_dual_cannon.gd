@@ -133,7 +133,8 @@ func _scenario_a_play_on_blue() -> void:
 
 	check("capacity raised to 2 by playing the card",
 			Global.red_socket_capacity == 2, str(Global.red_socket_capacity))
-	var has_status: bool = _player_has_status("dual_cannon")
+	# Card and status were renamed Red Cannon on 2026-09-08 (ef2f4434); the id followed.
+	var has_status: bool = _player_has_status("red_cannon")
 	check("status badge applied to player", has_status)
 
 

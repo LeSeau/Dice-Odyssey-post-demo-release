@@ -73,6 +73,7 @@ func _process(delta: float) -> void:
         aura.position = _aura_rest_position + glow_offset * GLOW_FOLLOW_AURA
         emanation.position = _emanation_rest_position + glow_offset * GLOW_FOLLOW_EMANATION
     _tick_overcharge_gust(delta)
+    _tick_dormancy(delta)
 
 
 # Called by the ROLL button on button_down: compress the die and hold. Refused when the
@@ -279,6 +280,111 @@ const LAND_FLASH_VALUE_BONUS := 0.55
 const LAND_HIT_STOP_MIN := 0.05
 const LAND_HIT_STOP_MAX := 0.13
 const LAND_FALL_SPEEDUP := 0.15
+
+# --- Click rattle + landing knock (2026-09-24) -------------------------------------------
+# The click used to play a whole 0.75-1.26s rattle (dicerollsound1-3) that was still ringing
+# when the die landed ~0.3s later, and the landing "thud" was dicerollsound3 again, the same
+# rattle re-pitched. The landing never got one clean hit. Now the click plays a rattle cut to
+# 0.29s, so it is over as the die touches down, and the landing plays ONE knock: a single
+# clack cut out of dicerollsound3 with a short synthesized low thump under it for weight.
+# Both are PLACEHOLDERS built from the old rattles (scratchpad build_dice_sounds.py); the
+# chain pitch ladder and the value-driven volume are the point, swap the files freely.
+#
+# Paths + runtime load(), not preload(): a preload of a file whose .import is missing is a
+# PARSE error that takes all of dice.gd down (same reason as LAND_RISER_PATHS). A path that
+# fails to load falls back to the old sound instead of going silent.
+const ROLL_CLICK_PATHS: Array[String] = [
+    "res://sounds/dice_roll_shake_1.wav",
+    "res://sounds/dice_roll_shake_2.wav",
+    "res://sounds/dice_roll_shake_3.wav",
+]
+const LAND_KNOCK_PATHS: Array[String] = [
+    "res://sounds/dice_land_knock_1.wav",
+    "res://sounds/dice_land_knock_2.wav",
+]
+# The knock must be the loudest beat of the roll, so the click came DOWN from its old +6 dB.
+# Measured on a Movie Maker capture (2026-09-24): at +2 dB the rattle still hit 0 dBFS while a
+# mid roll's knock peaked at -7, the wrong way round. At these values the rattle peaks ~-3
+# and the knock (denser, ~6 dB more RMS than the rattle) -7..-2 by roll value.
+const ROLL_CLICK_DB := -3.0
+const LAND_KNOCK_DB_MIN := -6.0
+const LAND_KNOCK_DB_MAX := -1.0
+var _land_knock_streams: Array[AudioStream] = []
+var _land_knock_loaded := false
+
+# --- Blank face (2026-09-24) ---------------------------------------------------------------
+# The die used to show a 1 whenever a type became active, and kept the last rolled face after a
+# card spent the Power or a new turn began - next to a Power number reading 0, which reads as
+# "I rolled a 1" or "I still have that 6". It now shows a face with no pips whenever nothing is
+# rolled: on switching type, when a card spends the Power, and at a turn start with no Power
+# carried over. Every chain therefore starts with a reveal. The <type>_blank.png files were
+# made from each type's lowest face by scratchpad make_blank_faces.py (pips cloned over with
+# the body's own texture). A missing file falls back to the old resting face.
+const BLANK_FACE_PATH := "res://assets/images/%s_blank.png"
+const BLANK_FACE_FADE := 0.18   # the old face's pips dissolve into the blank body
+var _blank_face_cache := {}
+
+# --- Dormant die (2026-09-24) ----------------------------------------------------------------
+# STS2 darkens its energy orb and slows its spinning layers at 0 energy (NEnergyCounter.cs:
+# dark material + DarkGray, 30 -> 5 degrees/s). Our orb is this die: when the active type has no
+# dice left, ROLL already went grey (button.gd) but the die kept full colour and glow. Now the
+# die and its ring dim and their light slows. The EMANATION is untouched on purpose - it is the
+# Power light, and banked Power is still there to spend ("dice gone, Power kept").
+# Polled in _process for the same reason button.gd polls its own dim: the count changes on
+# many paths (rolls, charges, refill, switches, theft) and a signal per path is how one gets
+# forgotten.
+const DORMANT_TINT := Color(0.56, 0.56, 0.62, 1.0)
+const DORMANT_DELAY := 0.45      # let the last die's landing celebration finish at full light
+const DORMANT_FADE := 0.35
+const DORMANT_WAKE_TIME := 0.14
+const DORMANT_WAKE_FLASH := 1.45 # the relight overshoots, so waking up reads as an event
+const DORMANT_SPEED_MULT := 0.35 # ring + tongue animation speed while dormant
+var _dormant := false
+var _dormant_tween: Tween
+var _dormant_speed := 1.0        # 1.0 awake, DORMANT_SPEED_MULT asleep; tweened
+# Charges on their way to a type: the Global count rises at card play, but the dice are still
+# flying for ~1s. An empty die waiting for dice must stay dark until they ARRIVE, then wake on
+# the absorb flash - not light up the instant the card is played.
+var _charges_in_flight := {}
+var _wake_scheduled := false
+
+# --- Pickup from the tray (2026-09-24) -----------------------------------------------------
+# Clicking a slot flies a mini die from the tray into the big die (dice_interface.gd). The big
+# die's switch pop waits for it to land, so the pop reads as catching the die you picked up.
+var _pickup_pending := 0
+var _pickup_tween: Tween
+const PICKUP_MAKE_ROOM_SCALE := 0.86  # the big die gives way while the new one drops in
+
+# --- Red suspense (2026-09-24) --------------------------------------------------------------
+# A red roll with a card in the socket is the gamble, and it used to look like any other roll:
+# the card only reacted after landing. Now the die holds a beat in the air, keeps flipping
+# faces through the hold, and every flip lights the socketed card's requirement ribbon green
+# (this face would satisfy it) or red (it would not). The landing then reveals the truth.
+# The projection behind each tint is _projected_red_power(); the harness compares it with the
+# Power the card actually resolves on, so it cannot quietly drift from the rules.
+#
+# Only when the roll can go EITHER way: if every face passes, or none can, there is nothing to
+# be tense about. The flips are chosen, not random (they are cosmetic - the result was decided
+# before the die left the plinth): pass and fail faces alternate, and the last flip before the
+# landing shows the OTHER verdict, so a hit lands after a scare and a miss after a near miss.
+# A random pick often never showed the one face that passes (seen on the first render).
+const RED_SUSPENSE_HANG := 0.22
+# Slows through the hold like a reel winding down. Must still end inside the shortest flight
+# (release 0.05 + rise ~0.13 + hang 0.22 + fall ~0.1 = ~0.5s); the landing kills any leftover.
+const RED_SUSPENSE_FLIP_DELAYS := [0.08, 0.07, 0.07, 0.09, 0.11]
+# Flat colours laid over the ribbon, under its text. A modulate multiply cannot turn a purple
+# (Mult) or olive (Min) ribbon green - the first version read blue-ish for pass, pink for fail.
+const RED_SUSPENSE_PASS_COLOR := Color(0.2, 0.74, 0.3, 0.92)
+const RED_SUSPENSE_FAIL_COLOR := Color(0.84, 0.16, 0.14, 0.92)
+const RED_SUSPENSE_TICK_DB := -15.0
+var _red_suspense := false
+var _red_suspense_order: Array[int] = []    # the face index each flip shows (_plan_suspense_flips)
+var _red_suspense_tints: Array[Node] = []
+# The face values matching `faces`, for the flips to tint by. A member rather than a new
+# _build_roll_calm parameter: debug_roll_proposals.gd overrides that builder, and Godot
+# refuses an override whose signature has fewer parameters than the parent's.
+var _red_suspense_values: Array = []
+var _red_suspense_tweens: Array[Tween] = []
 
 # TOSS tuning. Peak scale is the whole point - at 1.55 the 140px die renders ~215px and
 # briefly owns the frame, which is what makes it read at thumbnail size.
@@ -849,6 +955,7 @@ var mech_faces = [
                 load("res://assets/images/mech6.png"),
             ]
             
+# The pre-2026-09-24 click rattles, kept as the fallback for ROLL_CLICK_PATHS.
 var dice_roll_sounds = [
     "res://sounds/dicerollsound1.mp3",
     "res://sounds/dicerollsound2.mp3",
@@ -1004,6 +1111,15 @@ func _ready():
     # Long chains (Turbo Mode territory, 8+ rolls) wrap to a second row of mini faces
     # instead of clipping at the RichTextLabel's fixed width (fit_content grows height).
     roll_history.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
+
+    # Every node here that draws a die face samples its mipmaps (see DicePalette.crisp_face).
+    # DiceDisplay's children (the ink splash, the burst particles) inherit it, which is fine:
+    # textures without mipmaps simply sample linearly.
+    DicePalette.crisp_face(dice_display)
+    DicePalette.crisp_face(next_roll_texture)
+    DicePalette.crisp_face(roll_history)
+    Events.dice_charged.connect(_on_dice_charged_track_flight)
+    Events.player_turn_ended.connect(_on_player_turn_ended_dormancy)
 
     # Give the emanation's tweened uniforms a real value before anything tweens them. No
     # change in game - see the function for why headless runs need it.
@@ -1252,6 +1368,11 @@ func roll_dice():
     var roll_index = randi() % values.size()
     Events.check_unlucky_status.emit()
     Events.check_lucky_status.emit()
+    # The player already knows this face (Scout / Focus panel, Lucky, Unlucky - all of them
+    # write next_guaranteed_roll, Lucky/Unlucky in the two emits just above) or a relic decides
+    # it (Marked Die, below). Red suspense skips those rolls: flashing "fail" on faces that
+    # cannot come up would be a false threat.
+    var outcome_known: bool = Global.next_guaranteed_roll != -1
 
     # Marked Die relic (id `marked_deck`): the first Red roll of a fight lands on its best
     # face. Skipped when a
@@ -1263,6 +1384,7 @@ func roll_dice():
         Global.marked_deck_armed = false
         var best_face: int = values.max()
         roll_index = values.find(best_face)
+        outcome_known = true
 
     # Handle guaranteed rolls. Sentinel is -1, NOT 0 - the Evil dice's crack face IS 0, a
     # legal guaranteed value (see Global.next_guaranteed_roll's declaration for the bug this
@@ -1310,12 +1432,15 @@ func roll_dice():
     # Kill any leftover motion (previous max-roll shake, previous hop) and snap the die back
     # to its true rest transform BEFORE reading it, so a fast re-roll can't bake a mid-shake
     # offset in as the new resting spot.
-    for stale in [_roll_anim_tween, _roll_flip_tween, _roll_aux_tween, _dice_shake_tween]:
+    for stale in [_roll_anim_tween, _roll_flip_tween, _roll_aux_tween, _dice_shake_tween,
+            _pickup_tween]:
         if stale and stale.is_valid():
             stale.kill()
     # One-shot flag from the previous roll's builder - if that roll got interrupted
     # before landing, a stale true here would silently eat THIS roll's landing rattle.
     _suppress_land_shake = false
+    # A face still dissolving from the last spend must not ride over this roll's flips.
+    _kill_face_clear_ghosts()
     _smear_spawned = 0
     if _die_coil_tween and _die_coil_tween.is_valid():
         _die_coil_tween.kill()
@@ -1354,9 +1479,21 @@ func roll_dice():
     # roughly once every few fights, never twice in the same fight.
     var flight_style := roll_style
     var top_face_ahead: int = values.max()
-    if _surprise_roll_allowed(roll_val_ahead, is_max_ahead, top_face_ahead):
+    # Red suspense (see RED_SUSPENSE_*) owns a gamble roll's flight: it needs the CALM hold
+    # and the value-aware flips, so a surprise flight never replaces it.
+    _red_suspense = _red_suspense_wanted(is_ricochet_reroll, outcome_known, values)
+    _red_suspense_values = values if _red_suspense else []
+    # if/else, not a ternary: `x if c else []` is an untyped Array, and assigning it to this
+    # Array[int] fails at runtime - which aborted every roll_dice() the first time.
+    if _red_suspense:
+        _red_suspense_order = _plan_suspense_flips(values, roll_index)
+    else:
+        _red_suspense_order = []
+    if not _red_suspense and _surprise_roll_allowed(roll_val_ahead, is_max_ahead, top_face_ahead):
         _surprise_rolls_this_fight += 1
         flight_style = SURPRISE_ROLL_STYLES[randi() % SURPRISE_ROLL_STYLES.size()]
+    if _red_suspense:
+        flight_style = RollStyle.CALM
 
     match flight_style:
         RollStyle.TOSS:
@@ -1494,6 +1631,9 @@ func _build_roll_calm(tween: Tween, faces: Array, start_position: Vector2,
         fall_time *= 1.0 - LAND_FALL_SPEEDUP * val_frac
         if val_frac >= CALM_HIGH_HANG_FRAC:
             hang_time = CALM_HIGH_HANG * randf_range(0.7, 1.3)
+    # A red gamble holds in the air while its faces keep turning over (see RED_SUSPENSE_*).
+    if _red_suspense:
+        hang_time = maxf(hang_time, RED_SUSPENSE_HANG)
 
     # Air whoosh, max rolls only. Fires at the START of the flight, not at the hang it used
     # to sit on (Julien, 2026-09-06: it should start almost exactly the same time as you hit
@@ -1561,7 +1701,10 @@ func _build_roll_calm(tween: Tween, faces: Array, start_position: Vector2,
         tween.tween_property(dice_display, "position", start_position, 0.08) \
             .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 
-    _start_face_flips(faces, CALM_FLIP_DELAYS)
+    if _red_suspense:
+        _start_face_flips(faces, RED_SUSPENSE_FLIP_DELAYS, _red_suspense_values)
+    else:
+        _start_face_flips(faces, CALM_FLIP_DELAYS)
 
 
 # HOP: leap off the plinth, tumble, slam back down. Playful and physical; the per-roll
@@ -1748,7 +1891,9 @@ func _build_roll_drop(tween: Tween, faces: Array, start_position: Vector2,
 # Face swaps ride their own tween: they're time-based, not step-based, so welding them
 # into the flight's position steps would stall the motion at each swap. Never shows the
 # same face twice in a row. The landing face itself is set by _apply_roll_result.
-func _start_face_flips(faces: Array, delays: Array) -> void:
+# `values` (index-aligned with `faces`) is only passed by a red suspense roll: each flip then
+# tells the socketed cards whether the face it shows would carry them.
+func _start_face_flips(faces: Array, delays: Array, values: Array = []) -> void:
     if _roll_flip_tween and _roll_flip_tween.is_valid():
         _roll_flip_tween.kill()
     _roll_flip_tween = create_tween()
@@ -1756,14 +1901,24 @@ func _start_face_flips(faces: Array, delays: Array) -> void:
     # written inside the callback would never persist to the next swap - the dedup would
     # silently never fire. Arrays are captured by reference.
     var last_anim_index := [-1]
+    var flip_number := 0
     for flip_delay: float in delays:
         _roll_flip_tween.tween_interval(flip_delay)
+        # Red suspense plans its flips (see _plan_suspense_flips); every other roll shuffles.
+        var planned := -1
+        if _red_suspense and flip_number < _red_suspense_order.size():
+            planned = _red_suspense_order[flip_number]
+        flip_number += 1
         _roll_flip_tween.tween_callback(func():
             var anim_index := randi() % faces.size()
-            if faces.size() > 1 and anim_index == last_anim_index[0]:
+            if planned >= 0 and planned < faces.size():
+                anim_index = planned
+            elif faces.size() > 1 and anim_index == last_anim_index[0]:
                 anim_index = (anim_index + 1) % faces.size()
             last_anim_index[0] = anim_index
             dice_display.texture = faces[anim_index]
+            if _red_suspense and anim_index < values.size():
+                _tint_socket_ribbons(int(values[anim_index]))
         )
 
 
@@ -1783,6 +1938,9 @@ func _on_roll_landed(roll_index: int, values: Array, faces: Array) -> void:
     # overwritten no matter how the flight timing drifts in future tuning.
     if _roll_flip_tween and _roll_flip_tween.is_valid():
         _roll_flip_tween.kill()
+    # Before _apply_roll_result: the socketed card resolves inside it, and its snapshot must
+    # leave for the pile untinted, with nothing on screen but the real outcome.
+    _end_red_suspense()
     # Exact-snap the flight transform before anything else reads the die: the flight
     # tweens target these values anyway, but a killed/interrupted one must not leave a
     # residual rotation or squeeze baked under the punch tweens below.
@@ -1815,7 +1973,8 @@ func _on_roll_landed(roll_index: int, values: Array, faces: Array) -> void:
             + _overcharge_tier * OVERCHARGE_THUD_PITCH_CAP_STEP
     var thud_pitch := LAND_THUD_BASE_PITCH \
             + LAND_THUD_CHAIN_PITCH_STEP * clampi(chain_depth - 1, 0, pitch_cap)
-    SFXPlayer.play(LAND_THUD_SOUND, false, thud_pitch, lerpf(-8.0, -2.0, val_frac))
+    SFXPlayer.play(_land_knock_stream(), false, thud_pitch,
+            lerpf(LAND_KNOCK_DB_MIN, LAND_KNOCK_DB_MAX, val_frac))
     if is_max_roll:
         # The heavier smash rides on top of (not instead of) the thud, so the max landing
         # keeps its place at the top of the same ladder rather than sounding unrelated.
@@ -1999,6 +2158,7 @@ func _smear_step(t: float) -> void:
         ghost.scale = dice_display.scale
         ghost.pivot_offset = dice_display.pivot_offset
         ghost.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        DicePalette.crisp_face(ghost)
         ghost.modulate = Color(1.0, 1.0, 1.0, 0.28)
         # Sibling of DiceDisplay with default z 0: renders under the die (z 1), so the
         # trail reads as left-behind light, never as a second die on top.
@@ -2717,11 +2877,11 @@ func _update_dice_aura_charge() -> void:
     var target_intensity := lerpf(intensity_rest, AURA_INTENSITY_MAX, t)
     var target_reach := lerpf(AURA_REACH_REST, AURA_REACH_MAX, t)
 
-    var base_wave_speed: float = AURA_BASE_WAVE_SPEED.get(dice_type, AURA_BASE_WAVE_SPEED_DEFAULT)
     # Clamped to the uniform's own declared hint_range (0.1-3.0 in dice_glow.gdshader) -
     # magma's higher base (2.55) leaves less headroom before hitting that ceiling than the
     # other 8 types' base (2.022), so it gets a smaller relative boost rather than exceeding it.
-    var target_wave_speed := clampf(base_wave_speed * lerpf(1.0, AURA_WAVE_SPEED_MULT_MAX, t), 0.1, 3.0)
+    # Slowed while the die is dormant (see _aura_wave_speed_target).
+    var target_wave_speed := _aura_wave_speed_target()
     var target_heat := lerpf(0.0, AURA_HEAT_MAX, t)
 
     var charge_tween := create_tween()
@@ -3186,13 +3346,15 @@ func _on_active_dice_changed(new_dice_type):
     update_dice_display()
 
     # Small landing pop when the new die takes the socket - the swap was previously an
-    # instant texture change with zero feedback. Ends at exactly 1.0 so it can't fight the
-    # roll/refuel tweens beyond a transient frame.
-    var switch_tween := create_tween()
-    switch_tween.tween_property(dice_display, "scale", Vector2(1.12, 1.12), 0.07) \
-        .set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
-    switch_tween.tween_property(dice_display, "scale", Vector2(1.0, 1.0), 0.12) \
-        .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+    # instant texture change with zero feedback. A switch from a tray click has a mini die
+    # dropping in (dice_interface._begin_pickup): the big die gives way now and pops when it
+    # catches it (catch_pickup). Any other switch pops at once, as before.
+    if _pickup_pending > 0:
+        _make_room_for_pickup()
+    else:
+        _play_switch_pop()
+    # The dormant look is re-judged for the NEW type from scratch (no carried-over wait).
+    _dormant_wait = 0.0
 
     # Socket 2 is a runtime duplicate that nothing else lays out, so it has to be told about
     # every show/hide of socket 1 - otherwise a filled second socket kept floating over the
@@ -3249,13 +3411,10 @@ func _power_resting_color() -> Color:
 
 
 func update_dice_display():
-    # Resting face shown when this type becomes active - "1" for every type that has a 1,
-    # evil's best face (it has no 1) and even's lowest (2).
-    var rest_face := "1"
-    match dice_type:
-        "evil": rest_face = "6"
-        "even": rest_face = "2"
-    dice_display.texture = load("res://assets/images/" + dice_type + rest_face + ".png")
+    # A die that just became active has not been rolled: blank face (see BLANK_FACE_PATH).
+    # Any face-fade still running belongs to the previous type - drop it.
+    _kill_face_clear_ghosts()
+    dice_display.texture = _blank_face_texture(dice_type)
 
     current_power.modulate = DicePalette.accent(dice_type)
     # The outline must go through label_settings: this Label HAS a LabelSettings resource,
@@ -3269,6 +3428,60 @@ func update_dice_display():
     set_shader_from_global_type(dice_type)
     _update_emanation_colors()
     _update_power_ember_colors()
+
+
+# The unrolled face for a type. Cached: this runs on every switch, reset and turn start.
+# Falls back to the old resting face ("1", evil's 6, even's 2) if the blank file is missing.
+func _blank_face_texture(type: String) -> Texture2D:
+    if _blank_face_cache.has(type):
+        return _blank_face_cache[type]
+    var tex := load(BLANK_FACE_PATH % type) as Texture2D
+    if tex == null:
+        var rest_face := "1"
+        match type:
+            "evil": rest_face = "6"
+            "even": rest_face = "2"
+        tex = load("res://assets/images/" + type + rest_face + ".png") as Texture2D
+    _blank_face_cache[type] = tex
+    return tex
+
+
+func _die_is_blank() -> bool:
+    return dice_display.texture == _blank_face_texture(dice_type)
+
+
+# The chain is gone (a card spent it, or a new turn began): the face goes back to blank. The
+# old face stays on top as a ghost that fades out, so its pips dissolve into the body instead
+# of popping off - the die visibly "lets go" of the roll the card just used.
+func _clear_die_face() -> void:
+    if _die_is_blank():
+        return
+    var old_face := dice_display.texture
+    dice_display.texture = _blank_face_texture(dice_type)
+    if old_face == null or not is_inside_tree():
+        return
+    var ghost := TextureRect.new()
+    ghost.name = "FaceClearGhost"
+    ghost.texture = old_face
+    ghost.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    ghost.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+    ghost.size = dice_display.size
+    ghost.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    DicePalette.crisp_face(ghost)
+    ghost.add_to_group("die_face_clear_ghost")
+    # A child of the die, so it rides every punch/hop/dip the die does while it fades. Default
+    # z keeps it under DiceInk (z 4), so an inked die stays inked.
+    dice_display.add_child(ghost)
+    var t := ghost.create_tween()
+    t.tween_property(ghost, "modulate:a", 0.0, BLANK_FACE_FADE) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+    t.tween_callback(ghost.queue_free)
+
+
+func _kill_face_clear_ghosts() -> void:
+    for ghost in dice_display.get_children():
+        if ghost.is_in_group("die_face_clear_ghost"):
+            ghost.queue_free()
 
 
 # Retint the emanation tongues to the active die's identity. Safe to set directly: the
@@ -3344,15 +3557,31 @@ func play_error_sound():
     
     
 func play_dice_roll_sound():
-    # Pick a random sound from the list
-    var random_sound_path = dice_roll_sounds[randi() % dice_roll_sounds.size()]
-    dice_roll_player.stream = load(random_sound_path)
-    
-    # Increase volume if needed
-    dice_roll_player.volume_db = 6  # Increase volume (optional)
-    
-    # Play the sound
+    # The short click rattle (see ROLL_CLICK_PATHS). Same index into the old list as the
+    # fallback, so a missing new file still plays a rattle rather than nothing.
+    var i := randi() % ROLL_CLICK_PATHS.size()
+    var stream := load(ROLL_CLICK_PATHS[i]) as AudioStream
+    if stream == null:
+        stream = load(dice_roll_sounds[i % dice_roll_sounds.size()]) as AudioStream
+    dice_roll_player.stream = stream
+    dice_roll_player.volume_db = ROLL_CLICK_DB
     dice_roll_player.play()
+
+
+# One of the landing knocks, loaded once and cached. Falls back to the old thud (the full
+# dicerollsound3 rattle) if neither file loads, e.g. before the editor has imported them.
+func _land_knock_stream() -> AudioStream:
+    if not _land_knock_loaded:
+        _land_knock_loaded = true
+        for path: String in LAND_KNOCK_PATHS:
+            var s := load(path) as AudioStream
+            if s != null:
+                _land_knock_streams.append(s)
+            else:
+                push_warning("[dice] landing knock missing: %s" % path)
+    if _land_knock_streams.is_empty():
+        return LAND_THUD_SOUND
+    return _land_knock_streams.pick_random()
     
 func play_crack_sound():
     var sfx_crack = preload("res://glass_sound.mp3")
@@ -3371,6 +3600,9 @@ func play_strong_dice_sound():
     dice_roll_player.play() 
 
 func _on_player_turn_started() -> void:
+    # The refill is in: the die wakes on the next dormancy poll (and nothing is mid-flight).
+    _turn_over = false
+    _charges_in_flight = {}
     # Ending the turn right after a red card would otherwise let the pending 1s reset land on
     # the new turn and eat the Stockpile carryover restored just below.
     _power_reset_generation += 1
@@ -3393,6 +3625,10 @@ func _on_player_turn_started() -> void:
     current_power.scale = Vector2.ONE
     _update_power_float()
     _update_dice_aura_charge()
+    # A new turn is a new chain. With Power carried over (Stockpile) the last face stays as the
+    # roll that Power came from; with nothing banked the die goes back to blank.
+    if Global.roll_value == 0:
+        _clear_die_face()
     # If you have a variable tracking the roll value, reset it here too
     # Global.roll_value = 0  # This is now handled in the dice_interface.gd
     mech_adjustments_used = 0
@@ -3447,6 +3683,7 @@ func _on_dice_roll_reset() -> void:
         _update_power_float()
         _update_dice_aura_charge()
         update_roll_history_ui()
+        _clear_die_face()
     else:
         _set_power_text("0")
         Global.roll_value = 0
@@ -3456,6 +3693,7 @@ func _on_dice_roll_reset() -> void:
         _update_power_float()
         _update_dice_aura_charge()
         update_roll_history_ui()
+        _clear_die_face()
     mech_adjustments_used = 0
     _update_mech_buttons()
     # A card spent the Power: the roll it came from is gone, so there is nothing left to
@@ -3755,6 +3993,9 @@ func _on_battle_started():
     Global.blue_dice_bonus_amount_fight = 0
     Global.mech_dice_bonus_amount_fight = 0
     _surprise_rolls_this_fight = 0  # the surprise budget is per fight, not per run
+    # Nothing in flight carries over from the last fight.
+    _charges_in_flight = {}
+    _wake_scheduled = false
     set_shader_from_global_type()
 
 func set_shader_from_global_type(type: String = Global.dice_type) -> void:
@@ -3824,6 +4065,12 @@ func _resolve_aura_material(type: String, base_material: ShaderMaterial) -> Shad
 func _on_charge_delivered(charged_type: String, count: int) -> void:
     if count <= 0:
         return
+    # These dice are no longer in the air (see _charges_in_flight). A die that slept waiting
+    # for them wakes on the absorb flash further down, not on this frame.
+    _charges_in_flight[charged_type] = maxi(0,
+            int(_charges_in_flight.get(charged_type, 0)) - count)
+    if charged_type == dice_type and _dormant:
+        _schedule_charge_wake()
     # Two DIFFERENT claims, deliberately split (Julien, 2026-08-14) - conflating them is
     # what made the old argless signal lie:
     #   "energy just erupted"      -> ALWAYS true of a charge. The big die is the screen's
@@ -4565,6 +4812,7 @@ func _spawn_refuel_return(rolled_values: Array) -> Tween:
         icon.size = Vector2(60, 60)
         icon.pivot_offset = icon.size / 2.0
         icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        DicePalette.crisp_face(icon)
         icon.z_index = 150  # above the flying card's z_index=100, same CanvasLayer
         parent_layer.add_child(icon)
 
@@ -4791,6 +5039,7 @@ func _animate_thrown_die(parent_layer: Node, throw_type: String, value: int, fro
     icon.size = Vector2(THROWN_DIE_SIZE, THROWN_DIE_SIZE)
     icon.pivot_offset = icon.size / 2.0
     icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    DicePalette.crisp_face(icon)
     icon.z_index = 150
     icon.visible = false
     icon.scale = Vector2(0.35, 0.35)
@@ -5873,6 +6122,382 @@ func _refresh_empty_socket_look() -> void:
     if charged_card_texture.texture != null or is_instance_valid(socketed_card_ui):
         return
     _set_socket_empty()
+
+
+# --- Dormant die -------------------------------------------------------------------------------
+# See DORMANT_* at the top of the file. Every rule for "is this die spent" lives in
+# _die_should_sleep(); the rest is presentation.
+
+var _dormant_wait := 0.0      # game seconds the die has counted as spent (drives DORMANT_DELAY)
+var _turn_over := false       # between End Turn and the next turn's refill
+
+
+# A charge's dice are counted into the Global total at card play, then fly for ~1s. Tracking
+# what is still in the air lets an empty die wait for them instead of waking on the click.
+func _on_dice_charged_track_flight(charged_type: String, count: int) -> void:
+    _charges_in_flight[charged_type] = int(_charges_in_flight.get(charged_type, 0)) + maxi(count, 0)
+
+
+func _die_should_sleep() -> bool:
+    # After End Turn the leftovers are lost (the tray drains too, dice_interface.gd), so the
+    # die goes dark for the enemy turn and wakes with the refill.
+    if _turn_over:
+        return true
+    if _roll_in_progress:
+        return false
+    var left: int = int(Global.get(dice_type + "_dice_current_amount")) \
+            - int(_charges_in_flight.get(dice_type, 0))
+    if left > 0:
+        return false
+    # Still actionable with no dice left: a Ricochet reroll or a Mech +-1 on the last roll.
+    if _can_ricochet_reroll():
+        return false
+    if dice_type == "mech" and mech_adjustments_used < _mech_adjustments_allowed() \
+            and Global.roll_value > 0:
+        return false
+    return true
+
+
+func _tick_dormancy(delta: float) -> void:
+    if _wake_scheduled:
+        return
+    if _die_should_sleep():
+        if _dormant:
+            return
+        # Game time on purpose: the last landing's hit-stop slows this with everything else,
+        # so the celebration always finishes at full light before the die dims.
+        _dormant_wait += delta
+        if _dormant_wait >= DORMANT_DELAY:
+            _set_dormant(true)
+    else:
+        _dormant_wait = 0.0
+        if _dormant:
+            _set_dormant(false)
+
+
+# Dims the die panel (die, ring, ink - never the emanation, which is the Power light) and slows
+# the ring. Waking overshoots to DORMANT_WAKE_FLASH first unless the caller already has its own
+# flash on that frame (a charge's absorb flash).
+func _set_dormant(asleep: bool, wake_flash := true) -> void:
+    if asleep == _dormant:
+        return
+    _dormant = asleep
+    var die_panel := dice_display.get_parent() as CanvasItem
+    if _dormant_tween and _dormant_tween.is_valid():
+        _dormant_tween.kill()
+    _dormant_tween = create_tween().set_parallel(true)
+    if asleep:
+        _dormant_tween.tween_property(die_panel, "modulate", DORMANT_TINT, DORMANT_FADE) \
+            .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+        _dormant_tween.tween_method(_set_dormant_speed, _dormant_speed, DORMANT_SPEED_MULT,
+                DORMANT_FADE)
+    else:
+        _dormant_wait = 0.0
+        if wake_flash:
+            var f := DORMANT_WAKE_FLASH
+            die_panel.modulate = Color(f, f, f, 1.0)
+            _dormant_tween.tween_property(die_panel, "modulate", Color.WHITE, DORMANT_WAKE_TIME) \
+                .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+        else:
+            # The caller's own flash (the charge absorb) owns this frame: full light at once,
+            # so that flash is not dimmed by a panel still on its way back up.
+            die_panel.modulate = Color.WHITE
+        _dormant_tween.tween_method(_set_dormant_speed, _dormant_speed, 1.0, DORMANT_WAKE_TIME)
+
+
+func _set_dormant_speed(v: float) -> void:
+    _dormant_speed = v
+    var mat := aura.material as ShaderMaterial
+    if mat:
+        mat.set_shader_parameter("wave_speed", _aura_wave_speed_target())
+
+
+# The ring's swirl speed for the current banked Power, slowed while dormant. Shared by the
+# charge curve (_update_dice_aura_charge) and the dormancy fade so the two cannot disagree.
+func _aura_wave_speed_target() -> float:
+    var t := 1.0 - exp(-float(Global.roll_value) / AURA_CHARGE_SOFTNESS)
+    if dice_type == "red":
+        t = maxf(t, AURA_RED_BASELINE_CHARGE)
+    var base_wave_speed: float = AURA_BASE_WAVE_SPEED.get(dice_type, AURA_BASE_WAVE_SPEED_DEFAULT)
+    return clampf(base_wave_speed * lerpf(1.0, AURA_WAVE_SPEED_MULT_MAX, t) * _dormant_speed,
+            0.1, 3.0)
+
+
+func _on_player_turn_ended_dormancy() -> void:
+    _turn_over = true
+
+
+# A charge landed on the active die while it slept: wake it on the absorb flash (one
+# CHARGE_PULSE_ANTICIPATION after delivery), not before, and not with a second flash on top.
+func _schedule_charge_wake() -> void:
+    _wake_scheduled = true
+    var t := create_tween()
+    t.tween_interval(CHARGE_PULSE_ANTICIPATION)
+    t.tween_callback(_on_scheduled_charge_wake)
+
+
+func _on_scheduled_charge_wake() -> void:
+    _wake_scheduled = false
+    if not _die_should_sleep():
+        _set_dormant(false, false)
+
+
+# --- Pickup from the tray -----------------------------------------------------------------------
+# dice_interface.gd calls begin_pickup() right BEFORE it emits active_dice_changed for a slot
+# click, then catch_pickup() when its mini die reaches this one. A failsafe pops anyway if the
+# catch never comes (the flight's node freed with the scene, say).
+var _pickup_generation := 0
+const PICKUP_FAILSAFE := 0.6
+
+
+func begin_pickup() -> void:
+    _pickup_pending += 1
+    _pickup_generation += 1
+    get_tree().create_timer(PICKUP_FAILSAFE, false).timeout.connect(
+            _pickup_failsafe.bind(_pickup_generation))
+
+
+func _pickup_failsafe(gen: int) -> void:
+    if gen != _pickup_generation or _pickup_pending <= 0:
+        return
+    _pickup_pending = 0
+    if not _roll_in_progress:
+        _play_switch_pop()
+
+
+func catch_pickup() -> void:
+    _pickup_pending = maxi(0, _pickup_pending - 1)
+    # A roll that started while the mini die was falling owns the die's scale now.
+    if _roll_in_progress:
+        return
+    _play_switch_pop()
+
+
+func _make_room_for_pickup() -> void:
+    if _pickup_tween and _pickup_tween.is_valid():
+        _pickup_tween.kill()
+    dice_display.pivot_offset = dice_display.size / 2.0
+    _pickup_tween = create_tween()
+    _pickup_tween.tween_property(dice_display, "scale",
+            Vector2(PICKUP_MAKE_ROOM_SCALE, PICKUP_MAKE_ROOM_SCALE), 0.07) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+
+# The switch pop (was inline in _on_active_dice_changed). Ends at exactly 1.0 so it can't
+# fight the roll/refuel tweens beyond a transient frame.
+func _play_switch_pop() -> void:
+    if _pickup_tween and _pickup_tween.is_valid():
+        _pickup_tween.kill()
+    dice_display.pivot_offset = dice_display.size / 2.0
+    _pickup_tween = create_tween()
+    _pickup_tween.tween_property(dice_display, "scale", Vector2(1.12, 1.12), 0.07) \
+        .set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+    _pickup_tween.tween_property(dice_display, "scale", Vector2(1.0, 1.0), 0.12) \
+        .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
+# --- Red suspense ----------------------------------------------------------------------------------
+# See RED_SUSPENSE_* at the top of the file.
+
+# The socketed cards whose outcome this roll can still change. A card with no requirement, or
+# a Red-only badge (always met on Red), has nothing riding on the face.
+func _socket_gamble_cards() -> Array[Card]:
+    var cards: Array[Card] = []
+    for ui in [socketed_card_ui, socketed_card_ui_2]:
+        if not is_instance_valid(ui) or ui.card == null:
+            continue
+        var card: Card = ui.card
+        if card.requirement == Card.Requirement.NONE or card.requirement == Card.Requirement.RED:
+            continue
+        cards.append(card)
+    return cards
+
+
+func _red_suspense_wanted(is_ricochet_reroll: bool, outcome_known: bool, values: Array) -> bool:
+    if dice_type != "red" or is_ricochet_reroll or outcome_known:
+        return false
+    # Under Ink the face and the number are hidden - a tint per face would give both away.
+    if Global.ink_active:
+        return false
+    if _socket_gamble_cards().is_empty():
+        return false
+    # Only a roll that can go either way. Every face passing (or none able to) is a certainty.
+    var any_pass := false
+    var any_fail := false
+    for v in values:
+        if _face_passes_any(int(v)):
+            any_pass = true
+        else:
+            any_fail = true
+    return any_pass and any_fail
+
+
+# A face "passes" when at least one socketed gamble card would resolve on it.
+func _face_passes_any(face: int) -> bool:
+    for card in _socket_gamble_cards():
+        if _face_passes(card, face):
+            return true
+    return false
+
+
+# The face index each suspense flip shows. Verdicts alternate, ending on the opposite of the
+# result: the last flip before the landing is the scare (on a hit) or the near miss (on a
+# miss). Needs both verdicts to exist, which _red_suspense_wanted guarantees.
+func _plan_suspense_flips(values: Array, result_index: int) -> Array[int]:
+    var passing: Array[int] = []
+    var failing: Array[int] = []
+    for i in values.size():
+        if _face_passes_any(int(values[i])):
+            passing.append(i)
+        else:
+            failing.append(i)
+    var order: Array[int] = []
+    if passing.is_empty() or failing.is_empty():
+        return order
+    var result_passes := passing.has(result_index)
+    var flips := RED_SUSPENSE_FLIP_DELAYS.size()
+    for k in flips:
+        # Counted back from the last flip, which shows the other verdict than the result.
+        var from_last := flips - 1 - k
+        var show_pass: bool = (not result_passes) if from_last % 2 == 0 else result_passes
+        var pool: Array[int] = failing
+        if show_pass:
+            pool = passing
+        order.append(pool[randi() % pool.size()])
+    return order
+
+
+# The Power a socketed card will be judged on if the die lands on `face`. Mirrors, in order,
+# everything that moves Power between the landing and the card's resolution:
+#   _apply_roll_result   bank + face, pending Weak folded into the roll modifier, Boost, the
+#                        max(0) clamp, Surge, held Blood Pact (in_hand_roll_bonus)
+#   red_dice_rolled      Blood Sword +2 (relics/blood_sword.gd)
+#   dice_rolled          (card_ui._report_red_roll re-emits it BEFORE the card resolves)
+#                        Dice Echo doubles the turn's first roll (status_opening_gambit.gd),
+#                        Buzzer Shot triples it (status_coiled_spring.gd), Sixth Gear +6 on
+#                        every 8th die of the fight (relics/sixth_gear.gd)
+# If any of those rules change, this has to change with them - debug_dice_looks.gd section E
+# checks the projection against the Power a card actually resolves on.
+func _projected_red_power(face: int) -> int:
+    var p := int(Global.roll_value) + face
+    var modifier := int(Global.next_roll_modifier) - Global.player_weak_stacks()
+    if modifier != 0:
+        p = maxi(0, p + modifier)
+    p += Global.total_surge()
+    p += Global.in_hand_roll_bonus("red")
+    if _owns_relic("blood_sword"):
+        p += 2
+    var handler = Global.player.status_handler if is_instance_valid(Global.player) else null
+    if handler != null:
+        var echo = handler._get_status("dice_echo")
+        if echo != null and "triggered_this_turn" in echo and not echo.triggered_this_turn:
+            p += face
+        # duration drops to 0 the moment it fires, while _armed stays true.
+        var spring = handler._get_status("buzzer_shot")
+        if spring != null and "_armed" in spring and spring._armed and spring.duration > 0:
+            p += face * 2
+    # fight_dice_rolled already counts this roll (roll_dice bumps it at the click).
+    if _owns_relic("sixth_gear") and Global.fight_dice_rolled > 0 \
+            and Global.fight_dice_rolled % 8 == 0:
+        p += 6
+    return p
+
+
+# The battle owns the relic bar; harnesses without one simply see no relics.
+func _owns_relic(id: String) -> bool:
+    var battle := get_parent()
+    if battle == null or not ("relics" in battle):
+        return false
+    var handler = battle.relics
+    return handler != null and is_instance_valid(handler) and handler.has_relic(id)
+
+
+func _face_passes(card: Card, face: int) -> bool:
+    var saved = Global.roll_value
+    Global.roll_value = _projected_red_power(face)
+    var ok := card.meets_requirement()
+    Global.roll_value = saved
+    return ok
+
+
+func _socket_ribbon_for(ui: CardUI) -> Control:
+    if ui == socketed_card_ui:
+        return requirement_panel
+    if ui == socketed_card_ui_2 and is_instance_valid(_socket_2):
+        return _socket_2.get_node_or_null("CardBackground/CardFrame/RequirementPanel") as Control
+    return null
+
+
+# One face flip during a red suspense roll: every socketed gamble card's ribbon says whether
+# THIS face would carry it.
+func _tint_socket_ribbons(face: int) -> void:
+    var any_pass := false
+    for ui in [socketed_card_ui, socketed_card_ui_2]:
+        if not is_instance_valid(ui) or ui.card == null:
+            continue
+        if not _socket_gamble_cards().has(ui.card):
+            continue
+        var ribbon := _socket_ribbon_for(ui)
+        if ribbon == null or not ribbon.visible:
+            continue
+        var ok := _face_passes(ui.card, face)
+        any_pass = any_pass or ok
+        _suspense_tint_for(ribbon).color = RED_SUSPENSE_PASS_COLOR if ok else RED_SUSPENSE_FAIL_COLOR
+        ribbon.pivot_offset = ribbon.size * 0.5
+        ribbon.scale = Vector2(1.12, 1.12)
+        var t := ribbon.create_tween()
+        t.tween_property(ribbon, "scale", Vector2.ONE, 0.1) \
+            .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+        _red_suspense_tweens.append(t)
+    # A soft tick per flip, higher when the face would pay out - the reel you can hear.
+    SFXPlayer.play(POWER_ORB_LAND_SFX, false, 1.35 if any_pass else 0.95,
+            RED_SUSPENSE_TICK_DB, -1)
+
+
+# The flat verdict band over a ribbon: first child, so the ribbon's own label draws on top.
+func _suspense_tint_for(ribbon: Control) -> ColorRect:
+    for child in ribbon.get_children():
+        if child.is_in_group("red_suspense_tint"):
+            return child as ColorRect
+    var tint := ColorRect.new()
+    tint.name = "SuspenseTint"
+    tint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    tint.add_to_group("red_suspense_tint")
+    ribbon.add_child(tint)
+    ribbon.move_child(tint, 0)
+    tint.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+    _red_suspense_tints.append(tint)
+    return tint
+
+
+# The die has landed: ribbons go back to their own colour at once, so the card's real
+# resolution (the fire, or the fizzle's red flash) is the only answer on screen - and so the
+# socket snapshot that flies to the pile is taken untinted.
+func _end_red_suspense() -> void:
+    if not _red_suspense:
+        return
+    _red_suspense = false
+    _red_suspense_values = []
+    _red_suspense_order = []
+    for t in _red_suspense_tweens:
+        if t and t.is_valid():
+            t.kill()
+    _red_suspense_tweens.clear()
+    # Detached now, not just queued: the socket snapshot that flies to the pile is duplicated
+    # later on this same frame, and a queued node would be copied along with the card.
+    for tint in _red_suspense_tints:
+        if is_instance_valid(tint):
+            if tint.get_parent() != null:
+                tint.get_parent().remove_child(tint)
+            tint.queue_free()
+    _red_suspense_tints.clear()
+    for ui in [socketed_card_ui, socketed_card_ui_2]:
+        if not is_instance_valid(ui):
+            continue
+        var ribbon: Control = _socket_ribbon_for(ui)
+        if ribbon != null:
+            ribbon.modulate = Color.WHITE
+            ribbon.scale = Vector2.ONE
 
 
 # --- Surge motes -----------------------------------------------------------------------------

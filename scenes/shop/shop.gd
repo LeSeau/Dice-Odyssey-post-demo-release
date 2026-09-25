@@ -720,6 +720,7 @@ func reroll_shop_dice() -> void:
 func _setup_dice_glow(column_index: int) -> void:
     var die_texture: TextureRect = _dice_columns[column_index].get_node(
             "Dice%dTexture" % (column_index + 1))
+    DicePalette.crisp_face(die_texture)  # a 1024px face shown at 200px (see crisp_face)
     var accent: Color = DicePalette.accent(Global.DICE_TYPE_ORDER[column_index])
     var glow := TextureRect.new()
     glow.texture = DicePalette.die_halo_texture()

@@ -666,6 +666,7 @@ scroll_active = false
 text = "[center][color=gold][b]Choose next roll[/b][/color][/center]"
 
 [node name="HBoxContainer" type="HBoxContainer" parent="ScoutPanel"]
+texture_filter = 4
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5

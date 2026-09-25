@@ -220,3 +220,16 @@ static func die_halo_texture() -> Texture2D:
         var img := Image.create_from_data(size, size, false, Image.FORMAT_RGBA8, data)
         _die_halo_texture = ImageTexture.create_from_image(img)
     return _die_halo_texture
+
+
+# ---------------------------------------------------------------------------------------
+# Face filtering (2026-09-24). The face PNGs are 1024px, and the game only ever shows them far
+# smaller: 140px on the main die, 48-54px on flights and in the scout panel, ~34px in the tray,
+# 22px in the roll history. The project default is NEAREST with no mipmaps, so a face shrunk
+# 7 to 46 times skipped most of its texels - the thin cracks broke into dotted lines and
+# crawled while the die hopped and squashed. The face imports now generate mipmaps, and every
+# node that draws a face opts in through this one call. A face shown somewhere WITHOUT it keeps
+# the old crunchy look, which is the tell when a new screen forgets.
+static func crisp_face(item: CanvasItem) -> void:
+    if item != null:
+        item.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
