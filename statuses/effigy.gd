@@ -54,6 +54,17 @@ func _strike() -> void:
     damage_effect.execute([target])
 
 
+# A second Effigy on the SAME enemy adds its per-six damage (5 + 5 = 10). Effigy+ has its own
+# id (effigy_plus), so a base and a + on one enemy were already two separate curses.
+func absorb_copy(other: Status) -> bool:
+    stacks += other.stacks
+    return true
+
+
+func get_tooltip() -> String:
+    return "Takes %d damage every time you roll a 6 this combat" % maxi(stacks, DEFAULT_DAMAGE)
+
+
 func _disconnect_all() -> void:
     if Events.dice_rolled.is_connected(_on_dice_rolled):
         Events.dice_rolled.disconnect(_on_dice_rolled)

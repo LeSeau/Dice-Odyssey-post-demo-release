@@ -3055,7 +3055,8 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
     # New power on the board - supersedes any pending delayed red reset (see _power_reset_generation).
     _power_reset_generation += 1
     Global.roll_value += Global.last_roll
-    Global.power_generated_this_turn += Global.last_roll
+    # power_generated_this_turn is NOT credited here any more: see the popup site below, which
+    # credits the Power this roll actually added once Weak, Boost, Surge and Blood Pact are in.
     # Lifetime power counter ("Unlimited Power" achievement) - mirrors the increment above.
     AchievementManager.add_stat("power_generated", Global.last_roll)
     # Run-lifetime stats for the end-of-run screens.
@@ -3227,7 +3228,15 @@ func _apply_roll_result(roll_index: int, values: Array, faces: Array):
     #
     # The die's own punch still scales on Global.last_roll, further up - the punch is about the
     # FACE that landed, this number is about the POWER gained. They are allowed to disagree.
-    _spawn_roll_popup(Global.roll_value - power_before)
+    var power_gained: int = Global.roll_value - power_before
+    # The turn's Power total (Crescendo, Parasite) takes the same difference, for the same
+    # reason: until 2026-09-25 it was credited with the raw face up where the face is banked,
+    # so Boost, Surge and a held Blood Pact never counted and a roll cut by Weak counted in
+    # full (card pool review H-183). Credited BEFORE dice_rolled / red_dice_rolled go out
+    # below, because Parasite re-reads the total on dice_rolled. A roll that Weak takes below
+    # its own face adds nothing rather than subtracting.
+    Global.power_generated_this_turn += maxi(0, power_gained)
+    _spawn_roll_popup(power_gained)
 
     _set_power_text(Global.roll_value)
     current_power.modulate.a = 0.4 if Global.roll_value == 0 else 1.0
@@ -3923,8 +3932,9 @@ func _on_change_current_power():
     # Crescendo - both of which are written as "Power generated this turn" - silently saw
     # rolls only, and playing Reinforce moved neither.
     #
-    # ⚠️ This cannot double count rolls: _apply_roll_result credits its own value and then
-    # calls _set_power_text, which syncs _last_shown_power, and it never emits this signal.
+    # ⚠️ This cannot double count rolls: _apply_roll_result credits its own net gain (face +
+    # Boost + Surge + held bonus - Weak) and then calls _set_power_text, which syncs
+    # _last_shown_power, and it never emits this signal.
     # So any rise still visible here is by definition non-roll power.
     #
     # Only RISES count. A reset, a dice-type switch or a Ricochet rewind must not subtract

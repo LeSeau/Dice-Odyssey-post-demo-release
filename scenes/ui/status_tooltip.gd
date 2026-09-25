@@ -110,7 +110,10 @@ func get_tooltip_content(status: Status) -> void:
         "eclipse":
             text = "The next card you play does not reset your Power."
         _:
-            text = status.tooltip if status.tooltip != "" else "No description available."
+            # get_tooltip(), not .tooltip: statuses that merge copies (Status.absorb_copy)
+            # rewrite their line for the merged count, e.g. two Die Hards = 2 Block per roll.
+            var body := status.get_tooltip()
+            text = body if body != "" else "No description available."
 
     # Upgraded blessings reuse their base status with a "_plus" id - the player-facing
     # name stays the base name ("Marionette", never "Marionette Plus").

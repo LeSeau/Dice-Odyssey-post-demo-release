@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bdbgcopiespwr"]
+
+[ext_resource type="Script" path="res://debug_copies_and_power.gd" id="1_dbgcp"]
+
+[node name="DebugCopiesAndPower" type="Node"]
+script = ExtResource("1_dbgcp")

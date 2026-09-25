@@ -48,7 +48,9 @@ func _on_dice_rolled(_dice_type, _roll_value) -> void:
         return
     if not _armed:
         return
-    Global.roll_value += Global.last_roll * 2
+    # +2 copies of the roll per Buzzer Shot played before it fired (stacks = copies, see
+    # absorb_copy): one = triple, two = x5.
+    Global.roll_value += Global.last_roll * 2 * maxi(stacks, 1)
     Events.change_current_power.emit()
     _disconnect_all()
     # can_expire + duration 0 makes status_ui free the icon on this change.
@@ -57,3 +59,18 @@ func _on_dice_rolled(_dice_type, _roll_value) -> void:
 
 func apply_status(_target: Node) -> void:
     status_applied.emit(self)
+
+
+# A second Buzzer Shot played before the first one fired. Once fired, duration is 0 and the
+# badge is freed, so a later copy arrives as a fresh status instead of landing here.
+func absorb_copy(other: Status) -> bool:
+    if duration <= 0:
+        return false
+    stacks += other.stacks
+    return true
+
+
+func get_tooltip() -> String:
+    var copies := maxi(stacks, 1)
+    var how: String = "triple" if copies == 1 else "%d times" % (1 + 2 * copies)
+    return "Next turn, your first Dice roll counts %s towards your Power" % how

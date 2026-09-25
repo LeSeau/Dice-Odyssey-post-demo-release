@@ -68,7 +68,18 @@ func apply_status(_target: Node) -> void:
     
 func get_tooltip() -> String:
     return tooltip
-    
+
+
+# A second copy of a status its owner already has. StatusHandler.add_status() offers it here
+# before its NONE-means-unique rule drops it. Return true when this status merged the copy.
+# Opt-in so every status that did not ask for it keeps the old behaviour. Added 2026-09-25
+# (H-183): a second Die Hard, Dice Echo, Artillery, Marionette, Anarchy, Buzzer Shot, or a
+# second Effigy / Rupture on the same enemy was silently dropped, and the Blessing still
+# exhausted. The overrides add the copy's `stacks`, so a count and a payload (Effigy's 5) both
+# just add up. stack_type stays NONE on those resources, so no number badge appears.
+func absorb_copy(_other: Status) -> bool:
+    return false
+
 func set_duration(new_duration: int) -> void:
     duration = new_duration
     status_changed.emit()

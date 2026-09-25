@@ -36,16 +36,34 @@ func apply_status(target: Node) -> void:
     var pool: Array = Global.DICE_TYPE_ORDER
     if pool.is_empty():
         return
-    var dice_type: String = pool[randi() % pool.size()]
-    var faces: Array = Card.thrown_faces_for(dice_type)
-    var value: int = faces[randi() % faces.size()]
-    var enemy: Node = enemies[randi() % enemies.size()]
-    Events.dice_thrown.emit([{"type": dice_type, "value": value, "target": enemy}],
-            enemy.global_position)
     # Reuses the shared landing helper so the damage lands with the flight visual and picks up
     # Trebuchet's per-throw bonus, exactly like a thrown die from a card.
     var card: Card = load(CARD_PATH)
     if card == null:
         return
-    card._land_thrown_die(tree, enemy, value, Global.DICE_THROW_FLIGHT_TIME, card.sound,
-            dice_type, value)
+    # One die per Artillery played (stacks = copies, see absorb_copy), staggered like a
+    # Pixie Volley so each hit lands on its own die's slam.
+    var count := maxi(stacks, 1)
+    var stagger := Global.dice_throw_volley_stagger(count)
+    var throws: Array = []
+    for i in count:
+        var dice_type: String = pool[randi() % pool.size()]
+        var faces: Array = Card.thrown_faces_for(dice_type)
+        var value: int = faces[randi() % faces.size()]
+        var enemy: Node = enemies[randi() % enemies.size()]
+        throws.append({"type": dice_type, "value": value, "target": enemy})
+        card._land_thrown_die(tree, enemy, value, Global.DICE_THROW_FLIGHT_TIME + stagger * i,
+                card.sound, dice_type, value)
+    Events.dice_thrown.emit(throws, throws[0]["target"].global_position)
+
+
+func absorb_copy(other: Status) -> bool:
+    stacks += other.stacks
+    return true
+
+
+func get_tooltip() -> String:
+    var count := maxi(stacks, 1)
+    if count == 1:
+        return tooltip
+    return "At the start of each turn, throw %d Dice of random types at random enemies" % count

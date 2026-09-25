@@ -16,8 +16,21 @@ func _on_turn_started() -> void:
 func _on_dice_rolled(_dice_type, _roll_value) -> void:
     if not triggered_this_turn:
         triggered_this_turn = true
-        Global.roll_value += Global.last_roll
+        # One extra copy of the roll per Dice Echo played (stacks = copies, see absorb_copy):
+        # one = double, two = triple.
+        Global.roll_value += Global.last_roll * maxi(stacks, 1)
         Events.change_current_power.emit()
+
+
+func absorb_copy(other: Status) -> bool:
+    stacks += other.stacks
+    return true
+
+
+func get_tooltip() -> String:
+    var copies := maxi(stacks, 1)
+    var how: String = "double" if copies == 1 else ("triple" if copies == 2 else "%d times" % (copies + 1))
+    return "Your first Dice roll each turn counts %s towards your Power" % how
 
 func apply_status(_target: Node) -> void:
     status_applied.emit(self)

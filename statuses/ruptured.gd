@@ -63,6 +63,19 @@ func _on_player_turn_started() -> void:
     _disconnect_all()
 
 
+# A second Rupture on the SAME enemy in the same turn adds its per-roll damage (3 + 3 = 6).
+# An expired one (duration 0, badge being freed) refuses, so it can never swallow a fresh cast.
+func absorb_copy(other: Status) -> bool:
+    if duration <= 0:
+        return false
+    stacks += other.stacks
+    return true
+
+
+func get_tooltip() -> String:
+    return "Takes %d damage every time you roll a Dice this turn" % maxi(stacks, DEFAULT_DAMAGE)
+
+
 func _disconnect_all() -> void:
     if Events.dice_rolled.is_connected(_on_dice_rolled):
         Events.dice_rolled.disconnect(_on_dice_rolled)

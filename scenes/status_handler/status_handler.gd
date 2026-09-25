@@ -42,7 +42,12 @@ func add_status(status: Status) -> void:
         new_status_ui.status.status_applied.connect(_on_status_applied)
         new_status_ui.status.initialize_status(status_owner)
         return
-        
+
+    # A status that merges its own copies (Die Hard, Effigy...) takes the new one here. The
+    # copy is never initialized, so its signals are never connected twice.
+    if _get_status(status.id).absorb_copy(status):
+        return
+
     #if it's unique and we already have it, we can return
     if not status.can_expire and not stackable:
         return

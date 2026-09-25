@@ -23,3 +23,17 @@ func apply_status(_target: Node) -> void:
         Events.temporary_dice_added.emit(chosen)
     Events.dice_amount_changed.emit()
     status_applied.emit(self)
+
+
+# A second Anarchy adds its payload (1, or 2 for Anarchy+ on the anarchy_plus id), so the
+# per-turn charge count above just grows.
+func absorb_copy(other: Status) -> bool:
+    stacks += other.stacks
+    return true
+
+
+func get_tooltip() -> String:
+    var count := maxi(stacks, 1)
+    if count == 1:
+        return "Charge a random Dice at the start of each turn"
+    return "Charge %d random Dice at the start of each turn" % count
