@@ -2,10 +2,11 @@ extends Node
 
 # Harness for the 2026-09-24 dice look pass (Julien: "lets try 4 5 6 9 10 11 12"):
 #   A  blank face when nothing is rolled (spend, switch, Red's 1s read delay, Reservoir)
-#   B  the die goes dormant when its type is spent (delay, tint, ring speed, charge wake on the
-#      absorb, switch wake, Ricochet / Mech exceptions)
-#   C  switching drops a mini die from the slot into the big die (path, give-way + pop,
-#      failsafe, a roll during the fall)
+#   B  the die goes dormant once its type AND its banked Power are spent (lit while Power waits,
+#      delay after the spend, tint, ring speed, charge wake on the absorb, switch wake, Ricochet
+#      at 0 Power, Mech, Red's read delay)
+#   C  a switch pops the big die at once, with no mini die from the slot (removed 2026-09-25),
+#      and a roll right after a switch leaves it at rest
 #   D  End Turn drains the tray (display only, Golem glint, no nudge, dormant enemy turn,
 #      refill, blank face at the new turn)
 #   E  red suspense: the ribbon verdict and the Power projection against the Power the card
@@ -47,7 +48,6 @@ var _played_power := -1
 var _played_face := -1
 var _tints_at_play := -1
 var _ribbon_at_play := Color(0, 0, 0, 0)
-var _pickup_last := Vector2(-1, -1)
 
 
 func _process(delta: float) -> void:
@@ -155,11 +155,6 @@ func _on_card_played_probe(_card: Card) -> void:
 	_tints_at_play = get_tree().get_nodes_in_group("red_suspense_tint").size()
 	if _dice != null and is_instance_valid(_dice.requirement_panel):
 		_ribbon_at_play = _dice.requirement_panel.modulate
-
-
-# Where the mini die is when it frees itself: its final frame, whatever the frame rate.
-func _on_pickup_icon_exiting(icon: Control) -> void:
-	_pickup_last = icon.position + icon.pivot_offset
 
 
 # ---------------------------------------------------------------------------------- helpers
@@ -281,8 +276,15 @@ func _section_b() -> void:
 	await _wait(0.1)
 	check("B1 the last die's landing plays at full light", not _dice._dormant)
 	await _wait(1.0)
+	# Out of dice, but that roll's Power is still to spend (Julien, 2026-09-25 playtest).
+	check("B1b out of dice with its Power still banked: it stays lit", not _dice._dormant,
+			"power %d" % int(Global.roll_value))
+	Events.dice_roll_reset.emit()
+	await _wait(0.2)
+	check("B1c a card spends that Power: no dim on the spend itself", not _dice._dormant)
+	await _wait(0.8)
 	var panel := _panel()
-	check("B2 a spent die goes dormant", _dice._dormant)
+	check("B2 ...then dormant once the Power is spent", _dice._dormant)
 	check("B2b ...dimmed to the dormant tint", _close(panel.modulate, _dice.DORMANT_TINT, 0.03), str(panel.modulate))
 	check("B3 the emanation (the Power light) is not under the dimmed panel",
 			not panel.is_ancestor_of(_dice.emanation))
@@ -315,8 +317,9 @@ func _section_b() -> void:
 
 	_roll(2)
 	await _landed()
+	Events.dice_roll_reset.emit()
 	await _wait(1.0)
-	check("B6 pre: dormant again once that die is spent", _dice._dormant)
+	check("B6 pre: dormant again once that die and its Power are spent", _dice._dormant)
 	Global.red_dice_current_amount = 1
 	_click_slot(2)
 	var peak := 0.0
@@ -325,7 +328,8 @@ func _section_b() -> void:
 		peak = maxf(peak, panel.modulate.r)
 	check("B6 switching to a type with dice wakes it, with a flash", not _dice._dormant and peak > 1.2, "peak %.2f" % peak)
 
-	# Ricochet: the last die stays lit while its reroll is still available.
+	# Ricochet: a last roll that came to 0 Power (Weak ate it, say) stays lit while its reroll is
+	# still available. Banked Power alone would keep it lit, so the Power is zeroed first.
 	Global.odd_dice_max_amount = maxi(int(Global.odd_dice_max_amount), 1)
 	Global.odd_dice_current_amount = 1
 	_iface.initialize_dices()
@@ -333,16 +337,19 @@ func _section_b() -> void:
 	await _wait(0.3)
 	_roll(5)
 	await _landed()
+	await _wait(0.3)
+	Global.roll_value = 0
 	await _wait(1.1)
 	var can_reroll: bool = _dice._can_ricochet_reroll()
-	check("B7 Ricochet: the last die stays lit while its reroll is available", not _dice._dormant and can_reroll,
-			"reroll %s" % str(can_reroll))
+	check("B7 Ricochet: a last roll at 0 Power stays lit while its reroll is available", not _dice._dormant and can_reroll,
+			"reroll %s power %d" % [str(can_reroll), int(Global.roll_value)])
 	_dice._on_ricochet_reroll_pressed()
 	await _landed()
+	Events.dice_roll_reset.emit()
 	await _wait(1.1)
-	check("B7b ...and sleeps once the reroll is spent", _dice._dormant)
+	check("B7b ...and sleeps once the reroll and its Power are spent", _dice._dormant)
 
-	# Mech: same with its +-1 on the last roll.
+	# Mech: its +-1 needs banked Power, so the Power rule is what keeps it lit.
 	Global.mech_dice_max_amount = maxi(int(Global.mech_dice_max_amount), 1)
 	Global.mech_dice_current_amount = 1
 	_iface.initialize_dices()
@@ -354,7 +361,26 @@ func _section_b() -> void:
 	check("B8 Mech: the last die stays lit while its +-1 is available", not _dice._dormant)
 	_dice._on_mech_increase_pressed()
 	await _wait(1.1)
-	check("B8b ...and sleeps once the +-1 is used", _dice._dormant)
+	check("B8b ...and after the +-1, with its Power still banked", not _dice._dormant,
+			"power %d" % int(Global.roll_value))
+	Events.dice_roll_reset.emit()
+	await _wait(1.1)
+	check("B8c ...then sleeps once that Power is spent", _dice._dormant)
+
+	# Red: the socketed card spends the Power at landing, but the number holds through Red's 1s
+	# read delay before it clears. The die follows the number.
+	Global.red_dice_current_amount = 1
+	_click_slot(2)
+	await _wait(0.3)
+	Global.red_dice_current_amount = 0
+	Global.roll_value = 4
+	Global.roll_history = [4]
+	Events.dice_roll_reset.emit()
+	await _wait(0.8)
+	check("B10 Red: lit through the 1s read delay while its number still shows", not _dice._dormant,
+			"power %d" % int(Global.roll_value))
+	await _wait(1.2)
+	check("B10b ...then dormant once the number clears", _dice._dormant, "power %d" % int(Global.roll_value))
 
 	Global.odd_dice_max_amount = 0
 	Global.odd_dice_current_amount = 0
@@ -367,67 +393,41 @@ func _section_b() -> void:
 	check("B9 back on a type with dice: awake", not _dice._dormant)
 
 
-# --------------------------------------------------------------------- C: pickup from tray
+# ------------------------------------------------------------------ C: switching type
+# The mini die that fell from the slot into the big die was removed on 2026-09-25 (Julien:
+# "kinda noise"). A switch is the big die's own pop again, at once, with no give-way first.
 
 func _section_c() -> void:
-	print("\n--- C: a mini die falls from the slot into the big die ---")
+	print("\n--- C: a switch pops the big die at once, no mini die ---")
 	Global.red_dice_current_amount = 1
 	Events.dice_amount_changed.emit()
 	await _wait(0.2)
-	var slot_tex: TextureRect = _iface._slot_texture_for_type("red")
-	var slot_center: Vector2 = slot_tex.get_global_rect().get_center()
-	var die_center: Vector2 = _iface._active_die_center()
 	_click_slot(2)
-	var flights := get_tree().get_nodes_in_group("dice_pickup_flight")
-	check("C1 clicking a slot launches a mini die", flights.size() == 1, "%d" % flights.size())
-	var pending: int = _dice._pickup_pending
-	check("C1b ...and the big die waits for it", pending == 1, "%d" % pending)
-	if flights.is_empty():
-		return
-	var icon := flights[0] as Control
-	var first := icon.position + icon.pivot_offset
-	_pickup_last = Vector2(-1, -1)
-	icon.tree_exiting.connect(_on_pickup_icon_exiting.bind(icon))
+	var flights := get_tree().get_nodes_in_group("dice_pickup_flight").size()
 	var min_scale := 9.0
-	var max_scale := 0.0
+	var early_max := 0.0
 	var t0 := _clock
-	while _clock - t0 < 0.7:
+	while _clock - t0 < 0.5:
 		await get_tree().process_frame
 		var sx: float = _dice.dice_display.scale.x
 		min_scale = minf(min_scale, sx)
-		if _clock - t0 > 0.1:
-			max_scale = maxf(max_scale, sx)
-	check("C2 it leaves from the slot", first.distance_to(slot_center) < 12.0, "%.1fpx" % first.distance_to(slot_center))
-	check("C3 it lands in the big die", _pickup_last.distance_to(die_center) < 6.0,
-			"%.1fpx" % _pickup_last.distance_to(die_center))
-	check("C4 the big die gives way, then pops when it catches it", min_scale < 0.93 and max_scale > 1.05,
-			"min %.2f max %.2f" % [min_scale, max_scale])
+		if _clock - t0 <= 0.1:
+			early_max = maxf(early_max, sx)
+	check("C1 clicking a slot launches no mini die", flights == 0 and not _iface.has_method("_begin_pickup"),
+			"%d flight(s)" % flights)
+	check("C2 the big die pops at once, without giving way first", early_max > 1.05 and min_scale > 0.95,
+			"max in the first 0.1s %.2f, min %.2f" % [early_max, min_scale])
 	var final_scale: Vector2 = _dice.dice_display.scale
-	pending = _dice._pickup_pending
-	check("C5 nothing left over", get_tree().get_nodes_in_group("dice_pickup_flight").is_empty()
-			and pending == 0 and final_scale.is_equal_approx(Vector2.ONE), "pending %d scale %s" % [pending, str(final_scale)])
+	check("C3 ...and comes back to rest", final_scale.is_equal_approx(Vector2.ONE), str(final_scale))
 
-	# Failsafe: a pickup whose catch never comes still pops.
-	_dice.begin_pickup()
-	max_scale = 0.0
-	t0 = _clock
-	while _clock - t0 < 0.9:
-		await get_tree().process_frame
-		max_scale = maxf(max_scale, _dice.dice_display.scale.x)
-	pending = _dice._pickup_pending
-	check("C6 failsafe: an uncaught pickup still pops", pending == 0 and max_scale > 1.05,
-			"pending %d max %.2f" % [pending, max_scale])
-
-	# A roll started while the mini die is falling owns the die.
+	# A roll right after a switch owns the die's scale.
 	Global.blue_dice_current_amount = 3
 	_click_slot(1)
 	_roll(2)
 	await _landed()
 	await _wait(0.8)
 	final_scale = _dice.dice_display.scale
-	pending = _dice._pickup_pending
-	check("C7 a roll during the fall: no flight left, die back at rest", get_tree().get_nodes_in_group("dice_pickup_flight").is_empty()
-			and pending == 0 and final_scale.is_equal_approx(Vector2.ONE), "pending %d scale %s" % [pending, str(final_scale)])
+	check("C4 a roll right after a switch: die back at rest", final_scale.is_equal_approx(Vector2.ONE), str(final_scale))
 	Events.dice_roll_reset.emit()
 	await _wait(0.3)
 
@@ -705,10 +705,13 @@ func _reel() -> void:
 	_mark("a card spends the Power")
 	Events.dice_roll_reset.emit()
 	await _wait(1.1)
-	_mark("last die: roll 6")
+	_mark("last die: roll 6 (its Power keeps it lit)")
 	_roll(6)
-	await _wait(2.3)
-	_mark("switch to red: pickup")
+	await _wait(1.6)
+	_mark("a card spends that Power: the die sleeps")
+	Events.dice_roll_reset.emit()
+	await _wait(1.3)
+	_mark("switch to red")
 	Global.red_dice_current_amount = 2
 	_click_slot(2)
 	await _wait(1.2)
@@ -746,11 +749,10 @@ func _section_h() -> void:
 	print("\n--- H: nothing left behind ---")
 	await _wait(0.6)
 	var ghosts := get_tree().get_nodes_in_group("die_face_clear_ghost").size()
-	var flights := get_tree().get_nodes_in_group("dice_pickup_flight").size()
 	var tweens: Array = _dice._red_suspense_tweens
 	var suspense: bool = _dice._red_suspense
 	var tints := get_tree().get_nodes_in_group("red_suspense_tint").size()
 	var tint_refs: Array = _dice._red_suspense_tints
-	check("H1 no face ghost, pickup flight or suspense state survives", ghosts == 0 and flights == 0
+	check("H1 no face ghost or suspense state survives", ghosts == 0
 			and tweens.is_empty() and not suspense and tints == 0 and tint_refs.is_empty(),
-			"ghosts %d flights %d tweens %d tints %d" % [ghosts, flights, tweens.size(), tints])
+			"ghosts %d tweens %d tints %d" % [ghosts, tweens.size(), tints])

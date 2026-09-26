@@ -106,6 +106,13 @@ func add_card(card: Card) -> void:
     _refresh_held_badges()
 
 
+# Landing glint of a dealt card, as a gain on the look it settles into. It used to go to a fixed
+# (1.55, 1.45, 1.15): at a turn-start deal most cards rest at the 0.75 "no Power yet" dim, so
+# each one doubled in brightness and dropped back, five times in a row (Julien, 2026-09-25
+# playtest: "a bit too much since it happens so often").
+const DRAW_LAND_FLASH_GAIN := Color(1.3, 1.26, 1.12, 1.0)
+
+
 # Draw entrance. The ROOT is still never animated here - the fan layout owns its position and
 # rotation (and re-stomps both on every card of the same deal), and scale/pivot belong to the
 # hover system. The flight out of the draw pile lives on the card's art instead (CardUI visual
@@ -131,7 +138,10 @@ func _play_draw_entrance(card_ui: CardUI) -> void:
         # Visible almost at once so it reads leaving the pile, then the landing flash.
         entrance.tween_property(card_ui, "modulate", resting_modulate, 0.06)
         entrance.tween_interval(maxf(flight - 0.1, 0.0))
-    entrance.tween_property(card_ui, "modulate", Color(1.55, 1.45, 1.15, 1.0), 0.09) \
+    var g := DRAW_LAND_FLASH_GAIN
+    var land_flash := Color(resting_modulate.r * g.r, resting_modulate.g * g.g,
+            resting_modulate.b * g.b, resting_modulate.a)
+    entrance.tween_property(card_ui, "modulate", land_flash, 0.09) \
         .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
     entrance.tween_property(card_ui, "modulate", resting_modulate, 0.22) \
         .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)

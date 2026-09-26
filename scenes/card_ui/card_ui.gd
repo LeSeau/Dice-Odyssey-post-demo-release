@@ -413,9 +413,11 @@ func _input(event: InputEvent) -> void:
 # ===========================================================================
 const FOLLOW_TIME := 0.22
 const DRAW_FLIGHT_TIME := 0.36
-const DRAW_ARC := 70.0            # px the drawn card rises mid-flight on its way out of the pile
-const DRAW_START_SCALE := 0.3
-const DRAW_START_ROTATION := -0.5 # radians, it leaves the pile tilted and rights itself
+# The deal plays five times in a row every turn, so the hop out of the pile stays small (Julien,
+# 2026-09-25 playtest: "a bit too much since it happens so often"). Was 70px, 0.3, -0.5 rad.
+const DRAW_ARC := 35.0             # px the drawn card rises mid-flight on its way out of the pile
+const DRAW_START_SCALE := 0.5
+const DRAW_START_ROTATION := -0.25 # radians, it leaves the pile tilted and rights itself
 const PICKUP_TIME := 0.1
 # Drag tilt (Balatro-style weight): the card leans with its horizontal speed and swings back.
 const DRAG_TILT_PER_SPEED := 0.00014  # radians per px/s

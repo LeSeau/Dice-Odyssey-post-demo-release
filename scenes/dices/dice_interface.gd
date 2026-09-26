@@ -224,7 +224,6 @@ func _on_dice_1_gui_input(event: InputEvent) -> void:
             Global.tutorial_reset_power_warning = false 
             return
         Global.power_at_last_switch = Global.roll_value
-        _begin_pickup("blue")
         Events.active_dice_changed.emit("blue")
         Events.update_roll_history_ui.emit()
         
@@ -238,7 +237,6 @@ func _on_dice_2_gui_input(event: InputEvent) -> void:
             Global.tutorial_reset_power_warning = false 
             return
         Global.power_at_last_switch = Global.roll_value
-        _begin_pickup("red")
         Events.active_dice_changed.emit("red")
         Global.dice_type = "red"
         Events.reset_charged_card.emit()
@@ -252,7 +250,6 @@ func _on_dice_3_gui_input(event: InputEvent) -> void:
             Global.tutorial_reset_power_warning = false 
             return
         Global.power_at_last_switch = Global.roll_value
-        _begin_pickup("evil")
         Events.active_dice_changed.emit("evil")
         Global.dice_type = "evil"
         Events.update_roll_history_ui.emit()
@@ -265,7 +262,6 @@ func _on_dice_4_gui_input(event: InputEvent) -> void:
             Global.tutorial_reset_power_warning = false 
             return
         Global.power_at_last_switch = Global.roll_value
-        _begin_pickup("giant")
         Events.active_dice_changed.emit("giant")
         Global.dice_type = "giant"
         Events.update_roll_history_ui.emit()
@@ -278,7 +274,6 @@ func _on_dice_5_gui_input(event: InputEvent) -> void:
             Global.tutorial_reset_power_warning = false 
             return
         Global.power_at_last_switch = Global.roll_value
-        _begin_pickup("magma")
         Events.active_dice_changed.emit("magma")
         Global.dice_type = "magma"
         Events.update_roll_history_ui.emit()      
@@ -291,7 +286,6 @@ func _on_dice_6_gui_input(event: InputEvent) -> void:
             Global.tutorial_reset_power_warning = false 
             return
         Global.power_at_last_switch = Global.roll_value
-        _begin_pickup("even")
         Events.active_dice_changed.emit("even")
         Global.dice_type = "even"
         Events.update_roll_history_ui.emit()
@@ -304,7 +298,6 @@ func _on_dice_7_gui_input(event: InputEvent) -> void:
             Global.tutorial_reset_power_warning = false 
             return
         Global.power_at_last_switch = Global.roll_value
-        _begin_pickup("odd")
         Events.active_dice_changed.emit("odd")
         Global.dice_type = "odd"
         Events.update_roll_history_ui.emit()  
@@ -317,7 +310,6 @@ func _on_dice_8_gui_input(event: InputEvent) -> void:
             Global.tutorial_reset_power_warning = false 
             return
         Global.power_at_last_switch = Global.roll_value
-        _begin_pickup("green")
         Events.active_dice_changed.emit("green")
         Global.dice_type = "green"
         Events.update_roll_history_ui.emit()
@@ -330,7 +322,6 @@ func _on_dice_9_gui_input(event: InputEvent) -> void:
             Global.tutorial_reset_power_warning = false 
             return
         Global.power_at_last_switch = Global.roll_value
-        _begin_pickup("mech")
         Events.active_dice_changed.emit("mech")
         Global.dice_type = "mech"
         Events.update_roll_history_ui.emit()
@@ -1376,69 +1367,3 @@ func _end_tray_drain() -> void:
         if t and t.is_valid():
             t.kill()
     _drain_tweens.clear()
-
-
-# ── Pickup (2026-09-24) ───────────────────────────────────────────────────────────────────
-# Clicking a slot drops a mini copy of its die into the big die, so the tray reads as the pool
-# the die in play comes from. The big die gives way while it falls and pops when it catches it
-# (dice.gd begin_pickup / catch_pickup). Purely cosmetic: the switch itself is instant, and a
-# roll started mid-fall simply owns the die.
-const PICKUP_TIME := 0.18
-const PICKUP_END_FILL := 0.62   # size at arrival, as a share of the big die
-const PICKUP_LIFT := 16.0       # it rises out of the slot a little before it drops
-
-
-func _begin_pickup(dice_type: String) -> void:
-    var die := get_node_or_null("../ActiveDice")
-    var slot_tex := _slot_texture_for_type(dice_type)
-    var layer := get_tree().get_first_node_in_group("ui_layer")
-    if die == null or not die.has_method("begin_pickup") or slot_tex == null \
-            or layer == null or not slot_tex.is_visible_in_tree():
-        return
-    die.begin_pickup()
-    var rect := slot_tex.get_global_rect()
-    var icon := TextureRect.new()
-    icon.name = "PickupDie"
-    icon.texture = slot_tex.texture
-    icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-    icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-    icon.size = rect.size
-    icon.pivot_offset = icon.size / 2.0
-    icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    icon.z_index = 150  # ui_layer flourish convention
-    icon.add_to_group("dice_pickup_flight")
-    DicePalette.crisp_face(icon)
-    layer.add_child(icon)
-    var from := rect.get_center()
-    var to := _active_die_center()
-    var ctrl := Vector2(lerpf(from.x, to.x, 0.3), from.y - PICKUP_LIFT)
-    var die_size := 140.0
-    if "dice_display" in die and die.dice_display != null:
-        die_size = die.dice_display.size.x
-    var end_scale := clampf(die_size * PICKUP_END_FILL / maxf(rect.size.x, 1.0), 1.0, 3.5)
-    icon.position = from - icon.pivot_offset
-    var t := icon.create_tween()
-    t.tween_method(_pickup_step.bind(icon, from, ctrl, to, end_scale), 0.0, 1.0, PICKUP_TIME) \
-        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-    t.tween_callback(_on_pickup_landed.bind(icon, die))
-
-
-func _pickup_step(t: float, icon: TextureRect, p0: Vector2, p1: Vector2, p2: Vector2,
-        end_scale: float) -> void:
-    if not is_instance_valid(icon):
-        return
-    var pos := p0.lerp(p1, t).lerp(p1.lerp(p2, t), t)
-    # position, not global_position: on a Control scaled around its pivot, global_position is
-    # the TRANSFORMED corner, so writing it would push the visual centre off by
-    # (scale - 1) * size / 2 as the die grows (~26px at arrival). The icon sits at (0,0) in
-    # the ui_layer, so position is screen space and the centre is position + pivot.
-    icon.position = pos - icon.pivot_offset
-    var s := lerpf(1.0, end_scale, t)
-    icon.scale = Vector2(s, s)
-
-
-func _on_pickup_landed(icon: TextureRect, die: Node) -> void:
-    if is_instance_valid(icon):
-        icon.queue_free()
-    if is_instance_valid(die) and die.has_method("catch_pickup"):
-        die.catch_pickup()

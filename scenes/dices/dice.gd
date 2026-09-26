@@ -328,9 +328,10 @@ var _blank_face_cache := {}
 # --- Dormant die (2026-09-24) ----------------------------------------------------------------
 # STS2 darkens its energy orb and slows its spinning layers at 0 energy (NEnergyCounter.cs:
 # dark material + DarkGray, 30 -> 5 degrees/s). Our orb is this die: when the active type has no
-# dice left, ROLL already went grey (button.gd) but the die kept full colour and glow. Now the
-# die and its ring dim and their light slows. The EMANATION is untouched on purpose - it is the
-# Power light, and banked Power is still there to spend ("dice gone, Power kept").
+# dice left AND its banked Power is spent, the die and its ring dim and their light slows. ROLL
+# goes grey as soon as the dice run out (button.gd), but the die stays lit while the Power from
+# its last roll waits to be spent (2026-09-25 playtest: dimming it then read as "dead" before
+# you had used it). The EMANATION is never dimmed - it is the Power light.
 # Polled in _process for the same reason button.gd polls its own dim: the count changes on
 # many paths (rolls, charges, refill, switches, theft) and a signal per path is how one gets
 # forgotten.
@@ -349,12 +350,9 @@ var _dormant_speed := 1.0        # 1.0 awake, DORMANT_SPEED_MULT asleep; tweened
 var _charges_in_flight := {}
 var _wake_scheduled := false
 
-# --- Pickup from the tray (2026-09-24) -----------------------------------------------------
-# Clicking a slot flies a mini die from the tray into the big die (dice_interface.gd). The big
-# die's switch pop waits for it to land, so the pop reads as catching the die you picked up.
-var _pickup_pending := 0
-var _pickup_tween: Tween
-const PICKUP_MAKE_ROOM_SCALE := 0.86  # the big die gives way while the new one drops in
+# The pop when a switch puts a new die in play (_play_switch_pop). The mini die that flew from
+# the tray slot into this one (2026-09-24) was removed on 2026-09-25, Julien: "kinda noise".
+var _switch_pop_tween: Tween
 
 # --- Red suspense (2026-09-24) --------------------------------------------------------------
 # A red roll with a card in the socket is the gamble, and it used to look like any other roll:
@@ -1436,7 +1434,7 @@ func roll_dice():
     # to its true rest transform BEFORE reading it, so a fast re-roll can't bake a mid-shake
     # offset in as the new resting spot.
     for stale in [_roll_anim_tween, _roll_flip_tween, _roll_aux_tween, _dice_shake_tween,
-            _pickup_tween]:
+            _switch_pop_tween]:
         if stale and stale.is_valid():
             stale.kill()
     # One-shot flag from the previous roll's builder - if that roll got interrupted
@@ -3383,13 +3381,8 @@ func _on_active_dice_changed(new_dice_type):
     _warm_pips_for(new_dice_type)
 
     # Small landing pop when the new die takes the socket - the swap was previously an
-    # instant texture change with zero feedback. A switch from a tray click has a mini die
-    # dropping in (dice_interface._begin_pickup): the big die gives way now and pops when it
-    # catches it (catch_pickup). Any other switch pops at once, as before.
-    if _pickup_pending > 0:
-        _make_room_for_pickup()
-    else:
-        _play_switch_pop()
+    # instant texture change with zero feedback.
+    _play_switch_pop()
     # The dormant look is re-judged for the NEW type from scratch (no carried-over wait).
     _dormant_wait = 0.0
 
@@ -6189,11 +6182,14 @@ func _die_should_sleep() -> bool:
             - int(_charges_in_flight.get(dice_type, 0))
     if left > 0:
         return false
-    # Still actionable with no dice left: a Ricochet reroll or a Mech +-1 on the last roll.
-    if _can_ricochet_reroll():
+    # Out of dice but Power still banked: the last roll is not spent yet, so the die is not
+    # either (Julien, 2026-09-25 playtest). It sleeps DORMANT_DELAY after the card that spends
+    # it; on Red that is after the 1s read delay, when the number clears. A Mech +-1 needs
+    # banked Power, so this covers it too.
+    if Global.roll_value > 0:
         return false
-    if dice_type == "mech" and mech_adjustments_used < _mech_adjustments_allowed() \
-            and Global.roll_value > 0:
+    # Still actionable with no dice and no Power: a Ricochet reroll of a roll that came to 0.
+    if _can_ricochet_reroll():
         return false
     return true
 
@@ -6282,57 +6278,17 @@ func _on_scheduled_charge_wake() -> void:
         _set_dormant(false, false)
 
 
-# --- Pickup from the tray -----------------------------------------------------------------------
-# dice_interface.gd calls begin_pickup() right BEFORE it emits active_dice_changed for a slot
-# click, then catch_pickup() when its mini die reaches this one. A failsafe pops anyway if the
-# catch never comes (the flight's node freed with the scene, say).
-var _pickup_generation := 0
-const PICKUP_FAILSAFE := 0.6
-
-
-func begin_pickup() -> void:
-    _pickup_pending += 1
-    _pickup_generation += 1
-    get_tree().create_timer(PICKUP_FAILSAFE, false).timeout.connect(
-            _pickup_failsafe.bind(_pickup_generation))
-
-
-func _pickup_failsafe(gen: int) -> void:
-    if gen != _pickup_generation or _pickup_pending <= 0:
-        return
-    _pickup_pending = 0
-    if not _roll_in_progress:
-        _play_switch_pop()
-
-
-func catch_pickup() -> void:
-    _pickup_pending = maxi(0, _pickup_pending - 1)
-    # A roll that started while the mini die was falling owns the die's scale now.
-    if _roll_in_progress:
-        return
-    _play_switch_pop()
-
-
-func _make_room_for_pickup() -> void:
-    if _pickup_tween and _pickup_tween.is_valid():
-        _pickup_tween.kill()
-    dice_display.pivot_offset = dice_display.size / 2.0
-    _pickup_tween = create_tween()
-    _pickup_tween.tween_property(dice_display, "scale",
-            Vector2(PICKUP_MAKE_ROOM_SCALE, PICKUP_MAKE_ROOM_SCALE), 0.07) \
-        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-
-
+# --- Switch pop ----------------------------------------------------------------------------------
 # The switch pop (was inline in _on_active_dice_changed). Ends at exactly 1.0 so it can't
 # fight the roll/refuel tweens beyond a transient frame.
 func _play_switch_pop() -> void:
-    if _pickup_tween and _pickup_tween.is_valid():
-        _pickup_tween.kill()
+    if _switch_pop_tween and _switch_pop_tween.is_valid():
+        _switch_pop_tween.kill()
     dice_display.pivot_offset = dice_display.size / 2.0
-    _pickup_tween = create_tween()
-    _pickup_tween.tween_property(dice_display, "scale", Vector2(1.12, 1.12), 0.07) \
+    _switch_pop_tween = create_tween()
+    _switch_pop_tween.tween_property(dice_display, "scale", Vector2(1.12, 1.12), 0.07) \
         .set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
-    _pickup_tween.tween_property(dice_display, "scale", Vector2(1.0, 1.0), 0.12) \
+    _switch_pop_tween.tween_property(dice_display, "scale", Vector2(1.0, 1.0), 0.12) \
         .set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
