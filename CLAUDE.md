@@ -6,6 +6,8 @@ L'auteur (Julien) n'est pas développeur de formation — le code a beaucoup de 
 
 ## Comment m'écrire les réponses (règles de Julien, 2026-09-01)
 
+**Reply in ENGLISH in chat, every line including short status notes.** This file and `docs/history/` are in French, which is not a hint about reply language. Julien has had to say "english!" four times (2026-09-06, three times on 2026-09-25).
+
 Julien lit en diagonale pendant qu'il fait autre chose. Quand une réponse est longue, la ligne qui demandait un arbitrage se fait rater. Écrire une note de statut.
 
 **Ces règles valent pour les MESSAGES DE CHAT uniquement.** Les comptes-rendus de `docs/history/` et les fichiers mémoire restent longs, parce que ce sont des notes pour les sessions futures et pas quelque chose qu'il lit en direct. CLAUDE.md, lui, reste court (voir la section suivante).
@@ -49,7 +51,7 @@ Extraites de l'historique. Le détail est dans l'entrée citée (`grep -n "H-0xx
 - Carte qui programme des dégâts après `play()` : `Card.note_delayed_hit(secondes)` avant son premier `await` (H-005).
 - Carte qui lit l'état de sa cible après les dégâts : override `Card.observes_post_damage()` (H-031).
 - Gate de requirement : toujours `meets_requirement()`, jamais un seuil en dur. Nouvelle source de bypass : `Card._requirement_bypassed()` (H-070).
-- Nouvel uniform d'emanation tweené : l'ajouter à `dice.gd::_seed_emanation_params()`. Un uniform jamais assigné vaut null et son tween meurt. Un null lu en `--headless` ne prouve rien, vérifier fenêtré (H-004, H-036).
+- Nouvel uniform d'emanation tweené : l'ajouter à `dice.gd::_seed_emanation_params()`. Un uniform jamais assigné vaut null et son tween meurt. Idem pour la lumière interne du dé : `_setup_face_light()`. Un null lu en `--headless` ne prouve rien, vérifier fenêtré (H-004, H-036, H-184).
 - État global qu'un ennemi installe lui-même : le remettre à zéro AVANT `setup_enemies()` dans `battle.gd::start_battle()` (H-022, H-023).
 - Picker d'actions ennemi : l'enfant 0 doit être un beat légal sans condition, le fallback est un `get_child(0)` aveugle. `EnemyAction.is_performable()` de base renvoie false (H-023, H-081).
 - Dégâts d'une action ennemie : éditer le défaut du script (`base_damage = damage` à l'init). Un override posé dans le `.tscn` est ignoré (H-019).
@@ -59,13 +61,17 @@ Extraites de l'historique. Le détail est dans l'entrée citée (`grep -n "H-0xx
 - État run-scopé : dans `Global.reset_run_state()` ET dans le dict de save de `run.gd` (section « Système de sauvegarde »).
 - Coroutine qui `await` puis écrit de l'état partagé : revalider cet état après l'await (token de génération) (H-083).
 - Modif visuelle d'une carte : dans `card_ui.gd` ET `card_menu_ui.gd`, les deux implémentations sont dupliquées (H-177).
-- Déplacer le bouton End Turn : mettre à jour `END_TURN_LEFT`/`END_TURN_TOP` dans `enemy.gd` (H-050).
+- Déplacer le bouton End Turn (`EndTurnButton`, `battle.tscn`, y 581..643) : relancer `debug_status_align.gd`. Les consts `END_TURN_LEFT`/`TOP` d'`enemy.gd` n'existent plus depuis le 2026-08-25 (H-050).
 - Carte junk plantée par un ennemi : tenir la pose `Global.JUNK_PLANT_PRESENT_TIME`, et `type = 3` (HEX) donne la peau et le tooltip (H-020, H-021).
 - Label avec `label_settings` : les `add_theme_*_override` de police/couleur n'ont aucun effet. Dupliquer le LabelSettings, ne jamais muter une ressource partagée (H-021, H-137).
 - `Control.global_position` travaille sur le coin transformé : tweener `position` sur un Control scalé ou pivoté (H-020).
 - Couleur additive : composantes ≤ 1, la luminosité passe par l'alpha (clamp par canal) (H-020).
 - `z_index` ne franchit pas une frontière de CanvasLayer, un z négatif passe sous le fond, un CanvasLayer enfant ignore le `hide()` de son parent (H-053, H-156).
 - Tooltip parenté à la racine : kill-before-spawn + nettoyage dans `_exit_tree()` (H-169).
+- Nouvel event : garder le squelette commun des 22 (`TextureRect/MarginContainer/Panel/...`), sinon `event_look.gd` le laisse dans l'ancien panneau. Lui donner une entrée `AMBIENCE` (H-189).
+- Control qui doit remplir son parent : `set_anchors_and_offsets_preset(PRESET_FULL_RECT)`. `set_anchors_preset()` garde des offsets calculés contre la taille du parent à cet instant (H-189).
+- Statut NONE dont une 2e copie doit compter (Blessing, malédiction) : override `Status.absorb_copy()` et lire `stacks`, sinon `add_status` jette la copie et la carte est quand même exhaust (H-183).
+- Crédit de `power_generated_this_turn` sur un roll : la différence nette de `_apply_roll_result` (après Weak/Boost/Surge/Blood Pact), jamais la face brute (H-183).
 
 **Éditeur, imports, harnais**
 - Script, `.tres` ou `.tscn` édité hors éditeur : Julien doit REDÉMARRER COMPLÈTEMENT l'éditeur avant de jouer. Un éditeur resté ouvert re-sauve sa copie périmée (propriétés strippées, pool draftable vidé) (H-074).
@@ -73,15 +79,32 @@ Extraites de l'historique. Le détail est dans l'entrée citée (`grep -n "H-0xx
 - Nouveau `.tres` : `uid=` explicite dans l'en-tête. Renommer un fichier référencé par uid demande un rescan de l'éditeur (`uid_cache`) (H-013, section « Cartes »).
 - Hauteurs de RichTextLabel fausses en `--headless` : mesurer le texte fenêtré (`--rendering-driver opengl3 --position 2000,2000`) (H-009).
 - Harnais nommés `debug_*` (exclus de l'export web). Un harnais qui ne parse pas pend à l'infini, et `var x := <Variant>` est une parse error que gdtoolkit ne voit pas (H-031, H-053).
-- Vidéo : Movie Maker (`--write-movie`, `--fixed-fps`, `--resolution 1280x720`). Une fenêtre de rendu minimisée gèle la capture, vérifier le md5 des dernières frames (H-005, H-096).
+- Vidéo : Movie Maker (`--write-movie`, `--fixed-fps`, `--resolution 1280x720`). Une fenêtre de rendu minimisée gèle la capture, vérifier le md5 des dernières frames (H-005, H-096). Capture avec son : baisser le bus Master (le wav est en PCM entier et le mix du jeu dépasse 0 dB au max roll). Un throttle sur `Time.get_ticks_msec()` passe à chaque frame en capture (H-182). Hit-stops tenus : poser `Shaker.capture_frame_step = 1.0 / fps` dans le harnais (H-184).
 - `force_for_testing` sur un event : re-grep avant chaque export (H-067).
 
 ## Chantiers en cours (au 2026-09-25, à tenir à jour)
 
-- **Look & feel des dés** (H-001) : implémenté, NON COMMITTÉ, NON PLAYTESTÉ. Régressions du 2026-09-24 : 14 harnais OK. Restent `held_die` (refuse de tourner sans `--write-movie`, à relancer dans son mode `dim`), `dual_cannon` (1 FAIL « status badge applied to player », à comparer sur HEAD) et `surge_motes` (timeout en headless, à relancer fenêtré). `charge_delivery` A4/E1 échouent aussi sur HEAD. Bug de focus Espace/Entrée trouvé, non corrigé. Reprise : `docs/handoffs/2026-09-24_dice_looks.md`.
-- **Propositions roll/glow/orbes** (pas encore d'entrée H) : prototype dans le worktree `.claude/worktrees/roll-glow-orb-proposals/`, rien dans le jeu. Reprise : `docs/handoffs/2026-09-24_roll_glow_orbs.md`.
-- **Écran de récompenses** (H-003) : NON COMMITTÉ, NON PLAYTESTÉ.
-- **Effet de coup** (H-002) : committé (`97669db4`), non poussé, NON PLAYTESTÉ. **Carte jouée** et **animations ennemies** (H-005, H-006) : committés et poussés, NON PLAYTESTÉS.
+- **Intents ennemis** (H-201) : analyse + page « Intent Lab » (rendus du jeu), RIEN D'IMPLÉMENTÉ. Premier lot proposé C1/C2/D6/C7/C3/D2. Verdicts dans la db de la page (collection `verdicts`). C1 (épée + crâne sur 8 actions qui mentent) est un bug à corriger dès son feu vert. Brief, propositions, captures et source de la page dans `docs/intent_lab/`, harnais `debug_intent_look_capture.gd` et `debug_intent_lab_render.gd` NON COMMITTÉS.
+- **Placement des ennemis** (H-200) : analyse seulement, RIEN D'IMPLÉMENTÉ. Harnais `debug_encounter_audit.gd`/`.tscn` NON COMMITTÉ. Attend 4 réponses de Julien (porter `feet_line_for` depuis `e7297eec`, place du nom au survol, intent du Dicelord, héros −30).
+- **Fixes de la review du pool** (H-183) : Crescendo compte le Power net d'un roll, 2e copie de 8 statuts fusionnée. Committé (`3fd13702`), poussé le 2026-09-26, NON PLAYTESTÉ, harnais `debug_copies_and_power` 40/40. Reste de la review clos par Julien. Swap Dice Slap dans le starter en discussion.
+- **Look & feel des dés** (H-001) : committé (`69d9b84c`, sans H-184), poussé le 2026-09-26. Playtest de Julien en cours le 2026-09-25 : 3 retours corrigés par H-187 (dé dormant qui attend le Power, mini dé retiré, tirage adouci), committé (`8fba2c38`), à rejouer. H-184 est committé par-dessus (`da3f91f3`). Les ratés de `charge_delivery` B3 ne viennent pas de H-184 : sa fenêtre de 0.7 s est plus courte que la cérémonie (~0.74 s), voir H-184. Bug de focus Espace/Entrée trouvé, non corrigé. Attend le playtest et 3 réponses de Julien (fix du focus, crackle des quasi-max, dernier flip inverse de la suspense rouge).
+- **Roll/glow/orbes** (H-184) : dé chargé (veines + pips + respiration du glow) et orbes de pips committés (`da3f91f3`), poussé le 2026-09-26, NON PLAYTESTÉ. Tumble écarté (vertige), variantes calmes 1A/1B/1C non retenues (Julien content de l'état actuel). Prototype gardé dans le worktree `.claude/worktrees/roll-glow-orb-proposals/`, suppression à confirmer.
+- **Review des encounters** (H-185) : analyse seulement, rien d'implémenté. Attend les verdicts de Julien. 2 bugs à corriger dès son feu vert (Sigil figé, Gorge au-dessus de l'intent).
+- **Rework des reliques** (H-191) : verdicts de Julien reçus le 2026-09-26, plan dans `relic_rework_plan_2026-09.md`, RIEN D'IMPLÉMENTÉ. Attend 3 réponses (rareté du Spyglass, noms Cornerstone/Void Lock/Momentum Hourglass, exception Refuel de Cornerstone) + l'image de Rebound Spring. Le travail non committé de hand.gd/card_ui.gd/battle.gd est committé depuis le 2026-09-26 (`a83d0253`, `5728b540`).
+- **Look map/events** (H-189) : E1, E3, E4, M2, M3 construits (`event_look.gd`, `event_ambience.gd`, `map_sheet.gdshader`, `map.gd`), committé et poussé (`62305065`, 2026-09-26), NON PLAYTESTÉ, éditeur à redémarrer. Bouton « LOOK » du debug overlay pour comparer avec l'ancien look. Icônes de map lissées (mipmaps + filtre linéaire, choix de Julien le 09-26), NON PLAYTESTÉ. M1/E2/M4 seulement en mockup. Verdicts dans la db de la page « Map & Event Look Lab » (collection `verdicts`). Plan + statut : `map_event_look_plan_2026-09.md`. Harnais `debug_look_lab_capture.gd` NON COMMITTÉ.
+- **Ink** (H-194) : analyse seulement, rien d'implémenté. Attend les verdicts de Julien sur A1-A7/B1-B4, dans la db de la page « Ink Lab » (collection `verdicts`). A1 (coup au contact) et la fuite des orbes de pips sous Ink sont des bugs à corriger dès son feu vert.
+- **Main menu** (H-199) : analyse + maquette seulement, rien d'implémenté. Verdicts dans la db de la page « Main Menu Look Lab » (collection `verdicts`). 4 bugs vérifiés à corriger dès son feu vert (save écrasée par New, musique non bouclée sur le bus SFX, popup tutoriel, pas de Quit).
+- **Top bar** (H-195) : analyse + maquette seulement, rien d'implémenté. Verdicts sur T1-T12 dans la db de la page « Top Bar Lab » (collection `verdicts`). Harnais `debug_topbar_capture.gd` NON COMMITTÉ.
+- **Rideau de transition** (H-196) : 7 idées sur la page « Curtain Lab », rien d'implémenté. Verdicts dans sa db (collection `verdicts`). Try Again sans rideau (`battle_over_panel.gd:77`) est un trou à corriger dès son feu vert. Harnais `debug_curtain_lab_capture.gd` NON COMMITTÉ (il écrase la save : sauvegarder avant).
+- **Act 3 placeholder** (H-198) : plan seulement (`act3_encounter_plan_2026-09.md`, sim `docs/encounter_sim/act3/`), NON COMMITTÉ, rien d'implémenté. Attend Q1-Q6 de Julien, surtout Q1 (les corps « nah » du slate portent 14 combats sur 15) et Q2 (boss). Grave Grub, Plague Gambler et Shackled Brute du bench = art du Famished, du Slanderer et du Quartermaster.
+- **Boss Lab** (H-192) : 29 concepts de boss (24 par 4 agents + critique, 5 ajoutés), rien d'implémenté ni simulé. Verdicts dans la db de la page « Boss Lab » (collection `verdicts`). Brief, résultats bruts et scripts de reconstruction dans `docs/boss_lab/` NON COMMITTÉS.
+- **Rareté des cartes** (H-197) : analyse + mockups rendus par le jeu, RIEN D'IMPLÉMENTÉ. Reco round 4 (carte-objet : cadre = type, ruban = rareté). Verdicts dans la db de la page « Card Rarity Lab » (collection `verdicts`). Harnais `debug_card_rarity_capture.gd` et `docs/rarity_lab/` NON COMMITTÉS.
+- **Look des cartes** (H-190) : idées 9, 6, 4 construites et committées (`f23cf1fb`, `7b595e8d`, `cfc3cddc`, poussé le 2026-09-26), idée 3 (le roll réveille les cartes) construite, committée et poussée (`5728b540`, 2026-09-26), attend l'avis de Julien sur la vidéo. Tout NON PLAYTESTÉ. Son de prise en main = placeholder. Chip parqué, rareté/type dans H-197. Redémarrer l'éditeur avant de jouer.
+- **Propositions de glow** (H-186) : 7 idées sur la page artifact « Dice Glow Lab », rien d'implémenté. Plan en 5 phases dans `dice_glow_plan_2026-09.md`. Démarre après le playtest de H-001/H-184 et les verdicts de Julien (db de la page). `debug_dice_glow.gd` a une option `DICE_GLOW_FACE` NON COMMITTÉE.
+- **Trailer** (H-182) : test shot 1080p60 envoyé le 2026-09-25, attend le verdict de Julien. Harnais `debug_trailer_capture.gd` NON COMMITTÉ. Throttles au temps réel à corriger avant les vrais shots.
+- **Écran de récompenses** (H-003) : committé et poussé (`a83d0253`, 2026-09-26), NON PLAYTESTÉ.
+- **Picker de loadout retiré** (H-188) : chaque run démarre en 2 Blue + 1 Red, la scène reste sur le disque. Committé (`e998c83d`), poussé le 2026-09-26, NON PLAYTESTÉ. Julien le garde en réserve, rien à supprimer.
+- **Effet de coup** (H-002) : committé (`97669db4`), poussé le 2026-09-26, NON PLAYTESTÉ. **Carte jouée** et **animations ennemies** (H-005, H-006) : committés et poussés, NON PLAYTESTÉS.
 - Le checkout principal contient aussi `dice_slap.png` et `card_art_prompts_2026-09.md` non committés (chat « Dice slap art variant », voir H-015). Les `.tres`/`.tscn` de cartes, reliques et ennemis que `git status` marque M alors que `git diff` ne montre rien sont du bruit de fins de ligne.
 
 ## Index de l'historique
@@ -89,6 +112,26 @@ Extraites de l'historique. Le détail est dans l'entrée citée (`grep -n "H-0xx
 Une ligne par chantier, à peu près du plus récent au plus ancien. Le détail est dans `docs/history/<AAAA-MM>.md` : chercher l'identifiant. `~` = date déduite (l'entrée d'origine n'en portait pas).
 
 ### 2026-09
+- H-201 · 09-26 · Intent Lab : 8 actions montrent des dégâts à côté d'un crâne seul (reliquat H-056), taille d'intent 42 à 60 px selon le combat, pas de tier de menace ni de cycle de vie, 32 propositions (4 agents + critique), rien implémenté
+- H-200 · 09-26 · Audit du placement des ennemis : 52 contextes rendus au pixel (couches isolées, main de 5 à 10), act 1 propre, 4 reskins d'act 2 s'enfoncent de 18-28 px parce que la branche `e7297eec` du 08-27 n'a jamais été mergée, nom au survol sur les statuts, intent du Dicelord contre la top bar, rien implémenté
+- H-199 · 09-26 · Main Menu Look Lab : 4 bugs (New écrase la save, musique qui s'arrête à 50 s sur le bus SFX, popup tutoriel à chaque run, pas de Quit) + 16 idées, maquette live avec layouts A/B, rien implémenté
+- H-198 · 09-26 · Plan d'act 3 placeholder : 15 combats sur 11 corps du bench (kits du slate + 7 kits neufs), simulé (77 HP d'attrition vs 94 act 2), 2 sceptiques, rien implémenté (act3_encounter_plan_2026-09.md)
+- H-197 · 09-26 · Card Rarity Lab : 4 directions pour la rareté sans gemme (A lignes de métal, B plaque sur la bannière, C coins dorés, D corps), 3 rounds (B corrigé, Free/Any/No cost, 4 options Blessing, puis 3 mises en page L1/L2/L3), puis round 4 « la carte comme objet » (cadre biseauté couleur = type, ruban de titre couleur = rareté, requirement en étiquette sur l'art), puis round 5 (cadre de métal, flat moderne, page enluminée, tablette de pierre), reco toujours round 4, rien implémenté
+- H-196 · 09-26 · Curtain Lab : 7 propositions pour le rideau (Try Again en hard cut, horloge de capture, porte du boss, son + dip musique, crossfade, teinte, pop de relique sous le reveal) sur vraies frames, rien implémenté
+- H-195 · 09-26 · Top bar : état mesuré (icônes de dés ≠ tray, pin Discord au-dessus du menu pause, pas de retour or/HP hors combat) + 12 propositions T1-T12, rien implémenté
+- H-194 · 09-26 · Ink : diagnostic (encre posée avant le coup, rien ne voyage, fondu d'1 s, bleu sur bleu, orbes de pips qui trahissent la face) + 11 propositions A1-A7/B1-B4, rien implémenté
+- H-193 · 09-26 · 110 prompts d'art d'ennemis (fodder → boss, corps neufs pour le Boss Lab, adds) dans enemy_art_prompts_2026-09.md/.txt, rien généré
+- H-192 · 09-25 · Boss Lab : 29 concepts de boss (Dealer, Tribunal, Knight Loaded Helm, Augur, Hag halving, Swindle, Scarab, Weaver, Wyrm...) avec patterns, contre-jeu et draft pull, critique par agent, rien implémenté
+- H-191 · 09-25 · Review du pool de reliques (46) : 2 coupes + Spyglass fusionné, 5 reworks, 4 retunes, bug War Drum, 9 idées de nouvelles reliques (relic_pool_review_2026-09-25.md)
+- H-190 · 09-25 · Card Look Lab : 9 propositions (gemme de requirement qui lit les dés, chip de résultat, roll qui réveille les cartes, main qui fait de la place, aperçu de visée, texte, lumière/foil, forme par type, tooltips 0.25 s), rien implémenté
+- H-189 · 09-25 · Map & Event Look Lab : 8 propositions + check de clash M1, puis E1/E3/E4/M2/M3 construits (event plein écran avec l'image entière, points lumineux, icônes dans les choix ; feuille déchirée sur table, chemins à l'encre)
+- H-188 · 09-25 · Picker de loadout de dés (« Le Vœu ») retiré du début de run : `OFFER_DICE_LOADOUT = false` dans `run.gd`, scène gardée
+- H-187 · 09-25 · Playtest dés/tirage : le dé dormant attend que le Power soit dépensé, mini dé du switch retiré, tirage adouci (arc 35, flash relatif)
+- H-186 · 09-25 · Dice Glow Lab : 7 propositions pour le glow (heat dans la teinte du dé, stages, signatures par dé, drain, dé du héros, bloom, infusés), mockups WebGL, rien implémenté
+- H-185 · 09-25 · Review des encounters vérifiée par sceptiques : Sigil figé depuis 99cf4393, Gorge ment sur l'intent, creux T2, act-2 Gargantua (encounter_review_2026-09-25.md)
+- H-184 · 09-25 · Roll/glow/orbes : dé chargé + orbes de pips dans le jeu, tumble écarté (variantes calmes non retenues)
+- H-183 · 09-25 · Review du pool (78) + starter, vérifiée par sceptiques : 9 bugs texte/code, Red non filtré, Rares faibles (card_pool_review_2026-09-25.md)
+- H-182 · 09-25 · Test shot trailer 1080p60 en Movie Maker (headroom audio, throttles au temps réel)
 - H-001 · 09-24 · Look & feel des dés (face blanche, dé dormant, mini dé, drain de fin de tour, suspense rouge, sons, faces nettes)
 - H-002 · 09-24 · Effet de coup ennemi : DIE_IMPACT par défaut, étincelles hors carte, flinch à chaque coup
 - H-003 · 09-24 · Écran de récompenses + transition victoire refaits (auto-sortie, avertissement cartes non vues)
