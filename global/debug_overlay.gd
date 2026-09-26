@@ -51,6 +51,9 @@ const RISER_PREVIEW_GAP := 0.435
 # Scanned rather than hardcoded so dropping a fifth/sixth recolour in just works. The debug_*
 # name rides the web export's exclude_filter, so none of it can ever ship.
 const HERO_CANDIDATE_DIR := "res://debug_hero_candidates"
+# LOOK - new/old map & event look (H-189). Events switch from the next one opened; the map
+# switches live.
+const EventLook := preload("res://scenes/events/event_look.gd")
 
 var _sfx_paths: Array[String] = []
 var _hero_paths: Array[String] = []
@@ -61,6 +64,7 @@ var _hero_index := 0
 var _sfx_button: Button
 var _riser_button: Button
 var _hero_button: Button
+var _look_button: Button
 var _collapse_button: Button
 
 
@@ -150,6 +154,10 @@ func _build_ui() -> void:
     _hero_button.gui_input.connect(_on_button_gui_input.bind(_cycle_hero))
     body.add_child(_hero_button)
 
+    _look_button = _make_button(font, BUTTON_MIN_WIDTH)
+    _look_button.pressed.connect(_toggle_look)
+    body.add_child(_look_button)
+
 
 func _make_button(font: Font, min_width: float) -> Button:
     var button := Button.new()
@@ -206,7 +214,15 @@ func _toggle_collapsed() -> void:
     _sfx_button.visible = not _sfx_button.visible
     _riser_button.visible = _sfx_button.visible
     _hero_button.visible = _sfx_button.visible
+    _look_button.visible = _sfx_button.visible
     _collapse_button.text = "-" if _sfx_button.visible else "+"
+
+
+func _toggle_look() -> void:
+    EventLook.enabled = not EventLook.enabled
+    Map.new_look = EventLook.enabled
+    get_tree().call_group("map_look", "refresh_look")
+    _refresh_labels()
 
 
 # Public so the F9 shortcut in dice.gd drives the same index this panel displays.
@@ -289,6 +305,7 @@ func _refresh_labels() -> void:
             _label_for(_riser_paths[_riser_index], "none")]
     _hero_button.text = "HERO %d/%d  %s" % [
             _hero_index + 1, _hero_paths.size(), _label_for(_hero_paths[_hero_index], "current")]
+    _look_button.text = "LOOK  %s" % ("new map + events (H-189)" if EventLook.enabled else "old")
 
 
 func _label_for(path: String, shipped_name: String) -> String:

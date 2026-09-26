@@ -23,6 +23,32 @@ const LINE_DIM_ALPHA := 0.45
 const LINE_BRIGHT_ALPHA := 1.0
 const LINE_WIDTH := 30.0
 const LINE_TRAIL_WIDTH := 36.0
+const LINE_DASH_TEXTURE := preload("res://line.png")
+
+# --- Map look (H-189, map_event_look_plan_2026-09.md) -------------------------------------
+# M3 inked paths: each path is a gentle curve (fixed per path, seeded from its rows/columns, so
+# it comes back identical after a load and on the act-2 map) drawn as dotted ink that stops
+# short of the icons. The walked road is one solid stroke in the trail amber above.
+# M2 sheet: PaperBackground draws the table, the sheet's shadow and its torn edges
+# (map_sheet.gdshader); the camera may scroll SHEET_TOP_REVEAL higher so the top edge shows.
+# The debug overlay's LOOK button flips new_look and calls refresh_look() on the live map.
+static var new_look := true
+const SHEET_SHADER := preload("res://scenes/map/map_sheet.gdshader")
+const SHEET_TOP_REVEAL := 160.0
+const INK_BEND := 0.09            # control-point offset as a share of the path length
+const INK_WOBBLE_PX := 1.2
+const INK_TRIM_PX := 34.0         # dots stop this far from a room's centre...
+const INK_TRIM_BOSS_PX := 118.0   # ...and further from the boss's big medallion
+const INK_TRAIL_WIDTH := 6.5
+const INK_OPTION_WIDTH := 6.6     # a dot fills the line's width, spacing = 2x width
+const INK_OTHER_WIDTH := 5.0
+const INK_OPTION_COLOR := Color("#3B2410")
+const INK_OPTION_ALPHA := 0.96
+const INK_AHEAD_ALPHA := 0.53
+const INK_BEHIND_ALPHA := 0.37
+enum LineState { TRAIL, OPTION, AHEAD, BEHIND }
+static var _dot_texture: ImageTexture
+static var _noise_texture: ImageTexture
 
 # Relevance tinting (see _refresh_room_relevance): brightness-multiply on each room's
 # Visuals so the live frontier is the brightest thing on the sheet. Walked rooms dim a
@@ -96,6 +122,7 @@ var _pawn_bob_tween: Tween
 
 func _ready() -> void:
     camera_edge_y = MapGenerator.Y_DIST * (MapGenerator.FLOORS - 1)
+    add_to_group("map_look")
     _setup_paper_background()
 
 
@@ -110,10 +137,76 @@ func _setup_paper_background() -> void:
     var viewport_size := get_viewport_rect().size
     var texture_width := float(paper_background.texture.get_width())
     var paper_scale := viewport_size.x / texture_width
-    var world_height := camera_edge_y + viewport_size.y
-    paper_background.position = Vector2(0, -camera_edge_y)
+    var top := camera_edge_y + _sheet_reveal()
+    var world_height := top + viewport_size.y
+    paper_background.position = Vector2(0, -top)
     paper_background.scale = Vector2(paper_scale, paper_scale)
     paper_background.region_rect = Rect2(0, 0, texture_width, world_height / paper_scale)
+    paper_background.material = _sheet_material() if new_look else null
+
+
+# M2: extra scroll room above the boss so the sheet's top edge and a strip of table show.
+func _sheet_reveal() -> float:
+    return SHEET_TOP_REVEAL if new_look else 0.0
+
+
+# The sheet's edges in map coordinates, derived from the generator's grid so a change to
+# X_DIST/MAP_WIDTH/FLOORS moves the edges with it. Rooms span visuals.x + 0..900 (+22 jitter),
+# row 0 sits at visuals.y (360), the boss 15 rows up. Margins found on the mockup.
+func _sheet_rect() -> Vector4:
+    var viewport_size := get_viewport_rect().size
+    var span_x := MapGenerator.X_DIST * (MapGenerator.MAP_WIDTH - 1)
+    var visuals_x := (viewport_size.x - span_x) / 2.0
+    var visuals_y := viewport_size.y / 2.0
+    var boss_y := visuals_y - MapGenerator.Y_DIST * MapGenerator.FLOORS
+    return Vector4(visuals_x - 86.0, boss_y - 225.0,
+            visuals_x + span_x + MapGenerator.PLACEMENT_RANDOMNESS + 64.0, visuals_y + 308.0)
+
+
+func _sheet_material() -> ShaderMaterial:
+    var mat := ShaderMaterial.new()
+    mat.shader = SHEET_SHADER
+    # Every uniform seeded here (H-004/H-036: never rely on an unassigned one).
+    mat.set_shader_parameter("sprite_origin", paper_background.position)
+    mat.set_shader_parameter("sprite_scale", paper_background.scale)
+    mat.set_shader_parameter("sheet_rect", _sheet_rect())
+    mat.set_shader_parameter("tear_px", Vector3(10.0, 4.0, 1.6))
+    mat.set_shader_parameter("nick_px", 12.0)
+    mat.set_shader_parameter("noise", _get_noise_texture())
+    mat.set_shader_parameter("table_color", Color(0.075, 0.09, 0.13))
+    mat.set_shader_parameter("burn_px", 26.0)
+    mat.set_shader_parameter("burn_noise_px", 18.0)
+    mat.set_shader_parameter("burn_strength", 0.33)
+    mat.set_shader_parameter("rim_px", 2.2)
+    mat.set_shader_parameter("rim_strength", 0.35)
+    mat.set_shader_parameter("shadow_px", 12.0)
+    mat.set_shader_parameter("shadow_drop", 7.0)
+    mat.set_shader_parameter("shadow_strength", 0.7)
+    return mat
+
+
+# Seamless value noise, built synchronously (a NoiseTexture2D fills in on a thread, so the
+# first frames would show the edge without its tears).
+static func _get_noise_texture() -> Texture2D:
+    if _noise_texture == null:
+        var noise := FastNoiseLite.new()
+        noise.noise_type = FastNoiseLite.TYPE_VALUE_CUBIC
+        noise.frequency = 0.02
+        noise.fractal_octaves = 2
+        noise.seed = 1789
+        var img := noise.get_seamless_image(256, 256)
+        img.convert(Image.FORMAT_RGBA8)
+        _noise_texture = ImageTexture.create_from_image(img)
+    return _noise_texture
+
+
+# Debug overlay A/B: re-applies the look to the live map (paper, camera room, every path).
+func refresh_look() -> void:
+    _setup_paper_background()
+    for edge: Dictionary in _line_edges:
+        _set_line_points(edge["line"], edge["from"], edge["to"])
+    _refresh_line_visibility()
+    _clamp_camera()
 
 
 # =========================================================
@@ -167,7 +260,7 @@ func _input(event: InputEvent) -> void:
 # =========================================================
 
 func _clamp_camera() -> void:
-    camera_2d.position.y = clamp(camera_2d.position.y, -camera_edge_y, 0)
+    camera_2d.position.y = clamp(camera_2d.position.y, -(camera_edge_y + _sheet_reveal()), 0)
 
 
 # =========================================================
@@ -348,14 +441,137 @@ func _connect_lines(room: Room) -> void:
 
         var new_map_line := MAP_LINE.instantiate() as Line2D
 
-        new_map_line.add_point(room.position)
-        new_map_line.add_point(next.position)
+        _set_line_points(new_map_line, room, next)
         lines.add_child(new_map_line)
-        new_map_line.default_color = LINE_DIM_COLOR
-        new_map_line.width = LINE_WIDTH
-        new_map_line.modulate.a = LINE_DIM_ALPHA
+        _style_line(new_map_line, LineState.AHEAD)
 
         _line_edges.append({"line": new_map_line, "from": room, "to": next})
+
+
+func _set_line_points(line: Line2D, from: Room, to: Room) -> void:
+    if new_look:
+        line.points = _ink_curve(from, to)
+    else:
+        line.points = PackedVector2Array([from.position, to.position])
+
+
+# M3: a quadratic Bezier bent to one side by 45-100% of INK_BEND of its length, plus a tiny
+# hand wobble, trimmed so the dots stop short of both icons. Its own RandomNumberGenerator,
+# seeded from the path's rows/columns: deterministic across saves and never touches the global
+# RNG the map generator uses.
+func _ink_curve(from: Room, to: Room) -> PackedVector2Array:
+    var a := from.position
+    var b := to.position
+    var length := a.distance_to(b)
+    if length < 1.0:
+        return PackedVector2Array([a, b])
+    var rng := RandomNumberGenerator.new()
+    rng.seed = hash([from.row, from.column, to.row, to.column])
+    var normal := (b - a).orthogonal() / length
+    var side := 1.0 if rng.randf() < 0.5 else -1.0
+    var control := (a + b) * 0.5 + normal * rng.randf_range(0.45, 1.0) * side * INK_BEND * length
+    var wobble_phase := rng.randf() * TAU
+    var count := maxi(8, int(length / 6.0))
+    var points := PackedVector2Array()
+    var arc := PackedFloat32Array()
+    var travelled := 0.0
+    var previous := a
+    for i in count + 1:
+        var t := float(i) / count
+        var p := a.lerp(control, t).lerp(control.lerp(b, t), t)
+        p += normal * INK_WOBBLE_PX * sin(t * PI * 3.0 + wobble_phase) * sin(t * PI)
+        travelled += p.distance_to(previous)
+        previous = p
+        points.append(p)
+        arc.append(travelled)
+    var end_trim := INK_TRIM_BOSS_PX if to.type == Room.Type.BOSS else INK_TRIM_PX
+    return _trim_polyline(points, arc, INK_TRIM_PX, travelled - end_trim)
+
+
+# The part of a polyline between arc lengths s0 and s1, ends interpolated.
+static func _trim_polyline(points: PackedVector2Array, arc: PackedFloat32Array,
+        s0: float, s1: float) -> PackedVector2Array:
+    var out := PackedVector2Array()
+    if s1 - s0 < 4.0:
+        return out
+    for i in points.size() - 1:
+        var d0 := arc[i]
+        var d1 := arc[i + 1]
+        if d1 < s0 or d0 > s1:
+            continue
+        var span := maxf(d1 - d0, 0.0001)
+        if out.is_empty():
+            out.append(points[i].lerp(points[i + 1], clampf((s0 - d0) / span, 0.0, 1.0)))
+        if d1 <= s1:
+            out.append(points[i + 1])
+        else:
+            out.append(points[i].lerp(points[i + 1], clampf((s1 - d0) / span, 0.0, 1.0)))
+            break
+    return out
+
+
+# One place for every path's look, old dashes and new ink alike. Alpha lives in modulate.a
+# because the entrance reveal tweens it (it captures and restores that value).
+func _style_line(line: Line2D, state: LineState) -> void:
+    if not new_look:
+        line.texture = LINE_DASH_TEXTURE
+        line.texture_filter = CanvasItem.TEXTURE_FILTER_PARENT_NODE
+        line.antialiased = false
+        line.begin_cap_mode = Line2D.LINE_CAP_NONE
+        line.end_cap_mode = Line2D.LINE_CAP_NONE
+        match state:
+            LineState.TRAIL:
+                line.default_color = LINE_TRAIL_COLOR
+                line.modulate.a = LINE_BRIGHT_ALPHA
+                line.width = LINE_TRAIL_WIDTH
+            LineState.OPTION:
+                line.default_color = LINE_DEFAULT_COLOR
+                line.modulate.a = LINE_BRIGHT_ALPHA
+                line.width = LINE_WIDTH
+            _:
+                line.default_color = LINE_DIM_COLOR
+                line.modulate.a = LINE_DIM_ALPHA
+                line.width = LINE_WIDTH
+        return
+    if state == LineState.TRAIL:
+        line.texture = null
+        line.antialiased = true
+        line.joint_mode = Line2D.LINE_JOINT_ROUND
+        line.begin_cap_mode = Line2D.LINE_CAP_ROUND
+        line.end_cap_mode = Line2D.LINE_CAP_ROUND
+        line.default_color = LINE_TRAIL_COLOR
+        line.modulate.a = 1.0
+        line.width = INK_TRAIL_WIDTH
+        return
+    # Dots: the project's default filter is NEAREST, which would make them jagged.
+    line.texture = _get_dot_texture()
+    line.texture_mode = Line2D.LINE_TEXTURE_TILE
+    line.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+    line.antialiased = false
+    line.begin_cap_mode = Line2D.LINE_CAP_NONE
+    line.end_cap_mode = Line2D.LINE_CAP_NONE
+    if state == LineState.OPTION:
+        line.default_color = INK_OPTION_COLOR
+        line.modulate.a = INK_OPTION_ALPHA
+        line.width = INK_OPTION_WIDTH
+    else:
+        line.default_color = LINE_DIM_COLOR
+        line.modulate.a = INK_AHEAD_ALPHA if state == LineState.AHEAD else INK_BEHIND_ALPHA
+        line.width = INK_OTHER_WIDTH
+
+
+# A soft round dot filling the height of a 32x16 tile: in TILE mode Line2D scales the tile's
+# height to the line width, so dots are exactly `width` across, one every 2x width.
+static func _get_dot_texture() -> Texture2D:
+    if _dot_texture == null:
+        var img := Image.create(32, 16, false, Image.FORMAT_RGBA8)
+        for y in 16:
+            for x in 32:
+                var d := Vector2(x + 0.5 - 8.0, y + 0.5 - 8.0).length()
+                img.set_pixel(x, y, Color(1, 1, 1, clampf(7.5 - d, 0.0, 1.0)))
+        img.generate_mipmaps()
+        _dot_texture = ImageTexture.create_from_image(img)
+    return _dot_texture
 
 
 # =========================================================
@@ -421,20 +637,16 @@ func _refresh_line_visibility() -> void:
         var line: Line2D = edge["line"]
 
         if from.selected and to.selected:
-            line.default_color = LINE_TRAIL_COLOR
-            line.modulate.a = LINE_BRIGHT_ALPHA
-            line.width = LINE_TRAIL_WIDTH
+            _style_line(line, LineState.TRAIL)
             continue
 
         var to_map_room: MapRoom = _room_lookup.get(to)
         if to_map_room and to_map_room.available:
-            line.default_color = LINE_DEFAULT_COLOR
-            line.modulate.a = LINE_BRIGHT_ALPHA
-            line.width = LINE_WIDTH
+            _style_line(line, LineState.OPTION)
+        elif from.row < floors_climbed:
+            _style_line(line, LineState.BEHIND)
         else:
-            line.default_color = LINE_DIM_COLOR
-            line.modulate.a = LINE_DIM_ALPHA
-            line.width = LINE_WIDTH
+            _style_line(line, LineState.AHEAD)
 
 
 # =========================================================
@@ -600,7 +812,8 @@ func _ensure_pawn() -> void:
     _pawn.add_child(shadow)
 
     _pawn_die = Sprite2D.new()
-    _pawn_die.texture = PAWN_DIE_TEXTURE
+    _pawn_die.texture = _smooth_pawn_texture()
+    _pawn_die.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
     var die_scale := PAWN_SIZE / PAWN_DIE_TEXTURE.get_width()
     _pawn_die.scale = Vector2(die_scale, die_scale)
     _pawn.add_child(_pawn_die)
@@ -609,6 +822,22 @@ func _ensure_pawn() -> void:
     # are straight room.position values, no coordinate conversion anywhere.
     visuals.add_child(_pawn)
     _start_pawn_bob()
+
+
+# blue6.png is shared by a dozen screens, so its import stays as it is: the map's pawn gets its
+# own mipmapped copy (a 500 px die drawn at 30 px aliased under the NEAREST default).
+static var _pawn_texture: ImageTexture
+
+
+static func _smooth_pawn_texture() -> Texture2D:
+    if _pawn_texture == null:
+        var img := PAWN_DIE_TEXTURE.get_image()
+        if img.is_compressed():
+            img.decompress()
+        img.convert(Image.FORMAT_RGBA8)
+        img.generate_mipmaps()
+        _pawn_texture = ImageTexture.create_from_image(img)
+    return _pawn_texture
 
 
 # Idle bob on the die's POSITION, never its scale (a scale pulse on a ~30px sprite

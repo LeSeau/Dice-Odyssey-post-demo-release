@@ -16,6 +16,8 @@ const OFFER_DICE_LOADOUT := false
 const CaptureRig := preload("res://global/capture_rig.gd")
 # Win -> rewards flow PREVIEW (off by default, see the header of reward_flow.gd).
 const RewardFlow := preload("res://scenes/battle_reward/reward_flow.gd")
+# Runtime look for the 22 pooled events (H-189, map_event_look_plan_2026-09.md).
+const EventLook := preload("res://scenes/events/event_look.gd")
 
 const SHOP_SCENE := preload ("res://scenes/shop/card_shop.tscn")
 
@@ -842,6 +844,8 @@ func _on_map_exited(room: Room) -> void:
                     # If your event scenes need access to character or run stats
                     if event_scene.has_method("setup"):
                         event_scene.setup(character, stats)
+                    # Map & event look (H-189): picture fills the room, specks, icons.
+                    EventLook.apply(event_scene, scene_to_use.resource_path.get_file().get_basename())
                 else:
                     # Fallback to default event
                     _change_view(EVENT_SCENE)

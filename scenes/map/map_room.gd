@@ -102,6 +102,10 @@ static var _shared_ring_width_curve: Curve
 
 
 func _ready() -> void:
+    # Smooth filtering (H-189, Julien's option 2): the project default is NEAREST and the icons
+    # are ~1000 px textures drawn at ~6%, which gave crunchy edges that shimmered in the pulse.
+    # The 7 room icon imports generate mipmaps for this. Inherited by the icon and the badge.
+    texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
     var test_room := Room.new()
     test_room.type = Room.Type.MONSTER
     test_room.position = Vector2(500, 500)
