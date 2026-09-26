@@ -9,6 +9,10 @@ signal mouse_exited_card
 const TOOLTIP_OFFSET_X = 2  # Horizontal distance from card
 const TOOLTIP_HEIGHT = 108    # Approximate height of each tooltip
 const TOOLTIP_SPACING = 1     # Space between tooltips
+# Keyword tooltips wait this long on a hovered card. Was 1.0s, which made the most information-dense
+# object in the game the slowest to explain itself; STS2 shows them at once. 0.25s still lets a
+# sweep across the fan pass without popping any (Julien, 2026-09-26, H-190 idea 9).
+const CARD_TOOLTIP_DELAY := 0.25
 
 enum PlayableGlow { NONE, AVAILABLE, HOT, NEUTRAL }
 
@@ -1181,7 +1185,7 @@ func _on_card_frame_mouse_entered() -> void:
     # Clean up any lingering tooltips immediately on new hover
     _cleanup_card_tooltips()
     
-    await get_tree().create_timer(1.0).timeout
+    await get_tree().create_timer(CARD_TOOLTIP_DELAY).timeout
     
     # Bail if a newer hover started, or mouse already left
     if my_id != _card_hover_id:

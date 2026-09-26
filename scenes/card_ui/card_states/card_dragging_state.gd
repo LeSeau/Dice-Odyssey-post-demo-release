@@ -2,11 +2,20 @@ extends CardState
 
 const DRAG_MINIMUM_THRESHOLD := 0.05
 
+# A soft paper snap when a card really leaves the hand (H-190 idea 9; STS2 plays its ui_click here).
+# PLACEHOLDER synthesized on 2026-09-26: the project's only click is the menu button click, and a
+# card should not sound like a button. Swap the file to change it. A refused pick-up never gets
+# here (card_clicked_state plays the refusal instead), so the two sounds can't stack.
+const PICKUP_SFX := preload("res://sounds/card_pickup.wav")
+const PICKUP_VOLUME_DB := -10.0
+
 var minimum_drag_time_elapsed := false
 
 
 func enter() -> void:
     Global.dragging_card = true
+    # Low priority: decorative, it must never steal a voice from a hit.
+    SFXPlayer.play(PICKUP_SFX, false, randf_range(0.94, 1.08), PICKUP_VOLUME_DB, -1)
     var ui_layer := get_tree().get_first_node_in_group("ui_layer")
     if ui_layer:
         # Store the exact global position before reparenting

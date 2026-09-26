@@ -5,6 +5,10 @@ extends CenterContainer
 const TOOLTIP_OFFSET_X = 20  # Horizontal distance from card
 const TOOLTIP_HEIGHT = 108    # Approximate height of each tooltip
 const TOOLTIP_SPACING = 1     # Space between tooltips
+# Keyword tooltips wait this long on a hovered card. Was 1.0s; STS2 shows them at once. 0.25s still
+# lets a sweep across a grid pass without popping any (Julien, 2026-09-26, H-190 idea 9). Same value
+# as CardUI.CARD_TOOLTIP_DELAY: the two card views are duplicated.
+const CARD_TOOLTIP_DELAY := 0.25
 const BASE_STYLEBOX := preload("res://scenes/card_ui/card_ui_normal.tres")
 const BASE_CELESTIAL_STYLEBOX := preload("res://scenes/card_ui/card_ui_celestial.tres")
 const HOVER_STYLEBOX := preload("res://scenes/card_ui/card_menu_ui_hover_test.tres")
@@ -473,7 +477,7 @@ func _on_card_frame_mouse_entered() -> void:
     
     _cleanup_tooltips()
     
-    await get_tree().create_timer(1.0).timeout
+    await get_tree().create_timer(CARD_TOOLTIP_DELAY).timeout
     
     if my_id != _card_hover_id:
         return
