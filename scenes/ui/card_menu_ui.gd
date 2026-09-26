@@ -116,7 +116,11 @@ const TITLE_FONT_SIZE_CANDIDATES: Array[int] = [15, 12, 10, 9]
 # word of width but ZERO characters. Crescendo (59 chars, one under the old 60-char threshold)
 # stayed at 12pt and spilled a 4th line out of the panel. 9 and 8 are unreached safety nets since
 # the panel grew (see DESC_PANEL_HEIGHT); the worst card in the pool, All In+, now lands at 10.
-const DESC_FONT_SIZE_CANDIDATES: Array[int] = [12, 11, 10, 9, 8]
+# Starts at 14 since 2026-09-26 (H-190 idea 6, Julien's pick): most cards hold one or two short lines
+# in a 64px band, and at 12 they read small on hover and on rewards. Measured windowed over all 168
+# cards: 128 keep 14, 32 step to 13, 8 go lower. Resolving the number on a roll changes the size of
+# only 6 cards (Tsunami, All In, Avalanche and their + versions; 4 of them already did at 12).
+const DESC_FONT_SIZE_CANDIDATES: Array[int] = [14, 13, 12, 11, 10, 9, 8]
 
 # DescriptionPanel is an INVISIBLE layout box: its stylebox bg_color is byte-identical to the card
 # body's on the Celestial and Blessing variants, and differs by ~0.001 on the normal one (compare

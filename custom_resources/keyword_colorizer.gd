@@ -202,7 +202,7 @@ static func _colorize_passes(
     for keyword in DICE_KEYWORD_COLORS:
         var regex := RegEx.new()
         regex.compile("(?i)(\\d+\\s+)?\\b" + keyword + "\\b")
-        result = regex.sub(result, "[color=#%s]$0[/color]" % DICE_KEYWORD_COLORS[keyword], true)
+        result = _wrap_dice_span(result, regex, DICE_KEYWORD_COLORS[keyword])
 
     # 2. If a generic keyword (Charge, Boost...) sits directly before a dice mention just
     # colored above, pull it INTO that same [color] tag rather than giving it its own separate
@@ -265,6 +265,23 @@ static func _wrap_keyword_span(text: String, pattern: String, color: String) -> 
     for m in regex.search_all(text):
         result += text.substr(last, m.get_start() - last)
         result += "[color=#%s]%s[/color]" % [color, m.get_string(0).replace(" ", NBSP)]
+        last = m.get_end()
+    result += text.substr(last)
+    return result
+
+
+# The dice pass's wrapper. The die's name is welded with a NBSP so it never breaks across two lines
+# ("Gain 1 more Blue / Dice each turn" once card text went to 14px, 2026-09-26; Armageddon's "Red /
+# Dice" already did at 12). The leading count keeps its plain space: "Charge 2 Ricochet Dice"
+# welded end to end would outgrow the 128px column. Same hand-built loop as _wrap_keyword_span.
+static func _wrap_dice_span(text: String, regex: RegEx, color: String) -> String:
+    var result := ""
+    var last := 0
+    for m in regex.search_all(text):
+        var count := m.get_string(1)
+        var die_name := m.get_string(0).substr(count.length())
+        result += text.substr(last, m.get_start() - last)
+        result += "[color=#%s]%s%s[/color]" % [color, count, die_name.replace(" ", NBSP)]
         last = m.get_end()
     result += text.substr(last)
     return result

@@ -1006,6 +1006,9 @@ func _update_charged_card_description() -> void:
 # step-down mirrors card_ui.gd's: this panel is the same 140x44 slot, so anything that overflows
 # on the card (Crescendo, Resonance, Transmutation...) overflows here too - the old "socket text
 # is never long enough" assumption was wrong, any card can be dropped on the red die.
+# Stays at 12 while the hand and the menus start at 14 (2026-09-26, H-190 idea 6): the Cancel button
+# (CancelRedCardPanel, x94..138 y190..211) eats this slot's bottom-right corner. At 14 a mid-length
+# text like Rupture's runs under it; at 12 only the longest ones (Ooga Booga, All In+) already did.
 const CHARGED_DESC_FONT_SIZE_CANDIDATES: Array[int] = [12, 11, 10, 9, 8]
 
 
