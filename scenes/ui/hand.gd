@@ -522,11 +522,88 @@ func is_card_playable(card_ui: CardUI) -> bool:
         return false
     return check_card_requirement(card_ui.card)
     
+# The roll wakes the cards (H-190 idea 3, 2026-09-26). This refresh runs after every roll, die
+# switch, Power gain and reset (8 emit sites in dice.gd), so comparing each card's glow before and
+# after it tells which cards a roll just made playable (they hop and flash, left to right) and
+# which it just took away (they dip). Cards that were already lit stay still.
+# - Needs Power still banked. Playing a card resets it to 0 and dims every hot card at once;
+#   without this guard the whole hand would dip after every play.
+# - Except that on the Red die a card is lit before any roll (Red commits first), so switching to
+#   Red wakes the Red cards it lights (Julien, 2026-09-26). Dips still need banked Power.
+# - Never from or to NEUTRAL: Ink hides the Power, and its removal must not look like a roll.
+const WAKE_DELAY := 0.06    # lets the Power number punch land first
+const WAKE_STAGGER := 0.04
+# The flash is a gain on the card's resting look (the H-187 lesson: a fixed bright colour doubled
+# the brightness of dimmed cards). A woken card rests at full white, so this is its peak.
+const WAKE_FLASH_GAIN := Color(1.35, 1.3, 1.15, 1.0)
+const WAKE_FLASH_IN := 0.08
+const WAKE_FLASH_OUT := 0.26
+
+
 func _on_hover_playable_cards() -> void:
+    var woken: Array[CardUI] = []
+    var dipped: Array[CardUI] = []
+    var power_banked: bool = Global.roll_value > 0
+    var red_active: bool = Global.dice_type == "red"
     for child in get_children():
         if child is CardUI and child.card:
             var card_ui := child as CardUI
-            card_ui.set_playable_visual(_get_glow_state(card_ui.card))
+            var before := card_ui.current_glow_state
+            var after := _get_glow_state(card_ui.card)
+            if before != after:
+                # A flash still running would tween the modulate back to the OLD resting look.
+                _kill_flash(card_ui)
+            card_ui.set_playable_visual(after)
+            if not _can_wake(card_ui):
+                continue
+            if after == CardUI.PlayableGlow.HOT and (power_banked or red_active) \
+                    and (before == CardUI.PlayableGlow.NONE or before == CardUI.PlayableGlow.AVAILABLE):
+                woken.append(card_ui)
+            elif power_banked and before == CardUI.PlayableGlow.HOT \
+                    and after == CardUI.PlayableGlow.NONE:
+                dipped.append(card_ui)
+    for i in woken.size():
+        var delay := WAKE_DELAY + WAKE_STAGGER * i
+        woken[i].play_wake(delay)
+        _wake_flash(woken[i], delay)
+    for i in dipped.size():
+        dipped[i].play_dip(WAKE_DELAY + WAKE_STAGGER * i)
+
+
+func _can_wake(card_ui: CardUI) -> bool:
+    return not card_ui.disabled and not card_ui._played \
+        and not card_ui.card.can_play_without_dice and card_ui.card.type != Card.Type.HEX \
+        and card_ui != _hovered_card and card_ui != tutorial_locked_card \
+        and not card_ui.is_in_draw_flight()
+
+
+# Rides the End Turn flash's bookkeeping (_playable_flash_resting / _tweens), so the two can never
+# leave a card stuck bright: whichever starts second resets the first to its resting look.
+func _wake_flash(card_ui: CardUI, delay: float) -> void:
+    _kill_flash(card_ui)
+    var resting := card_ui.modulate
+    var g := WAKE_FLASH_GAIN
+    var peak := Color(resting.r * g.r, resting.g * g.g, resting.b * g.b, resting.a)
+    _playable_flash_resting[card_ui] = resting
+    var flash := card_ui.create_tween()
+    _playable_flash_tweens[card_ui] = flash
+    flash.tween_interval(delay + CardUI.WAKE_UP_TIME * 0.5)
+    flash.tween_property(card_ui, "modulate", peak, WAKE_FLASH_IN) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    flash.tween_property(card_ui, "modulate", resting, WAKE_FLASH_OUT) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+
+func _kill_flash(card_ui: CardUI) -> void:
+    if not _playable_flash_tweens.has(card_ui):
+        return
+    var tween: Tween = _playable_flash_tweens[card_ui]
+    if tween and tween.is_valid():
+        tween.kill()
+    if is_instance_valid(card_ui) and _playable_flash_resting.has(card_ui):
+        card_ui.modulate = _playable_flash_resting[card_ui]
+    _playable_flash_tweens.erase(card_ui)
+    _playable_flash_resting.erase(card_ui)
 
 
 # ---------------------------------------------------------------------------

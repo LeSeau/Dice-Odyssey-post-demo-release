@@ -429,11 +429,23 @@ const DRAW_START_ROTATION := -0.25 # radians, it leaves the pile tilted and righ
 const PICKUP_TIME := 0.1
 # Drag tilt (Balatro-style weight): the card leans with its horizontal speed and swings back.
 const DRAG_TILT_PER_SPEED := 0.00014  # radians per px/s
+# The roll wakes the cards (H-190 idea 3). The hop is quick up, softer down; the dip is half as deep
+# and slower, a card settling rather than jumping.
+const WAKE_HOP := 8.0
+const WAKE_UP_TIME := 0.12
+const WAKE_DOWN_TIME := 0.22
+const DIP_DEPTH := 4.0
+const DIP_TIME := 0.3
 const DRAG_TILT_MAX := 0.2
 const DRAG_SPEED_SMOOTHING := 20.0    # 1/s, low-pass on the raw per-frame speed
 const DRAG_TILT_RESPONSE := 14.0      # 1/s, how fast the tilt chases its target
 
 var shake_x := 0.0 : set = _set_shake_x
+# Vertical nudge of the art only (H-190 idea 3, the roll wakes the cards): a hop when a roll makes
+# this card playable, a dip when a roll takes it away. Same channel style as shake_x, so the root,
+# the hit area and the tutorial never move.
+var hop_y := 0.0 : set = _set_hop_y
+var _hop_tween: Tween
 var drag_tilt_active := false
 var _lag_offset := Vector2.ZERO
 var _lag_rotation := 0.0
@@ -473,6 +485,11 @@ func _set_shake_x(value: float) -> void:
     _apply_visual_transform()
 
 
+func _set_hop_y(value: float) -> void:
+    hop_y = value
+    _apply_visual_transform()
+
+
 func _process(delta: float) -> void:
     _update_drag_tilt(delta)
     _update_aim_lean(delta)
@@ -487,7 +504,7 @@ func _apply_visual_transform() -> void:
     if card_background == null or _flight_owned:
         return
     card_background.pivot_offset = card_background.size / 2.0
-    card_background.position = _lag_offset + Vector2(shake_x, 0.0)
+    card_background.position = _lag_offset + Vector2(shake_x, hop_y)
     card_background.rotation = _lag_rotation + _tilt + _aim_lean
     var s := _lag_scale * _aim_scale
     card_background.scale = Vector2(s, s)
@@ -529,6 +546,36 @@ func hold_visual(previous_global: Transform2D, duration: float) -> void:
 
 
 # Deal this card out of the draw pile instead of fading it in where it lands.
+# Still leaving the draw pile: the deal owns the art until it lands, so a wake must not run on top.
+func is_in_draw_flight() -> bool:
+    if _pending_draw_from != Vector2.INF:
+        return true
+    return _follow_tween != null and _follow_tween.is_running() and _follow_arc > 0.0
+
+
+# A roll just made this card playable. Called by Hand with the card's place in the stagger.
+func play_wake(delay: float) -> void:
+    _run_hop(delay, -WAKE_HOP, WAKE_UP_TIME, WAKE_DOWN_TIME)
+
+
+# A roll just took this card away (a Max or an Exact overshot, a Mult missed).
+func play_dip(delay: float) -> void:
+    _run_hop(delay, DIP_DEPTH, DIP_TIME * 0.4, DIP_TIME * 0.6)
+
+
+# A new beat takes over from wherever the last one is, so two rolls in a row never snap.
+func _run_hop(delay: float, peak: float, out_time: float, back_time: float) -> void:
+    if _hop_tween and _hop_tween.is_valid():
+        _hop_tween.kill()
+    _hop_tween = create_tween()
+    if delay > 0.0:
+        _hop_tween.tween_interval(delay)
+    _hop_tween.tween_property(self, "hop_y", peak, out_time) \
+        .set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+    _hop_tween.tween_property(self, "hop_y", 0.0, back_time) \
+        .set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+
 func begin_draw_flight(pile_center: Vector2) -> void:
     _pending_draw_from = pile_center
 
@@ -555,7 +602,7 @@ func _anchor_visual(global_xf: Transform2D, duration: float, arc: float) -> void
     var p := local.origin - c + Transform2D(rot, Vector2(s, s), 0.0, Vector2.ZERO).basis_xform(c)
     if _follow_tween and _follow_tween.is_valid():
         _follow_tween.kill()
-    _lag_offset = p - Vector2(shake_x, 0.0)
+    _lag_offset = p - Vector2(shake_x, hop_y)
     _lag_rotation = rot - _tilt - _aim_lean
     _lag_scale = s / maxf(_aim_scale, 0.001)
     if _lag_offset.length() < 0.5 and absf(_lag_rotation) < 0.002 and absf(_lag_scale - 1.0) < 0.002:
