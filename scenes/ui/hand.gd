@@ -30,6 +30,26 @@ const TUTORIAL_SCALE := Vector2(1.06, 1.06)
 # down (the plain hover's mouse_exited reset). Cleared by clear_card_lift when the step ends.
 var tutorial_locked_card: CardUI = null
 
+# The hand makes room (H-190 idea 4, 2026-09-26): while a card is hovered, its neighbours slide
+# aside so the lifted card stops covering the art next to it, and running the cursor along the
+# hand reads like flipping through it (STS2's NPlayerHand pushes up to 100px at 1920 wide, fading
+# over 4 cards). One entry per neighbour, nearest first. Right is wider because the hovered card
+# grows 1.12x from its top-left corner and spills that way. ROOTS move, not just the art, so the
+# hit areas follow what you see; the art glides through the CardUI follower like the hover does.
+const ROOM_RIGHT: Array[float] = [45.0, 30.0, 15.0]
+const ROOM_LEFT: Array[float] = [30.0, 20.0, 10.0]
+# A pushed card stops this far short of the End Turn button and the draw pile. A card that already
+# sits past one of them at its slot (the 9th card of a full hand reaches under End Turn) is not
+# pushed further that way.
+const ROOM_EDGE_MARGIN := 4.0
+
+# The card wearing the hover pose right now, or null. Kept so a re-sort in the middle of a hover
+# (a card drawn or returned from a drag) keeps the pose and the room instead of dropping the card
+# back into the fan while the cursor is still on it.
+var _hovered_card: CardUI = null
+# CardUI -> the x the container placed it at, before any room offset. Refreshed on every sort.
+var _slot_x: Dictionary = {}
+
 # TutorialDirector's input gate, mirrored here. null = no gate (every normal fight); an Array
 # of allowed card ids = only those cards may be picked up.
 #
@@ -65,6 +85,9 @@ func _ready() -> void:
     Events.fan_hand_requested.connect(_update_card_positions)
     Events.add_card_to_hand_requested.connect(_on_add_card_to_hand_requested)
     Events.hover_playable_cards.connect(_on_hover_playable_cards)
+    # A drag ends the hover: the card leaves the hand, and when it comes back the cursor is usually
+    # somewhere else, so the pose must not be re-applied from memory.
+    Events.card_drag_started.connect(func(_c: CardUI) -> void: _hovered_card = null)
     # A played card leaves the hand in _fly_to_discard_and_free, AFTER card_played fires, so
     # this one has to be deferred or the badge would still count the card being played.
     Events.card_played.connect(func(_c: Card) -> void: _refresh_held_badges())
@@ -187,9 +210,11 @@ func _on_card_ui_reparent_requested(child: CardUI) -> void:
     _refresh_held_badges()
 
 func _on_hand_sorted() -> void:
+    _slot_x.clear()
     for child in get_children():
         if child is CardUI:
             (child as CardUI).mark_placed_by_container()
+            _slot_x[child] = (child as CardUI).position.x
     _update_card_positions()
 
 
@@ -198,6 +223,8 @@ func _update_card_positions() -> void:
     var card_count := get_child_count()
     if card_count == 0:
         return
+    var hovered := _live_hovered_card()
+    var room := _room_offsets()
 
     if card_count > 1:
         for i in range(card_count):
@@ -214,6 +241,13 @@ func _update_card_positions() -> void:
                 # Store only the Y position
                 _original_positions[card] = Vector2(0, card.position.y)
                 #card.scale = Vector2(1.1, 1.1)
+                if card == hovered:
+                    _apply_hover_pose(card)
+                elif card != tutorial_locked_card:
+                    # A card that lost its hover here (a drag started elsewhere) must not keep 1.12.
+                    card.scale = Vector2.ONE
+                if _slot_x.has(card):
+                    card.position.x = _slot_x[card] + room.get(card, 0.0)
                 # The root just jumped to its slot; let the art glide there (2026-09-23).
                 card.follow_to_slot()
     else:
@@ -222,6 +256,8 @@ func _update_card_positions() -> void:
             card.rotation_degrees = 0
             card.position.y = 0
             _original_positions[card] = Vector2(0, 0)
+            if card == hovered:
+                _apply_hover_pose(card)
             card.follow_to_slot()
 
     
@@ -239,11 +275,13 @@ func _on_card_mouse_entered(card: CardUI) -> void:
         # The root jumps to the hover pose and the art glides there (2026-09-23): the lift used to
         # tween while the 1.12 scale and the straightening snapped in a single frame.
         var art_before := card.card_background.get_global_transform()
-        card.position.y = _original_positions[card].y + hover_lift
-        card.z_index = 50
-        card.rotation_degrees = 0
-        card.scale = Vector2(1.12, 1.12)
+        _hovered_card = card
+        _apply_hover_pose(card)
+        # A card that was a pushed neighbour a moment ago comes back to its own slot.
+        if _slot_x.has(card):
+            card.position.x = _slot_x[card]
         card.hold_visual(art_before, hover_time)
+        _apply_room()
 
 func _on_card_mouse_exited(card: CardUI) -> void:
     if not _original_positions.has(card):
@@ -261,6 +299,86 @@ func _on_card_mouse_exited(card: CardUI) -> void:
         card.rotation_degrees = _get_card_fan_angle(card)
         card.scale = Vector2(1.0, 1.0)
         card.hold_visual(art_before, hover_time)
+        if _hovered_card == card:
+            _hovered_card = null
+        _apply_room()
+
+func _apply_hover_pose(card: CardUI) -> void:
+    card.position.y = _original_positions[card].y + hover_lift
+    card.z_index = 50
+    card.rotation_degrees = 0
+    card.scale = Vector2(1.12, 1.12)
+
+
+# The hovered card, if it still is one: still in this hand, still live, and no drag in progress.
+func _live_hovered_card() -> CardUI:
+    if _hovered_card == null or not is_instance_valid(_hovered_card) \
+            or _hovered_card.get_parent() != self or _hovered_card.disabled \
+            or Global.dragging_card or _hovered_card == tutorial_locked_card \
+            or not _original_positions.has(_hovered_card):
+        return null
+    return _hovered_card
+
+
+# CardUI -> x offset for every card the hovered one pushes aside. Empty without a live hover and
+# while the tutorial holds a card up (its own pose owns the stage then).
+func _room_offsets() -> Dictionary:
+    var out := {}
+    var hovered := _live_hovered_card()
+    if hovered == null or tutorial_locked_card != null:
+        return out
+    var cards := get_cards_in_hand()
+    var h := cards.find(hovered)
+    if h < 0:
+        return out
+    var limits := _room_limits()
+    for i in cards.size():
+        var d := absi(i - h)
+        var card := cards[i]
+        if d == 0 or not _slot_x.has(card):
+            continue
+        var slot: float = _slot_x[card]
+        if i > h and d <= ROOM_RIGHT.size():
+            var free_right := limits.y - (slot + card.size.x)
+            out[card] = clampf(ROOM_RIGHT[d - 1], 0.0, maxf(free_right, 0.0))
+        elif i < h and d <= ROOM_LEFT.size():
+            var free_left := slot - limits.x
+            out[card] = -clampf(ROOM_LEFT[d - 1], 0.0, maxf(free_left, 0.0))
+    return out
+
+
+# (leftmost x, rightmost x) a pushed card may reach, in this hand's own coordinates: the draw
+# pile's right edge and End Turn's left edge. Both are BattleUI siblings of the hand.
+func _room_limits() -> Vector2:
+    var left := -INF
+    var right := INF
+    var ui := get_parent()
+    if ui != null:
+        var pile := ui.get_node_or_null("DrawPileButton") as Control
+        var end_turn := ui.get_node_or_null("EndTurnButton") as Control
+        if pile != null and pile.visible:
+            left = pile.get_global_rect().end.x - global_position.x + ROOM_EDGE_MARGIN
+        if end_turn != null and end_turn.visible:
+            right = end_turn.get_global_rect().position.x - global_position.x - ROOM_EDGE_MARGIN
+    return Vector2(left, right)
+
+
+# Moves every card that isn't the hovered one to its slot plus its room offset. Roots jump (hit
+# areas), the art glides from where it is on screen, like the hover itself.
+func _apply_room() -> void:
+    var room := _room_offsets()
+    var hovered := _live_hovered_card()
+    for card in get_cards_in_hand():
+        # The tutorial lift owns y, z, rotation and scale, never x, so a locked card still goes home.
+        if card == hovered or not _slot_x.has(card):
+            continue
+        var target: float = _slot_x[card] + room.get(card, 0.0)
+        if absf(card.position.x - target) < 0.01:
+            continue
+        var art_before := card.card_background.get_global_transform()
+        card.position.x = target
+        card.hold_visual(art_before, hover_time)
+
 
 # Tutorial card highlight: lift+de-rotate+scale the actual card node (the same visual the
 # real hover produces) instead of drawing an external rectangle over it - a rectangle from
