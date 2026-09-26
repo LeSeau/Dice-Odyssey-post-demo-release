@@ -14,6 +14,8 @@ const DICE_LOADOUT_SCENE := preload("res://scenes/dice_loadout/dice_loadout.tscn
 # on the classic 2 Blue + 1 Red. true brings it back exactly as it was (see _start_run).
 const OFFER_DICE_LOADOUT := false
 const CaptureRig := preload("res://global/capture_rig.gd")
+# Win -> rewards flow PREVIEW (off by default, see the header of reward_flow.gd).
+const RewardFlow := preload("res://scenes/battle_reward/reward_flow.gd")
 
 const SHOP_SCENE := preload ("res://scenes/shop/card_shop.tscn")
 
@@ -74,6 +76,9 @@ var _dice_bar_tooltip: Node = null
 @onready var dice_top_bar: HBoxContainer = $TopBar/BarItems/DiceTopBar
 
 @onready var map_music: AudioStreamPlayer2D = $MapMusic
+# Authored map-music level, captured once (reward-flow preview fades toward it).
+@onready var _map_music_volume_db: float = map_music.volume_db
+var _map_music_fade: Tween
 
 @onready var affordable_indicator: Label = $TopBar/BarItems/DiceShop/AffordableIndicator
 @onready var dice_shop_explanation_box: Panel = $TopBar/DiceShopExplanationBox
@@ -128,6 +133,9 @@ func _late_init() -> void:
     # Restart included), so without this a "new" run inherited the previous run's gold/dice/
     # act/tutorial flags. A loaded run restores its own values on top of this reset.
     Global.reset_run_state()
+    # Static, so it survives the reload too: a win beat cut short by a quit must not mute the
+    # next run's first reward jingle (reward_flow.gd).
+    RewardFlow.jingle_played = false
     var warrior = load("res://characters/warrior/warrior.tres")
     character = warrior.create_instance()
 
@@ -358,8 +366,7 @@ func _update_floor_label() -> void:
 
 func _change_view(scene: PackedScene) -> Node:
     print(scene)
-    if current_view.get_child_count() > 0:
-        current_view.get_child(0).queue_free()
+    _free_current_views()
 
     get_tree().paused = false
     var new_view := scene.instantiate()
@@ -367,6 +374,32 @@ func _change_view(scene: PackedScene) -> Node:
     map.hide_map()
 
     return new_view
+
+
+# Every child, not just child 0: the reward screen sits on its own CanvasLayer NEXT TO the
+# room it came from (reward_flow.gd, idea 1), and both go together. With one child this is
+# exactly the old get_child(0).queue_free().
+func _free_current_views() -> void:
+    for child: Node in current_view.get_children():
+        child.queue_free()
+
+
+# Every way into the reward screen goes through here (after a fight, an event, a chest). The
+# reward screen is pushed over the live room on its own CanvasLayer (reward_flow.gd, idea 1),
+# and the room is freed with it on the way to the map. The old swap is only a fallback for
+# when there is no room to sit over.
+func _show_reward_view() -> BattleReward:
+    if current_view.get_child_count() > 0:
+        var layer := CanvasLayer.new()
+        layer.name = "RewardOverlay"
+        layer.layer = RewardFlow.OVERLAY_LAYER
+        current_view.add_child(layer)
+        var reward := BATTLE_REWARD_SCENE.instantiate() as BattleReward
+        # Before add_child, so its _ready() already knows there is a room underneath.
+        reward.over_live_room = true
+        layer.add_child(reward)
+        return reward
+    return _change_view(BATTLE_REWARD_SCENE) as BattleReward
     
 func _show_map() -> void:
     # One cover here buys the fade for every way back to the map: battle reward, shop,
@@ -392,8 +425,7 @@ func _show_map() -> void:
         dice_shop_explanation_box.show()
         Global.tutorial_dice_shop_explanation_needed = false
     SFXPlayer.play(Global.sfx_click)
-    if current_view.get_child_count() > 0:
-        current_view.get_child(0).queue_free()
+    _free_current_views()
     if dice_shop_instance:
         dice_shop_instance.queue_free()
         dice_shop_instance = null
@@ -478,7 +510,7 @@ func _on_treasure_room_entered() -> void:
     treasure_scene.generate_relic()
     
 func _on_treasure_room_exited(relic: Relic) -> void:
-    var reward_scene := _change_view(BATTLE_REWARD_SCENE) as BattleReward
+    var reward_scene := _show_reward_view()
     reward_scene.run_stats = stats
     reward_scene.character_stats = character 
     reward_scene.relic_handler= relic_handler
@@ -627,7 +659,7 @@ func _on_battle_won() -> void:
     Global.cards_played_this_turn = 0
     Global.next_roll_modifier = 0
     Global.dice_type = Global.default_active_dice_type()
-    var reward_scene := _change_view(BATTLE_REWARD_SCENE) as BattleReward
+    var reward_scene := _show_reward_view()
     reward_scene.run_stats = stats
     reward_scene.character_stats = character
     reward_scene.relic_handler = relic_handler
@@ -826,7 +858,7 @@ func _on_map_exited(room: Room) -> void:
 
 
 func _on_show_reward():
-    var reward_scene := _change_view(BATTLE_REWARD_SCENE) as BattleReward
+    var reward_scene := _show_reward_view()
     reward_scene.run_stats = stats
     reward_scene.character_stats = character
     for i in Global.pending_card_rewards:
@@ -1192,17 +1224,18 @@ func _open_map_consult() -> void:
     if current_view.get_child_count() == 0:
         return  # already looking at the map itself - nothing to peek behind
     map_consult_mode = true
-    var view := current_view.get_child(0)
-    view.hide()
-    _hide_nested_canvas_layers(view)
+    # Every child: a reward overlay sits next to the room (reward_flow.gd, idea 1).
+    for view in current_view.get_children():
+        view.hide()
+        _hide_nested_canvas_layers(view)
+        _set_nested_cameras_enabled(view, false)
     # Camera2D isn't a CanvasItem, so hiding the view above does nothing to its own
     # camera (battle.tscn has one) - it would stay "current" and keep driving the
     # viewport, fighting Map's camera for control (this is why scrolling the map
     # during consult previously had no visible effect - you were moving Map's
     # camera while the battle's own camera was still the one actually active).
     # Disable it BEFORE enabling Map's own camera below so there's never a moment
-    # with two enabled cameras contending for "current".
-    _set_nested_cameras_enabled(view, false)
+    # with two enabled cameras contending for "current" (done in the loop above).
     map.show_map()
     # Force-clear any relic tooltip that's mid-hover before pausing - relic_ui.gd's
     # main tooltip has no safety timeout (only mouse_exited/_exit_tree free it, and
@@ -1228,8 +1261,7 @@ func _close_map_consult() -> void:
     map_consult_mode = false
     get_tree().paused = false
     map.hide_map()
-    if current_view.get_child_count() > 0:
-        var view := current_view.get_child(0)
+    for view in current_view.get_children():
         view.show()
         _restore_nested_canvas_layers(view)
         _set_nested_cameras_enabled(view, true)
@@ -1311,11 +1343,24 @@ func _restore_nested_canvas_layers(node: Node) -> void:
         _restore_nested_canvas_layers(child)
 
 func _on_stop_map_music() -> void:
+    if _map_music_fade and _map_music_fade.is_valid():
+        _map_music_fade.kill()
+    map_music.volume_db = _map_music_volume_db
     map_music.stop()
 
 
 func _on_start_map_music() -> void:
+    # Reward flow (reward_flow.gd, idea 4): the reward screen starts the map music early,
+    # fading in under it; the second request when it closes must not restart the track.
+    if map_music.playing:
+        return
+    if _map_music_fade and _map_music_fade.is_valid():
+        _map_music_fade.kill()
+    map_music.volume_db = RewardFlow.MAP_MUSIC_START_DB
     map_music.play()
+    _map_music_fade = create_tween()
+    _map_music_fade.tween_property(map_music, "volume_db", _map_music_volume_db,
+        RewardFlow.MAP_MUSIC_FADE_IN).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
 func _on_check_if_can_purchase_dice() -> void:
     # null (no shop visited yet / empty selection) must read as "not affordable" - before,
@@ -1339,7 +1384,7 @@ func _on_dice_price_changed() -> void:
 
 # New function to handle relic rewards from events
 func _on_show_reward_with_relic(relic: Relic) -> void:
-    var reward_scene := _change_view(BATTLE_REWARD_SCENE) as BattleReward
+    var reward_scene := _show_reward_view()
     reward_scene.run_stats = stats
     reward_scene.character_stats = character
     reward_scene.relic_handler = relic_handler
@@ -1350,7 +1395,7 @@ func _on_show_reward_with_relic(relic: Relic) -> void:
 # the same screen (event_russian_dice.gd's dice-5 payout) - relic can be null
 # (relic pool exhausted) if only gold is left to claim.
 func _on_show_reward_with_relic_and_gold(relic: Relic, gold_amount: int) -> void:
-    var reward_scene := _change_view(BATTLE_REWARD_SCENE) as BattleReward
+    var reward_scene := _show_reward_view()
     reward_scene.run_stats = stats
     reward_scene.character_stats = character
     reward_scene.relic_handler = relic_handler

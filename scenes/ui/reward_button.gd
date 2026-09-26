@@ -24,5 +24,8 @@ func set_reward_text(new_text: String) -> void:
 
     custom_text.text = reward_text
 
+# Kept for the pressed connection in reward_button.tscn. The row no longer frees itself: the
+# reward screen decides when it goes (battle_reward.gd). A claimed row folds away, and a card
+# row stays when its picker is skipped (reward_flow.gd, idea 7).
 func _on_pressed() -> void:
-    queue_free()
+    pass

@@ -6,9 +6,10 @@ enum Type {WIN, LOSE}
 const MAIN_MENU_SCENE_PATH := "res://scenes/ui/main_menu.tscn"
 const DISCORD_URL := "https://discord.gg/fah8A2qQx2"
 
-const WIN_AUTO_ADVANCE_DELAY := 0.7
 const PANEL_ENTRANCE_TIME := 0.34
 const STATS_REVEAL_DELAY := 0.25
+# Win -> rewards flow (see the header of reward_flow.gd): owns the win beat's length.
+const RewardFlow := preload("res://scenes/battle_reward/reward_flow.gd")
 
 @onready var audio_player: AudioStreamPlayer2D = $AudioPlayer
 @onready var lost_panel: Panel = $LostPanel
@@ -33,8 +34,9 @@ func show_screen(_text: String, type: Type) -> void:
 		get_tree().paused = true
 		return
 
-	# Win: skip the manual "Continue" screen entirely (no need for a click, no
-	# jingle) - just auto-advance straight to card rewards after a short beat.
+	# Win: skip the manual "Continue" screen entirely (no need for a click) - just
+	# auto-advance straight to the rewards after a short beat. The hero's flex and the
+	# jingle (reward_flow.gd::on_win) fill that beat.
 	# A battle entered via run.gd's debug BattleButton skips the beat entirely
 	# (Global.debug_battle_entry) so debug iteration isn't stuck waiting on it -
 	# reset right away so it never leaks into the next real map-flow battle.
@@ -50,7 +52,7 @@ func show_screen(_text: String, type: Type) -> void:
 		# this auto-advance timer.
 		return
 
-	await get_tree().create_timer(WIN_AUTO_ADVANCE_DELAY).timeout
+	await get_tree().create_timer(RewardFlow.WIN_DELAY).timeout
 	Events.battle_won.emit()
 
 

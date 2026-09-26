@@ -3,6 +3,8 @@ extends Node2D
 
 var initialized= false
 const RUN_SCENE = preload("res://scenes/run/run.tscn")
+# Win -> rewards flow (see the header of reward_flow.gd).
+const RewardFlow := preload("res://scenes/battle_reward/reward_flow.gd")
 
 # --- Act 2 runtime reskin + scaling (placeholder) -------------------------
 # Act 2 recycles act-1 fights (run.gd draws them from higher act-1 pools); rather
@@ -123,6 +125,7 @@ func _ready() -> void:
     Events.stop_battle_music.connect(_on_stop_battle_music)
     Events.show_warning_message.connect(_on_show_warning_message)
     Events.player_turn_started.connect(_on_player_turn_started_dim)
+    Events.enemy_died.connect(_on_enemy_died_reward_flow)
     dice_animation_check.button_pressed = Global.testing_mode
 
     
@@ -159,6 +162,10 @@ func _player_action_ui_roots() -> Array[CanvasItem]:
 
 
 func _tween_player_action_ui(target: float) -> void:
+    # Reward flow: after the last kill the cluster is fading out for good - a turn change
+    # must not bring it back.
+    if RewardFlow.is_victory(self):
+        return
     var roots := _player_action_ui_roots()
     if roots.is_empty():
         return
@@ -375,11 +382,23 @@ func _select_music_track() -> AudioStream:
 
 
 func _on_enemies_child_order_changed() -> void:
+    # A fight freed mid-combat (the debug fight picker switching fights, a room switch) also
+    # empties the enemy handler, during its teardown and out of the tree. That is not a win.
+    # It used to run END_OF_COMBAT on the run's RelicHandler, and relics_activated reaches
+    # every battle connected to it: a fight started in the same frame then announced a WIN
+    # mid-fight and, with the reward flow, cleared its own table (measured 2026-09-24 with
+    # debug_reward_transition: the tutorial fight opened with no hand, dice or End Turn).
+    if not is_inside_tree():
+        return
     if enemy_handler.get_child_count() == 0 and is_instance_valid(relics):
         relics.activate_relics_by_type(Relic.Type.END_OF_COMBAT)
 
 
 func _on_enemy_turn_ended() -> void:
+    # Reward flow: the last enemy died during its own turn (a reflect at contact). Starting a
+    # player turn now would deal a fresh hand under the victory.
+    if RewardFlow.is_victory(self):
+        return
     player_handler.start_turn()
     enemy_handler.reset_enemy_actions()
     Events.hp_changed.emit()
@@ -404,6 +423,36 @@ func _on_relics_activated(type: Relic.Type) -> void:
             Global.is_final_boss_fight = battle_stats.resource_path.contains("leviathan")
             Events.battle_over_screen_requested.emit("Victory!", BattleOverPanel.Type.WIN)
             Events.stop_battle_music.emit()
+            RewardFlow.last_bg_material = background.material
+            # Only on a battle still in the tree with no enemy left: END_OF_COMBAT reaches every
+            # battle connected to the run's relics (see _on_enemies_child_order_changed). When
+            # a fight freed mid-combat got here, the win beat ran on the dying battle, spent the
+            # jingle, and the next reward screen (a chest) opened in silence.
+            if is_inside_tree() and get_tree().get_nodes_in_group("enemies").is_empty():
+                # Backstop: a win that never went through the last-kill hook below still gets
+                # its table cleared before the rewards open over the room (no loot, no body).
+                if not RewardFlow.is_victory(self) and not Global.game_over_state:
+                    RewardFlow.begin_victory(self, null)
+                if RewardFlow.is_victory(self):
+                    RewardFlow.on_win(self)
+
+
+# Reward flow (reward_flow.gd): the win beat starts on the frame the LAST enemy dies, while
+# its body is still dissolving. enemy_died fires before the body leaves the "enemies" group
+# (enemy.gd emits, then starts its death sequence), hence the deferred check. The tutorial
+# goes through it too: its director only owns when the rewards open.
+func _on_enemy_died_reward_flow(enemy: Enemy) -> void:
+    _check_last_kill_reward_flow.call_deferred(enemy)
+
+
+# Untyped on purpose: a typed parameter rejects an already-freed argument at the call
+# boundary (see enemy_handler.gd::_is_live).
+func _check_last_kill_reward_flow(enemy) -> void:
+    if Global.game_over_state or not is_instance_valid(enemy) or not is_inside_tree():
+        return
+    if not get_tree().get_nodes_in_group("enemies").is_empty():
+        return
+    RewardFlow.begin_victory(self, enemy)
 
 
 # Example dice face dictionary  (if not already defined elsewhere)

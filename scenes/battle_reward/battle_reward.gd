@@ -39,6 +39,30 @@ var relic_tooltip_instances_tags: Array = []
 var _relic_hover_id := 0
 
 var warning_dismissed := false
+const UNCLAIMED_WARNING := "You still have rewards to claim!"
+# Only card rows that were never opened are left (Julien, 2026-09-24: warn when the player
+# leaves "without having picked a card and not even seen what they are").
+const UNSEEN_CARDS_WARNING := "You haven't even looked at your new cards!"
+
+# Win -> rewards flow (see the header of reward_flow.gd for the numbered ideas).
+const RewardFlow := preload("res://scenes/battle_reward/reward_flow.gd")
+# Idea 1: set by run.gd::_show_reward_view BEFORE add_child when this screen is pushed over
+# the room it came from instead of replacing it.
+var over_live_room := false
+# Rows are tagged with metas: "card_row" (a card reward), "seen" (its picker was opened at
+# least once), "offer" (the three cards it rolled), "claimed", "skipped".
+var _gold_row: Control = null
+var _gold_counter_pending := false
+var _done := false
+var _leaving := false
+# Idea 8: things still flying (gold to the counter, a card to the deck, a relic to the bar,
+# the room coming back up). The screen leaves on its own once every reward is taken AND
+# this is back to 0, so the payoff is seen before the curtain.
+var _flights_in_air := 0
+const DONE_FADE_TIME := 0.25
+const DONE_ROOM_UP_TIME := 0.45
+# After the last landing, so the counter or the deck button reads before the curtain.
+const LANDING_BEAT := 0.15
 
 @export var run_stats: RunStats
 @export var character_stats: CharacterStats
@@ -54,6 +78,7 @@ var warning_dismissed := false
 @onready var audio_player: AudioStreamPlayer2D = $AudioStreamPlayer2D
 
 @onready var warning_panel: Panel = $WarningPanel
+@onready var warning_label: Label = $WarningPanel/WarningLabel
 @onready var confirm_button: Button = $WarningPanel/ConfirmButton
 @onready var gg_panel: Panel = $GGPanel
 @onready var gg_label_title: Label = $GGPanel/GGLabelTitle
@@ -80,7 +105,13 @@ func _ready() -> void:
     character_stats = preload("res://characters/warrior/warrior.tres").create_instance()
 
     audio_player.stream = load("res://success.mp3")
-    audio_player.play()
+    # Idea 4: after a fight the jingle already rang on the win beat (reward_flow.gd::on_win).
+    # Event and chest rewards have no win beat, so they still ring it here.
+    if RewardFlow.jingle_played:
+        RewardFlow.jingle_played = false
+    else:
+        audio_player.play()
+    _apply_reward_flow_backdrop()
     # Show GG panel if a boss was defeated: after the act-1 boss it becomes the
     # act-transition panel (retitled + Continue to Act 2 button), after the act-2
     # boss it stays the final "run complete" panel authored in the .tscn (plus the
@@ -122,11 +153,14 @@ func _play_entrance_sequence() -> void:
     reward_panel.modulate.a = 1.0
     _reward_entrance_index = 0
 
-    background.modulate.a = 0.0
+    # The swap fallback's background shows the same room the fight just showed, so it is
+    # opaque from the first frame: fading it in from 0 is what flashed Godot's grey clear
+    # colour. Over the live room it is hidden (_apply_reward_flow_backdrop) and only the
+    # dimmer fades in.
+    background.modulate.a = 1.0
     background_dimmer.modulate.a = 0.0
     var backdrop_tween := create_tween()
-    backdrop_tween.tween_property(background, "modulate:a", 1.0, BACKDROP_FADE_DURATION).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-    backdrop_tween.parallel().tween_property(background_dimmer, "modulate:a", 1.0, BACKDROP_FADE_DURATION).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+    backdrop_tween.tween_property(background_dimmer, "modulate:a", 1.0, BACKDROP_FADE_DURATION).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
     title_label.modulate.a = 0.0
     reward_container.modulate.a = 0.0
@@ -158,6 +192,7 @@ func _animate_reward_entrance(button: Control, index: int) -> void:
     if not is_instance_valid(button):
         return
     button.pivot_offset = button.size / 2.0
+    _reward_flow_row_entrance(button, REWARD_ENTRANCE_BASE_DELAY + index * REWARD_ENTRANCE_STAGGER)
     var tween := button.create_tween()
     tween.tween_interval(REWARD_ENTRANCE_BASE_DELAY + index * REWARD_ENTRANCE_STAGGER)
     tween.tween_property(button, "modulate:a", 1.0, REWARD_ENTRANCE_DURATION).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
@@ -168,7 +203,8 @@ func add_gold_reward(amount: int) -> void:
     gold_reward.custom_minimum_size.y = 70
     gold_reward.reward_icon = GOLD_ICON
     gold_reward.reward_text = GOLD_TEXT % amount
-    gold_reward.pressed.connect(on_gold_reward_taken.bind(amount))
+    gold_reward.pressed.connect(on_gold_reward_taken.bind(amount, gold_reward))
+    _gold_row = gold_reward
     rewards.add_child.call_deferred(gold_reward)
     _register_reward_entrance(gold_reward)
 
@@ -177,7 +213,8 @@ func add_card_reward() -> void:
     card_reward.custom_minimum_size.y = 70
     card_reward.reward_icon = CARD_ICON
     card_reward.reward_text = CARD_TEXT
-    card_reward.pressed.connect(_show_card_rewards)
+    card_reward.pressed.connect(_show_card_rewards.bind(card_reward))
+    card_reward.set_meta("card_row", true)
     rewards.add_child.call_deferred(card_reward)
     _register_reward_entrance(card_reward)
 
@@ -200,6 +237,8 @@ func add_relic_reward(relic: Relic) -> void:
 # comes next (same bug class as relic_ui.gd's, see its _exit_tree() comment).
 func _exit_tree() -> void:
     _cleanup_relic_tooltips()
+    # Leaving before the first gold coin landed must not leave the counter stale.
+    _release_gold_counter()
 
 func _cleanup_relic_tooltips() -> void:
     if relic_tooltip_instance and is_instance_valid(relic_tooltip_instance):
@@ -283,13 +322,15 @@ func _on_relic_reward_mouse_exited() -> void:
     _relic_hover_id += 1
     _cleanup_relic_tooltips()
 
-func _show_card_rewards() -> void:
+func _show_card_rewards(row: Control = null) -> void:
     if not run_stats or not character_stats:
         return
 
     var card_rewards := CARD_REWARDS.instantiate() as CardRewards
     add_child(card_rewards)
-    card_rewards.card_reward_selected.connect(_on_card_reward_taken)
+    # The row travels with the pick: an event can put two card rows on one screen
+    # (event_relic_or_cards.gd), and each one is claimed or skipped on its own.
+    card_rewards.card_reward_selected.connect(_on_card_reward_taken.bind(row))
 
     # Hide the rewards panel while the picker overlay is up - its "REWARDS" title used to
     # ghost through the picker's dimmers right behind the "Choose a card" banner. Restored
@@ -297,6 +338,15 @@ func _show_card_rewards() -> void:
     reward_panel.hide()
     # Same treatment for the RelicBar (and the Discord pin): the "Choose a card" banner renders
     # at y 102..187 and the relic row occupies y 90..126, so a late-run collection lands right
+
+    # Idea 7: each row rolls its offer ONCE and keeps it, so reopening the row after a Skip
+    # shows the same three cards. Rolling again here would turn Skip into a free reroll.
+    if is_instance_valid(row):
+        row.set_meta("seen", true)
+        if row.has_meta("offer"):
+            card_rewards.rewards = row.get_meta("offer")
+            card_rewards.show()
+            return
 
     var card_reward_array: Array[Card] = []
     var available_cards: Array[Card] = character_stats.draftable_cards.cards.duplicate(true)
@@ -319,6 +369,8 @@ func _show_card_rewards() -> void:
             card_reward_array.append(_resolve_reward_card(picked_card))
 
     Global.force_upgraded_card_rewards = false
+    if is_instance_valid(row):
+        row.set_meta("offer", card_reward_array)
     card_rewards.rewards = card_reward_array
     card_rewards.show()
 
@@ -353,51 +405,112 @@ func _rarity_source() -> CardRarityDraw.Source:
             return CardRarityDraw.Source.NORMAL
 
 
-func _on_card_reward_taken(card: Card) -> void:
-    # Before the null guard - the panel and the HUD must come back on skip too.
-    reward_panel.show()
+func _on_card_reward_taken(card: Card, row: Control = null) -> void:
+    # Before the null guard - the panel must come back on skip too. Not after the LAST pick:
+    # the screen is leaving (idea 8), and the panel would only pop back to fade out again.
+    var last_pick := card != null and is_instance_valid(row) and not row.has_meta("claimed") \
+        and _unclaimed_rows(true) == 1
+    if not last_pick:
+        reward_panel.show()
+    if card:
+        # The pick is still flying to the deck button (card_rewards.gd::_launch_pick_flight).
+        _track_flight(CardRewards.FLIGHT_TIME)
+    # Idea 7: a picked card takes its row away, a Skip leaves the row there, dimmed.
+    if is_instance_valid(row):
+        if card:
+            _claim_row(row)
+        else:
+            _mark_row_skipped(row)
     if not character_stats or not card:
         return
     print("reward taken")
     character_stats.deck.add_card(card)
     SFXPlayer.play(Global.sfx_click)
-    
+
 # source is the reward row that was clicked; the relic flies from it to the top bar so the
 # eye follows it there. Optional so any older/unbound connection still works.
 func _on_relic_reward_taken(relic: Relic, source: Control = null) -> void:
     if not relic or not relic_handler:
         return
 
+    # The row is about to fold away under the cursor, so its mouse_exited may never come.
+    _relic_hover_id += 1
+    _cleanup_relic_tooltips()
     var from_global := RelicHandler.NO_ORIGIN
     if is_instance_valid(source):
         from_global = source.get_global_rect().get_center()
+        _claim_row(source)
     relic_handler.add_relic(relic, true, from_global)
- 
-func on_gold_reward_taken(amount: int) -> void:
-    SFXPlayer.play(Global.sfx_gold_pickup)
-    Global.gold += amount  # <- This uses Global system directly
-    if run_stats:
-        run_stats.gold = Global.gold  # Sync RunStats to match
-    Events.gold_changed.emit()
+    _track_flight(RelicHandler.FLIGHT_TIME + RelicHandler.ARRIVAL_PUNCH_TIME)
+
+
+# Idea 6: the gold flies to the counter, and the counter counts when it lands.
+func on_gold_reward_taken(amount: int, row: Control = null) -> void:
+    # Laddered by amount like STS2's three gold sounds (<=30, 31-99, 100+). PLACEHOLDER: one
+    # sample, pitched, until there are three.
+    var pitch := 1.08
+    var volume := -2.0
+    if amount >= 100:
+        pitch = 0.9
+        volume = 2.0
+    elif amount > 30:
+        pitch = 1.0
+        volume = 0.0
+    SFXPlayer.play(Global.sfx_gold_pickup, false, pitch, volume)
+    # The state is true at once; only the COUNTER waits for the coins (the power-orb rule).
+    # run_stats.gold is synced later, in _release_gold_counter: its setter emits gold_changed,
+    # which is exactly what starts the counter.
+    Global.gold += amount
+    var from := get_viewport_rect().get_center()
+    if is_instance_valid(row):
+        from = (row as RewardButton).custom_icon.get_global_rect().get_center()
+        _claim_row(row)
+    _gold_counter_pending = true
+    var settle := RewardFlow.fly_gold_to_counter(get_tree(), from, amount, func(i: int) -> void: _on_gold_coin_landed(i))
+    if settle <= 0.0:
+        _release_gold_counter()
+    else:
+        _track_flight(settle)
+        # Backstop: an interrupted flight must never leave the counter stale.
+        get_tree().create_timer(1.2).timeout.connect(_release_gold_counter)
 
 
 func _on_back_button_pressed() -> void:
-    # Check if there are unclaimed rewards and warning hasn't been dismissed
+    if _done:
+        return
     if _has_unclaimed_rewards() and not warning_dismissed:
         _show_warning()
     else:
         _exit_battle_rewards()
 
+# Worth a warning: gold or a relic not taken, or a card row never even opened. A card row
+# that was opened and skipped is a choice, not something forgotten (STS2 tracks skipped
+# rewards the same way), so Continue lets it go quietly.
 func _has_unclaimed_rewards() -> bool:
-    # Check if any reward buttons still exist (unclaimed rewards)
-    return rewards.get_child_count() > 0
+    return _unclaimed_rows(false) > 0
 
 func _show_warning() -> void:
     if warning_panel:
+        warning_label.text = UNSEEN_CARDS_WARNING if _only_unseen_cards_left() else UNCLAIMED_WARNING
         warning_panel.show()
         SFXPlayer.play(Global.sfx_click)
 
+# True when everything still worth a warning is a card row nobody opened.
+func _only_unseen_cards_left() -> bool:
+    var found := false
+    for child: Node in rewards.get_children():
+        if not (child is RewardButton) or child.has_meta("claimed") or child.has_meta("skipped"):
+            continue
+        if not child.has_meta("card_row") or child.has_meta("seen"):
+            return false
+        found = true
+    return found
+
 func _exit_battle_rewards() -> void:
+    # Once: Continue and the automatic exit (idea 8) can both get here.
+    if _leaving:
+        return
+    _leaving = true
     Events.battle_reward_exited.emit()
     Events.start_map_music.emit()
 
@@ -458,3 +571,182 @@ func _on_gg_main_menu_button_pressed() -> void:
     MusicPlayer.stop()
     SFXPlayer.stop()
     get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
+
+
+# =========================================================================================
+# Win -> rewards flow (reward_flow.gd, numbered ideas in its header)
+# =========================================================================================
+
+func _apply_reward_flow_backdrop() -> void:
+    if over_live_room:
+        # Idea 1: the room itself is the backdrop, hero included.
+        background.hide()
+        background_dimmer.color.a = RewardFlow.OVERLAY_DIM
+        # The copied background used to be what swallowed clicks meant for the room below.
+        background_dimmer.mouse_filter = Control.MOUSE_FILTER_STOP
+    else:
+        # Swap fallback, no room to sit over: same framing as the fight's Sprite2D (native
+        # size, from the top-left) instead of keep-aspect-centred, so no 8% zoom-out and no
+        # grey strips on the 1373x784 hallway art, and the fight's own grade.
+        background.stretch_mode = TextureRect.STRETCH_KEEP
+        if RewardFlow.last_bg_material:
+            background.material = RewardFlow.last_bg_material
+    # Idea 4: the map music comes in under this screen once the jingle has rung out.
+    get_tree().create_timer(RewardFlow.MAP_MUSIC_DELAY).timeout.connect(_start_map_music_early)
+
+
+func _start_map_music_early() -> void:
+    if is_inside_tree():
+        Events.start_map_music.emit()
+
+
+func _reward_flow_row_entrance(button: Control, pop_delay: float) -> void:
+    var row := button as RewardButton
+    if row == null:
+        return
+    # Idea 5: the coins the last kill dropped fly into the gold row as it pops in.
+    if button == _gold_row and not RewardFlow.loot_coins.is_empty():
+        var icon := row.custom_icon
+        var target := icon.get_global_rect().get_center()
+        RewardFlow.fly_loot_to(get_tree(), target, maxf(pop_delay - 0.2, 0.0), func(i: int) -> void: _on_loot_coin_landed(icon, i))
+    # Idea 9: every boss offer is Rare (CardRarityDraw's BOSS odds row), so the row says so.
+    if button.has_meta("card_row") and reward_context == RewardContext.BOSS:
+        _apply_boss_card_row(row)
+
+
+func _on_loot_coin_landed(icon: Control, i: int) -> void:
+    RewardFlow.flash(icon, 1.5)
+    RewardFlow.play_tink(i)
+
+
+func _apply_boss_card_row(row: RewardButton) -> void:
+    row.reward_text = "Add a Rare Card"
+    var normal := row.get_theme_stylebox("normal") as StyleBoxFlat
+    if normal != null:
+        var rim := normal.duplicate() as StyleBoxFlat
+        rim.border_color = Color(0.96, 0.78, 0.28, 1.0)
+        rim.set_border_width_all(3)
+        rim.shadow_color = Color(0.96, 0.75, 0.25, 0.35)
+        rim.shadow_size = 8
+        row.add_theme_stylebox_override("normal", rim)
+    var hover := row.get_theme_stylebox("hover") as StyleBoxFlat
+    if hover != null:
+        var rim_hover := hover.duplicate() as StyleBoxFlat
+        rim_hover.set_border_width_all(3)
+        rim_hover.shadow_size = 12
+        row.add_theme_stylebox_override("hover", rim_hover)
+    row.custom_text.add_theme_color_override("font_color", Color(1.0, 0.86, 0.45))
+
+
+func _on_gold_coin_landed(i: int) -> void:
+    _release_gold_counter()
+    RewardFlow.flash(RewardFlow.gold_counter_icon(get_tree()), 1.45)
+    RewardFlow.play_tink(i)
+
+
+func _release_gold_counter() -> void:
+    if not _gold_counter_pending:
+        return
+    _gold_counter_pending = false
+    if run_stats:
+        # RunStats.set_gold emits gold_changed itself.
+        run_stats.gold = Global.gold
+    else:
+        Events.gold_changed.emit()
+
+
+func _claim_row(row: Control) -> void:
+    if row.has_meta("claimed"):
+        return
+    row.set_meta("claimed", true)
+    # IGNORE rather than disabled: a disabled Button draws the theme's default disabled box
+    # (a pinkish plate) for the length of the fade.
+    row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    # Idea 6: the row folds away so the rows below slide up instead of snapping.
+    var fade := row.create_tween()
+    fade.tween_property(row, "modulate:a", 0.0, 0.14).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+    fade.tween_callback(_swap_row_for_spacer.bind(row))
+    # The last reward starts the exit right away, while it is still flying (idea 8). Waiting
+    # for the fold would leave an empty panel on screen for a moment.
+    _check_done_state()
+
+
+# A container never shrinks a child below its content's minimum size, so the faded row is
+# swapped for an empty spacer of the same height, and the SPACER shrinks.
+func _swap_row_for_spacer(row: Control) -> void:
+    if not is_instance_valid(row):
+        return
+    var parent := row.get_parent()
+    var spacer := Control.new()
+    spacer.custom_minimum_size = Vector2(0.0, row.size.y)
+    spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    parent.add_child(spacer)
+    parent.move_child(spacer, row.get_index())
+    parent.remove_child(row)
+    row.queue_free()
+    var shrink := spacer.create_tween()
+    shrink.tween_property(spacer, "custom_minimum_size:y", 0.0, 0.2).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+    shrink.tween_callback(spacer.queue_free)
+    shrink.tween_callback(_check_done_state)
+
+
+func _mark_row_skipped(row: Control) -> void:
+    row.set_meta("skipped", true)
+    row.modulate = Color(0.6, 0.6, 0.6, 1.0)
+    _check_done_state()
+
+
+# Rows still worth a warning: not claimed, and (unless include_skipped) not skipped.
+func _unclaimed_rows(include_skipped: bool) -> int:
+    var n := 0
+    for child: Node in rewards.get_children():
+        if not (child is RewardButton) or child.has_meta("claimed"):
+            continue
+        if child.has_meta("skipped") and not include_skipped:
+            continue
+        n += 1
+    return n
+
+
+# Idea 8: nothing left to take, so the screen leaves on its own (Julien, 2026-09-24: "we
+# don't need the continue button to stay; if you picked every reward, we can move on").
+# The panel fades and the room comes back up (STS2: window fades 0.25s, backstop hides),
+# then it leaves the way Continue does, once nothing is still flying. Rows that were only
+# skipped keep the screen open, with Continue pulsing.
+func _check_done_state() -> void:
+    if _done:
+        return
+    if _unclaimed_rows(true) == 0:
+        _enter_done_state()
+    elif _unclaimed_rows(false) == 0:
+        # Only skipped rows left: nothing to warn about, so point at Continue.
+        RewardFlow.attach_pulse_ring(back_button)
+
+
+func _enter_done_state() -> void:
+    _done = true
+    # Continue has nothing left to do: it fades with the panel and stops taking clicks.
+    # IGNORE rather than disabled, for the same pinkish-box reason as a claimed row.
+    back_button.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    var dim_target := 0.0 if over_live_room else 0.6
+    var t := create_tween().set_parallel(true)
+    t.tween_property(title_label, "modulate:a", 0.0, DONE_FADE_TIME).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+    t.tween_property(reward_container, "modulate:a", 0.0, DONE_FADE_TIME).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+    t.tween_property(back_button, "modulate:a", 0.0, DONE_FADE_TIME).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+    t.tween_property(background_dimmer, "modulate:a", dim_target, DONE_ROOM_UP_TIME).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+    # The room coming back up is waited on like one more flight.
+    _track_flight(DONE_ROOM_UP_TIME)
+
+
+# Game-time timers, not wall-clock: they stay in step with the tweens they wait for. And NOT
+# process_always (create_timer's default): opening the map or the pause menu right after the
+# last reward pauses the tree, and the exit must wait for it instead of firing behind it.
+func _track_flight(seconds: float) -> void:
+    _flights_in_air += 1
+    get_tree().create_timer(seconds + LANDING_BEAT, false).timeout.connect(_on_flight_landed)
+
+
+func _on_flight_landed() -> void:
+    _flights_in_air -= 1
+    if _done and _flights_in_air <= 0:
+        _exit_battle_rewards()
